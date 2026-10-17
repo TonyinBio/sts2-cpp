@@ -1,0 +1,3 @@
+[submodule "sts2-cli"]
+	path = sts2-cli
+	url = https://github.com/wuhao21/sts2-cli.git
