@@ -1,0 +1,68 @@
+# sts2-simulator
+
+A headless C++20 Slay the Spire 2 simulator for high-throughput AI search and simulation.
+
+This repository currently contains a buildable scaffold, not a faithful game implementation.
+The demo supports one enemy, attack/block cards, energy, hand removal, turn progression,
+and victory/defeat. Each turn refills a fixed hand; draw/discard piles, enemy AI,
+relics, powers, and game-compatible RNG are not implemented.
+
+## Build and run
+
+Requires a C++20 compiler, CMake 3.20+, Make, and Git.
+With testing enabled (the default), the first configure fetches GoogleTest v1.17.0
+from GitHub and requires network access.
+
+```sh
+cmake --preset debug
+cmake --build --preset debug
+ctest --preset debug
+./build/debug/sts2_cli
+
+cmake --preset release
+cmake --build --preset release
+ctest --preset release
+./build/release/simulation_benchmark
+```
+
+The benchmark measures the tiny scaffold combat only, not full-game throughput.
+Combat state is trivially copyable and transitions use fixed-capacity storage without
+heap allocation. The simulator library has no runtime dependency on sts2-cli.
+
+## Tests
+
+Tests use GoogleTest and are individually registered with CTest under the `unit` label.
+The test framework links only into test executables.
+
+```sh
+ctest --preset debug -L unit
+./build/debug/simulator_test --gtest_filter='RngTest.*'
+```
+
+For an offline build, provide a local GoogleTest v1.17.0 checkout during configure:
+`cmake --preset debug -DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=/path/to/googletest`.
+To build without tests or downloading GoogleTest, configure with `-DBUILD_TESTING=OFF`.
+
+## Correctness reference
+
+`sts2-cli/` is a pinned submodule wrapping the game engine. Initialize it with:
+
+```sh
+git submodule update --init --recursive
+```
+
+Running the reference requires a local game installation and its own setup; see
+[sts2-cli setup](sts2-cli/README.md). It is not needed to build the C++ scaffold.
+
+Planned differential tests will export complete combat snapshots from the reference,
+apply matching actions in both engines, and compare state at matching decision points.
+First capture and replay random choices, checking choice kinds and candidate identities.
+Then test exact RNG compatibility separately: algorithm, seed conversion, independent
+streams, call ordering, and shuffling. Matching seeds alone does not establish parity.
+Pin the reference revision and game version in captured fixtures.
+
+`rng.hpp` provides a reproducible local SplitMix64 generator for experiments. It is
+not used by the current deterministic demo and does not claim game RNG compatibility.
+
+The installed-DLL state-access check and its verified scope are documented in
+[Oracle state access](docs/oracle-state-access.md).
