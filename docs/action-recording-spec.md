@@ -1,18 +1,32 @@
-# Action recordings, version 1
+# Action Recording Specification
+
+| Attribute | Value |
+| --- | --- |
+| Status | Implemented; support is limited to the scope below |
+| Profile / reference | `actions-v1` |
+| Scope | Combat initialization, ordered player decisions, and result association. |
+
+## Document conventions
+
+Requirements use **must**, **must not**, or imperative instructions. Examples and
+execution procedures are informative. Verification evidence describes observed behavior
+and does not extend the supported scope.
+
+## Purpose
 
 An action recording is a JSON document describing how to initialize one combat and
 which player decisions to execute, in order. It contains no expected states. See
 `tests/parity/schema/actions-v1.json`, `ActionRecording` in `tests/parity/recording.hpp`,
 and `tests/parity/examples/starter.actions.json`.
 
-Resulting states use the existing [combat-v1 format](combat-state-format.md),
+Resulting states use the existing [combat-v1 format](combat-state-spec.md),
 validated by `Snapshot::parse`. This action schema does not change or duplicate it.
 The example is executable with the reference recorder; its captured output lives in
 `tests/parity/fixtures/starter.states.json`. It is not paired with the synthetic
 `starter.json` state example. The extra feature `ironclad_starter_shrinker_v1` declares
 the recorder's audited encounter, powers, and counter conventions.
 
-## Envelope and initialization
+## Envelope and initialization requirements
 
 ```json
 {
@@ -56,7 +70,7 @@ through normal map progression. It is separate from replayed combat actions. No 
 save paths, arbitrary protocol commands, snapshot loading, deck editing, or implicit
 seed generation are supported by this first profile.
 
-## Player decisions
+## Action definitions and execution requirements
 
 | Kind | Fields in addition to `kind` | Meaning |
 | --- | --- | --- |
@@ -90,7 +104,7 @@ Runners resolve identities to protocol indices immediately before each action. F
 encoding belongs in its adapter, not this format. Random results are generated from
 engine RNG state; they are not player actions or alternate actions chosen by the runner.
 
-## Result files
+## Result recording requirements
 
 Keep action input and state output in separate files. The `states-v1` envelope is
 defined in `tests/parity/schema/states-v1.json` and validated with the existing C++
@@ -112,13 +126,14 @@ Do not present partial results as passing reference data or overwrite a good res
 on failure. Verify provenance and action-file digest before comparison.
 
 The reference runner and scoped exporter are implemented in `tools/oracle/record.py`
-and `RecordingSession.cs`; see [Running the oracle recorder](oracle-recording.md).
+and `RecordingSession.cs`; see [Running the oracle recorder](oracle-recording-spec.md).
 The current exporter supports `play_card` and `end_turn` in the audited starter encounter.
 Selection actions remain part of actions-v1 but are explicitly rejected by this exporter.
-C++ simulator import/replay and comparison against these reference sequences remain
-subsequent work; the placeholder simulator does not support this complete combat state.
+The C++ `parity_replay` runner imports the initial snapshot, replays supported actions,
+and compares each resulting state against these reference sequences. Support is limited
+to the audited starter encounter profile.
 
-## Validation
+## Validation and conformance
 
 Unknown fields, missing required fields, unsupported versions/profiles/actions, null
 collections, duplicate action IDs, duplicate selected cards, and unsupported feature

@@ -1,14 +1,30 @@
-# Shared combat state format, version 1
+# Combat State Specification
+
+| Attribute | Value |
+| --- | --- |
+| Status | Implemented; support is limited to the scope below |
+| Profile / reference | `combat-v1` |
+| Scope | Canonical combat snapshots and exact comparison. |
+
+## Document conventions
+
+Requirements use **must**, **must not**, or imperative instructions. Examples and
+execution procedures are informative. Verification evidence describes observed behavior
+and does not extend the supported scope.
+
+## Purpose
 
 Both the reference adapter and simulator adapter must export the same canonical combat
 representation. The schema is `tests/parity/schema/combat-v1.json`; its validated C++
 representation is `sts2::parity::Snapshot` in `tests/parity/snapshot.hpp`.
 
-This establishes the representation and offline comparison rules. Neither engine is
-mapped into it yet. `tests/parity/examples/starter.json` is synthetic schema example
-data, not a captured reference fixture or evidence of simulator/game parity.
+This specifies the representation and offline comparison rules. The reference recorder
+and C++ simulator adapters implement the audited starter encounter profile; see
+[the oracle recording specification](oracle-recording-spec.md) for its scope.
+`tests/parity/examples/starter.json` is synthetic schema example data, not a captured
+reference fixture or evidence of simulator/game parity.
 
-## Scope and compatibility
+## Scope and compatibility requirements
 
 `schema_version: 1`, `profile: "combat-v1"` describes single-player combat at decision
 boundaries. Its RNG stream catalog matches the locally inspected v0.111.0 DLL.
@@ -29,7 +45,7 @@ must be present explicitly. Integer game values use signed 64-bit integers, not 
 Breaking field/semantic changes require a new version or profile; never silently drop
 state to make a comparison pass.
 
-## Decision boundaries
+## Decision boundary requirements
 
 - `player_action`: all effects from the previous action have settled and the player can
   submit a new normal combat action. `active_side` must be `player`, outcome `ongoing`.
@@ -41,7 +57,7 @@ A command acknowledgment is not proof of completion. Each adapter is responsible
 establishing one of these boundaries. A selection can pause during either side's effects.
 No-selection boundaries require `{ "kind": "none", "options": [], "min": 0, "max": 0 }`.
 
-## State fields
+## State representation requirements
 
 | Group | Required representation |
 | --- | --- |
@@ -74,7 +90,7 @@ are rejected. Standard schema tooling needs our `uint64-decimal` format check fo
 that upper bound; the C++ validator enforces it. Compare all stream states exactly,
 including streams not used by the last action.
 
-## Object IDs and ordering rules
+## Identity, ordering, and comparison requirements
 
 Use unlocalized model IDs such as `CARD.STRIKE_IRONCLAD`. Adapters map simulator enums
 and reference `ModelId`s explicitly. No localized names/descriptions, timestamps, object
@@ -100,10 +116,10 @@ JSON object key order is immaterial. Comparisons otherwise use exact values and 
 JSON Pointer paths, expected values, and actual values. Missing keyed counters are
 reported explicitly, with JSON null representing absence in the difference report.
 
-## Recording envelope and action mapping
+## Recording and replay requirements
 
 Snapshot JSON describes state, not its provenance. Store action inputs in a separate
-[actions-v1 recording](action-recording-format.md). [states-v1 result files](oracle-recording.md) record its
+[actions-v1 recording](action-recording-spec.md). [states-v1 result files](oracle-recording-spec.md) record its
 identity and digest, reference revision, game DLL hash, adapter identity, an initial
 snapshot including RNG state, and snapshots keyed by action ID. Verify these identities
 before replay. Keep incompatible game builds in separate fixture sets.
@@ -122,11 +138,11 @@ Actions must refer to the recording's stable identities, for example:
 
 Adapters resolve identities to current protocol indices immediately before executing.
 End-turn has no card or target. Selections reference the advertised options. Reject
-unknown identities or unavailable actions. The [actions-v1 envelope](action-recording-format.md) is defined separately.
-The replay runner remains subsequent work; actions are not accepted as fields in a
-version-1 snapshot.
+unknown identities or unavailable actions. The [actions-v1 envelope](action-recording-spec.md) is defined separately.
+The `parity_replay` runner consumes separate action and result files; actions must not
+be accepted as fields in a version-1 snapshot.
 
-## Tests and diagnostics
+## Validation and conformance
 
 Run the combat state tests without installed game DLLs:
 
@@ -136,9 +152,9 @@ cmake --build --preset debug
 ctest --preset debug -L combat_state
 ```
 
-The comparator returns all differing fields at one boundary. A future replay runner
-should stop at the first divergent boundary and prefix those differences with fixture
-ID, action index/description, and boundary. Invalid snapshots fail before comparison;
+The comparator returns all differing fields at one boundary. The replay runner must
+stop at the first divergent boundary and prefix those differences with fixture ID,
+action index/description, and boundary. Invalid snapshots fail before comparison;
 validation failures must never be reported as a passing fixture or skipped test.
 
 Passing reference fixtures are evidence of simulator accuracy for their scenarios and

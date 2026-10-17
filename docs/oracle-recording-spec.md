@@ -1,11 +1,26 @@
-# Running the oracle recorder
+# Oracle Recording Specification
+
+| Attribute | Value |
+| --- | --- |
+| Status | Implemented; support is limited to the scope below |
+| Profile / reference | `states-v1 / ironclad_starter_shrinker_v1` |
+| Scope | Reference recorder behavior and result envelopes for the audited combat profile. |
+
+## Document conventions
+
+Requirements use **must**, **must not**, or imperative instructions. Examples and
+execution procedures are informative. Verification evidence describes observed behavior
+and does not extend the supported scope.
+
+## Purpose
 
 The recorder runs an actions-v1 file through a temporary extended build of sts2-cli
 and writes a separate states-v1 file containing the initial combat-v1 snapshot and
 one resulting snapshot per action. C++ validates the input, every exported snapshot,
-and the completed result envelope. It does not yet replay these states in the simulator.
+and the completed result envelope. The separate C++ `parity_replay` runner replays supported actions and compares the
+resulting simulator states against the recorded snapshots.
 
-## Build and record
+## Execution procedure
 
 Requires Python 3.10+, Linux .NET 9 SDK, the initialized sts2-cli submodule, and a local
 game installation. Build the C++ validation executable first:
@@ -30,7 +45,10 @@ equality of snapshots and runtime identity before publishing. The recorder never
 player decisions. The checked-in victory action sequence is another runnable input:
 `tests/parity/fixtures/ironclad-shrinker-victory.actions.json`.
 
-A typical result has this structure:
+## Result envelope requirements
+
+The result must conform to `tests/parity/schema/states-v1.json` and contain
+the following structure:
 
 ```text
 schema_version: 1
@@ -51,6 +69,8 @@ copied dependency DLLs. No timestamps or temporary paths appear in the result.
 The caller must verify the input digest when consuming a result; the envelope parser
 checks its shape but has no action-file bytes with which to recompute it.
 
+## Failure handling and output requirements
+
 Logs are retained next to the output in `<output-name>.logs/`: build output and separate
 stdout/stderr transcripts per process. Engine stdout diagnostics are retained but not
 confused with protocol responses. Malformed JSON responses, mismatched request IDs,
@@ -66,7 +86,7 @@ native game saves. The adapter's existing Godot stubs and runtime patches remain
 Recording mode bypasses normal UI-state construction and reward generation, so terminal
 RNG states describe combat completion before rewards are generated.
 
-## Initial supported scope
+## Supported build and feature requirements
 
 The runner accepts only the audited original DLL SHA-256
 `0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9`
@@ -90,7 +110,7 @@ starter loadout cannot produce a selection, so expanding that coverage requires 
 audited scenario and, where needed, extending setup. The runner fails instead of
 fabricating selection state or claiming support.
 
-## Identity and counter conventions
+## Identity and counter requirements
 
 At initial export, assign `card_0` onward by hand, draw, discard, exhaust, then playing
 pile enumeration, retaining these identities as cards move. Keep the card inventory in
@@ -120,7 +140,7 @@ its move rolling uses the canonical run MonsterAi stream.
 excluding an unperformed current intent. The exporter preserves the original machine
 reference so death/removal cannot erase this history before terminal export.
 
-## Boundaries and limits
+## Boundary requirements and limitations
 
 For ongoing combat, the adapter requires player Play phase, player side, no running
 executor/action, no monster performing a move, and no pending selector/reward/bundle.
@@ -133,11 +153,11 @@ These differences reflect the inspected DLL behavior; a C++ adapter must use the
 boundary convention. Rewards are outside this snapshot scope.
 
 This is evidence for the supported reference scenarios, not proof that all sts2-cli
-patches match the running Godot game. Arbitrary snapshot loading and C++ engine replay
-remain unimplemented. Extending scope requires inspecting state dependencies, adding
+patches match the running Godot game. Arbitrary reference snapshot loading remains unimplemented. C++ engine replay is
+supported for the audited starter encounter profile. Extending scope requires inspecting state dependencies, adding
 exporters/guards, and adding reference fixtures before changing the feature definition.
 
-## Validation performed
+## Verification evidence
 
 Live same-input repeat runs cover defend, attack, Bash/Vulnerable, Shrink, reshuffle,
 victory with healing/cleanup, and defeat. Invalid runtime card identity fails without

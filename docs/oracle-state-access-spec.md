@@ -1,10 +1,24 @@
-# Oracle state-access probe
+# Oracle State Access Probe Specification
+
+| Attribute | Value |
+| --- | --- |
+| Status | Verified probe; evidence is limited to the build and scenario below |
+| Profile / reference | `v0.111.0 probe` |
+| Scope | State-access probe procedure, acceptance evidence, and verified limits. |
+
+## Document conventions
+
+Requirements use **must**, **must not**, or imperative instructions. Examples and
+execution procedures are informative. Verification evidence describes observed behavior
+and does not extend the supported scope.
+
+## Purpose
 
 The local check on October 17, 2026 confirmed that an extended `sts2-cli` can export
 ordered combat piles and serialized RNG state from the installed game DLL. A replacement
 submodule is not necessary for this access.
 
-## Reproduce
+## Execution procedure
 
 Requires Python 3, a Linux .NET 9 SDK, the initialized `sts2-cli` submodule, and a
 local game installation. Run from the repository root in WSL:
@@ -24,7 +38,7 @@ copies are removed when the script exits. No game DLLs are checked into this rep
 The probe copies original DLLs without applying setup.sh IL patches; the adapter's
 existing Godot stubs and runtime patches are still active.
 
-## Verified build
+## Verified reference build
 
 - Game: v0.111.0, commit `41cef1ea`, Windows x86_64 managed DLL under Linux .NET.
 - Reference: `084d1aa3d8e118ca7ce8d8774ad16d6be9c92367`.
@@ -35,7 +49,7 @@ existing Godot stubs and runtime patches are still active.
 The generated report records the actual DLL hash, assembly MVID, reference revision,
 release metadata when present, commands, and snapshots for subsequent checks.
 
-## Evidence
+## Verification evidence
 
 Seed `ORACLECHECK01`, Ironclad, encounter `SHRINKER_BEETLE_WEAK`, snapshots at player
 play phase in rounds 1–3:
@@ -63,7 +77,7 @@ Player streams: Rewards, Shops, Transformations.
 Use integer-safe parsing for the state words: JavaScript numbers cannot exactly
 represent every 64-bit integer. Python integers and C++ uint64_t can.
 
-## Limits and next implementation
+## Limitations and exporter requirements
 
 This is a targeted accessibility check, not a complete combat snapshot format or a
 proof that the headless adapter matches the running Godot game. In particular:
