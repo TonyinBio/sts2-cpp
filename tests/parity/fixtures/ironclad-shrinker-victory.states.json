@@ -1,0 +1,3222 @@
+{
+  "schema_version": 1,
+  "profile": "states-v1",
+  "recording_id": "ironclad-shrinker-victory",
+  "actions_sha256": "beaf98ae0f34df284828744ad72a42b2e5c1ee2a95cfdc52c232c72fb22b7b42",
+  "reference": {
+    "revision": "084d1aa3d8e118ca7ce8d8774ad16d6be9c92367",
+    "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+    "adapter_sha256": "cc33fa7a835ffc2441fa94a7fe78533f42f3a900d92cdb23002519d061553546",
+    "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e",
+    "runtime_version": "9.0.4"
+  },
+  "initial": {
+    "schema_version": 1,
+    "profile": "combat-v1",
+    "required_features": [
+      "basic_combat",
+      "ironclad_starter_shrinker_v1"
+    ],
+    "boundary": "player_action",
+    "combat": {
+      "round": 1,
+      "active_side": "player",
+      "outcome": "ongoing"
+    },
+    "player": {
+      "instance_id": "player_0",
+      "model_id": "CHARACTER.IRONCLAD",
+      "hp": 80,
+      "max_hp": 80,
+      "block": 0,
+      "energy": 3,
+      "max_energy": 3,
+      "powers": [],
+      "counters": {
+        "turn_number": 1
+      },
+      "relics": [
+        {
+          "instance_id": "relic_0",
+          "model_id": "RELIC.BURNING_BLOOD",
+          "counters": {}
+        }
+      ]
+    },
+    "enemies": [
+      {
+        "instance_id": "enemy_0",
+        "model_id": "MONSTER.SHRINKER_BEETLE",
+        "hp": 38,
+        "max_hp": 38,
+        "block": 0,
+        "powers": [],
+        "counters": {
+          "performed_first_move": 0,
+          "performed_move:SHRINKER_MOVE": 0,
+          "performed_move:CHOMP_MOVE": 0,
+          "performed_move:STOMP_MOVE": 0
+        },
+        "move_id": "SHRINKER_MOVE",
+        "move_history": []
+      }
+    ],
+    "cards": [
+      {
+        "instance_id": "card_0",
+        "model_id": "CARD.DEFEND_IRONCLAD",
+        "upgrade_level": 0,
+        "cost": {
+          "kind": "fixed",
+          "amount": 1
+        },
+        "flags": [],
+        "counters": {
+          "current_play_index": 0
+        }
+      },
+      {
+        "instance_id": "card_1",
+        "model_id": "CARD.DEFEND_IRONCLAD",
+        "upgrade_level": 0,
+        "cost": {
+          "kind": "fixed",
+          "amount": 1
+        },
+        "flags": [],
+        "counters": {
+          "current_play_index": 0
+        }
+      },
+      {
+        "instance_id": "card_2",
+        "model_id": "CARD.STRIKE_IRONCLAD",
+        "upgrade_level": 0,
+        "cost": {
+          "kind": "fixed",
+          "amount": 1
+        },
+        "flags": [],
+        "counters": {
+          "current_play_index": 0
+        }
+      },
+      {
+        "instance_id": "card_3",
+        "model_id": "CARD.STRIKE_IRONCLAD",
+        "upgrade_level": 0,
+        "cost": {
+          "kind": "fixed",
+          "amount": 1
+        },
+        "flags": [],
+        "counters": {
+          "current_play_index": 0
+        }
+      },
+      {
+        "instance_id": "card_4",
+        "model_id": "CARD.STRIKE_IRONCLAD",
+        "upgrade_level": 0,
+        "cost": {
+          "kind": "fixed",
+          "amount": 1
+        },
+        "flags": [],
+        "counters": {
+          "current_play_index": 0
+        }
+      },
+      {
+        "instance_id": "card_5",
+        "model_id": "CARD.DEFEND_IRONCLAD",
+        "upgrade_level": 0,
+        "cost": {
+          "kind": "fixed",
+          "amount": 1
+        },
+        "flags": [],
+        "counters": {
+          "current_play_index": 0
+        }
+      },
+      {
+        "instance_id": "card_6",
+        "model_id": "CARD.STRIKE_IRONCLAD",
+        "upgrade_level": 0,
+        "cost": {
+          "kind": "fixed",
+          "amount": 1
+        },
+        "flags": [],
+        "counters": {
+          "current_play_index": 0
+        }
+      },
+      {
+        "instance_id": "card_7",
+        "model_id": "CARD.STRIKE_IRONCLAD",
+        "upgrade_level": 0,
+        "cost": {
+          "kind": "fixed",
+          "amount": 1
+        },
+        "flags": [],
+        "counters": {
+          "current_play_index": 0
+        }
+      },
+      {
+        "instance_id": "card_8",
+        "model_id": "CARD.BASH",
+        "upgrade_level": 0,
+        "cost": {
+          "kind": "fixed",
+          "amount": 2
+        },
+        "flags": [],
+        "counters": {
+          "current_play_index": 0
+        }
+      },
+      {
+        "instance_id": "card_9",
+        "model_id": "CARD.DEFEND_IRONCLAD",
+        "upgrade_level": 0,
+        "cost": {
+          "kind": "fixed",
+          "amount": 1
+        },
+        "flags": [],
+        "counters": {
+          "current_play_index": 0
+        }
+      }
+    ],
+    "piles": {
+      "hand": [
+        "card_0",
+        "card_1",
+        "card_2",
+        "card_3",
+        "card_4"
+      ],
+      "draw": [
+        "card_5",
+        "card_6",
+        "card_7",
+        "card_8",
+        "card_9"
+      ],
+      "discard": [],
+      "exhaust": [],
+      "playing": []
+    },
+    "selection": {
+      "kind": "none",
+      "options": [],
+      "min": 0,
+      "max": 0
+    },
+    "randomness": {
+      "run": {
+        "UpFront": {
+          "counter": 410,
+          "s0": "2000960492209210252",
+          "s1": "96477177376427677",
+          "s2": "14033106304074879791",
+          "s3": "9113333400340395212"
+        },
+        "Shuffle": {
+          "counter": 9,
+          "s0": "8401831493529618089",
+          "s1": "11781252065975760087",
+          "s2": "3119631822218663383",
+          "s3": "2312853584350164654"
+        },
+        "UnknownMapPoint": {
+          "counter": 0,
+          "s0": "8310726394512105608",
+          "s1": "9718970466057090523",
+          "s2": "9636229776839388113",
+          "s3": "12594330982754968415"
+        },
+        "CombatCardGeneration": {
+          "counter": 0,
+          "s0": "10373249285325714200",
+          "s1": "4016902989836182304",
+          "s2": "16417089721001298760",
+          "s3": "1573753686514981938"
+        },
+        "CombatPotionGeneration": {
+          "counter": 0,
+          "s0": "5132712856919322768",
+          "s1": "6172608428903701061",
+          "s2": "10612721468863364719",
+          "s3": "1634123690666908185"
+        },
+        "CombatCardSelection": {
+          "counter": 0,
+          "s0": "7447254483650032516",
+          "s1": "6916826662762419135",
+          "s2": "7986148375070495618",
+          "s3": "4937393443106231267"
+        },
+        "CombatEnergyCosts": {
+          "counter": 0,
+          "s0": "398630420289713215",
+          "s1": "16299208766551063735",
+          "s2": "3046623676558950115",
+          "s3": "17501011783288399122"
+        },
+        "CombatTargets": {
+          "counter": 0,
+          "s0": "16173549357833075534",
+          "s1": "4898503744988177191",
+          "s2": "15996599129028422937",
+          "s3": "11567520816301978068"
+        },
+        "MonsterAi": {
+          "counter": 0,
+          "s0": "6166115589708388621",
+          "s1": "7084068799045532450",
+          "s2": "7932181269741349599",
+          "s3": "2241326010048570463"
+        },
+        "Niche": {
+          "counter": 1,
+          "s0": "1340423474940320099",
+          "s1": "6165839142583612771",
+          "s2": "14436496084572713993",
+          "s3": "17804689953568683711"
+        },
+        "CombatOrbs": {
+          "counter": 0,
+          "s0": "13743007736033500473",
+          "s1": "17002173119099188015",
+          "s2": "14730217885736291111",
+          "s3": "12428073731954856901"
+        },
+        "TreasureRoomRelics": {
+          "counter": 0,
+          "s0": "17933276112591690834",
+          "s1": "4473670773895993594",
+          "s2": "11546420348183200946",
+          "s3": "7538898261853108704"
+        }
+      },
+      "player": {
+        "Rewards": {
+          "counter": 0,
+          "s0": "16296894266060830145",
+          "s1": "2052479417283341569",
+          "s2": "16230037008769343105",
+          "s3": "6210257532015951469"
+        },
+        "Shops": {
+          "counter": 0,
+          "s0": "2787478577122285552",
+          "s1": "4075712149603626743",
+          "s2": "17119809210669134021",
+          "s3": "10419188313528239783"
+        },
+        "Transformations": {
+          "counter": 0,
+          "s0": "9958864607236611668",
+          "s1": "5332877306679563644",
+          "s2": "10969762202592681438",
+          "s3": "11553870315015389399"
+        }
+      }
+    }
+  },
+  "transitions": [
+    {
+      "action_id": "decision-001",
+      "state": {
+        "schema_version": 1,
+        "profile": "combat-v1",
+        "required_features": [
+          "basic_combat",
+          "ironclad_starter_shrinker_v1"
+        ],
+        "boundary": "player_action",
+        "combat": {
+          "round": 1,
+          "active_side": "player",
+          "outcome": "ongoing"
+        },
+        "player": {
+          "instance_id": "player_0",
+          "model_id": "CHARACTER.IRONCLAD",
+          "hp": 80,
+          "max_hp": 80,
+          "block": 0,
+          "energy": 2,
+          "max_energy": 3,
+          "powers": [],
+          "counters": {
+            "turn_number": 1
+          },
+          "relics": [
+            {
+              "instance_id": "relic_0",
+              "model_id": "RELIC.BURNING_BLOOD",
+              "counters": {}
+            }
+          ]
+        },
+        "enemies": [
+          {
+            "instance_id": "enemy_0",
+            "model_id": "MONSTER.SHRINKER_BEETLE",
+            "hp": 32,
+            "max_hp": 38,
+            "block": 0,
+            "powers": [],
+            "counters": {
+              "performed_first_move": 0,
+              "performed_move:SHRINKER_MOVE": 0,
+              "performed_move:CHOMP_MOVE": 0,
+              "performed_move:STOMP_MOVE": 0
+            },
+            "move_id": "SHRINKER_MOVE",
+            "move_history": []
+          }
+        ],
+        "cards": [
+          {
+            "instance_id": "card_0",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_1",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_2",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_3",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_4",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_5",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_6",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_7",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_8",
+            "model_id": "CARD.BASH",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 2
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_9",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          }
+        ],
+        "piles": {
+          "hand": [
+            "card_0",
+            "card_1",
+            "card_3",
+            "card_4"
+          ],
+          "draw": [
+            "card_5",
+            "card_6",
+            "card_7",
+            "card_8",
+            "card_9"
+          ],
+          "discard": [
+            "card_2"
+          ],
+          "exhaust": [],
+          "playing": []
+        },
+        "selection": {
+          "kind": "none",
+          "options": [],
+          "min": 0,
+          "max": 0
+        },
+        "randomness": {
+          "run": {
+            "UpFront": {
+              "counter": 410,
+              "s0": "2000960492209210252",
+              "s1": "96477177376427677",
+              "s2": "14033106304074879791",
+              "s3": "9113333400340395212"
+            },
+            "Shuffle": {
+              "counter": 9,
+              "s0": "8401831493529618089",
+              "s1": "11781252065975760087",
+              "s2": "3119631822218663383",
+              "s3": "2312853584350164654"
+            },
+            "UnknownMapPoint": {
+              "counter": 0,
+              "s0": "8310726394512105608",
+              "s1": "9718970466057090523",
+              "s2": "9636229776839388113",
+              "s3": "12594330982754968415"
+            },
+            "CombatCardGeneration": {
+              "counter": 0,
+              "s0": "10373249285325714200",
+              "s1": "4016902989836182304",
+              "s2": "16417089721001298760",
+              "s3": "1573753686514981938"
+            },
+            "CombatPotionGeneration": {
+              "counter": 0,
+              "s0": "5132712856919322768",
+              "s1": "6172608428903701061",
+              "s2": "10612721468863364719",
+              "s3": "1634123690666908185"
+            },
+            "CombatCardSelection": {
+              "counter": 0,
+              "s0": "7447254483650032516",
+              "s1": "6916826662762419135",
+              "s2": "7986148375070495618",
+              "s3": "4937393443106231267"
+            },
+            "CombatEnergyCosts": {
+              "counter": 0,
+              "s0": "398630420289713215",
+              "s1": "16299208766551063735",
+              "s2": "3046623676558950115",
+              "s3": "17501011783288399122"
+            },
+            "CombatTargets": {
+              "counter": 0,
+              "s0": "16173549357833075534",
+              "s1": "4898503744988177191",
+              "s2": "15996599129028422937",
+              "s3": "11567520816301978068"
+            },
+            "MonsterAi": {
+              "counter": 0,
+              "s0": "6166115589708388621",
+              "s1": "7084068799045532450",
+              "s2": "7932181269741349599",
+              "s3": "2241326010048570463"
+            },
+            "Niche": {
+              "counter": 1,
+              "s0": "1340423474940320099",
+              "s1": "6165839142583612771",
+              "s2": "14436496084572713993",
+              "s3": "17804689953568683711"
+            },
+            "CombatOrbs": {
+              "counter": 0,
+              "s0": "13743007736033500473",
+              "s1": "17002173119099188015",
+              "s2": "14730217885736291111",
+              "s3": "12428073731954856901"
+            },
+            "TreasureRoomRelics": {
+              "counter": 0,
+              "s0": "17933276112591690834",
+              "s1": "4473670773895993594",
+              "s2": "11546420348183200946",
+              "s3": "7538898261853108704"
+            }
+          },
+          "player": {
+            "Rewards": {
+              "counter": 0,
+              "s0": "16296894266060830145",
+              "s1": "2052479417283341569",
+              "s2": "16230037008769343105",
+              "s3": "6210257532015951469"
+            },
+            "Shops": {
+              "counter": 0,
+              "s0": "2787478577122285552",
+              "s1": "4075712149603626743",
+              "s2": "17119809210669134021",
+              "s3": "10419188313528239783"
+            },
+            "Transformations": {
+              "counter": 0,
+              "s0": "9958864607236611668",
+              "s1": "5332877306679563644",
+              "s2": "10969762202592681438",
+              "s3": "11553870315015389399"
+            }
+          }
+        }
+      }
+    },
+    {
+      "action_id": "decision-002",
+      "state": {
+        "schema_version": 1,
+        "profile": "combat-v1",
+        "required_features": [
+          "basic_combat",
+          "ironclad_starter_shrinker_v1"
+        ],
+        "boundary": "player_action",
+        "combat": {
+          "round": 1,
+          "active_side": "player",
+          "outcome": "ongoing"
+        },
+        "player": {
+          "instance_id": "player_0",
+          "model_id": "CHARACTER.IRONCLAD",
+          "hp": 80,
+          "max_hp": 80,
+          "block": 0,
+          "energy": 1,
+          "max_energy": 3,
+          "powers": [],
+          "counters": {
+            "turn_number": 1
+          },
+          "relics": [
+            {
+              "instance_id": "relic_0",
+              "model_id": "RELIC.BURNING_BLOOD",
+              "counters": {}
+            }
+          ]
+        },
+        "enemies": [
+          {
+            "instance_id": "enemy_0",
+            "model_id": "MONSTER.SHRINKER_BEETLE",
+            "hp": 26,
+            "max_hp": 38,
+            "block": 0,
+            "powers": [],
+            "counters": {
+              "performed_first_move": 0,
+              "performed_move:SHRINKER_MOVE": 0,
+              "performed_move:CHOMP_MOVE": 0,
+              "performed_move:STOMP_MOVE": 0
+            },
+            "move_id": "SHRINKER_MOVE",
+            "move_history": []
+          }
+        ],
+        "cards": [
+          {
+            "instance_id": "card_0",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_1",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_2",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_3",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_4",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_5",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_6",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_7",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_8",
+            "model_id": "CARD.BASH",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 2
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_9",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          }
+        ],
+        "piles": {
+          "hand": [
+            "card_0",
+            "card_1",
+            "card_4"
+          ],
+          "draw": [
+            "card_5",
+            "card_6",
+            "card_7",
+            "card_8",
+            "card_9"
+          ],
+          "discard": [
+            "card_2",
+            "card_3"
+          ],
+          "exhaust": [],
+          "playing": []
+        },
+        "selection": {
+          "kind": "none",
+          "options": [],
+          "min": 0,
+          "max": 0
+        },
+        "randomness": {
+          "run": {
+            "UpFront": {
+              "counter": 410,
+              "s0": "2000960492209210252",
+              "s1": "96477177376427677",
+              "s2": "14033106304074879791",
+              "s3": "9113333400340395212"
+            },
+            "Shuffle": {
+              "counter": 9,
+              "s0": "8401831493529618089",
+              "s1": "11781252065975760087",
+              "s2": "3119631822218663383",
+              "s3": "2312853584350164654"
+            },
+            "UnknownMapPoint": {
+              "counter": 0,
+              "s0": "8310726394512105608",
+              "s1": "9718970466057090523",
+              "s2": "9636229776839388113",
+              "s3": "12594330982754968415"
+            },
+            "CombatCardGeneration": {
+              "counter": 0,
+              "s0": "10373249285325714200",
+              "s1": "4016902989836182304",
+              "s2": "16417089721001298760",
+              "s3": "1573753686514981938"
+            },
+            "CombatPotionGeneration": {
+              "counter": 0,
+              "s0": "5132712856919322768",
+              "s1": "6172608428903701061",
+              "s2": "10612721468863364719",
+              "s3": "1634123690666908185"
+            },
+            "CombatCardSelection": {
+              "counter": 0,
+              "s0": "7447254483650032516",
+              "s1": "6916826662762419135",
+              "s2": "7986148375070495618",
+              "s3": "4937393443106231267"
+            },
+            "CombatEnergyCosts": {
+              "counter": 0,
+              "s0": "398630420289713215",
+              "s1": "16299208766551063735",
+              "s2": "3046623676558950115",
+              "s3": "17501011783288399122"
+            },
+            "CombatTargets": {
+              "counter": 0,
+              "s0": "16173549357833075534",
+              "s1": "4898503744988177191",
+              "s2": "15996599129028422937",
+              "s3": "11567520816301978068"
+            },
+            "MonsterAi": {
+              "counter": 0,
+              "s0": "6166115589708388621",
+              "s1": "7084068799045532450",
+              "s2": "7932181269741349599",
+              "s3": "2241326010048570463"
+            },
+            "Niche": {
+              "counter": 1,
+              "s0": "1340423474940320099",
+              "s1": "6165839142583612771",
+              "s2": "14436496084572713993",
+              "s3": "17804689953568683711"
+            },
+            "CombatOrbs": {
+              "counter": 0,
+              "s0": "13743007736033500473",
+              "s1": "17002173119099188015",
+              "s2": "14730217885736291111",
+              "s3": "12428073731954856901"
+            },
+            "TreasureRoomRelics": {
+              "counter": 0,
+              "s0": "17933276112591690834",
+              "s1": "4473670773895993594",
+              "s2": "11546420348183200946",
+              "s3": "7538898261853108704"
+            }
+          },
+          "player": {
+            "Rewards": {
+              "counter": 0,
+              "s0": "16296894266060830145",
+              "s1": "2052479417283341569",
+              "s2": "16230037008769343105",
+              "s3": "6210257532015951469"
+            },
+            "Shops": {
+              "counter": 0,
+              "s0": "2787478577122285552",
+              "s1": "4075712149603626743",
+              "s2": "17119809210669134021",
+              "s3": "10419188313528239783"
+            },
+            "Transformations": {
+              "counter": 0,
+              "s0": "9958864607236611668",
+              "s1": "5332877306679563644",
+              "s2": "10969762202592681438",
+              "s3": "11553870315015389399"
+            }
+          }
+        }
+      }
+    },
+    {
+      "action_id": "decision-003",
+      "state": {
+        "schema_version": 1,
+        "profile": "combat-v1",
+        "required_features": [
+          "basic_combat",
+          "ironclad_starter_shrinker_v1"
+        ],
+        "boundary": "player_action",
+        "combat": {
+          "round": 1,
+          "active_side": "player",
+          "outcome": "ongoing"
+        },
+        "player": {
+          "instance_id": "player_0",
+          "model_id": "CHARACTER.IRONCLAD",
+          "hp": 80,
+          "max_hp": 80,
+          "block": 0,
+          "energy": 0,
+          "max_energy": 3,
+          "powers": [],
+          "counters": {
+            "turn_number": 1
+          },
+          "relics": [
+            {
+              "instance_id": "relic_0",
+              "model_id": "RELIC.BURNING_BLOOD",
+              "counters": {}
+            }
+          ]
+        },
+        "enemies": [
+          {
+            "instance_id": "enemy_0",
+            "model_id": "MONSTER.SHRINKER_BEETLE",
+            "hp": 20,
+            "max_hp": 38,
+            "block": 0,
+            "powers": [],
+            "counters": {
+              "performed_first_move": 0,
+              "performed_move:SHRINKER_MOVE": 0,
+              "performed_move:CHOMP_MOVE": 0,
+              "performed_move:STOMP_MOVE": 0
+            },
+            "move_id": "SHRINKER_MOVE",
+            "move_history": []
+          }
+        ],
+        "cards": [
+          {
+            "instance_id": "card_0",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_1",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_2",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_3",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_4",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_5",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_6",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_7",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_8",
+            "model_id": "CARD.BASH",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 2
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_9",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          }
+        ],
+        "piles": {
+          "hand": [
+            "card_0",
+            "card_1"
+          ],
+          "draw": [
+            "card_5",
+            "card_6",
+            "card_7",
+            "card_8",
+            "card_9"
+          ],
+          "discard": [
+            "card_2",
+            "card_3",
+            "card_4"
+          ],
+          "exhaust": [],
+          "playing": []
+        },
+        "selection": {
+          "kind": "none",
+          "options": [],
+          "min": 0,
+          "max": 0
+        },
+        "randomness": {
+          "run": {
+            "UpFront": {
+              "counter": 410,
+              "s0": "2000960492209210252",
+              "s1": "96477177376427677",
+              "s2": "14033106304074879791",
+              "s3": "9113333400340395212"
+            },
+            "Shuffle": {
+              "counter": 9,
+              "s0": "8401831493529618089",
+              "s1": "11781252065975760087",
+              "s2": "3119631822218663383",
+              "s3": "2312853584350164654"
+            },
+            "UnknownMapPoint": {
+              "counter": 0,
+              "s0": "8310726394512105608",
+              "s1": "9718970466057090523",
+              "s2": "9636229776839388113",
+              "s3": "12594330982754968415"
+            },
+            "CombatCardGeneration": {
+              "counter": 0,
+              "s0": "10373249285325714200",
+              "s1": "4016902989836182304",
+              "s2": "16417089721001298760",
+              "s3": "1573753686514981938"
+            },
+            "CombatPotionGeneration": {
+              "counter": 0,
+              "s0": "5132712856919322768",
+              "s1": "6172608428903701061",
+              "s2": "10612721468863364719",
+              "s3": "1634123690666908185"
+            },
+            "CombatCardSelection": {
+              "counter": 0,
+              "s0": "7447254483650032516",
+              "s1": "6916826662762419135",
+              "s2": "7986148375070495618",
+              "s3": "4937393443106231267"
+            },
+            "CombatEnergyCosts": {
+              "counter": 0,
+              "s0": "398630420289713215",
+              "s1": "16299208766551063735",
+              "s2": "3046623676558950115",
+              "s3": "17501011783288399122"
+            },
+            "CombatTargets": {
+              "counter": 0,
+              "s0": "16173549357833075534",
+              "s1": "4898503744988177191",
+              "s2": "15996599129028422937",
+              "s3": "11567520816301978068"
+            },
+            "MonsterAi": {
+              "counter": 0,
+              "s0": "6166115589708388621",
+              "s1": "7084068799045532450",
+              "s2": "7932181269741349599",
+              "s3": "2241326010048570463"
+            },
+            "Niche": {
+              "counter": 1,
+              "s0": "1340423474940320099",
+              "s1": "6165839142583612771",
+              "s2": "14436496084572713993",
+              "s3": "17804689953568683711"
+            },
+            "CombatOrbs": {
+              "counter": 0,
+              "s0": "13743007736033500473",
+              "s1": "17002173119099188015",
+              "s2": "14730217885736291111",
+              "s3": "12428073731954856901"
+            },
+            "TreasureRoomRelics": {
+              "counter": 0,
+              "s0": "17933276112591690834",
+              "s1": "4473670773895993594",
+              "s2": "11546420348183200946",
+              "s3": "7538898261853108704"
+            }
+          },
+          "player": {
+            "Rewards": {
+              "counter": 0,
+              "s0": "16296894266060830145",
+              "s1": "2052479417283341569",
+              "s2": "16230037008769343105",
+              "s3": "6210257532015951469"
+            },
+            "Shops": {
+              "counter": 0,
+              "s0": "2787478577122285552",
+              "s1": "4075712149603626743",
+              "s2": "17119809210669134021",
+              "s3": "10419188313528239783"
+            },
+            "Transformations": {
+              "counter": 0,
+              "s0": "9958864607236611668",
+              "s1": "5332877306679563644",
+              "s2": "10969762202592681438",
+              "s3": "11553870315015389399"
+            }
+          }
+        }
+      }
+    },
+    {
+      "action_id": "decision-004",
+      "state": {
+        "schema_version": 1,
+        "profile": "combat-v1",
+        "required_features": [
+          "basic_combat",
+          "ironclad_starter_shrinker_v1"
+        ],
+        "boundary": "player_action",
+        "combat": {
+          "round": 2,
+          "active_side": "player",
+          "outcome": "ongoing"
+        },
+        "player": {
+          "instance_id": "player_0",
+          "model_id": "CHARACTER.IRONCLAD",
+          "hp": 80,
+          "max_hp": 80,
+          "block": 0,
+          "energy": 3,
+          "max_energy": 3,
+          "powers": [
+            {
+              "instance_id": "power_0",
+              "model_id": "POWER.SHRINK_POWER",
+              "amount": -1,
+              "counters": {
+                "amount_on_turn_start": -1,
+                "skip_next_duration_tick": 1,
+                "applier_actor": 1,
+                "damage_decrease_percent": 30
+              }
+            }
+          ],
+          "counters": {
+            "turn_number": 2
+          },
+          "relics": [
+            {
+              "instance_id": "relic_0",
+              "model_id": "RELIC.BURNING_BLOOD",
+              "counters": {}
+            }
+          ]
+        },
+        "enemies": [
+          {
+            "instance_id": "enemy_0",
+            "model_id": "MONSTER.SHRINKER_BEETLE",
+            "hp": 20,
+            "max_hp": 38,
+            "block": 0,
+            "powers": [],
+            "counters": {
+              "performed_first_move": 1,
+              "performed_move:SHRINKER_MOVE": 0,
+              "performed_move:CHOMP_MOVE": 0,
+              "performed_move:STOMP_MOVE": 0
+            },
+            "move_id": "CHOMP_MOVE",
+            "move_history": [
+              "SHRINKER_MOVE"
+            ]
+          }
+        ],
+        "cards": [
+          {
+            "instance_id": "card_0",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_1",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_2",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_3",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_4",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_5",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_6",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_7",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_8",
+            "model_id": "CARD.BASH",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 2
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_9",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          }
+        ],
+        "piles": {
+          "hand": [
+            "card_5",
+            "card_6",
+            "card_7",
+            "card_8",
+            "card_9"
+          ],
+          "draw": [],
+          "discard": [
+            "card_2",
+            "card_3",
+            "card_4",
+            "card_0",
+            "card_1"
+          ],
+          "exhaust": [],
+          "playing": []
+        },
+        "selection": {
+          "kind": "none",
+          "options": [],
+          "min": 0,
+          "max": 0
+        },
+        "randomness": {
+          "run": {
+            "UpFront": {
+              "counter": 410,
+              "s0": "2000960492209210252",
+              "s1": "96477177376427677",
+              "s2": "14033106304074879791",
+              "s3": "9113333400340395212"
+            },
+            "Shuffle": {
+              "counter": 9,
+              "s0": "8401831493529618089",
+              "s1": "11781252065975760087",
+              "s2": "3119631822218663383",
+              "s3": "2312853584350164654"
+            },
+            "UnknownMapPoint": {
+              "counter": 0,
+              "s0": "8310726394512105608",
+              "s1": "9718970466057090523",
+              "s2": "9636229776839388113",
+              "s3": "12594330982754968415"
+            },
+            "CombatCardGeneration": {
+              "counter": 0,
+              "s0": "10373249285325714200",
+              "s1": "4016902989836182304",
+              "s2": "16417089721001298760",
+              "s3": "1573753686514981938"
+            },
+            "CombatPotionGeneration": {
+              "counter": 0,
+              "s0": "5132712856919322768",
+              "s1": "6172608428903701061",
+              "s2": "10612721468863364719",
+              "s3": "1634123690666908185"
+            },
+            "CombatCardSelection": {
+              "counter": 0,
+              "s0": "7447254483650032516",
+              "s1": "6916826662762419135",
+              "s2": "7986148375070495618",
+              "s3": "4937393443106231267"
+            },
+            "CombatEnergyCosts": {
+              "counter": 0,
+              "s0": "398630420289713215",
+              "s1": "16299208766551063735",
+              "s2": "3046623676558950115",
+              "s3": "17501011783288399122"
+            },
+            "CombatTargets": {
+              "counter": 0,
+              "s0": "16173549357833075534",
+              "s1": "4898503744988177191",
+              "s2": "15996599129028422937",
+              "s3": "11567520816301978068"
+            },
+            "MonsterAi": {
+              "counter": 0,
+              "s0": "6166115589708388621",
+              "s1": "7084068799045532450",
+              "s2": "7932181269741349599",
+              "s3": "2241326010048570463"
+            },
+            "Niche": {
+              "counter": 1,
+              "s0": "1340423474940320099",
+              "s1": "6165839142583612771",
+              "s2": "14436496084572713993",
+              "s3": "17804689953568683711"
+            },
+            "CombatOrbs": {
+              "counter": 0,
+              "s0": "13743007736033500473",
+              "s1": "17002173119099188015",
+              "s2": "14730217885736291111",
+              "s3": "12428073731954856901"
+            },
+            "TreasureRoomRelics": {
+              "counter": 0,
+              "s0": "17933276112591690834",
+              "s1": "4473670773895993594",
+              "s2": "11546420348183200946",
+              "s3": "7538898261853108704"
+            }
+          },
+          "player": {
+            "Rewards": {
+              "counter": 0,
+              "s0": "16296894266060830145",
+              "s1": "2052479417283341569",
+              "s2": "16230037008769343105",
+              "s3": "6210257532015951469"
+            },
+            "Shops": {
+              "counter": 0,
+              "s0": "2787478577122285552",
+              "s1": "4075712149603626743",
+              "s2": "17119809210669134021",
+              "s3": "10419188313528239783"
+            },
+            "Transformations": {
+              "counter": 0,
+              "s0": "9958864607236611668",
+              "s1": "5332877306679563644",
+              "s2": "10969762202592681438",
+              "s3": "11553870315015389399"
+            }
+          }
+        }
+      }
+    },
+    {
+      "action_id": "decision-005",
+      "state": {
+        "schema_version": 1,
+        "profile": "combat-v1",
+        "required_features": [
+          "basic_combat",
+          "ironclad_starter_shrinker_v1"
+        ],
+        "boundary": "player_action",
+        "combat": {
+          "round": 2,
+          "active_side": "player",
+          "outcome": "ongoing"
+        },
+        "player": {
+          "instance_id": "player_0",
+          "model_id": "CHARACTER.IRONCLAD",
+          "hp": 80,
+          "max_hp": 80,
+          "block": 0,
+          "energy": 1,
+          "max_energy": 3,
+          "powers": [
+            {
+              "instance_id": "power_0",
+              "model_id": "POWER.SHRINK_POWER",
+              "amount": -1,
+              "counters": {
+                "amount_on_turn_start": -1,
+                "skip_next_duration_tick": 1,
+                "applier_actor": 1,
+                "damage_decrease_percent": 30
+              }
+            }
+          ],
+          "counters": {
+            "turn_number": 2
+          },
+          "relics": [
+            {
+              "instance_id": "relic_0",
+              "model_id": "RELIC.BURNING_BLOOD",
+              "counters": {}
+            }
+          ]
+        },
+        "enemies": [
+          {
+            "instance_id": "enemy_0",
+            "model_id": "MONSTER.SHRINKER_BEETLE",
+            "hp": 15,
+            "max_hp": 38,
+            "block": 0,
+            "powers": [
+              {
+                "instance_id": "power_1",
+                "model_id": "POWER.VULNERABLE_POWER",
+                "amount": 2,
+                "counters": {
+                  "amount_on_turn_start": 0,
+                  "skip_next_duration_tick": 0,
+                  "applier_actor": 0
+                }
+              }
+            ],
+            "counters": {
+              "performed_first_move": 1,
+              "performed_move:SHRINKER_MOVE": 0,
+              "performed_move:CHOMP_MOVE": 0,
+              "performed_move:STOMP_MOVE": 0
+            },
+            "move_id": "CHOMP_MOVE",
+            "move_history": [
+              "SHRINKER_MOVE"
+            ]
+          }
+        ],
+        "cards": [
+          {
+            "instance_id": "card_0",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_1",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_2",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_3",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_4",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_5",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_6",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_7",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_8",
+            "model_id": "CARD.BASH",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 2
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_9",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          }
+        ],
+        "piles": {
+          "hand": [
+            "card_5",
+            "card_6",
+            "card_7",
+            "card_9"
+          ],
+          "draw": [],
+          "discard": [
+            "card_2",
+            "card_3",
+            "card_4",
+            "card_0",
+            "card_1",
+            "card_8"
+          ],
+          "exhaust": [],
+          "playing": []
+        },
+        "selection": {
+          "kind": "none",
+          "options": [],
+          "min": 0,
+          "max": 0
+        },
+        "randomness": {
+          "run": {
+            "UpFront": {
+              "counter": 410,
+              "s0": "2000960492209210252",
+              "s1": "96477177376427677",
+              "s2": "14033106304074879791",
+              "s3": "9113333400340395212"
+            },
+            "Shuffle": {
+              "counter": 9,
+              "s0": "8401831493529618089",
+              "s1": "11781252065975760087",
+              "s2": "3119631822218663383",
+              "s3": "2312853584350164654"
+            },
+            "UnknownMapPoint": {
+              "counter": 0,
+              "s0": "8310726394512105608",
+              "s1": "9718970466057090523",
+              "s2": "9636229776839388113",
+              "s3": "12594330982754968415"
+            },
+            "CombatCardGeneration": {
+              "counter": 0,
+              "s0": "10373249285325714200",
+              "s1": "4016902989836182304",
+              "s2": "16417089721001298760",
+              "s3": "1573753686514981938"
+            },
+            "CombatPotionGeneration": {
+              "counter": 0,
+              "s0": "5132712856919322768",
+              "s1": "6172608428903701061",
+              "s2": "10612721468863364719",
+              "s3": "1634123690666908185"
+            },
+            "CombatCardSelection": {
+              "counter": 0,
+              "s0": "7447254483650032516",
+              "s1": "6916826662762419135",
+              "s2": "7986148375070495618",
+              "s3": "4937393443106231267"
+            },
+            "CombatEnergyCosts": {
+              "counter": 0,
+              "s0": "398630420289713215",
+              "s1": "16299208766551063735",
+              "s2": "3046623676558950115",
+              "s3": "17501011783288399122"
+            },
+            "CombatTargets": {
+              "counter": 0,
+              "s0": "16173549357833075534",
+              "s1": "4898503744988177191",
+              "s2": "15996599129028422937",
+              "s3": "11567520816301978068"
+            },
+            "MonsterAi": {
+              "counter": 0,
+              "s0": "6166115589708388621",
+              "s1": "7084068799045532450",
+              "s2": "7932181269741349599",
+              "s3": "2241326010048570463"
+            },
+            "Niche": {
+              "counter": 1,
+              "s0": "1340423474940320099",
+              "s1": "6165839142583612771",
+              "s2": "14436496084572713993",
+              "s3": "17804689953568683711"
+            },
+            "CombatOrbs": {
+              "counter": 0,
+              "s0": "13743007736033500473",
+              "s1": "17002173119099188015",
+              "s2": "14730217885736291111",
+              "s3": "12428073731954856901"
+            },
+            "TreasureRoomRelics": {
+              "counter": 0,
+              "s0": "17933276112591690834",
+              "s1": "4473670773895993594",
+              "s2": "11546420348183200946",
+              "s3": "7538898261853108704"
+            }
+          },
+          "player": {
+            "Rewards": {
+              "counter": 0,
+              "s0": "16296894266060830145",
+              "s1": "2052479417283341569",
+              "s2": "16230037008769343105",
+              "s3": "6210257532015951469"
+            },
+            "Shops": {
+              "counter": 0,
+              "s0": "2787478577122285552",
+              "s1": "4075712149603626743",
+              "s2": "17119809210669134021",
+              "s3": "10419188313528239783"
+            },
+            "Transformations": {
+              "counter": 0,
+              "s0": "9958864607236611668",
+              "s1": "5332877306679563644",
+              "s2": "10969762202592681438",
+              "s3": "11553870315015389399"
+            }
+          }
+        }
+      }
+    },
+    {
+      "action_id": "decision-006",
+      "state": {
+        "schema_version": 1,
+        "profile": "combat-v1",
+        "required_features": [
+          "basic_combat",
+          "ironclad_starter_shrinker_v1"
+        ],
+        "boundary": "player_action",
+        "combat": {
+          "round": 2,
+          "active_side": "player",
+          "outcome": "ongoing"
+        },
+        "player": {
+          "instance_id": "player_0",
+          "model_id": "CHARACTER.IRONCLAD",
+          "hp": 80,
+          "max_hp": 80,
+          "block": 0,
+          "energy": 0,
+          "max_energy": 3,
+          "powers": [
+            {
+              "instance_id": "power_0",
+              "model_id": "POWER.SHRINK_POWER",
+              "amount": -1,
+              "counters": {
+                "amount_on_turn_start": -1,
+                "skip_next_duration_tick": 1,
+                "applier_actor": 1,
+                "damage_decrease_percent": 30
+              }
+            }
+          ],
+          "counters": {
+            "turn_number": 2
+          },
+          "relics": [
+            {
+              "instance_id": "relic_0",
+              "model_id": "RELIC.BURNING_BLOOD",
+              "counters": {}
+            }
+          ]
+        },
+        "enemies": [
+          {
+            "instance_id": "enemy_0",
+            "model_id": "MONSTER.SHRINKER_BEETLE",
+            "hp": 9,
+            "max_hp": 38,
+            "block": 0,
+            "powers": [
+              {
+                "instance_id": "power_1",
+                "model_id": "POWER.VULNERABLE_POWER",
+                "amount": 2,
+                "counters": {
+                  "amount_on_turn_start": 0,
+                  "skip_next_duration_tick": 0,
+                  "applier_actor": 0
+                }
+              }
+            ],
+            "counters": {
+              "performed_first_move": 1,
+              "performed_move:SHRINKER_MOVE": 0,
+              "performed_move:CHOMP_MOVE": 0,
+              "performed_move:STOMP_MOVE": 0
+            },
+            "move_id": "CHOMP_MOVE",
+            "move_history": [
+              "SHRINKER_MOVE"
+            ]
+          }
+        ],
+        "cards": [
+          {
+            "instance_id": "card_0",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_1",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_2",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_3",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_4",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_5",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_6",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_7",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_8",
+            "model_id": "CARD.BASH",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 2
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_9",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          }
+        ],
+        "piles": {
+          "hand": [
+            "card_5",
+            "card_7",
+            "card_9"
+          ],
+          "draw": [],
+          "discard": [
+            "card_2",
+            "card_3",
+            "card_4",
+            "card_0",
+            "card_1",
+            "card_8",
+            "card_6"
+          ],
+          "exhaust": [],
+          "playing": []
+        },
+        "selection": {
+          "kind": "none",
+          "options": [],
+          "min": 0,
+          "max": 0
+        },
+        "randomness": {
+          "run": {
+            "UpFront": {
+              "counter": 410,
+              "s0": "2000960492209210252",
+              "s1": "96477177376427677",
+              "s2": "14033106304074879791",
+              "s3": "9113333400340395212"
+            },
+            "Shuffle": {
+              "counter": 9,
+              "s0": "8401831493529618089",
+              "s1": "11781252065975760087",
+              "s2": "3119631822218663383",
+              "s3": "2312853584350164654"
+            },
+            "UnknownMapPoint": {
+              "counter": 0,
+              "s0": "8310726394512105608",
+              "s1": "9718970466057090523",
+              "s2": "9636229776839388113",
+              "s3": "12594330982754968415"
+            },
+            "CombatCardGeneration": {
+              "counter": 0,
+              "s0": "10373249285325714200",
+              "s1": "4016902989836182304",
+              "s2": "16417089721001298760",
+              "s3": "1573753686514981938"
+            },
+            "CombatPotionGeneration": {
+              "counter": 0,
+              "s0": "5132712856919322768",
+              "s1": "6172608428903701061",
+              "s2": "10612721468863364719",
+              "s3": "1634123690666908185"
+            },
+            "CombatCardSelection": {
+              "counter": 0,
+              "s0": "7447254483650032516",
+              "s1": "6916826662762419135",
+              "s2": "7986148375070495618",
+              "s3": "4937393443106231267"
+            },
+            "CombatEnergyCosts": {
+              "counter": 0,
+              "s0": "398630420289713215",
+              "s1": "16299208766551063735",
+              "s2": "3046623676558950115",
+              "s3": "17501011783288399122"
+            },
+            "CombatTargets": {
+              "counter": 0,
+              "s0": "16173549357833075534",
+              "s1": "4898503744988177191",
+              "s2": "15996599129028422937",
+              "s3": "11567520816301978068"
+            },
+            "MonsterAi": {
+              "counter": 0,
+              "s0": "6166115589708388621",
+              "s1": "7084068799045532450",
+              "s2": "7932181269741349599",
+              "s3": "2241326010048570463"
+            },
+            "Niche": {
+              "counter": 1,
+              "s0": "1340423474940320099",
+              "s1": "6165839142583612771",
+              "s2": "14436496084572713993",
+              "s3": "17804689953568683711"
+            },
+            "CombatOrbs": {
+              "counter": 0,
+              "s0": "13743007736033500473",
+              "s1": "17002173119099188015",
+              "s2": "14730217885736291111",
+              "s3": "12428073731954856901"
+            },
+            "TreasureRoomRelics": {
+              "counter": 0,
+              "s0": "17933276112591690834",
+              "s1": "4473670773895993594",
+              "s2": "11546420348183200946",
+              "s3": "7538898261853108704"
+            }
+          },
+          "player": {
+            "Rewards": {
+              "counter": 0,
+              "s0": "16296894266060830145",
+              "s1": "2052479417283341569",
+              "s2": "16230037008769343105",
+              "s3": "6210257532015951469"
+            },
+            "Shops": {
+              "counter": 0,
+              "s0": "2787478577122285552",
+              "s1": "4075712149603626743",
+              "s2": "17119809210669134021",
+              "s3": "10419188313528239783"
+            },
+            "Transformations": {
+              "counter": 0,
+              "s0": "9958864607236611668",
+              "s1": "5332877306679563644",
+              "s2": "10969762202592681438",
+              "s3": "11553870315015389399"
+            }
+          }
+        }
+      }
+    },
+    {
+      "action_id": "decision-007",
+      "state": {
+        "schema_version": 1,
+        "profile": "combat-v1",
+        "required_features": [
+          "basic_combat",
+          "ironclad_starter_shrinker_v1"
+        ],
+        "boundary": "player_action",
+        "combat": {
+          "round": 3,
+          "active_side": "player",
+          "outcome": "ongoing"
+        },
+        "player": {
+          "instance_id": "player_0",
+          "model_id": "CHARACTER.IRONCLAD",
+          "hp": 73,
+          "max_hp": 80,
+          "block": 0,
+          "energy": 3,
+          "max_energy": 3,
+          "powers": [
+            {
+              "instance_id": "power_0",
+              "model_id": "POWER.SHRINK_POWER",
+              "amount": -1,
+              "counters": {
+                "amount_on_turn_start": -1,
+                "skip_next_duration_tick": 1,
+                "applier_actor": 1,
+                "damage_decrease_percent": 30
+              }
+            }
+          ],
+          "counters": {
+            "turn_number": 3
+          },
+          "relics": [
+            {
+              "instance_id": "relic_0",
+              "model_id": "RELIC.BURNING_BLOOD",
+              "counters": {}
+            }
+          ]
+        },
+        "enemies": [
+          {
+            "instance_id": "enemy_0",
+            "model_id": "MONSTER.SHRINKER_BEETLE",
+            "hp": 9,
+            "max_hp": 38,
+            "block": 0,
+            "powers": [
+              {
+                "instance_id": "power_1",
+                "model_id": "POWER.VULNERABLE_POWER",
+                "amount": 1,
+                "counters": {
+                  "amount_on_turn_start": 2,
+                  "skip_next_duration_tick": 0,
+                  "applier_actor": 0
+                }
+              }
+            ],
+            "counters": {
+              "performed_first_move": 1,
+              "performed_move:SHRINKER_MOVE": 0,
+              "performed_move:CHOMP_MOVE": 0,
+              "performed_move:STOMP_MOVE": 0
+            },
+            "move_id": "STOMP_MOVE",
+            "move_history": [
+              "SHRINKER_MOVE",
+              "CHOMP_MOVE"
+            ]
+          }
+        ],
+        "cards": [
+          {
+            "instance_id": "card_0",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_1",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_2",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_3",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_4",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_5",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_6",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_7",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_8",
+            "model_id": "CARD.BASH",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 2
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_9",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          }
+        ],
+        "piles": {
+          "hand": [
+            "card_6",
+            "card_7",
+            "card_8",
+            "card_1",
+            "card_9"
+          ],
+          "draw": [
+            "card_4",
+            "card_5",
+            "card_2",
+            "card_0",
+            "card_3"
+          ],
+          "discard": [],
+          "exhaust": [],
+          "playing": []
+        },
+        "selection": {
+          "kind": "none",
+          "options": [],
+          "min": 0,
+          "max": 0
+        },
+        "randomness": {
+          "run": {
+            "UpFront": {
+              "counter": 410,
+              "s0": "2000960492209210252",
+              "s1": "96477177376427677",
+              "s2": "14033106304074879791",
+              "s3": "9113333400340395212"
+            },
+            "Shuffle": {
+              "counter": 18,
+              "s0": "11012617703034391851",
+              "s1": "4230343130011632710",
+              "s2": "8795804527234177094",
+              "s3": "8157552216954381552"
+            },
+            "UnknownMapPoint": {
+              "counter": 0,
+              "s0": "8310726394512105608",
+              "s1": "9718970466057090523",
+              "s2": "9636229776839388113",
+              "s3": "12594330982754968415"
+            },
+            "CombatCardGeneration": {
+              "counter": 0,
+              "s0": "10373249285325714200",
+              "s1": "4016902989836182304",
+              "s2": "16417089721001298760",
+              "s3": "1573753686514981938"
+            },
+            "CombatPotionGeneration": {
+              "counter": 0,
+              "s0": "5132712856919322768",
+              "s1": "6172608428903701061",
+              "s2": "10612721468863364719",
+              "s3": "1634123690666908185"
+            },
+            "CombatCardSelection": {
+              "counter": 0,
+              "s0": "7447254483650032516",
+              "s1": "6916826662762419135",
+              "s2": "7986148375070495618",
+              "s3": "4937393443106231267"
+            },
+            "CombatEnergyCosts": {
+              "counter": 0,
+              "s0": "398630420289713215",
+              "s1": "16299208766551063735",
+              "s2": "3046623676558950115",
+              "s3": "17501011783288399122"
+            },
+            "CombatTargets": {
+              "counter": 0,
+              "s0": "16173549357833075534",
+              "s1": "4898503744988177191",
+              "s2": "15996599129028422937",
+              "s3": "11567520816301978068"
+            },
+            "MonsterAi": {
+              "counter": 0,
+              "s0": "6166115589708388621",
+              "s1": "7084068799045532450",
+              "s2": "7932181269741349599",
+              "s3": "2241326010048570463"
+            },
+            "Niche": {
+              "counter": 1,
+              "s0": "1340423474940320099",
+              "s1": "6165839142583612771",
+              "s2": "14436496084572713993",
+              "s3": "17804689953568683711"
+            },
+            "CombatOrbs": {
+              "counter": 0,
+              "s0": "13743007736033500473",
+              "s1": "17002173119099188015",
+              "s2": "14730217885736291111",
+              "s3": "12428073731954856901"
+            },
+            "TreasureRoomRelics": {
+              "counter": 0,
+              "s0": "17933276112591690834",
+              "s1": "4473670773895993594",
+              "s2": "11546420348183200946",
+              "s3": "7538898261853108704"
+            }
+          },
+          "player": {
+            "Rewards": {
+              "counter": 0,
+              "s0": "16296894266060830145",
+              "s1": "2052479417283341569",
+              "s2": "16230037008769343105",
+              "s3": "6210257532015951469"
+            },
+            "Shops": {
+              "counter": 0,
+              "s0": "2787478577122285552",
+              "s1": "4075712149603626743",
+              "s2": "17119809210669134021",
+              "s3": "10419188313528239783"
+            },
+            "Transformations": {
+              "counter": 0,
+              "s0": "9958864607236611668",
+              "s1": "5332877306679563644",
+              "s2": "10969762202592681438",
+              "s3": "11553870315015389399"
+            }
+          }
+        }
+      }
+    },
+    {
+      "action_id": "decision-008",
+      "state": {
+        "schema_version": 1,
+        "profile": "combat-v1",
+        "required_features": [
+          "basic_combat",
+          "ironclad_starter_shrinker_v1"
+        ],
+        "boundary": "player_action",
+        "combat": {
+          "round": 3,
+          "active_side": "player",
+          "outcome": "ongoing"
+        },
+        "player": {
+          "instance_id": "player_0",
+          "model_id": "CHARACTER.IRONCLAD",
+          "hp": 73,
+          "max_hp": 80,
+          "block": 0,
+          "energy": 1,
+          "max_energy": 3,
+          "powers": [
+            {
+              "instance_id": "power_0",
+              "model_id": "POWER.SHRINK_POWER",
+              "amount": -1,
+              "counters": {
+                "amount_on_turn_start": -1,
+                "skip_next_duration_tick": 1,
+                "applier_actor": 1,
+                "damage_decrease_percent": 30
+              }
+            }
+          ],
+          "counters": {
+            "turn_number": 3
+          },
+          "relics": [
+            {
+              "instance_id": "relic_0",
+              "model_id": "RELIC.BURNING_BLOOD",
+              "counters": {}
+            }
+          ]
+        },
+        "enemies": [
+          {
+            "instance_id": "enemy_0",
+            "model_id": "MONSTER.SHRINKER_BEETLE",
+            "hp": 1,
+            "max_hp": 38,
+            "block": 0,
+            "powers": [
+              {
+                "instance_id": "power_1",
+                "model_id": "POWER.VULNERABLE_POWER",
+                "amount": 3,
+                "counters": {
+                  "amount_on_turn_start": 2,
+                  "skip_next_duration_tick": 0,
+                  "applier_actor": 0
+                }
+              }
+            ],
+            "counters": {
+              "performed_first_move": 1,
+              "performed_move:SHRINKER_MOVE": 0,
+              "performed_move:CHOMP_MOVE": 0,
+              "performed_move:STOMP_MOVE": 0
+            },
+            "move_id": "STOMP_MOVE",
+            "move_history": [
+              "SHRINKER_MOVE",
+              "CHOMP_MOVE"
+            ]
+          }
+        ],
+        "cards": [
+          {
+            "instance_id": "card_0",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_1",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_2",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_3",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_4",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_5",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_6",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_7",
+            "model_id": "CARD.STRIKE_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_8",
+            "model_id": "CARD.BASH",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 2
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          },
+          {
+            "instance_id": "card_9",
+            "model_id": "CARD.DEFEND_IRONCLAD",
+            "upgrade_level": 0,
+            "cost": {
+              "kind": "fixed",
+              "amount": 1
+            },
+            "flags": [],
+            "counters": {
+              "current_play_index": 0
+            }
+          }
+        ],
+        "piles": {
+          "hand": [
+            "card_6",
+            "card_7",
+            "card_1",
+            "card_9"
+          ],
+          "draw": [
+            "card_4",
+            "card_5",
+            "card_2",
+            "card_0",
+            "card_3"
+          ],
+          "discard": [
+            "card_8"
+          ],
+          "exhaust": [],
+          "playing": []
+        },
+        "selection": {
+          "kind": "none",
+          "options": [],
+          "min": 0,
+          "max": 0
+        },
+        "randomness": {
+          "run": {
+            "UpFront": {
+              "counter": 410,
+              "s0": "2000960492209210252",
+              "s1": "96477177376427677",
+              "s2": "14033106304074879791",
+              "s3": "9113333400340395212"
+            },
+            "Shuffle": {
+              "counter": 18,
+              "s0": "11012617703034391851",
+              "s1": "4230343130011632710",
+              "s2": "8795804527234177094",
+              "s3": "8157552216954381552"
+            },
+            "UnknownMapPoint": {
+              "counter": 0,
+              "s0": "8310726394512105608",
+              "s1": "9718970466057090523",
+              "s2": "9636229776839388113",
+              "s3": "12594330982754968415"
+            },
+            "CombatCardGeneration": {
+              "counter": 0,
+              "s0": "10373249285325714200",
+              "s1": "4016902989836182304",
+              "s2": "16417089721001298760",
+              "s3": "1573753686514981938"
+            },
+            "CombatPotionGeneration": {
+              "counter": 0,
+              "s0": "5132712856919322768",
+              "s1": "6172608428903701061",
+              "s2": "10612721468863364719",
+              "s3": "1634123690666908185"
+            },
+            "CombatCardSelection": {
+              "counter": 0,
+              "s0": "7447254483650032516",
+              "s1": "6916826662762419135",
+              "s2": "7986148375070495618",
+              "s3": "4937393443106231267"
+            },
+            "CombatEnergyCosts": {
+              "counter": 0,
+              "s0": "398630420289713215",
+              "s1": "16299208766551063735",
+              "s2": "3046623676558950115",
+              "s3": "17501011783288399122"
+            },
+            "CombatTargets": {
+              "counter": 0,
+              "s0": "16173549357833075534",
+              "s1": "4898503744988177191",
+              "s2": "15996599129028422937",
+              "s3": "11567520816301978068"
+            },
+            "MonsterAi": {
+              "counter": 0,
+              "s0": "6166115589708388621",
+              "s1": "7084068799045532450",
+              "s2": "7932181269741349599",
+              "s3": "2241326010048570463"
+            },
+            "Niche": {
+              "counter": 1,
+              "s0": "1340423474940320099",
+              "s1": "6165839142583612771",
+              "s2": "14436496084572713993",
+              "s3": "17804689953568683711"
+            },
+            "CombatOrbs": {
+              "counter": 0,
+              "s0": "13743007736033500473",
+              "s1": "17002173119099188015",
+              "s2": "14730217885736291111",
+              "s3": "12428073731954856901"
+            },
+            "TreasureRoomRelics": {
+              "counter": 0,
+              "s0": "17933276112591690834",
+              "s1": "4473670773895993594",
+              "s2": "11546420348183200946",
+              "s3": "7538898261853108704"
+            }
+          },
+          "player": {
+            "Rewards": {
+              "counter": 0,
+              "s0": "16296894266060830145",
+              "s1": "2052479417283341569",
+              "s2": "16230037008769343105",
+              "s3": "6210257532015951469"
+            },
+            "Shops": {
+              "counter": 0,
+              "s0": "2787478577122285552",
+              "s1": "4075712149603626743",
+              "s2": "17119809210669134021",
+              "s3": "10419188313528239783"
+            },
+            "Transformations": {
+              "counter": 0,
+              "s0": "9958864607236611668",
+              "s1": "5332877306679563644",
+              "s2": "10969762202592681438",
+              "s3": "11553870315015389399"
+            }
+          }
+        }
+      }
+    },
+    {
+      "action_id": "decision-009",
+      "state": {
+        "schema_version": 1,
+        "profile": "combat-v1",
+        "required_features": [
+          "basic_combat",
+          "ironclad_starter_shrinker_v1"
+        ],
+        "boundary": "combat_end",
+        "combat": {
+          "round": 3,
+          "active_side": "none",
+          "outcome": "victory"
+        },
+        "player": {
+          "instance_id": "player_0",
+          "model_id": "CHARACTER.IRONCLAD",
+          "hp": 79,
+          "max_hp": 80,
+          "block": 0,
+          "energy": 0,
+          "max_energy": 3,
+          "powers": [],
+          "counters": {
+            "turn_number": 3
+          },
+          "relics": [
+            {
+              "instance_id": "relic_0",
+              "model_id": "RELIC.BURNING_BLOOD",
+              "counters": {}
+            }
+          ]
+        },
+        "enemies": [
+          {
+            "instance_id": "enemy_0",
+            "model_id": "MONSTER.SHRINKER_BEETLE",
+            "hp": 0,
+            "max_hp": 38,
+            "block": 0,
+            "powers": [],
+            "counters": {
+              "performed_first_move": 1,
+              "performed_move:SHRINKER_MOVE": 0,
+              "performed_move:CHOMP_MOVE": 0,
+              "performed_move:STOMP_MOVE": 0
+            },
+            "move_id": "STOMP_MOVE",
+            "move_history": [
+              "SHRINKER_MOVE",
+              "CHOMP_MOVE"
+            ]
+          }
+        ],
+        "cards": [],
+        "piles": {
+          "hand": [],
+          "draw": [],
+          "discard": [],
+          "exhaust": [],
+          "playing": []
+        },
+        "selection": {
+          "kind": "none",
+          "options": [],
+          "min": 0,
+          "max": 0
+        },
+        "randomness": {
+          "run": {
+            "UpFront": {
+              "counter": 410,
+              "s0": "2000960492209210252",
+              "s1": "96477177376427677",
+              "s2": "14033106304074879791",
+              "s3": "9113333400340395212"
+            },
+            "Shuffle": {
+              "counter": 18,
+              "s0": "11012617703034391851",
+              "s1": "4230343130011632710",
+              "s2": "8795804527234177094",
+              "s3": "8157552216954381552"
+            },
+            "UnknownMapPoint": {
+              "counter": 0,
+              "s0": "8310726394512105608",
+              "s1": "9718970466057090523",
+              "s2": "9636229776839388113",
+              "s3": "12594330982754968415"
+            },
+            "CombatCardGeneration": {
+              "counter": 0,
+              "s0": "10373249285325714200",
+              "s1": "4016902989836182304",
+              "s2": "16417089721001298760",
+              "s3": "1573753686514981938"
+            },
+            "CombatPotionGeneration": {
+              "counter": 0,
+              "s0": "5132712856919322768",
+              "s1": "6172608428903701061",
+              "s2": "10612721468863364719",
+              "s3": "1634123690666908185"
+            },
+            "CombatCardSelection": {
+              "counter": 0,
+              "s0": "7447254483650032516",
+              "s1": "6916826662762419135",
+              "s2": "7986148375070495618",
+              "s3": "4937393443106231267"
+            },
+            "CombatEnergyCosts": {
+              "counter": 0,
+              "s0": "398630420289713215",
+              "s1": "16299208766551063735",
+              "s2": "3046623676558950115",
+              "s3": "17501011783288399122"
+            },
+            "CombatTargets": {
+              "counter": 0,
+              "s0": "16173549357833075534",
+              "s1": "4898503744988177191",
+              "s2": "15996599129028422937",
+              "s3": "11567520816301978068"
+            },
+            "MonsterAi": {
+              "counter": 0,
+              "s0": "6166115589708388621",
+              "s1": "7084068799045532450",
+              "s2": "7932181269741349599",
+              "s3": "2241326010048570463"
+            },
+            "Niche": {
+              "counter": 1,
+              "s0": "1340423474940320099",
+              "s1": "6165839142583612771",
+              "s2": "14436496084572713993",
+              "s3": "17804689953568683711"
+            },
+            "CombatOrbs": {
+              "counter": 0,
+              "s0": "13743007736033500473",
+              "s1": "17002173119099188015",
+              "s2": "14730217885736291111",
+              "s3": "12428073731954856901"
+            },
+            "TreasureRoomRelics": {
+              "counter": 0,
+              "s0": "17933276112591690834",
+              "s1": "4473670773895993594",
+              "s2": "11546420348183200946",
+              "s3": "7538898261853108704"
+            }
+          },
+          "player": {
+            "Rewards": {
+              "counter": 0,
+              "s0": "16296894266060830145",
+              "s1": "2052479417283341569",
+              "s2": "16230037008769343105",
+              "s3": "6210257532015951469"
+            },
+            "Shops": {
+              "counter": 0,
+              "s0": "2787478577122285552",
+              "s1": "4075712149603626743",
+              "s2": "17119809210669134021",
+              "s3": "10419188313528239783"
+            },
+            "Transformations": {
+              "counter": 0,
+              "s0": "9958864607236611668",
+              "s1": "5332877306679563644",
+              "s2": "10969762202592681438",
+              "s3": "11553870315015389399"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

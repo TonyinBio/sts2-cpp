@@ -115,8 +115,8 @@ The reference runner and scoped exporter are implemented in `tools/oracle/record
 and `RecordingSession.cs`; see [Running the oracle recorder](oracle-recording.md).
 The current exporter supports `play_card` and `end_turn` in the audited starter encounter.
 Selection actions remain part of actions-v1 but are explicitly rejected by this exporter.
-C++ simulator import/replay and comparison against these reference sequences remain
-subsequent work; the placeholder simulator does not support this complete combat state.
+C++ simulator import/replay and comparison are implemented for this supported combat
+profile in `parity_replay`; see [simulator coverage](simulator.md).
 
 ## Validation
 

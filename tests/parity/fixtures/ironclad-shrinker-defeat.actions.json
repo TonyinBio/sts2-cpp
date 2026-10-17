@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "profile": "actions-v1",
+  "recording_id": "ironclad-shrinker-defeat",
+  "state_profile": "combat-v1",
+  "required_features": [
+    "basic_combat",
+    "ironclad_starter_shrinker_v1"
+  ],
+  "setup": {
+    "kind": "seeded_combat",
+    "seed": "ORACLECHECK01",
+    "character": "Ironclad",
+    "ascension": 0,
+    "encounter": "SHRINKER_BEETLE_WEAK"
+  },
+  "actions": [
+    {
+      "id": "end-turn-1",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "end-turn-2",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "end-turn-3",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "end-turn-4",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "end-turn-5",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "end-turn-6",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "end-turn-7",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "end-turn-8",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "end-turn-9",
+      "action": {
+        "kind": "end_turn"
+      }
+    }
+  ]
+}

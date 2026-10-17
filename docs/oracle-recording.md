@@ -3,7 +3,8 @@
 The recorder runs an actions-v1 file through a temporary extended build of sts2-cli
 and writes a separate states-v1 file containing the initial combat-v1 snapshot and
 one resulting snapshot per action. C++ validates the input, every exported snapshot,
-and the completed result envelope. It does not yet replay these states in the simulator.
+and the completed result envelope. The C++ `parity_replay` executable replays supported
+sequences and compares every resulting state; see [simulator coverage](simulator.md).
 
 ## Build and record
 
@@ -133,8 +134,8 @@ These differences reflect the inspected DLL behavior; a C++ adapter must use the
 boundary convention. Rewards are outside this snapshot scope.
 
 This is evidence for the supported reference scenarios, not proof that all sts2-cli
-patches match the running Godot game. Arbitrary snapshot loading and C++ engine replay
-remain unimplemented. Extending scope requires inspecting state dependencies, adding
+patches match the running Godot game. Arbitrary snapshot loading into sts2-cli remains unimplemented. C++ replay starts from
+a fresh imported combat snapshot and supports this audited combat profile. Extending scope requires inspecting state dependencies, adding
 exporters/guards, and adding reference fixtures before changing the feature definition.
 
 ## Validation performed

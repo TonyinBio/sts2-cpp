@@ -2,10 +2,14 @@
 
 A headless C++20 Slay the Spire 2 simulator for high-throughput AI search and simulation.
 
-This repository currently contains a buildable scaffold, not a faithful game implementation.
-The demo supports one enemy, attack/block cards, energy, hand removal, turn progression,
-and victory/defeat. Each turn refills a fixed hand; draw/discard piles, enemy AI,
-relics, powers, and game-compatible RNG are not implemented.
+The combat engine implements the audited v0.111.0 Ironclad ascension-0 starter deck
+against Shrinker Beetle: Strike, Defend, Bash, ordered piles and reshuffling, energy,
+block, Shrink/Vulnerable powers, enemy turns, and victory/defeat with Burning Blood.
+Reference action recordings are replayed in C++ and every resulting combat state is
+compared exactly against sts2-cli, including RNG words and counters.
+
+This is one supported combat profile, not the full card pool or run progression.
+See [simulator design and coverage](docs/simulator.md) for scope and performance details.
 
 ## Build and run
 
@@ -26,14 +30,16 @@ ctest --preset release
 ./build/release/simulation_benchmark
 ```
 
-The benchmark measures the tiny scaffold combat only, not full-game throughput.
-Combat state is trivially copyable and transitions use fixed-capacity storage without
-heap allocation. The simulator library has no runtime dependency on sts2-cli.
+The benchmark measures supported combat rollouts from 256 varied initial hands,
+including branch copying and action enumeration. Setup, reference processes, and JSON
+are outside the timing. Combat state is trivially copyable (168 bytes on the tested
+x86_64 GCC build), with allocation-free setup/transitions. The simulator library has no
+runtime dependency on sts2-cli or JSON.
 
 ## Tests
 
-Tests use GoogleTest and are individually registered with CTest under the `unit`
-and `combat_state` labels.
+Tests use GoogleTest and are individually registered with CTest under the `unit`,
+`combat_state`, and `parity` labels.
 The test framework links only into test executables.
 
 ```sh
@@ -56,25 +62,39 @@ git submodule update --init --recursive
 ```
 
 Running the reference requires a local game installation and its own setup; see
-[sts2-cli setup](sts2-cli/README.md). It is not needed to build the C++ scaffold.
+[sts2-cli setup](sts2-cli/README.md). It is not needed to build the C++ engine or run recorded parity tests.
 
-Planned differential tests will restore complete combat snapshots, including RNG state,
-replay prerecorded player actions and selection decisions in both engines, and compare
-state at matching decision points. Seeds reproduce game randomness; they do not select
-player actions. An unavailable recorded action is a test failure. Pin the reference
-revision and game version in captured fixtures.
+Differential tests import the initial combat snapshot and RNG state, replay recorded
+player decisions once, and compare every resulting state. An unavailable action or
+state mismatch fails immediately. Reference revision, game hash, and action-file digest
+are checked before replay. No expected intermediate state is used to repair the simulation.
 
-`rng.hpp` provides a reproducible local SplitMix64 generator for experiments. It is
-not used by the current deterministic demo and does not claim game RNG compatibility.
+`rng.hpp` implements the inspected game's xoshiro256** generator, SplitMix64 seed
+initialization, and bounded-draw arithmetic used by shuffling.
 
 The installed-DLL state-access check and its verified scope are documented in
 [Oracle state access](docs/oracle-state-access.md).
 
 The [combat state format](docs/combat-state-format.md) defines the shared combat-state
 schema, validation, identity/order rules, and exact comparison behavior. Run its offline
-tests with `ctest --preset debug -L combat_state`. Engine exporters and fixture replay are
-not implemented yet.
+tests with `ctest --preset debug -L combat_state`.
 
 The [action-recording format](docs/action-recording-format.md) defines versioned inputs
 using the existing combat-state schema. The [oracle recorder](docs/oracle-recording.md)
 executes supported sequences against local game DLLs and writes validated state transitions.
+
+Replay recorded reference states without a game installation:
+
+```sh
+./build/debug/parity_replay tests/parity/examples/starter.actions.json \
+  tests/parity/fixtures/starter.states.json
+ctest --preset debug -L parity
+```
+
+Generate new reference traces and compare every C++ transition against the installed DLL:
+
+```sh
+python3 tools/oracle/check_simulator.py \
+  --game-dir '/mnt/c/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2' \
+  --episodes 32 --policy-seed 17
+```

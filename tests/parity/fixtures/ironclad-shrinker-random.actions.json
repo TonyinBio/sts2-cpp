@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "profile": "actions-v1",
+  "recording_id": "episode-0004",
+  "state_profile": "combat-v1",
+  "required_features": [
+    "basic_combat",
+    "ironclad_starter_shrinker_v1"
+  ],
+  "setup": {
+    "kind": "seeded_combat",
+    "seed": "CPP-PARITY-17-4",
+    "character": "Ironclad",
+    "ascension": 0,
+    "encounter": "SHRINKER_BEETLE_WEAK"
+  },
+  "actions": [
+    {
+      "id": "action-000",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_3",
+        "target": "enemy_0"
+      }
+    },
+    {
+      "id": "action-001",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "action-002",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_7",
+        "target": "enemy_0"
+      }
+    },
+    {
+      "id": "action-003",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_5",
+        "target": "enemy_0"
+      }
+    },
+    {
+      "id": "action-004",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "action-005",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_4",
+        "target": "enemy_0"
+      }
+    },
+    {
+      "id": "action-006",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_0"
+      }
+    },
+    {
+      "id": "action-007",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_8"
+      }
+    },
+    {
+      "id": "action-008",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "action-009",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "action-010",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_3",
+        "target": "enemy_0"
+      }
+    },
+    {
+      "id": "action-011",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "action-012",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_7",
+        "target": "enemy_0"
+      }
+    },
+    {
+      "id": "action-013",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_2",
+        "target": "enemy_0"
+      }
+    },
+    {
+      "id": "action-014",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "action-015",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_7",
+        "target": "enemy_0"
+      }
+    }
+  ]
+}

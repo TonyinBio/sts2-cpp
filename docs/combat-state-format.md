@@ -4,8 +4,8 @@ Both the reference adapter and simulator adapter must export the same canonical 
 representation. The schema is `tests/parity/schema/combat-v1.json`; its validated C++
 representation is `sts2::parity::Snapshot` in `tests/parity/snapshot.hpp`.
 
-This establishes the representation and offline comparison rules. Neither engine is
-mapped into it yet. `tests/parity/examples/starter.json` is synthetic schema example
+This establishes the representation and offline comparison rules. Both engines have
+adapters for the audited starter combat profile; see [simulator coverage](simulator.md). `tests/parity/examples/starter.json` is synthetic schema example
 data, not a captured reference fixture or evidence of simulator/game parity.
 
 ## Scope and compatibility
