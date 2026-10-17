@@ -3,4 +3,5 @@
 namespace sts2::parity {
 inline constexpr std::string_view combat_schema = R"schema(@COMBAT_SCHEMA@)schema";
 inline constexpr std::string_view actions_schema = R"schema(@ACTIONS_SCHEMA@)schema";
+inline constexpr std::string_view states_schema = R"schema(@STATES_SCHEMA@)schema";
 }

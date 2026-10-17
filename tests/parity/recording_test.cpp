@@ -11,7 +11,7 @@ Json example() {
     return Json::parse(input);
 }
 ActionRecording parse(const Json& value) {
-    return ActionRecording::parse(value, {"basic_combat"});
+    return ActionRecording::parse(value, {"basic_combat", "ironclad_starter_shrinker_v1"});
 }
 TEST(ActionRecordingFormat, PreservesExampleAndActionOrder) {
     const auto value = example();

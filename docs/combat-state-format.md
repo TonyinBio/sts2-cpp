@@ -103,7 +103,7 @@ reported explicitly, with JSON null representing absence in the difference repor
 ## Recording envelope and action mapping
 
 Snapshot JSON describes state, not its provenance. Store action inputs in a separate
-[actions-v1 recording](action-recording-format.md). Future result files must record its
+[actions-v1 recording](action-recording-format.md). [states-v1 result files](oracle-recording.md) record its
 identity and digest, reference revision, game DLL hash, adapter identity, an initial
 snapshot including RNG state, and snapshots keyed by action ID. Verify these identities
 before replay. Keep incompatible game builds in separate fixture sets.

@@ -7,8 +7,10 @@ and `tests/parity/examples/starter.actions.json`.
 
 Resulting states use the existing [combat-v1 format](combat-state-format.md),
 validated by `Snapshot::parse`. This action schema does not change or duplicate it.
-The example is an illustrative input, not a recorded oracle fixture, and is not
-paired with the synthetic `starter.json` state example.
+The example is executable with the reference recorder; its captured output lives in
+`tests/parity/fixtures/starter.states.json`. It is not paired with the synthetic
+`starter.json` state example. The extra feature `ironclad_starter_shrinker_v1` declares
+the recorder's audited encounter, powers, and counter conventions.
 
 ## Envelope and initialization
 
@@ -18,7 +20,7 @@ paired with the synthetic `starter.json` state example.
   "profile": "actions-v1",
   "recording_id": "starter-two-turns",
   "state_profile": "combat-v1",
-  "required_features": ["basic_combat"],
+  "required_features": ["basic_combat", "ironclad_starter_shrinker_v1"],
   "setup": {
     "kind": "seeded_combat",
     "seed": "ORACLECHECK01",
@@ -42,7 +44,7 @@ its subsequent actions, using the same feature vocabulary as combat-v1. Consumer
 supply their allowlist. Validation rejects unknown features; it cannot infer that a
 particular loadout or encounter needs additional features.
 
-The initial profile supports `seeded_combat` only. A future reference runner translates
+The initial profile supports `seeded_combat` only. The reference runner translates
 it to `start_run` with character, seed, ascension, and explicit English language, then
 `enter_room` with type `combat` and the given encounter. Use the character's default
 loadout. Encounter names are unlocalized protocol entries, e.g. `SHRINKER_BEETLE_WEAK`,
@@ -88,9 +90,11 @@ Runners resolve identities to protocol indices immediately before each action. F
 encoding belongs in its adapter, not this format. Random results are generated from
 engine RNG state; they are not player actions or alternate actions chosen by the runner.
 
-## Result-file contract for the future recorder
+## Result files
 
-Keep action input and state output in separate files. The recorder should produce:
+Keep action input and state output in separate files. The `states-v1` envelope is
+defined in `tests/parity/schema/states-v1.json` and validated with the existing C++
+combat parser. The recorder produces:
 
 - A versioned result envelope containing the recording ID, SHA-256 of the exact action
   file bytes, reference submodule revision, original game DLL hash, adapter identity,
@@ -107,10 +111,12 @@ unconsumed input, missing results, or failed export makes the recording incomple
 Do not present partial results as passing reference data or overwrite a good result file
 on failure. Verify provenance and action-file digest before comparison.
 
-The result envelope, full reference exporter, reference runner, and C++ replay adapter
-are subsequent work. This scaffold implements action validation only. It does not execute
-sts2-cli, load snapshots, or establish game parity. The schema example does not claim
-that the current C++ simulator supports its encounter or complete combat-v1 state.
+The reference runner and scoped exporter are implemented in `tools/oracle/record.py`
+and `RecordingSession.cs`; see [Running the oracle recorder](oracle-recording.md).
+The current exporter supports `play_card` and `end_turn` in the audited starter encounter.
+Selection actions remain part of actions-v1 but are explicitly rejected by this exporter.
+C++ simulator import/replay and comparison against these reference sequences remain
+subsequent work; the placeholder simulator does not support this complete combat state.
 
 ## Validation
 

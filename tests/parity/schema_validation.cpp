@@ -1,4 +1,5 @@
 #include "schema_validation.hpp"
+#include "schema.hpp"
 #include <algorithm>
 #include <charconv>
 #include <cstdint>
@@ -26,6 +27,11 @@ void validate(const Json& value, const Json& rule, const Json& root, const std::
         if (matches != 1) invalid(path, "expected exactly one supported action shape");
     }
     if (rule.contains("$ref")) {
+        if (rule["$ref"] == "combat-v1.json") {
+            static const auto combat = Json::parse(combat_schema);
+            validate(value, combat, combat, path);
+            return;
+        }
         const auto pointer = rule["$ref"].get<std::string>().substr(1);
         validate(value, root.at(Json::json_pointer(pointer)), root, path);
         return;

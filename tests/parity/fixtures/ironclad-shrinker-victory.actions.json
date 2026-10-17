@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "profile": "actions-v1",
+  "recording_id": "ironclad-shrinker-victory",
+  "state_profile": "combat-v1",
+  "required_features": [
+    "basic_combat",
+    "ironclad_starter_shrinker_v1"
+  ],
+  "setup": {
+    "kind": "seeded_combat",
+    "seed": "ORACLECHECK01",
+    "character": "Ironclad",
+    "ascension": 0,
+    "encounter": "SHRINKER_BEETLE_WEAK"
+  },
+  "actions": [
+    {
+      "id": "decision-001",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_2",
+        "target": "enemy_0"
+      }
+    },
+    {
+      "id": "decision-002",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_3",
+        "target": "enemy_0"
+      }
+    },
+    {
+      "id": "decision-003",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_4",
+        "target": "enemy_0"
+      }
+    },
+    {
+      "id": "decision-004",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "decision-005",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_8",
+        "target": "enemy_0"
+      }
+    },
+    {
+      "id": "decision-006",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_6",
+        "target": "enemy_0"
+      }
+    },
+    {
+      "id": "decision-007",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "decision-008",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_8",
+        "target": "enemy_0"
+      }
+    },
+    {
+      "id": "decision-009",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_6",
+        "target": "enemy_0"
+      }
+    }
+  ]
+}

@@ -38,12 +38,14 @@ if(BUILD_TESTING)
   FetchContent_MakeAvailable(nlohmann_json)
   set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/schema/combat-v1.json"
-    "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/schema/actions-v1.json")
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/schema/actions-v1.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/schema/states-v1.json")
   file(READ tests/parity/schema/combat-v1.json COMBAT_SCHEMA)
   file(READ tests/parity/schema/actions-v1.json ACTIONS_SCHEMA)
+  file(READ tests/parity/schema/states-v1.json STATES_SCHEMA)
   configure_file(tests/parity/schema.hpp.in generated/parity/schema.hpp @ONLY)
   add_library(combat_state STATIC tests/parity/snapshot.cpp
-    tests/parity/schema_validation.cpp tests/parity/recording.cpp)
+    tests/parity/schema_validation.cpp tests/parity/recording.cpp tests/parity/state_recording.cpp)
   target_compile_features(combat_state PUBLIC cxx_std_20)
   target_include_directories(combat_state PUBLIC tests/parity
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated/parity")
@@ -59,7 +61,21 @@ if(BUILD_TESTING)
   target_link_libraries(action_recording_test PRIVATE combat_state GTest::gtest_main)
   target_compile_definitions(action_recording_test PRIVATE
     ACTION_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/examples/starter.actions.json")
+  add_executable(parity_validate tests/parity/validate_main.cpp)
+  target_link_libraries(parity_validate PRIVATE combat_state)
+  add_executable(state_recording_test tests/parity/state_recording_test.cpp)
+  target_link_libraries(state_recording_test PRIVATE combat_state GTest::gtest_main)
+  target_compile_definitions(state_recording_test PRIVATE
+    PARITY_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/examples/starter.json"
+    ACTION_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/examples/starter.actions.json")
+  find_package(Python3 COMPONENTS Interpreter QUIET)
+  if(Python3_Interpreter_FOUND)
+    add_test(NAME oracle_recorder_unit COMMAND "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tools/oracle/test_record.py" "$<TARGET_FILE:parity_validate>")
+    set_tests_properties(oracle_recorder_unit PROPERTIES LABELS "recorder")
+  endif()
   include(GoogleTest)
+  gtest_discover_tests(state_recording_test PROPERTIES LABELS state_recording)
   gtest_discover_tests(action_recording_test PROPERTIES LABELS action_recording)
   gtest_discover_tests(combat_state_test PROPERTIES LABELS combat_state)
   gtest_discover_tests(simulator_test PROPERTIES LABELS unit)

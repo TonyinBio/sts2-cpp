@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sts2-simulator.local/schema/states-v1.json",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "type": "integer"
+    },
+    "profile": {
+      "const": "states-v1"
+    },
+    "recording_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actions_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "reference": {
+      "type": "object",
+      "properties": {
+        "revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "game_dll_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "adapter_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "assembly_mvid": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runtime_version": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "revision",
+        "game_dll_sha256",
+        "adapter_sha256",
+        "assembly_mvid",
+        "runtime_version"
+      ],
+      "additionalProperties": false
+    },
+    "initial": {
+      "$ref": "combat-v1.json"
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "$ref": "combat-v1.json"
+          }
+        },
+        "required": [
+          "action_id",
+          "state"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "profile",
+    "recording_id",
+    "actions_sha256",
+    "reference",
+    "initial",
+    "transitions"
+  ],
+  "additionalProperties": false
+}

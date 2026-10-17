@@ -4,7 +4,8 @@
   "recording_id": "starter-actions-example",
   "state_profile": "combat-v1",
   "required_features": [
-    "basic_combat"
+    "basic_combat",
+    "ironclad_starter_shrinker_v1"
   ],
   "setup": {
     "kind": "seeded_combat",
@@ -14,6 +15,21 @@
     "encounter": "SHRINKER_BEETLE_WEAK"
   },
   "actions": [
+    {
+      "id": "defend-1",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_0"
+      }
+    },
+    {
+      "id": "strike-1",
+      "action": {
+        "kind": "play_card",
+        "card_instance": "card_2",
+        "target": "enemy_0"
+      }
+    },
     {
       "id": "end-turn-1",
       "action": {

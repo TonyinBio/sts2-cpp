@@ -76,4 +76,5 @@ tests with `ctest --preset debug -L combat_state`. Engine exporters and fixture 
 not implemented yet.
 
 The [action-recording format](docs/action-recording-format.md) defines versioned inputs
-for future reference recording and C++ replay using the existing combat-state schema.
+using the existing combat-state schema. The [oracle recorder](docs/oracle-recording.md)
+executes supported sequences against local game DLLs and writes validated state transitions.
