@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "profile": "combat-v1",
+  "required_features": [
+    "basic_combat"
+  ],
+  "boundary": "player_action",
+  "combat": {
+    "round": 1,
+    "active_side": "player",
+    "outcome": "ongoing"
+  },
+  "player": {
+    "instance_id": "player_0",
+    "model_id": "CHARACTER.IRONCLAD",
+    "hp": 80,
+    "max_hp": 80,
+    "block": 0,
+    "powers": [],
+    "counters": {},
+    "energy": 3,
+    "max_energy": 3,
+    "relics": [
+      {
+        "instance_id": "relic_0",
+        "model_id": "RELIC.BURNING_BLOOD",
+        "counters": {}
+      }
+    ]
+  },
+  "enemies": [
+    {
+      "instance_id": "enemy_0",
+      "model_id": "MONSTER.SHRINKER_BEETLE",
+      "hp": 38,
+      "max_hp": 38,
+      "block": 0,
+      "powers": [],
+      "counters": {},
+      "move_id": "example_move",
+      "move_history": []
+    }
+  ],
+  "cards": [
+    {
+      "instance_id": "card_0",
+      "model_id": "CARD.STRIKE_IRONCLAD",
+      "upgrade_level": 0,
+      "cost": {
+        "kind": "fixed",
+        "amount": 1
+      },
+      "flags": [],
+      "counters": {}
+    },
+    {
+      "instance_id": "card_1",
+      "model_id": "CARD.DEFEND_IRONCLAD",
+      "upgrade_level": 0,
+      "cost": {
+        "kind": "fixed",
+        "amount": 1
+      },
+      "flags": [],
+      "counters": {}
+    }
+  ],
+  "piles": {
+    "hand": [
+      "card_0",
+      "card_1"
+    ],
+    "draw": [],
+    "discard": [],
+    "exhaust": [],
+    "playing": []
+  },
+  "selection": {
+    "kind": "none",
+    "options": [],
+    "min": 0,
+    "max": 0
+  },
+  "randomness": {
+    "run": {
+      "UpFront": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "18446744073709551615"
+      },
+      "Shuffle": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "18446744073709551615"
+      },
+      "UnknownMapPoint": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "18446744073709551615"
+      },
+      "CombatCardGeneration": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "18446744073709551615"
+      },
+      "CombatPotionGeneration": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "18446744073709551615"
+      },
+      "CombatCardSelection": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "18446744073709551615"
+      },
+      "CombatEnergyCosts": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "18446744073709551615"
+      },
+      "CombatTargets": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "18446744073709551615"
+      },
+      "MonsterAi": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "18446744073709551615"
+      },
+      "Niche": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "18446744073709551615"
+      },
+      "CombatOrbs": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "18446744073709551615"
+      },
+      "TreasureRoomRelics": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "18446744073709551615"
+      }
+    },
+    "player": {
+      "Rewards": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "4"
+      },
+      "Shops": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "4"
+      },
+      "Transformations": {
+        "counter": 0,
+        "s0": "1",
+        "s1": "2",
+        "s2": "3",
+        "s3": "4"
+      }
+    }
+  }
+}

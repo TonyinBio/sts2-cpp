@@ -11,7 +11,8 @@ relics, powers, and game-compatible RNG are not implemented.
 
 Requires a C++20 compiler, CMake 3.20+, Make, and Git.
 With testing enabled (the default), the first configure fetches GoogleTest v1.17.0
-from GitHub and requires network access.
+from GitHub and requires network access. The shared combat state tests also fetch
+nlohmann/json v3.12.0; neither dependency links into the production simulator.
 
 ```sh
 cmake --preset debug
@@ -31,7 +32,8 @@ heap allocation. The simulator library has no runtime dependency on sts2-cli.
 
 ## Tests
 
-Tests use GoogleTest and are individually registered with CTest under the `unit` label.
+Tests use GoogleTest and are individually registered with CTest under the `unit`
+and `combat_state` labels.
 The test framework links only into test executables.
 
 ```sh
@@ -41,7 +43,9 @@ ctest --preset debug -L unit
 
 For an offline build, provide a local GoogleTest v1.17.0 checkout during configure:
 `cmake --preset debug -DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=/path/to/googletest`.
-To build without tests or downloading GoogleTest, configure with `-DBUILD_TESTING=OFF`.
+For offline combat state tests also provide
+`-DFETCHCONTENT_SOURCE_DIR_NLOHMANN_JSON=/path/to/json`.
+To build without tests or downloading either dependency, configure with `-DBUILD_TESTING=OFF`.
 
 ## Correctness reference
 
@@ -54,15 +58,19 @@ git submodule update --init --recursive
 Running the reference requires a local game installation and its own setup; see
 [sts2-cli setup](sts2-cli/README.md). It is not needed to build the C++ scaffold.
 
-Planned differential tests will export complete combat snapshots from the reference,
-apply matching actions in both engines, and compare state at matching decision points.
-First capture and replay random choices, checking choice kinds and candidate identities.
-Then test exact RNG compatibility separately: algorithm, seed conversion, independent
-streams, call ordering, and shuffling. Matching seeds alone does not establish parity.
-Pin the reference revision and game version in captured fixtures.
+Planned differential tests will restore complete combat snapshots, including RNG state,
+replay prerecorded player actions and selection decisions in both engines, and compare
+state at matching decision points. Seeds reproduce game randomness; they do not select
+player actions. An unavailable recorded action is a test failure. Pin the reference
+revision and game version in captured fixtures.
 
 `rng.hpp` provides a reproducible local SplitMix64 generator for experiments. It is
 not used by the current deterministic demo and does not claim game RNG compatibility.
 
 The installed-DLL state-access check and its verified scope are documented in
 [Oracle state access](docs/oracle-state-access.md).
+
+The [combat state format](docs/combat-state-format.md) defines the shared combat-state
+schema, validation, identity/order rules, and exact comparison behavior. Run its offline
+tests with `ctest --preset debug -L combat_state`. Engine exporters and fixture replay are
+not implemented yet.

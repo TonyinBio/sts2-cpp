@@ -1,0 +1,559 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sts2-simulator.local/schema/combat-v1.json",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "type": "integer",
+      "minimum": -9223372036854775808,
+      "maximum": 9223372036854775807
+    },
+    "profile": {
+      "const": "combat-v1"
+    },
+    "required_features": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "boundary": {
+      "enum": [
+        "player_action",
+        "selection",
+        "combat_end"
+      ]
+    },
+    "combat": {
+      "type": "object",
+      "properties": {
+        "round": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775807
+        },
+        "active_side": {
+          "enum": [
+            "player",
+            "enemy",
+            "none"
+          ]
+        },
+        "outcome": {
+          "enum": [
+            "ongoing",
+            "victory",
+            "defeat"
+          ]
+        }
+      },
+      "required": [
+        "round",
+        "active_side",
+        "outcome"
+      ],
+      "additionalProperties": false
+    },
+    "player": {
+      "type": "object",
+      "properties": {
+        "instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hp": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        },
+        "max_hp": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775807
+        },
+        "block": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        },
+        "powers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/effect"
+          }
+        },
+        "counters": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": -9223372036854775808,
+            "maximum": 9223372036854775807
+          }
+        },
+        "energy": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        },
+        "max_energy": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        },
+        "relics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relic"
+          }
+        }
+      },
+      "required": [
+        "instance_id",
+        "model_id",
+        "hp",
+        "max_hp",
+        "block",
+        "powers",
+        "counters",
+        "energy",
+        "max_energy",
+        "relics"
+      ],
+      "additionalProperties": false
+    },
+    "enemies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "model_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "hp": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9223372036854775807
+          },
+          "max_hp": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9223372036854775807
+          },
+          "block": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9223372036854775807
+          },
+          "powers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/effect"
+            }
+          },
+          "counters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": -9223372036854775808,
+              "maximum": 9223372036854775807
+            }
+          },
+          "move_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "move_history": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "required": [
+          "instance_id",
+          "model_id",
+          "hp",
+          "max_hp",
+          "block",
+          "powers",
+          "counters",
+          "move_id",
+          "move_history"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "model_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "upgrade_level": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9223372036854775807
+          },
+          "cost": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "fixed",
+                  "x",
+                  "unplayable"
+                ]
+              },
+              "amount": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9223372036854775807
+              }
+            },
+            "required": [
+              "kind",
+              "amount"
+            ],
+            "additionalProperties": false
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          },
+          "counters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": -9223372036854775808,
+              "maximum": 9223372036854775807
+            }
+          }
+        },
+        "required": [
+          "instance_id",
+          "model_id",
+          "upgrade_level",
+          "cost",
+          "flags",
+          "counters"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "piles": {
+      "type": "object",
+      "properties": {
+        "hand": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "draw": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "discard": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "exhaust": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "playing": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "hand",
+        "draw",
+        "discard",
+        "exhaust",
+        "playing"
+      ],
+      "additionalProperties": false
+    },
+    "selection": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "none",
+            "card",
+            "target"
+          ]
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "min": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        }
+      },
+      "required": [
+        "kind",
+        "options",
+        "min",
+        "max"
+      ],
+      "additionalProperties": false
+    },
+    "randomness": {
+      "type": "object",
+      "properties": {
+        "run": {
+          "type": "object",
+          "properties": {
+            "UpFront": {
+              "$ref": "#/$defs/rng"
+            },
+            "Shuffle": {
+              "$ref": "#/$defs/rng"
+            },
+            "UnknownMapPoint": {
+              "$ref": "#/$defs/rng"
+            },
+            "CombatCardGeneration": {
+              "$ref": "#/$defs/rng"
+            },
+            "CombatPotionGeneration": {
+              "$ref": "#/$defs/rng"
+            },
+            "CombatCardSelection": {
+              "$ref": "#/$defs/rng"
+            },
+            "CombatEnergyCosts": {
+              "$ref": "#/$defs/rng"
+            },
+            "CombatTargets": {
+              "$ref": "#/$defs/rng"
+            },
+            "MonsterAi": {
+              "$ref": "#/$defs/rng"
+            },
+            "Niche": {
+              "$ref": "#/$defs/rng"
+            },
+            "CombatOrbs": {
+              "$ref": "#/$defs/rng"
+            },
+            "TreasureRoomRelics": {
+              "$ref": "#/$defs/rng"
+            }
+          },
+          "required": [
+            "UpFront",
+            "Shuffle",
+            "UnknownMapPoint",
+            "CombatCardGeneration",
+            "CombatPotionGeneration",
+            "CombatCardSelection",
+            "CombatEnergyCosts",
+            "CombatTargets",
+            "MonsterAi",
+            "Niche",
+            "CombatOrbs",
+            "TreasureRoomRelics"
+          ],
+          "additionalProperties": false
+        },
+        "player": {
+          "type": "object",
+          "properties": {
+            "Rewards": {
+              "$ref": "#/$defs/rng"
+            },
+            "Shops": {
+              "$ref": "#/$defs/rng"
+            },
+            "Transformations": {
+              "$ref": "#/$defs/rng"
+            }
+          },
+          "required": [
+            "Rewards",
+            "Shops",
+            "Transformations"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "run",
+        "player"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "profile",
+    "required_features",
+    "boundary",
+    "combat",
+    "player",
+    "enemies",
+    "cards",
+    "piles",
+    "selection",
+    "randomness"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "effect": {
+      "type": "object",
+      "properties": {
+        "instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": -9223372036854775808,
+          "maximum": 9223372036854775807
+        },
+        "counters": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": -9223372036854775808,
+            "maximum": 9223372036854775807
+          }
+        }
+      },
+      "required": [
+        "instance_id",
+        "model_id",
+        "amount",
+        "counters"
+      ],
+      "additionalProperties": false
+    },
+    "relic": {
+      "type": "object",
+      "properties": {
+        "instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "counters": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": -9223372036854775808,
+            "maximum": 9223372036854775807
+          }
+        }
+      },
+      "required": [
+        "instance_id",
+        "model_id",
+        "counters"
+      ],
+      "additionalProperties": false
+    },
+    "rng": {
+      "type": "object",
+      "properties": {
+        "counter": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        },
+        "s0": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "format": "uint64-decimal"
+        },
+        "s1": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "format": "uint64-decimal"
+        },
+        "s2": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "format": "uint64-decimal"
+        },
+        "s3": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "format": "uint64-decimal"
+        }
+      },
+      "required": [
+        "counter",
+        "s0",
+        "s1",
+        "s2",
+        "s3"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
