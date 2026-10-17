@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sts2-simulator.local/schema/actions-v1.json",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "profile": {
+      "const": "actions-v1"
+    },
+    "recording_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "state_profile": {
+      "const": "combat-v1"
+    },
+    "required_features": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "setup": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "seeded_combat"
+        },
+        "seed": {
+          "type": "string",
+          "minLength": 1
+        },
+        "character": {
+          "enum": [
+            "Ironclad",
+            "Silent",
+            "Defect",
+            "Regent",
+            "Necrobinder"
+          ]
+        },
+        "ascension": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "encounter": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "kind",
+        "seed",
+        "character",
+        "ascension",
+        "encounter"
+      ],
+      "additionalProperties": false
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "action": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/play_card"
+              },
+              {
+                "$ref": "#/$defs/end_turn"
+              },
+              {
+                "$ref": "#/$defs/select_cards"
+              },
+              {
+                "$ref": "#/$defs/select_target"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "action"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "profile",
+    "recording_id",
+    "state_profile",
+    "required_features",
+    "setup",
+    "actions"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "play_card": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "play_card"
+        },
+        "card_instance": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "kind",
+        "card_instance"
+      ],
+      "additionalProperties": false
+    },
+    "end_turn": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "end_turn"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "select_cards": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "select_cards"
+        },
+        "card_instances": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "kind",
+        "card_instances"
+      ],
+      "additionalProperties": false
+    },
+    "select_target": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "select_target"
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "kind",
+        "target"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "profile": "actions-v1",
+  "recording_id": "starter-actions-example",
+  "state_profile": "combat-v1",
+  "required_features": [
+    "basic_combat"
+  ],
+  "setup": {
+    "kind": "seeded_combat",
+    "seed": "ORACLECHECK01",
+    "character": "Ironclad",
+    "ascension": 0,
+    "encounter": "SHRINKER_BEETLE_WEAK"
+  },
+  "actions": [
+    {
+      "id": "end-turn-1",
+      "action": {
+        "kind": "end_turn"
+      }
+    },
+    {
+      "id": "end-turn-2",
+      "action": {
+        "kind": "end_turn"
+      }
+    }
+  ]
+}

@@ -74,3 +74,6 @@ The [combat state format](docs/combat-state-format.md) defines the shared combat
 schema, validation, identity/order rules, and exact comparison behavior. Run its offline
 tests with `ctest --preset debug -L combat_state`. Engine exporters and fixture replay are
 not implemented yet.
+
+The [action-recording format](docs/action-recording-format.md) defines versioned inputs
+for future reference recording and C++ replay using the existing combat-state schema.

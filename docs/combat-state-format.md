@@ -102,10 +102,11 @@ reported explicitly, with JSON null representing absence in the difference repor
 
 ## Recording envelope and action mapping
 
-Snapshot JSON describes state, not its provenance. Future fixture files must wrap it
-with a fixture ID, reference revision, game DLL SHA-256, initial snapshot including RNG state,
-prerecorded player actions and selection decisions, and expected snapshots. Verify these
-identities before replay. Keep incompatible game builds in separate fixture sets.
+Snapshot JSON describes state, not its provenance. Store action inputs in a separate
+[actions-v1 recording](action-recording-format.md). Future result files must record its
+identity and digest, reference revision, game DLL hash, adapter identity, an initial
+snapshot including RNG state, and snapshots keyed by action ID. Verify these identities
+before replay. Keep incompatible game builds in separate fixture sets.
 
 Replay executes the prerecorded actions and selection decisions in order. Seeds
 and restored RNG state reproduce game behavior such as draws and enemy moves;
@@ -121,8 +122,9 @@ Actions must refer to the recording's stable identities, for example:
 
 Adapters resolve identities to current protocol indices immediately before executing.
 End-turn has no card or target. Selections reference the advertised options. Reject
-unknown identities or unavailable actions. The action envelope and replay runner are
-subsequent work; they are not accepted as fields in a version-1 snapshot.
+unknown identities or unavailable actions. The [actions-v1 envelope](action-recording-format.md) is defined separately.
+The replay runner remains subsequent work; actions are not accepted as fields in a
+version-1 snapshot.
 
 ## Tests and diagnostics
 
