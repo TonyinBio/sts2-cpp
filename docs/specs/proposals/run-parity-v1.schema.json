@@ -1,0 +1,3265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sts2-simulator.local/schema/proposals/run-parity-v1.schema.json",
+  "title": "Native SerializableRun v20 with combat parity state",
+  "description": "One evolving comparison-only representation for single-player awaiting_input and run_complete boundaries. Native payload stays unchanged. Known suspended-operation coverage gaps are documented in run-parity-spec.md; this is not a restorable save or agent observation interface.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/$defs/NativeRunFields"
+    },
+    {
+      "if": {
+        "properties": {
+          "boundary_kind": {
+            "const": "run_complete"
+          }
+        },
+        "required": [
+          "boundary_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "run_ending_reason": {
+            "enum": [
+              "victory",
+              "death",
+              "abandoned"
+            ]
+          },
+          "pending_choice": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "run_ending_reason": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "combat": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "combat"
+        ]
+      },
+      "then": {
+        "properties": {
+          "pending_choice": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "combat": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "combat"
+        ]
+      },
+      "then": {
+        "properties": {
+          "current_room": {
+            "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRoom"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "boundary_kind": {
+      "enum": [
+        "awaiting_input",
+        "run_complete"
+      ]
+    },
+    "run_ending_reason": {
+      "enum": [
+        null,
+        "victory",
+        "death",
+        "abandoned"
+      ]
+    },
+    "current_room": {
+      "anyOf": [
+        {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRoom"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "native_model_state": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^/"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/NativeModelState"
+      },
+      "description": "Additional model-specific combat fields for objects already represented in native run data, keyed by JSON Pointer to that object. Omit entries without additional fields."
+    },
+    "combat": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Combat"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "pending_choice": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PendingChoice"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "boundary_kind",
+    "run_ending_reason",
+    "current_room",
+    "native_model_state",
+    "combat",
+    "pending_choice"
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "NativeRunFields": {
+      "type": "object",
+      "properties": {
+        "acts": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/acts"
+        },
+        "ascension": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/ascension"
+        },
+        "current_act_index": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/current_act_index"
+        },
+        "dailyTime": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/dailyTime"
+        },
+        "events_seen": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/events_seen"
+        },
+        "extra_fields": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/extra_fields"
+        },
+        "game_mode": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/game_mode"
+        },
+        "map_drawings": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/map_drawings"
+        },
+        "map_point_history": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/map_point_history"
+        },
+        "modifiers": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/modifiers"
+        },
+        "num_reloads": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/num_reloads"
+        },
+        "odds": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/odds"
+        },
+        "platform_type": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/platform_type"
+        },
+        "players": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/players"
+        },
+        "pre_finished_room": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/pre_finished_room"
+        },
+        "rng": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/rng"
+        },
+        "run_time": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/run_time"
+        },
+        "save_time": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/save_time"
+        },
+        "schema_version": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/schema_version"
+        },
+        "shared_relic_grab_bag": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/shared_relic_grab_bag"
+        },
+        "start_time": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/start_time"
+        },
+        "visited_map_coords": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/visited_map_coords"
+        },
+        "win_time": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/win_time"
+        }
+      },
+      "required": [
+        "ascension",
+        "current_act_index",
+        "extra_fields",
+        "game_mode",
+        "map_drawings",
+        "modifiers",
+        "num_reloads",
+        "odds",
+        "platform_type",
+        "players",
+        "pre_finished_room",
+        "rng",
+        "run_time",
+        "save_time",
+        "schema_version",
+        "shared_relic_grab_bag",
+        "start_time",
+        "win_time"
+      ],
+      "$comment": "Open projection of native root fields only. Nested native objects retain native closure. Root closure is enforced by unevaluatedProperties in this extension."
+    },
+    "Ref": {
+      "type": "string",
+      "pattern": "^/(?:[^~/]|~[01])+?(?:/(?:[^~/]|~[01])+)*$",
+      "description": "Document-local JSON Pointer to a captured object. Preserve aliasing; normalize labels bijectively between exports, never compare engine memory or network IDs."
+    },
+    "Decimal": {
+      "type": "number",
+      "description": "Exact C# decimal value. Parse/compare losslessly, never through binary floating point."
+    },
+    "DynamicVars": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/Decimal"
+      },
+      "description": "Mutable DynamicVar.BaseValue inputs only; omit reconstructible values and preview caches."
+    },
+    "LocalCostModifier": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "type": {
+          "enum": [
+            "Absolute",
+            "Relative"
+          ]
+        },
+        "expiration": {
+          "enum": [
+            0,
+            2,
+            4,
+            6
+          ]
+        },
+        "is_reduce_only": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "amount",
+        "type",
+        "expiration",
+        "is_reduce_only"
+      ],
+      "additionalProperties": false
+    },
+    "EnergyCost": {
+      "type": "object",
+      "properties": {
+        "base": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "captured_x_value": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "local_modifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LocalCostModifier"
+          }
+        }
+      },
+      "required": [
+        "base",
+        "captured_x_value",
+        "local_modifiers"
+      ],
+      "additionalProperties": false
+    },
+    "TemporaryStarCost": {
+      "type": "object",
+      "properties": {
+        "cost": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "clears_when_turn_ends": {
+          "type": "boolean"
+        },
+        "clears_when_card_is_played": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "cost",
+        "clears_when_turn_ends",
+        "clears_when_card_is_played"
+      ],
+      "additionalProperties": false
+    },
+    "Affliction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/ModelId"
+        },
+        "amount": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        }
+      },
+      "required": [
+        "id",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "EnchantmentRuntime": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "Normal",
+            "Disabled"
+          ]
+        },
+        "model_fields": {
+          "$ref": "#/$defs/ModelFields"
+        }
+      },
+      "required": [
+        "status",
+        "model_fields"
+      ],
+      "additionalProperties": false
+    },
+    "Card": {
+      "type": "object",
+      "properties": {
+        "saved": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableCard"
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "deck_version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "clone_of": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_dupe": {
+          "type": "boolean"
+        },
+        "base_replay_count": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "local_keywords": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "None",
+              "Exhaust",
+              "Ethereal",
+              "Innate",
+              "Unplayable",
+              "Retain",
+              "Sly",
+              "Eternal"
+            ]
+          }
+        },
+        "exhaust_on_next_play": {
+          "type": "boolean"
+        },
+        "has_single_turn_retain": {
+          "type": "boolean"
+        },
+        "has_single_turn_sly": {
+          "type": "boolean"
+        },
+        "has_been_removed_from_state": {
+          "type": "boolean"
+        },
+        "dynamic_vars": {
+          "$ref": "#/$defs/DynamicVars"
+        },
+        "energy_cost": {
+          "$ref": "#/$defs/EnergyCost"
+        },
+        "base_star_cost": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "temporary_star_costs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TemporaryStarCost"
+          }
+        },
+        "last_stars_spent": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "affliction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "enchantment_runtime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EnchantmentRuntime"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model_fields": {
+          "$ref": "#/$defs/ModelFields"
+        }
+      },
+      "required": [
+        "saved",
+        "owner",
+        "deck_version",
+        "clone_of",
+        "is_dupe",
+        "base_replay_count",
+        "local_keywords",
+        "exhaust_on_next_play",
+        "has_single_turn_retain",
+        "has_single_turn_sly",
+        "has_been_removed_from_state",
+        "dynamic_vars",
+        "energy_cost",
+        "base_star_cost",
+        "temporary_star_costs",
+        "last_stars_spent",
+        "affliction",
+        "enchantment_runtime",
+        "model_fields"
+      ],
+      "additionalProperties": false
+    },
+    "Power": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/ModelId"
+        },
+        "amount": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "amount_on_turn_start": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "skip_next_duration_tick": {
+          "type": "boolean"
+        },
+        "applier": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "dynamic_vars": {
+          "$ref": "#/$defs/DynamicVars"
+        },
+        "model_fields": {
+          "$ref": "#/$defs/ModelFields"
+        },
+        "detached_owner": {
+          "$ref": "#/$defs/Ref"
+        }
+      },
+      "required": [
+        "id",
+        "amount",
+        "amount_on_turn_start",
+        "skip_next_duration_tick",
+        "applier",
+        "target",
+        "dynamic_vars",
+        "model_fields"
+      ],
+      "additionalProperties": false
+    },
+    "Orb": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/ModelId"
+        },
+        "model_fields": {
+          "$ref": "#/$defs/ModelFields"
+        }
+      },
+      "required": [
+        "id",
+        "model_fields"
+      ],
+      "additionalProperties": false
+    },
+    "MoveState": {
+      "type": "object",
+      "properties": {
+        "performed_at_least_once": {
+          "type": "boolean"
+        },
+        "must_perform_once_before_transitioning": {
+          "type": "boolean"
+        },
+        "follow_up_state": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "performed_at_least_once",
+        "must_perform_once_before_transitioning",
+        "follow_up_state"
+      ],
+      "additionalProperties": false
+    },
+    "MonsterAI": {
+      "type": "object",
+      "properties": {
+        "current_state": {
+          "type": "string"
+        },
+        "initial_state": {
+          "type": "string"
+        },
+        "next_move": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "state_log": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "performed_first_move": {
+          "type": "boolean"
+        },
+        "move_states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/MoveState"
+          }
+        }
+      },
+      "required": [
+        "current_state",
+        "initial_state",
+        "next_move",
+        "state_log",
+        "performed_first_move",
+        "move_states"
+      ],
+      "additionalProperties": false
+    },
+    "Monster": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/ModelId"
+        },
+        "current_hp": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "max_hp": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "spawned_this_turn": {
+          "type": "boolean"
+        },
+        "is_performing_move": {
+          "type": "boolean"
+        },
+        "ai": {
+          "$ref": "#/$defs/MonsterAI"
+        },
+        "model_fields": {
+          "$ref": "#/$defs/ModelFields"
+        }
+      },
+      "required": [
+        "id",
+        "current_hp",
+        "max_hp",
+        "spawned_this_turn",
+        "is_performing_move",
+        "ai",
+        "model_fields"
+      ],
+      "additionalProperties": false
+    },
+    "Creature": {
+      "type": "object",
+      "properties": {
+        "player": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "monster": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Monster"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "side": {
+          "enum": [
+            "Player",
+            "Enemy"
+          ]
+        },
+        "block": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "hp_is_infinite": {
+          "type": "boolean"
+        },
+        "slot_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pet_owner": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "powers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        }
+      },
+      "required": [
+        "player",
+        "monster",
+        "side",
+        "block",
+        "hp_is_infinite",
+        "slot_name",
+        "pet_owner",
+        "powers"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "properties": {
+            "player": {
+              "$ref": "#/$defs/Ref"
+            },
+            "monster": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "properties": {
+            "player": {
+              "type": "null"
+            },
+            "monster": {
+              "$ref": "#/$defs/Monster"
+            }
+          }
+        }
+      ]
+    },
+    "PlayerCombat": {
+      "type": "object",
+      "properties": {
+        "player": {
+          "$ref": "#/$defs/Ref"
+        },
+        "creature": {
+          "$ref": "#/$defs/Ref"
+        },
+        "turn_number": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "phase": {
+          "enum": [
+            "None",
+            "Start",
+            "AutoPrePlay",
+            "Play",
+            "AutoPostPlay",
+            "End"
+          ]
+        },
+        "energy": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "stars": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "can_use_or_remove_potions": {
+          "type": "boolean"
+        },
+        "is_active_for_hooks": {
+          "type": "boolean"
+        },
+        "piles": {
+          "type": "object",
+          "properties": {
+            "Hand": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Ref"
+              }
+            },
+            "Draw": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Ref"
+              }
+            },
+            "Discard": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Ref"
+              }
+            },
+            "Exhaust": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Ref"
+              }
+            },
+            "Play": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Ref"
+              }
+            }
+          },
+          "required": [
+            "Hand",
+            "Draw",
+            "Discard",
+            "Exhaust",
+            "Play"
+          ],
+          "additionalProperties": false
+        },
+        "pets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "orb_capacity": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "orbs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        }
+      },
+      "required": [
+        "player",
+        "creature",
+        "turn_number",
+        "phase",
+        "energy",
+        "stars",
+        "can_use_or_remove_potions",
+        "is_active_for_hooks",
+        "piles",
+        "pets",
+        "orb_capacity",
+        "orbs"
+      ],
+      "additionalProperties": false
+    },
+    "TurnControl": {
+      "type": "object",
+      "properties": {
+        "is_in_progress": {
+          "type": "boolean"
+        },
+        "is_starting": {
+          "type": "boolean"
+        },
+        "is_enemy_turn_started": {
+          "type": "boolean"
+        },
+        "ending_player_turn_phase_one": {
+          "type": "boolean"
+        },
+        "ending_player_turn_phase_two": {
+          "type": "boolean"
+        },
+        "has_pending_loss": {
+          "type": "boolean"
+        },
+        "player_actions_disabled": {
+          "type": "boolean"
+        },
+        "card_or_potion_effect_depth": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "players_taking_extra_turn": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "players_ready_to_end_turn": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "players_ready_to_begin_enemy_turn": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        }
+      },
+      "required": [
+        "is_in_progress",
+        "is_starting",
+        "is_enemy_turn_started",
+        "ending_player_turn_phase_one",
+        "ending_player_turn_phase_two",
+        "has_pending_loss",
+        "player_actions_disabled",
+        "card_or_potion_effect_depth",
+        "players_taking_extra_turn",
+        "players_ready_to_end_turn",
+        "players_ready_to_begin_enemy_turn"
+      ],
+      "additionalProperties": false
+    },
+    "Resources": {
+      "type": "object",
+      "properties": {
+        "energy_spent": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "energy_value": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "stars_spent": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "star_value": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        }
+      },
+      "required": [
+        "energy_spent",
+        "energy_value",
+        "stars_spent",
+        "star_value"
+      ],
+      "additionalProperties": false
+    },
+    "PileType": {
+      "enum": [
+        "None",
+        "Draw",
+        "Hand",
+        "Discard",
+        "Exhaust",
+        "Play",
+        "Deck"
+      ]
+    },
+    "CardPlay": {
+      "type": "object",
+      "properties": {
+        "card": {
+          "$ref": "#/$defs/Ref"
+        },
+        "player": {
+          "$ref": "#/$defs/Ref"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result_pile": {
+          "$ref": "#/$defs/PileType"
+        },
+        "resources": {
+          "$ref": "#/$defs/Resources"
+        },
+        "is_auto_play": {
+          "type": "boolean"
+        },
+        "play_index": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "play_count": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        }
+      },
+      "required": [
+        "card",
+        "player",
+        "target",
+        "result_pile",
+        "resources",
+        "is_auto_play",
+        "play_index",
+        "play_count"
+      ],
+      "additionalProperties": false
+    },
+    "CardLocation": {
+      "type": "object",
+      "properties": {
+        "player": {
+          "$ref": "#/$defs/Ref"
+        },
+        "pile_type": {
+          "$ref": "#/$defs/PileType"
+        },
+        "position": {
+          "enum": [
+            "None",
+            "Bottom",
+            "Top",
+            "Random"
+          ]
+        }
+      },
+      "required": [
+        "player",
+        "pile_type",
+        "position"
+      ],
+      "additionalProperties": false
+    },
+    "ActiveCardPlay": {
+      "type": "object",
+      "properties": {
+        "card_play": {
+          "$ref": "#/$defs/Ref"
+        },
+        "result_location": {
+          "$ref": "#/$defs/CardLocation"
+        }
+      },
+      "required": [
+        "card_play",
+        "result_location"
+      ],
+      "additionalProperties": false
+    },
+    "DamageResult": {
+      "type": "object",
+      "properties": {
+        "receiver": {
+          "$ref": "#/$defs/Ref"
+        },
+        "props": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "blocked_damage": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "unblocked_damage": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "overkill_damage": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "was_block_broken": {
+          "type": "boolean"
+        },
+        "was_fully_blocked": {
+          "type": "boolean"
+        },
+        "was_target_killed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "receiver",
+        "props",
+        "blocked_damage",
+        "unblocked_damage",
+        "overkill_damage",
+        "was_block_broken",
+        "was_fully_blocked",
+        "was_target_killed"
+      ],
+      "additionalProperties": false
+    },
+    "ModelFields": {
+      "type": "object",
+      "properties": {
+        "Claw._extraDamageFromClawPlays": {
+          "$ref": "#/$defs/Decimal",
+          "description": "Cards.Claw._extraDamageFromClawPlays; native storage member, including internal Data where applicable."
+        },
+        "KinglyPunch._extraDamage": {
+          "$ref": "#/$defs/Decimal",
+          "description": "Cards.KinglyPunch._extraDamage; native storage member, including internal Data where applicable."
+        },
+        "Maul._extraDamageFromMaulPlays": {
+          "$ref": "#/$defs/Decimal",
+          "description": "Cards.Maul._extraDamageFromMaulPlays; native storage member, including internal Data where applicable."
+        },
+        "Rampage._extraDamageFromPlays": {
+          "$ref": "#/$defs/Decimal",
+          "description": "Cards.Rampage._extraDamageFromPlays; native storage member, including internal Data where applicable."
+        },
+        "Regret._cardsInHand": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Cards.Regret._cardsInHand; native storage member, including internal Data where applicable."
+        },
+        "SovereignBlade._currentDamage": {
+          "$ref": "#/$defs/Decimal",
+          "description": "Cards.SovereignBlade._currentDamage; native storage member, including internal Data where applicable."
+        },
+        "SovereignBlade._currentRepeats": {
+          "$ref": "#/$defs/Decimal",
+          "description": "Cards.SovereignBlade._currentRepeats; native storage member, including internal Data where applicable."
+        },
+        "SovereignBlade._createdThroughForge": {
+          "type": "boolean",
+          "description": "Cards.SovereignBlade._createdThroughForge; native storage member, including internal Data where applicable."
+        },
+        "SpoilsMap.SpoilsCoord": {
+          "anyOf": [
+            {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/MapCoord"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Cards.SpoilsMap.SpoilsCoord; native storage member, including internal Data where applicable."
+        },
+        "TheBall._extraDamageFromPlays": {
+          "$ref": "#/$defs/Decimal",
+          "description": "Cards.TheBall._extraDamageFromPlays; native storage member, including internal Data where applicable."
+        },
+        "Thrash._extraDamage": {
+          "$ref": "#/$defs/Decimal",
+          "description": "Cards.Thrash._extraDamage; native storage member, including internal Data where applicable."
+        },
+        "UpMySleeve._timesPlayedThisCombat": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Cards.UpMySleeve._timesPlayedThisCombat; native storage member, including internal Data where applicable."
+        },
+        "Glam._usedThisCombat": {
+          "type": "boolean",
+          "description": "Enchantments.Glam._usedThisCombat; native storage member, including internal Data where applicable."
+        },
+        "Momentum._extraDamage": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Enchantments.Momentum._extraDamage; native storage member, including internal Data where applicable."
+        },
+        "GremlinMercNormal._goldWasStolen": {
+          "type": "boolean",
+          "description": "Encounters.GremlinMercNormal._goldWasStolen; native storage member, including internal Data where applicable."
+        },
+        "Hoarder._cardsToSkip": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          },
+          "uniqueItems": true,
+          "description": "Modifiers.Hoarder._cardsToSkip; native storage member, including internal Data where applicable."
+        },
+        "Aeonglass._additionalStrength": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Monsters.Aeonglass._additionalStrength; native storage member, including internal Data where applicable."
+        },
+        "Aeonglass._witherUpgradeCount": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Monsters.Aeonglass._witherUpgradeCount; native storage member, including internal Data where applicable."
+        },
+        "Axebot._stockOverrideAmount": {
+          "anyOf": [
+            {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Monsters.Axebot._stockOverrideAmount; native storage member, including internal Data where applicable."
+        },
+        "BowlbugRock._isOffBalance": {
+          "type": "boolean",
+          "description": "Monsters.BowlbugRock._isOffBalance; native storage member, including internal Data where applicable."
+        },
+        "Fabricator._lastSpawned": {
+          "anyOf": [
+            {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/ModelId"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Monsters.Fabricator._lastSpawned; native storage member, including internal Data where applicable."
+        },
+        "FrogKnight._hasBeetleCharged": {
+          "type": "boolean",
+          "description": "Monsters.FrogKnight._hasBeetleCharged; native storage member, including internal Data where applicable."
+        },
+        "KnowledgeDemon._curseOfKnowledgeCounter": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Monsters.KnowledgeDemon._curseOfKnowledgeCounter; native storage member, including internal Data where applicable."
+        },
+        "Nibbit._isFront": {
+          "type": "boolean",
+          "description": "Monsters.Nibbit._isFront; native storage member, including internal Data where applicable."
+        },
+        "Nibbit._isAlone": {
+          "type": "boolean",
+          "description": "Monsters.Nibbit._isAlone; native storage member, including internal Data where applicable."
+        },
+        "Queen._hasAmalgamDied": {
+          "type": "boolean",
+          "description": "Monsters.Queen._hasAmalgamDied; native storage member, including internal Data where applicable."
+        },
+        "Queen._amalgam": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Monsters.Queen._amalgam; native storage member, including internal Data where applicable."
+        },
+        "TestSubject._respawns": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Monsters.TestSubject._respawns; native storage member, including internal Data where applicable."
+        },
+        "TestSubject._extraMultiClawCount": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Monsters.TestSubject._extraMultiClawCount; native storage member, including internal Data where applicable."
+        },
+        "Toadpole._isFront": {
+          "type": "boolean",
+          "description": "Monsters.Toadpole._isFront; native storage member, including internal Data where applicable."
+        },
+        "ToughEgg._isHatched": {
+          "type": "boolean",
+          "description": "Monsters.ToughEgg._isHatched; native storage member, including internal Data where applicable."
+        },
+        "TwoTailedRat._turnsUntilSummonable": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Monsters.TwoTailedRat._turnsUntilSummonable; native storage member, including internal Data where applicable."
+        },
+        "TwoTailedRat._callForBackupCount": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Monsters.TwoTailedRat._callForBackupCount; native storage member, including internal Data where applicable."
+        },
+        "WaterfallGiant._currentPressureGunDamage": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Monsters.WaterfallGiant._currentPressureGunDamage; native storage member, including internal Data where applicable."
+        },
+        "WaterfallGiant._steamEruptionDamage": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Monsters.WaterfallGiant._steamEruptionDamage; native storage member, including internal Data where applicable."
+        },
+        "DarkOrb._evokeVal": {
+          "$ref": "#/$defs/Decimal",
+          "description": "Orbs.DarkOrb._evokeVal; native storage member, including internal Data where applicable."
+        },
+        "GlassOrb._passiveVal": {
+          "$ref": "#/$defs/Decimal",
+          "description": "Orbs.GlassOrb._passiveVal; native storage member, including internal Data where applicable."
+        },
+        "AdaptablePower.isReviving": {
+          "type": "boolean",
+          "description": "Powers.AdaptablePower.isReviving; native storage member, including internal Data where applicable."
+        },
+        "AfterimagePower.amountsForPlayedCards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/Ref"
+              },
+              "value": {
+                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Powers.AfterimagePower.amountsForPlayedCards; native storage member, including internal Data where applicable."
+        },
+        "AutomationPower.cardsLeft": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Powers.AutomationPower.cardsLeft; native storage member, including internal Data where applicable."
+        },
+        "CalamityPower.amountsForPlayedCards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/Ref"
+              },
+              "value": {
+                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Powers.CalamityPower.amountsForPlayedCards; native storage member, including internal Data where applicable."
+        },
+        "ChainsOfBindingPower.boundCardPlayed": {
+          "type": "boolean",
+          "description": "Powers.ChainsOfBindingPower.boundCardPlayed; native storage member, including internal Data where applicable."
+        },
+        "CurlUpPower.playedCard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Powers.CurlUpPower.playedCard; native storage member, including internal Data where applicable."
+        },
+        "DampenPower.casters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          },
+          "uniqueItems": true,
+          "description": "Powers.DampenPower.casters; native storage member, including internal Data where applicable."
+        },
+        "DampenPower.downgradedCardsToOldUpgradeLevels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/Ref"
+              },
+              "value": {
+                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Powers.DampenPower.downgradedCardsToOldUpgradeLevels; native storage member, including internal Data where applicable."
+        },
+        "DarkEmbracePower.etherealCount": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Powers.DarkEmbracePower.etherealCount; native storage member, including internal Data where applicable."
+        },
+        "FeralPower.zeroCostAttacksPlayed": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Powers.FeralPower.zeroCostAttacksPlayed; native storage member, including internal Data where applicable."
+        },
+        "GigantificationPower.commandToModify": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Powers.GigantificationPower.commandToModify; native storage member, including internal Data where applicable."
+        },
+        "GravityPower.amountsForPlayedCards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/Ref"
+              },
+              "value": {
+                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Powers.GravityPower.amountsForPlayedCards; native storage member, including internal Data where applicable."
+        },
+        "HardenedShellPower.damageReceivedThisTurn": {
+          "$ref": "#/$defs/Decimal",
+          "description": "Powers.HardenedShellPower.damageReceivedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "HellraiserPower.infiniteAutoPlaysThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Powers.HellraiserPower.infiniteAutoPlaysThisTurn; native storage member, including internal Data where applicable."
+        },
+        "IllusionPower.isReviving": {
+          "type": "boolean",
+          "description": "Powers.IllusionPower.isReviving; native storage member, including internal Data where applicable."
+        },
+        "IllusionPower._followUpStateId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Powers.IllusionPower._followUpStateId; native storage member, including internal Data where applicable."
+        },
+        "JugglingPower.attacksPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Powers.JugglingPower.attacksPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "MonologuePower.amountsForPlayedCards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/Ref"
+              },
+              "value": {
+                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Powers.MonologuePower.amountsForPlayedCards; native storage member, including internal Data where applicable."
+        },
+        "NemesisPower._shouldApplyIntangible": {
+          "type": "boolean",
+          "description": "Powers.NemesisPower._shouldApplyIntangible; native storage member, including internal Data where applicable."
+        },
+        "NightmarePower.selectedCard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Powers.NightmarePower.selectedCard; native storage member, including internal Data where applicable."
+        },
+        "OblivionPower.amountsForPlayedCards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/Ref"
+              },
+              "value": {
+                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Powers.OblivionPower.amountsForPlayedCards; native storage member, including internal Data where applicable."
+        },
+        "OrbitPower.energySpent": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Powers.OrbitPower.energySpent; native storage member, including internal Data where applicable."
+        },
+        "OrbitPower.triggerCount": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Powers.OrbitPower.triggerCount; native storage member, including internal Data where applicable."
+        },
+        "PaleBlueDotPower.alreadyActivatedThisTurn": {
+          "type": "boolean",
+          "description": "Powers.PaleBlueDotPower.alreadyActivatedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "PanachePower.alreadyApplied": {
+          "type": "boolean",
+          "description": "Powers.PanachePower.alreadyApplied; native storage member, including internal Data where applicable."
+        },
+        "PossessSpeedPower.stolenDexterity": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/Ref"
+              },
+              "value": {
+                "$ref": "#/$defs/Decimal"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Powers.PossessSpeedPower.stolenDexterity; native storage member, including internal Data where applicable."
+        },
+        "PossessStrengthPower.stolenStrength": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/Ref"
+              },
+              "value": {
+                "$ref": "#/$defs/Decimal"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Powers.PossessStrengthPower.stolenStrength; native storage member, including internal Data where applicable."
+        },
+        "ReattachPower.isReviving": {
+          "type": "boolean",
+          "description": "Powers.ReattachPower.isReviving; native storage member, including internal Data where applicable."
+        },
+        "RitualPower._wasJustAppliedByEnemy": {
+          "type": "boolean",
+          "description": "Powers.RitualPower._wasJustAppliedByEnemy; native storage member, including internal Data where applicable."
+        },
+        "RupturePower.playedCards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/Ref"
+              },
+              "value": {
+                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Powers.RupturePower.playedCards; native storage member, including internal Data where applicable."
+        },
+        "SerpentFormPower.amountsForPlayedCards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/Ref"
+              },
+              "value": {
+                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Powers.SerpentFormPower.amountsForPlayedCards; native storage member, including internal Data where applicable."
+        },
+        "SkittishPower.hasGainedBlockThisTurn": {
+          "type": "boolean",
+          "description": "Powers.SkittishPower.hasGainedBlockThisTurn; native storage member, including internal Data where applicable."
+        },
+        "SlothPower._cardsPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Powers.SlothPower._cardsPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "SoulboundPower._isAddingSoul": {
+          "type": "boolean",
+          "description": "Powers.SoulboundPower._isAddingSoul; native storage member, including internal Data where applicable."
+        },
+        "StormPower.amountsForPlayedCards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/Ref"
+              },
+              "value": {
+                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Powers.StormPower.amountsForPlayedCards; native storage member, including internal Data where applicable."
+        },
+        "StranglePower.amountsForPlayedCards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/Ref"
+              },
+              "value": {
+                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Powers.StranglePower.amountsForPlayedCards; native storage member, including internal Data where applicable."
+        },
+        "SubroutinePower.amountsForPlayedCards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/Ref"
+              },
+              "value": {
+                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Powers.SubroutinePower.amountsForPlayedCards; native storage member, including internal Data where applicable."
+        },
+        "SurroundedPower._facing": {
+          "enum": [
+            "Right",
+            "Left"
+          ],
+          "description": "Powers.SurroundedPower._facing; native storage member, including internal Data where applicable."
+        },
+        "SwipePower._stolenCard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Powers.SwipePower._stolenCard; native storage member, including internal Data where applicable."
+        },
+        "TenderPower._cardsPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Powers.TenderPower._cardsPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "VigorPower.commandToModify": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Powers.VigorPower.commandToModify; native storage member, including internal Data where applicable."
+        },
+        "VigorPower.amountWhenAttackStarted": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Powers.VigorPower.amountWhenAttackStarted; native storage member, including internal Data where applicable."
+        },
+        "VoidFormPower.cardsPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Powers.VoidFormPower.cardsPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "ArtOfWar._anyAttacksPlayedLastTurn": {
+          "type": "boolean",
+          "description": "Relics.ArtOfWar._anyAttacksPlayedLastTurn; native storage member, including internal Data where applicable."
+        },
+        "ArtOfWar._anyAttacksPlayedThisTurn": {
+          "type": "boolean",
+          "description": "Relics.ArtOfWar._anyAttacksPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "BeatingRemnant._damageReceivedThisTurn": {
+          "$ref": "#/$defs/Decimal",
+          "description": "Relics.BeatingRemnant._damageReceivedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "BeltBuckle._dexterityApplied": {
+          "type": "boolean",
+          "description": "Relics.BeltBuckle._dexterityApplied; native storage member, including internal Data where applicable."
+        },
+        "BingBong._cardsToSkip": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Ref"
+              },
+              "uniqueItems": true
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Relics.BingBong._cardsToSkip; native storage member, including internal Data where applicable."
+        },
+        "BrilliantScarf._cardsPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.BrilliantScarf._cardsPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "BurningSticks._wasUsedThisCombat": {
+          "type": "boolean",
+          "description": "Relics.BurningSticks._wasUsedThisCombat; native storage member, including internal Data where applicable."
+        },
+        "CentennialPuzzle._usedThisCombat": {
+          "type": "boolean",
+          "description": "Relics.CentennialPuzzle._usedThisCombat; native storage member, including internal Data where applicable."
+        },
+        "DemonTongue._triggeredThisTurn": {
+          "type": "boolean",
+          "description": "Relics.DemonTongue._triggeredThisTurn; native storage member, including internal Data where applicable."
+        },
+        "FakeOrichalcum._shouldTrigger": {
+          "type": "boolean",
+          "description": "Relics.FakeOrichalcum._shouldTrigger; native storage member, including internal Data where applicable."
+        },
+        "JossPaper._etherealCount": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.JossPaper._etherealCount; native storage member, including internal Data where applicable."
+        },
+        "Kunai._attacksPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.Kunai._attacksPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "Kusarigama._attacksPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.Kusarigama._attacksPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "LetterOpener._skillsPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.LetterOpener._skillsPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "Metronome._orbsChanneled": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.Metronome._orbsChanneled; native storage member, including internal Data where applicable."
+        },
+        "MiniRegent._usedThisTurn": {
+          "type": "boolean",
+          "description": "Relics.MiniRegent._usedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "MusicBox._wasUsedThisTurn": {
+          "type": "boolean",
+          "description": "Relics.MusicBox._wasUsedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "MusicBox._cardBeingPlayed": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Relics.MusicBox._cardBeingPlayed; native storage member, including internal Data where applicable."
+        },
+        "Orichalcum._shouldTrigger": {
+          "type": "boolean",
+          "description": "Relics.Orichalcum._shouldTrigger; native storage member, including internal Data where applicable."
+        },
+        "OrnamentalFan._attacksPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.OrnamentalFan._attacksPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "PaelsEye._usedThisCombat": {
+          "type": "boolean",
+          "description": "Relics.PaelsEye._usedThisCombat; native storage member, including internal Data where applicable."
+        },
+        "PaelsEye._wasOwnerPartOfLastPlayerTurn": {
+          "type": "boolean",
+          "description": "Relics.PaelsEye._wasOwnerPartOfLastPlayerTurn; native storage member, including internal Data where applicable."
+        },
+        "PaelsLegion._cooldown": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.PaelsLegion._cooldown; native storage member, including internal Data where applicable."
+        },
+        "PaelsLegion._triggeredBlockLastTurn": {
+          "type": "boolean",
+          "description": "Relics.PaelsLegion._triggeredBlockLastTurn; native storage member, including internal Data where applicable."
+        },
+        "PaelsLegion._affectedCardPlay": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Relics.PaelsLegion._affectedCardPlay; native storage member, including internal Data where applicable."
+        },
+        "PaelsTears._hadLeftoverEnergy": {
+          "type": "boolean",
+          "description": "Relics.PaelsTears._hadLeftoverEnergy; native storage member, including internal Data where applicable."
+        },
+        "PenNib._attackToDouble": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Relics.PenNib._attackToDouble; native storage member, including internal Data where applicable."
+        },
+        "Permafrost._activatedThisCombat": {
+          "type": "boolean",
+          "description": "Relics.Permafrost._activatedThisCombat; native storage member, including internal Data where applicable."
+        },
+        "Pocketwatch._cardsPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.Pocketwatch._cardsPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "Pocketwatch._cardsPlayedLastTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.Pocketwatch._cardsPlayedLastTurn; native storage member, including internal Data where applicable."
+        },
+        "RainbowRing._attacksPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.RainbowRing._attacksPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "RainbowRing._skillsPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.RainbowRing._skillsPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "RainbowRing._powersPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.RainbowRing._powersPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "RainbowRing._activationCountThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.RainbowRing._activationCountThisTurn; native storage member, including internal Data where applicable."
+        },
+        "RedSkull._strengthApplied": {
+          "type": "boolean",
+          "description": "Relics.RedSkull._strengthApplied; native storage member, including internal Data where applicable."
+        },
+        "Regalite._usedThisTurn": {
+          "type": "boolean",
+          "description": "Relics.Regalite._usedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "RuinedHelmet._usedThisCombat": {
+          "type": "boolean",
+          "description": "Relics.RuinedHelmet._usedThisCombat; native storage member, including internal Data where applicable."
+        },
+        "Shuriken._attacksPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.Shuriken._attacksPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "ThrowingAxe._usedThisCombat": {
+          "type": "boolean",
+          "description": "Relics.ThrowingAxe._usedThisCombat; native storage member, including internal Data where applicable."
+        },
+        "UnsettlingLamp._triggeringCard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Relics.UnsettlingLamp._triggeringCard; native storage member, including internal Data where applicable."
+        },
+        "UnsettlingLamp._doubledPowers": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Ref"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Relics.UnsettlingLamp._doubledPowers; native storage member, including internal Data where applicable."
+        },
+        "UnsettlingLamp._isFinishedTriggering": {
+          "type": "boolean",
+          "description": "Relics.UnsettlingLamp._isFinishedTriggering; native storage member, including internal Data where applicable."
+        },
+        "Vambrace._triggeringCard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Relics.Vambrace._triggeringCard; native storage member, including internal Data where applicable."
+        },
+        "Vambrace._blockGainedThisCombat": {
+          "type": "boolean",
+          "description": "Relics.Vambrace._blockGainedThisCombat; native storage member, including internal Data where applicable."
+        },
+        "VelvetChoker._cardsPlayedThisTurn": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "description": "Relics.VelvetChoker._cardsPlayedThisTurn; native storage member, including internal Data where applicable."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Only applicable additional gameplay fields for the containing model; include every applicable field even when zero/null. Keys use audited class/member names. Native SavedProperties stay in native serialization. No arbitrary runtime blobs."
+    },
+    "HistoryEntry": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "BlockGainedEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "amount": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "props": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "card_play": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "amount",
+            "props",
+            "card_play"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "CardAfflictedEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "card": {
+              "$ref": "#/$defs/Ref"
+            },
+            "affliction": {
+              "$ref": "#/$defs/Ref"
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "card",
+            "affliction"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "CardDiscardedEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "card": {
+              "$ref": "#/$defs/Ref"
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "card"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "CardDrawnEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "card": {
+              "$ref": "#/$defs/Ref"
+            },
+            "from_hand_draw": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "card",
+            "from_hand_draw"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "CardExhaustedEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "card": {
+              "$ref": "#/$defs/Ref"
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "card"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "CardGeneratedEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "card": {
+              "$ref": "#/$defs/Ref"
+            },
+            "creator": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "card",
+            "creator"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "CardPlayStartedEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "card_play": {
+              "$ref": "#/$defs/Ref"
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "card_play"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "CardPlayFinishedEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "card_play": {
+              "$ref": "#/$defs/Ref"
+            },
+            "was_ethereal": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "card_play",
+            "was_ethereal"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "CreatureAttackedEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "damage_results": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/DamageResult"
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "damage_results"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "DamageReceivedEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "result": {
+              "$ref": "#/$defs/DamageResult"
+            },
+            "dealer": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "card_source": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "result",
+            "dealer",
+            "card_source"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "EnergySpentEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "amount": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "amount"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "OrbChanneledEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "orb": {
+              "$ref": "#/$defs/Ref"
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "orb"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "PowerReceivedEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "power": {
+              "$ref": "#/$defs/Ref"
+            },
+            "amount": {
+              "$ref": "#/$defs/Decimal"
+            },
+            "applier": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "power",
+            "amount",
+            "applier"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "StarsModifiedEntry"
+            },
+            "actor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "round_number": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            },
+            "current_side": {
+              "enum": [
+                "None",
+                "Player",
+                "Enemy"
+              ]
+            },
+            "player_turn_numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "player": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "turn_number": {
+                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                  }
+                },
+                "required": [
+                  "player",
+                  "turn_number"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "amount": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+            }
+          },
+          "required": [
+            "kind",
+            "actor",
+            "round_number",
+            "current_side",
+            "player_turn_numbers",
+            "amount"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "PendingChoice": {
+      "type": "object",
+      "properties": {
+        "player": {
+          "$ref": "#/$defs/Ref"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "min_select": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_select": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "require_manual_confirmation": {
+          "type": "boolean"
+        },
+        "cancelable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "player",
+        "sources",
+        "candidates",
+        "min_select",
+        "max_select",
+        "require_manual_confirmation",
+        "cancelable"
+      ],
+      "additionalProperties": false,
+      "description": "An unresolved card selection using CardSelectorPrefs. Null for ordinary free play. Other choice families require explicit future definitions; do not silently coerce them to card selection."
+    },
+    "Combat": {
+      "type": "object",
+      "properties": {
+        "round_number": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "current_side": {
+          "enum": [
+            "None",
+            "Player",
+            "Enemy"
+          ]
+        },
+        "turn_control": {
+          "$ref": "#/$defs/TurnControl"
+        },
+        "allies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "enemies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "escaped_creatures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "spawned_enemy_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/ModelId"
+          }
+        },
+        "encounter_fields": {
+          "$ref": "#/$defs/ModelFields"
+        },
+        "players": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PlayerCombat"
+          }
+        },
+        "creatures": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Creature"
+          }
+        },
+        "cards": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Card"
+          }
+        },
+        "powers": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Power"
+          }
+        },
+        "orbs": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Orb"
+          }
+        },
+        "afflictions": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Affliction"
+          }
+        },
+        "card_plays": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/CardPlay"
+          }
+        },
+        "active_card_plays": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ActiveCardPlay"
+          }
+        },
+        "history": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/HistoryEntry"
+          }
+        },
+        "attacks": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/AttackCommand"
+          }
+        },
+        "retained_inventory_models": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/RetainedInventoryModel"
+          }
+        }
+      },
+      "required": [
+        "round_number",
+        "current_side",
+        "turn_control",
+        "allies",
+        "enemies",
+        "escaped_creatures",
+        "spawned_enemy_ids",
+        "encounter_fields",
+        "players",
+        "creatures",
+        "cards",
+        "powers",
+        "orbs",
+        "afflictions",
+        "card_plays",
+        "active_card_plays",
+        "history",
+        "attacks",
+        "retained_inventory_models"
+      ],
+      "additionalProperties": false
+    },
+    "NativeModelState": {
+      "type": "object",
+      "properties": {
+        "model_fields": {
+          "$ref": "#/$defs/ModelFields"
+        }
+      },
+      "required": [
+        "model_fields"
+      ],
+      "additionalProperties": false
+    },
+    "AttackCommand": {
+      "type": "object",
+      "properties": {
+        "damage_per_hit": {
+          "$ref": "#/$defs/Decimal"
+        },
+        "calculated_damage_var": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hit_count": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "source_type": {
+          "enum": [
+            "None",
+            "Card",
+            "Monster"
+          ]
+        },
+        "single_target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "targets_combat_side": {
+          "type": "boolean"
+        },
+        "does_random_targeting_allow_duplicates": {
+          "type": "boolean"
+        },
+        "attacker": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model_source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "card_play": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_side": {
+          "enum": [
+            "None",
+            "Player",
+            "Enemy"
+          ]
+        },
+        "damage_props": {
+          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "is_randomly_targeted": {
+          "type": "boolean"
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/DamageResult"
+            }
+          }
+        }
+      },
+      "required": [
+        "damage_per_hit",
+        "calculated_damage_var",
+        "hit_count",
+        "source_type",
+        "single_target",
+        "targets_combat_side",
+        "does_random_targeting_allow_duplicates",
+        "attacker",
+        "model_source",
+        "card_play",
+        "target_side",
+        "damage_props",
+        "is_randomly_targeted",
+        "results"
+      ],
+      "additionalProperties": false,
+      "description": "Stored gameplay command data only. Captured execution-loop locals and callback-specific values remain an explicit coverage gap."
+    },
+    "RetainedInventoryModel": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "potion"
+            },
+            "saved": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializablePotion"
+            },
+            "owner": {
+              "$ref": "#/$defs/Ref"
+            },
+            "has_been_removed_from_state": {
+              "type": "boolean"
+            },
+            "model_fields": {
+              "$ref": "#/$defs/ModelFields"
+            }
+          },
+          "required": [
+            "kind",
+            "saved",
+            "owner",
+            "has_been_removed_from_state",
+            "model_fields"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "relic"
+            },
+            "saved": {
+              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRelic"
+            },
+            "owner": {
+              "$ref": "#/$defs/Ref"
+            },
+            "has_been_removed_from_state": {
+              "type": "boolean"
+            },
+            "model_fields": {
+              "$ref": "#/$defs/ModelFields"
+            }
+          },
+          "required": [
+            "kind",
+            "saved",
+            "owner",
+            "has_been_removed_from_state",
+            "model_fields"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

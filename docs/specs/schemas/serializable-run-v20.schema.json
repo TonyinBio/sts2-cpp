@@ -1,0 +1,682 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sts2-simulator.local/schema/native/serializable-run-v20.json",
+  "title": "Native Slay the Spire 2 SerializableRun v20",
+  "description": "Structural schema for native v0.111.0 JSON saves, derived from the installed game serializer contracts and custom converters. Describes saved output, including optional/default-valued fields; does not establish gameplay validity or cross-version compatibility.",
+  "$comment": "Reference DLL SHA-256: 0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9. No compact encoding, envelope, or simulator-only fields. Required fields reflect unconditional native serialization; the native deserializer may accept additional omissions or unknown fields.",
+  "$ref": "#/$defs/SerializableRun",
+  "$defs": {
+    "Int32": {"type": "integer", "minimum": -2147483648, "maximum": 2147483647},
+    "Int64": {"type": "integer", "minimum": -9223372036854775808, "maximum": 9223372036854775807},
+    "UInt64": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615,
+      "description": "Native JSON integer, not a string. Requires integer-safe parsing."
+    },
+    "ModelId": {
+      "type": "string",
+      "pattern": "^[^.]+\\.[^.]+$",
+      "description": "Native CATEGORY.ENTRY string. Model existence/category compatibility is checked by the game."
+    },
+    "MapDrawings": {
+      "type": ["string", "null"],
+      "contentEncoding": "base64",
+      "description": "Native SerializableMapDrawings packet bytes compressed with gzip, then encoded as Base64. JSON Schema does not validate the compressed packet payload.",
+      "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+    },
+    "SerializableRun": {
+      "type": "object",
+      "properties": {
+        "acts": {"type": "array", "items": {"$ref": "#/$defs/SerializableActModel"}},
+        "ascension": {"$ref": "#/$defs/Int32"},
+        "current_act_index": {"$ref": "#/$defs/Int32"},
+        "dailyTime": {"type": ["string", "null"], "format": "date-time"},
+        "events_seen": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "extra_fields": {"$ref": "#/$defs/SerializableExtraRunFields"},
+        "game_mode": {"$ref": "#/$defs/GameMode"},
+        "map_drawings": {"$ref": "#/$defs/MapDrawings"},
+        "map_point_history": {"type": "array", "items": {"type": "array", "items": {"$ref": "#/$defs/MapPointHistoryEntry"}}},
+        "modifiers": {"type": "array", "items": {"$ref": "#/$defs/SerializableModifier"}},
+        "num_reloads": {"$ref": "#/$defs/Int32"},
+        "odds": {"$ref": "#/$defs/SerializableRunOddsSet"},
+        "platform_type": {"$ref": "#/$defs/PlatformType"},
+        "players": {"type": "array", "items": {"$ref": "#/$defs/SerializablePlayer"}},
+        "pre_finished_room": {"anyOf": [{"$ref": "#/$defs/SerializableRoom"}, {"type": "null"}]},
+        "rng": {"$ref": "#/$defs/SerializableRunRngSet"},
+        "run_time": {"$ref": "#/$defs/Int64"},
+        "save_time": {"$ref": "#/$defs/Int64"},
+        "schema_version": {"type": "integer", "const": 20},
+        "shared_relic_grab_bag": {"$ref": "#/$defs/SerializableRelicGrabBag"},
+        "start_time": {"$ref": "#/$defs/Int64"},
+        "visited_map_coords": {"type": "array", "items": {"$ref": "#/$defs/MapCoord"}},
+        "win_time": {"$ref": "#/$defs/Int64"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.SerializableRun",
+      "required": [
+        "ascension",
+        "current_act_index",
+        "extra_fields",
+        "game_mode",
+        "map_drawings",
+        "modifiers",
+        "num_reloads",
+        "odds",
+        "platform_type",
+        "players",
+        "pre_finished_room",
+        "rng",
+        "run_time",
+        "save_time",
+        "schema_version",
+        "shared_relic_grab_bag",
+        "start_time",
+        "win_time"
+      ]
+    },
+    "SerializableActModel": {
+      "type": "object",
+      "properties": {
+        "id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]},
+        "rooms": {"$ref": "#/$defs/SerializableRoomSet"},
+        "saved_map": {"anyOf": [{"$ref": "#/$defs/SerializableActMap"}, {"type": "null"}]}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableActModel",
+      "required": ["id", "rooms"]
+    },
+    "SerializableRoomSet": {
+      "type": "object",
+      "properties": {
+        "ancient_id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]},
+        "boss_encounters_visited": {"$ref": "#/$defs/Int32"},
+        "boss_id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]},
+        "elite_encounter_ids": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "elite_encounters_visited": {"$ref": "#/$defs/Int32"},
+        "event_ids": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "events_visited": {"$ref": "#/$defs/Int32"},
+        "normal_encounter_ids": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "normal_encounters_visited": {"$ref": "#/$defs/Int32"},
+        "second_boss_id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableRoomSet",
+      "required": [
+        "ancient_id",
+        "boss_encounters_visited",
+        "boss_id",
+        "elite_encounters_visited",
+        "events_visited",
+        "normal_encounters_visited",
+        "second_boss_id"
+      ]
+    },
+    "SerializableActMap": {
+      "type": "object",
+      "properties": {
+        "boss": {"$ref": "#/$defs/SerializableMapPoint"},
+        "height": {"$ref": "#/$defs/Int32"},
+        "points": {"type": "array", "items": {"$ref": "#/$defs/SerializableMapPoint"}},
+        "second_boss": {"anyOf": [{"$ref": "#/$defs/SerializableMapPoint"}, {"type": "null"}]},
+        "start": {"$ref": "#/$defs/SerializableMapPoint"},
+        "start_coords": {"type": ["array", "null"], "items": {"$ref": "#/$defs/MapCoord"}},
+        "width": {"$ref": "#/$defs/Int32"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableActMap",
+      "required": ["boss", "height", "points", "start", "width"]
+    },
+    "SerializableMapPoint": {
+      "type": "object",
+      "properties": {
+        "can_modify": {"type": "boolean"},
+        "children": {"type": ["array", "null"], "items": {"$ref": "#/$defs/MapCoord"}},
+        "coord": {"$ref": "#/$defs/MapCoord"},
+        "type": {"$ref": "#/$defs/MapPointType"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableMapPoint",
+      "required": ["coord", "type"]
+    },
+    "MapCoord": {
+      "type": "object",
+      "properties": {"col": {"$ref": "#/$defs/Int32"}, "row": {"$ref": "#/$defs/Int32"}},
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Map.MapCoord",
+      "required": ["col", "row"]
+    },
+    "MapPointType": {
+      "enum": ["unassigned", "unknown", "shop", "treasure", "rest_site", "monster", "elite", "boss", "ancient"]
+    },
+    "SerializableExtraRunFields": {
+      "type": "object",
+      "properties": {
+        "freed_repy": {"type": "boolean"},
+        "started_with_neow": {"type": "boolean"},
+        "test_subject_kills": {"$ref": "#/$defs/Int32"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableExtraRunFields"
+    },
+    "GameMode": {"enum": ["none", "standard", "daily", "custom"]},
+    "MapPointHistoryEntry": {
+      "type": "object",
+      "properties": {
+        "map_point_type": {"$ref": "#/$defs/MapPointType"},
+        "player_stats": {"type": "array", "items": {"$ref": "#/$defs/PlayerMapPointHistoryEntry"}},
+        "rooms": {"type": "array", "items": {"$ref": "#/$defs/MapPointRoomHistoryEntry"}}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Runs.History.MapPointHistoryEntry",
+      "required": ["map_point_type", "player_stats"]
+    },
+    "PlayerMapPointHistoryEntry": {
+      "type": "object",
+      "properties": {
+        "ancient_choice": {"type": "array", "items": {"$ref": "#/$defs/AncientChoiceHistoryEntry"}},
+        "bought_colorless": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "bought_potions": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "bought_relics": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "card_choices": {"type": "array", "items": {"$ref": "#/$defs/CardChoiceHistoryEntry"}},
+        "cards_enchanted": {"type": "array", "items": {"$ref": "#/$defs/CardEnchantmentHistoryEntry"}},
+        "cards_gained": {"type": "array", "items": {"$ref": "#/$defs/SerializableCard"}},
+        "cards_removed": {"type": "array", "items": {"$ref": "#/$defs/SerializableCard"}},
+        "cards_transformed": {"type": "array", "items": {"$ref": "#/$defs/CardTransformationHistoryEntry"}},
+        "completed_quests": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "current_gold": {"$ref": "#/$defs/Int32"},
+        "current_hp": {"$ref": "#/$defs/Int32"},
+        "damage_taken": {"$ref": "#/$defs/Int32"},
+        "downgraded_cards": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "event_choices": {"type": "array", "items": {"$ref": "#/$defs/EventOptionHistoryEntry"}},
+        "gold_gained": {"$ref": "#/$defs/Int32"},
+        "gold_lost": {"$ref": "#/$defs/Int32"},
+        "gold_spent": {"$ref": "#/$defs/Int32"},
+        "gold_stolen": {"$ref": "#/$defs/Int32"},
+        "hp_healed": {"$ref": "#/$defs/Int32"},
+        "is_affected_by_fur_coat": {"type": "boolean"},
+        "max_hp": {"$ref": "#/$defs/Int32"},
+        "max_hp_gained": {"$ref": "#/$defs/Int32"},
+        "max_hp_lost": {"$ref": "#/$defs/Int32"},
+        "player_id": {"$ref": "#/$defs/UInt64"},
+        "potion_choices": {"type": "array", "items": {"$ref": "#/$defs/ModelChoiceHistoryEntry"}},
+        "potion_discarded": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "potion_used": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "relic_choices": {"type": "array", "items": {"$ref": "#/$defs/ModelChoiceHistoryEntry"}},
+        "relics_removed": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "rest_site_choices": {"type": "array", "items": {"type": "string"}},
+        "stolen_loot": {"$ref": "#/$defs/Int32"},
+        "upgraded_cards": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Runs.PlayerMapPointHistoryEntry",
+      "required": [
+        "current_gold",
+        "current_hp",
+        "damage_taken",
+        "gold_gained",
+        "gold_lost",
+        "gold_spent",
+        "gold_stolen",
+        "hp_healed",
+        "is_affected_by_fur_coat",
+        "max_hp",
+        "max_hp_gained",
+        "max_hp_lost",
+        "player_id",
+        "stolen_loot"
+      ]
+    },
+    "AncientChoiceHistoryEntry": {
+      "type": "object",
+      "properties": {
+        "TextKey": {"type": "string"},
+        "title": {"$ref": "#/$defs/LocString"},
+        "was_chosen": {"type": "boolean"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Runs.History.AncientChoiceHistoryEntry",
+      "required": ["TextKey", "title", "was_chosen"]
+    },
+    "LocString": {
+      "type": "object",
+      "properties": {"key": {"type": "string"}, "table": {"type": "string"}},
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Localization.LocString",
+      "required": ["key", "table"]
+    },
+    "CardChoiceHistoryEntry": {
+      "type": "object",
+      "properties": {"card": {"$ref": "#/$defs/SerializableCard"}, "was_picked": {"type": "boolean"}},
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Runs.History.CardChoiceHistoryEntry",
+      "required": ["card", "was_picked"]
+    },
+    "SerializableCard": {
+      "type": "object",
+      "properties": {
+        "current_upgrade_level": {"$ref": "#/$defs/Int32"},
+        "enchantment": {"anyOf": [{"$ref": "#/$defs/SerializableEnchantment"}, {"type": "null"}]},
+        "floor_added_to_deck": {"anyOf": [{"$ref": "#/$defs/Int32"}, {"type": "null"}]},
+        "id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]},
+        "props": {"anyOf": [{"$ref": "#/$defs/SavedProperties"}, {"type": "null"}]}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableCard",
+      "required": ["id"]
+    },
+    "SerializableEnchantment": {
+      "type": "object",
+      "properties": {
+        "amount": {"$ref": "#/$defs/Int32"},
+        "id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]},
+        "props": {"anyOf": [{"$ref": "#/$defs/SavedProperties"}, {"type": "null"}]}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableEnchantment",
+      "required": ["amount", "id"]
+    },
+    "SavedProperties": {
+      "type": "object",
+      "properties": {
+        "bools": {"type": ["array", "null"], "items": {"$ref": "#/$defs/SavedBooleanProperty"}},
+        "card_arrays": {"type": ["array", "null"], "items": {"$ref": "#/$defs/SavedCardArrayProperty"}},
+        "cards": {"type": ["array", "null"], "items": {"$ref": "#/$defs/SavedCardProperty"}},
+        "int_arrays": {"type": ["array", "null"], "items": {"$ref": "#/$defs/SavedIntegerArrayProperty"}},
+        "ints": {"type": ["array", "null"], "items": {"$ref": "#/$defs/SavedIntegerProperty"}},
+        "model_ids": {"type": ["array", "null"], "items": {"$ref": "#/$defs/SavedModelIdProperty"}},
+        "strings": {"type": ["array", "null"], "items": {"$ref": "#/$defs/SavedStringProperty"}}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SavedProperties",
+      "description": "Native typed lists of {name, value} objects. Empty/null buckets may be omitted. Property names and meanings depend on the owning model."
+    },
+    "SavedBooleanProperty": {
+      "type": "object",
+      "properties": {"name": {"type": "string"}, "value": {"type": "boolean"}},
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SavedProperties+SavedProperty`1[[System.Boolean, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+      "required": ["name", "value"]
+    },
+    "SavedCardArrayProperty": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "value": {"type": ["array", "null"], "items": {"$ref": "#/$defs/SerializableCard"}}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SavedProperties+SavedProperty`1[[MegaCrit.Sts2.Core.Saves.Runs.SerializableCard[], sts2, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null]]",
+      "required": ["name", "value"]
+    },
+    "SavedCardProperty": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "value": {"anyOf": [{"$ref": "#/$defs/SerializableCard"}, {"type": "null"}]}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SavedProperties+SavedProperty`1[[MegaCrit.Sts2.Core.Saves.Runs.SerializableCard, sts2, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null]]",
+      "required": ["name", "value"]
+    },
+    "SavedIntegerArrayProperty": {
+      "type": "object",
+      "properties": {"name": {"type": "string"}, "value": {"type": ["array", "null"], "items": {"$ref": "#/$defs/Int32"}}},
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SavedProperties+SavedProperty`1[[System.Int32[], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+      "required": ["name", "value"]
+    },
+    "SavedIntegerProperty": {
+      "type": "object",
+      "properties": {"name": {"type": "string"}, "value": {"$ref": "#/$defs/Int32"}},
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SavedProperties+SavedProperty`1[[System.Int32, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+      "required": ["name", "value"]
+    },
+    "SavedModelIdProperty": {
+      "type": "object",
+      "properties": {"name": {"type": "string"}, "value": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]}},
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SavedProperties+SavedProperty`1[[MegaCrit.Sts2.Core.Models.ModelId, sts2, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null]]",
+      "required": ["name", "value"]
+    },
+    "SavedStringProperty": {
+      "type": "object",
+      "properties": {"name": {"type": "string"}, "value": {"type": ["string", "null"]}},
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SavedProperties+SavedProperty`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+      "required": ["name", "value"]
+    },
+    "CardEnchantmentHistoryEntry": {
+      "type": "object",
+      "properties": {"card": {"$ref": "#/$defs/SerializableCard"}, "enchantment": {"$ref": "#/$defs/ModelId"}},
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Runs.History.CardEnchantmentHistoryEntry",
+      "required": ["card", "enchantment"]
+    },
+    "CardTransformationHistoryEntry": {
+      "type": "object",
+      "properties": {
+        "final_card": {"$ref": "#/$defs/SerializableCard"},
+        "original_card": {"$ref": "#/$defs/SerializableCard"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Runs.History.CardTransformationHistoryEntry",
+      "required": ["final_card", "original_card"]
+    },
+    "EventOptionHistoryEntry": {
+      "type": "object",
+      "properties": {
+        "title": {"$ref": "#/$defs/LocString"},
+        "variables": {"type": ["object", "null"], "additionalProperties": {"$ref": "#/$defs/SerializableDynamicVar"}}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Runs.History.EventOptionHistoryEntry",
+      "required": ["title"]
+    },
+    "SerializableDynamicVar": {
+      "type": "object",
+      "properties": {
+        "type": {"$ref": "#/$defs/DynamicVarType"},
+        "decimal_value": {
+          "type": "number",
+          "minimum": -79228162514264337593543950335,
+          "maximum": 79228162514264337593543950335
+        },
+        "bool_value": {"type": "boolean"},
+        "string_value": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Localization.SerializableDynamicVar",
+      "required": ["type", "decimal_value", "bool_value", "string_value"]
+    },
+    "DynamicVarType": {"enum": ["None", "BaseDynamic", "DynamicString", "Decimal", "String", "Bool"]},
+    "ModelChoiceHistoryEntry": {
+      "type": "object",
+      "properties": {"choice": {"$ref": "#/$defs/ModelId"}, "was_picked": {"type": "boolean"}},
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Runs.History.ModelChoiceHistoryEntry",
+      "required": ["choice", "was_picked"]
+    },
+    "MapPointRoomHistoryEntry": {
+      "type": "object",
+      "properties": {
+        "model_id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]},
+        "monster_ids": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "room_type": {"$ref": "#/$defs/RoomType"},
+        "turns_taken": {"$ref": "#/$defs/Int32"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Runs.History.MapPointRoomHistoryEntry",
+      "required": ["room_type", "turns_taken"]
+    },
+    "RoomType": {"enum": ["unassigned", "monster", "elite", "boss", "treasure", "shop", "event", "rest_site", "map"]},
+    "SerializableModifier": {
+      "type": "object",
+      "properties": {
+        "id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]},
+        "props": {"anyOf": [{"$ref": "#/$defs/SavedProperties"}, {"type": "null"}]}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableModifier",
+      "required": ["id"]
+    },
+    "SerializableRunOddsSet": {
+      "type": "object",
+      "properties": {
+        "unknown_map_point_elite_odds_value": {"type": "number"},
+        "unknown_map_point_monster_odds_value": {"type": "number"},
+        "unknown_map_point_shop_odds_value": {"type": "number"},
+        "unknown_map_point_treasure_odds_value": {"type": "number"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableRunOddsSet",
+      "required": [
+        "unknown_map_point_elite_odds_value",
+        "unknown_map_point_monster_odds_value",
+        "unknown_map_point_shop_odds_value",
+        "unknown_map_point_treasure_odds_value"
+      ]
+    },
+    "PlatformType": {"enum": ["none", "steam"]},
+    "SerializablePlayer": {
+      "type": "object",
+      "properties": {
+        "base_orb_slot_count": {"$ref": "#/$defs/Int32"},
+        "character_id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]},
+        "current_hp": {"$ref": "#/$defs/Int32"},
+        "deck": {"type": "array", "items": {"$ref": "#/$defs/SerializableCard"}},
+        "discovered_cards": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "discovered_enemies": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "discovered_epochs": {"type": "array", "items": {"type": "string"}},
+        "discovered_potions": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "discovered_relics": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "extra_fields": {"$ref": "#/$defs/SerializableExtraPlayerFields"},
+        "gold": {"$ref": "#/$defs/Int32"},
+        "max_energy": {"$ref": "#/$defs/Int32"},
+        "max_hp": {"$ref": "#/$defs/Int32"},
+        "max_potion_slot_count": {"$ref": "#/$defs/Int32"},
+        "net_id": {"$ref": "#/$defs/UInt64"},
+        "odds": {"$ref": "#/$defs/SerializablePlayerOddsSet"},
+        "potions": {"type": "array", "items": {"$ref": "#/$defs/SerializablePotion"}},
+        "relic_grab_bag": {"$ref": "#/$defs/SerializableRelicGrabBag"},
+        "relics": {"type": "array", "items": {"$ref": "#/$defs/SerializableRelic"}},
+        "rng": {"$ref": "#/$defs/SerializablePlayerRngSet"},
+        "unlock_state": {"$ref": "#/$defs/SerializableUnlockState"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializablePlayer",
+      "required": [
+        "base_orb_slot_count",
+        "character_id",
+        "current_hp",
+        "extra_fields",
+        "gold",
+        "max_energy",
+        "max_hp",
+        "max_potion_slot_count",
+        "net_id",
+        "odds",
+        "relic_grab_bag",
+        "rng",
+        "unlock_state"
+      ]
+    },
+    "SerializableExtraPlayerFields": {
+      "type": "object",
+      "properties": {
+        "card_shop_removals_used": {"$ref": "#/$defs/Int32"},
+        "ccccombo_badge_unlocked": {"type": "boolean"},
+        "damage_dealt": {"$ref": "#/$defs/Int32"},
+        "debuffs_applied": {"$ref": "#/$defs/Int32"},
+        "wongo_points": {"$ref": "#/$defs/Int32"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.SerializableExtraPlayerFields"
+    },
+    "SerializablePlayerOddsSet": {
+      "type": "object",
+      "properties": {"card_rarity_odds_value": {"type": "number"}, "potion_reward_odds_value": {"type": "number"}},
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializablePlayerOddsSet",
+      "required": ["card_rarity_odds_value", "potion_reward_odds_value"]
+    },
+    "SerializablePotion": {
+      "type": "object",
+      "properties": {
+        "id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]},
+        "slot_index": {"$ref": "#/$defs/Int32"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializablePotion",
+      "required": ["id", "slot_index"]
+    },
+    "SerializableRelicGrabBag": {
+      "type": "object",
+      "properties": {
+        "relic_id_lists": {
+          "type": "object",
+          "properties": {
+            "none": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+            "starter": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+            "common": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+            "uncommon": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+            "rare": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+            "shop": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+            "event": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+            "ancient": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableRelicGrabBag",
+      "required": ["relic_id_lists"]
+    },
+    "SerializableRelic": {
+      "type": "object",
+      "properties": {
+        "floor_added_to_deck": {"anyOf": [{"$ref": "#/$defs/Int32"}, {"type": "null"}]},
+        "id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]},
+        "props": {"anyOf": [{"$ref": "#/$defs/SavedProperties"}, {"type": "null"}]}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableRelic",
+      "required": ["id"]
+    },
+    "SerializablePlayerRngSet": {
+      "type": "object",
+      "properties": {
+        "rngs": {
+          "type": "object",
+          "properties": {
+            "rewards": {"$ref": "#/$defs/SerializableRng"},
+            "shops": {"$ref": "#/$defs/SerializableRng"},
+            "transformations": {"$ref": "#/$defs/SerializableRng"}
+          },
+          "additionalProperties": false
+        },
+        "seed": {"$ref": "#/$defs/UInt64"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.SerializablePlayerRngSet",
+      "required": ["rngs", "seed"]
+    },
+    "SerializableRng": {
+      "type": "object",
+      "properties": {
+        "counter": {"$ref": "#/$defs/Int32"},
+        "s0": {"$ref": "#/$defs/UInt64"},
+        "s1": {"$ref": "#/$defs/UInt64"},
+        "s2": {"$ref": "#/$defs/UInt64"},
+        "s3": {"$ref": "#/$defs/UInt64"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.SerializableRng",
+      "required": ["counter", "s0", "s1", "s2", "s3"],
+      "description": "Native signed int32 counter and four numeric uint64 state words. This is the serialized type shape; RNG algorithm invariants are separate."
+    },
+    "SerializableUnlockState": {
+      "type": "object",
+      "properties": {
+        "encounters_seen": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "number_of_runs": {"$ref": "#/$defs/Int32"},
+        "unlocked_epochs": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Unlocks.SerializableUnlockState",
+      "required": ["encounters_seen", "number_of_runs", "unlocked_epochs"]
+    },
+    "SerializableRoom": {
+      "type": "object",
+      "properties": {
+        "encounter_id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]},
+        "encounter_state": {"type": "object", "additionalProperties": {"type": "string"}},
+        "event_id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]},
+        "extra_rewards": {
+          "type": "object",
+          "additionalProperties": {"type": "array", "items": {"$ref": "#/$defs/SerializableReward"}},
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,19})$",
+            "description": "Decimal uint64 dictionary key. Numeric upper bound requires semantic validation."
+          }
+        },
+        "is_pre_finished": {"type": "boolean"},
+        "parent_event_id": {"anyOf": [{"$ref": "#/$defs/ModelId"}, {"type": "null"}]},
+        "reward_proportion": {"type": "number"},
+        "room_type": {"$ref": "#/$defs/RoomType"},
+        "should_resume_parent_event": {"type": "boolean"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableRoom",
+      "required": [
+        "encounter_id",
+        "event_id",
+        "is_pre_finished",
+        "parent_event_id",
+        "reward_proportion",
+        "room_type",
+        "should_resume_parent_event"
+      ]
+    },
+    "SerializableReward": {
+      "type": "object",
+      "properties": {
+        "card_pools": {"type": "array", "items": {"$ref": "#/$defs/ModelId"}},
+        "custom_description_encounter_source_id": {"$ref": "#/$defs/ModelId"},
+        "gold_amount": {"$ref": "#/$defs/Int32"},
+        "option_count": {"$ref": "#/$defs/Int32"},
+        "predetermined_model_id": {"$ref": "#/$defs/ModelId"},
+        "rarity_odds": {"$ref": "#/$defs/CardRarityOddsType"},
+        "reward_type": {"$ref": "#/$defs/RewardType"},
+        "source": {"$ref": "#/$defs/CardCreationSource"},
+        "special_card": {"anyOf": [{"$ref": "#/$defs/SerializableCard"}, {"type": "null"}]},
+        "was_gold_stolen_back": {"type": "boolean"}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableReward",
+      "required": [
+        "card_pools",
+        "custom_description_encounter_source_id",
+        "gold_amount",
+        "option_count",
+        "predetermined_model_id",
+        "rarity_odds",
+        "reward_type",
+        "source",
+        "special_card",
+        "was_gold_stolen_back"
+      ]
+    },
+    "CardRarityOddsType": {"enum": ["none", "regular_encounter", "elite_encounter", "boss_encounter", "shop", "uniform"]},
+    "RewardType": {"enum": ["none", "card", "gold", "potion", "relic", "remove_card", "special_card"]},
+    "CardCreationSource": {"enum": ["none", "encounter", "shop", "other"]},
+    "SerializableRunRngSet": {
+      "type": "object",
+      "properties": {
+        "rngs": {
+          "type": "object",
+          "properties": {
+            "up_front": {"$ref": "#/$defs/SerializableRng"},
+            "shuffle": {"$ref": "#/$defs/SerializableRng"},
+            "unknown_map_point": {"$ref": "#/$defs/SerializableRng"},
+            "combat_card_generation": {"$ref": "#/$defs/SerializableRng"},
+            "combat_potion_generation": {"$ref": "#/$defs/SerializableRng"},
+            "combat_card_selection": {"$ref": "#/$defs/SerializableRng"},
+            "combat_energy_costs": {"$ref": "#/$defs/SerializableRng"},
+            "combat_targets": {"$ref": "#/$defs/SerializableRng"},
+            "monster_ai": {"$ref": "#/$defs/SerializableRng"},
+            "niche": {"$ref": "#/$defs/SerializableRng"},
+            "combat_orbs": {"$ref": "#/$defs/SerializableRng"},
+            "treasure_room_relics": {"$ref": "#/$defs/SerializableRng"}
+          },
+          "additionalProperties": false
+        },
+        "seed": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializableRunRngSet",
+      "required": ["rngs", "seed"]
+    }
+  }
+}

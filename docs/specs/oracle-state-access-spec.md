@@ -1,42 +1,57 @@
 # Oracle State Access Probe Specification
 
+This probe checks whether the reference adapter can read card-pile order and
+random-generator state from the installed game. Its results apply only to the build and
+encounter tested.
+
+See the [shared terms](README.md#terms-used-in-these-sheets) for definitions of parity, snapshot, boundary, and model ID.
+
+## On this page
+
+- [How to read the requirements](#how-to-read-the-requirements)
+- [Overview](#overview)
+- [How to run it](#how-to-run-it)
+- [Verified reference build](#verified-reference-build)
+- [What was checked](#what-was-checked)
+- [Limits and requirements for an exporter](#limits-and-requirements-for-an-exporter)
+
 | Attribute | Value |
 | --- | --- |
 | Status | Verified probe; evidence is limited to the build and scenario below |
 | Profile / reference | `v0.111.0 probe` |
 | Scope | State-access probe procedure, acceptance evidence, and verified limits. |
 
-## Document conventions
+## How to read the requirements
 
-Requirements use **must**, **must not**, or imperative instructions. Examples and
-execution procedures are informative. Verification evidence describes observed behavior
-and does not extend the supported scope.
+**Must**, **must not**, and direct instructions state requirements. Examples and run
+instructions explain how to use the format. Test results describe only the cases checked;
+they do not add support for other mechanics.
 
-## Purpose
+## Overview
 
 The local check on October 17, 2026 confirmed that an extended `sts2-cli` can export
 ordered combat piles and serialized RNG state from the installed game DLL. A replacement
 submodule is not necessary for this access.
 
-## Execution procedure
+## How to run it
 
-Requires Python 3, a Linux .NET 9 SDK, the initialized `sts2-cli` submodule, and a
-local game installation. Run from the repository root in WSL:
+Requires Python 3, a Linux .NET 9 SDK, the initialized `sts2-cli` submodule, and a local
+game installation. Run from the repository root in WSL:
 
 ```sh
 python3 tools/oracle/check_state_access.py \
   --game-dir '/mnt/c/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2'
 ```
 
-The script copies the adapter and required game DLLs to a temporary directory,
-injects `StateAccessProbe.cs` and a `probe_state` command, builds, then starts two
-independent reference processes. It does not modify the submodule or Steam files.
-The initial .NET restore may require network access.
+The script copies the adapter and required game DLLs to a temporary directory, injects
+`StateAccessProbe.cs` and a `probe_state` command, builds, then starts two independent
+reference processes. It does not modify the submodule or Steam files. The initial .NET
+restore may require network access.
 
 Reports and build/process logs go to ignored `build/oracle-check/`. Source and DLL
-copies are removed when the script exits. No game DLLs are checked into this repo.
-The probe copies original DLLs without applying setup.sh IL patches; the adapter's
-existing Godot stubs and runtime patches are still active.
+copies are removed when the script exits. No game DLLs are checked into this repo. The
+probe copies original DLLs without applying setup.sh IL patches; the adapter's existing
+Godot stubs and runtime patches are still active.
 
 ## Verified reference build
 
@@ -49,7 +64,7 @@ existing Godot stubs and runtime patches are still active.
 The generated report records the actual DLL hash, assembly MVID, reference revision,
 release metadata when present, commands, and snapshots for subsequent checks.
 
-## Verification evidence
+## What was checked
 
 Seed `ORACLECHECK01`, Ironclad, encounter `SHRINKER_BEETLE_WEAK`, snapshots at player
 play phase in rounds 1–3:
@@ -77,15 +92,15 @@ Player streams: Rewards, Shops, Transformations.
 Use integer-safe parsing for the state words: JavaScript numbers cannot exactly
 represent every 64-bit integer. Python integers and C++ uint64_t can.
 
-## Limitations and exporter requirements
+## Limits and requirements for an exporter
 
-This is a targeted accessibility check, not a complete combat snapshot format or a
-proof that the headless adapter matches the running Godot game. In particular:
+This is a targeted accessibility check, not a complete combat snapshot format or a proof
+that the headless adapter matches the running Godot game. In particular:
 
 - Card exports contain only model ID, pile index, and a process-local probe identity;
   upgrades, current costs, temporary effects, and other card state are not exported.
 - Creature, power, relic, enemy AI, pending-choice, and action-queue state still need
-  dedicated exporters. The current probe does not certify action quiescence generally.
+  dedicated exporters. The current probe does not prove that all effects have finished in other scenarios.
 - The RNG test proves access and restoration within the reference DLL, not C++ RNG
   compatibility, randomness trace capture, or arbitrary whole-combat restoration.
 - Only this single-player starter encounter is exercised. Empty exhaust access is not
@@ -94,4 +109,5 @@ proof that the headless adapter matches the running Godot game. In particular:
 Build the production snapshot exporter using the existing RNG serialization APIs and
 explicit combat serializers. Preserve stable instance mappings within each recording,
 validate all expected streams, and fail when required state is unavailable. Keep this
-probe separate from the default GoogleTest suite because it requires installed game DLLs.
+probe separate from the default GoogleTest suite because it requires installed game
+DLLs.

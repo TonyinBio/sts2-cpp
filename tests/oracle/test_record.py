@@ -8,6 +8,10 @@ import sys
 import tempfile
 import unittest
 
+
+# Allow direct execution without installing the reference tools as a package.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools/oracle'))
+
 from record import JsonProcess, atomic_write, record_session, strict_json, validate
 
 VALIDATOR = Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 else None

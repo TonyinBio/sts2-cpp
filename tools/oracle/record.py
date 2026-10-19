@@ -145,7 +145,7 @@ def inject(source):
         'case "oracle_start": return sim.OracleStart(cmd);\n'
         '            case "oracle_action": return sim.OracleAction(cmd);\n'
         '            case "start_run":', 1))
-    shutil.copy2(Path(__file__).with_name('RecordingSession.cs'), source)
+    shutil.copy2(Path(__file__).parent / 'adapters' / 'RecordingSession.cs', source)
 
 
 @contextlib.contextmanager

@@ -50,7 +50,7 @@ def main():
         for name in DLLS:
             shutil.copy2(game / name, lib / name)
         source = root / 'src/Sts2Headless'
-        shutil.copy2(Path(__file__).with_name('StateAccessProbe.cs'), source)
+        shutil.copy2(Path(__file__).parent / 'adapters' / 'StateAccessProbe.cs', source)
         sim = source / 'RunSimulator.cs'
         text = sim.read_text()
         require(text.count('public class RunSimulator') == 1, 'Unexpected RunSimulator declaration')
