@@ -86,6 +86,49 @@ TEST(ActionRecordingFormat, RejectsUnknownProfilesVersionsAndSetup) {
         EXPECT_THROW(parse(value), std::invalid_argument);
     }
 }
+TEST(ActionRecordingFormat, SupportsRunGameplayDecisionsAndRejectsViewCommands) {
+    auto value = example();
+    value["setup"]["kind"] = "seeded_run";
+    value["setup"].erase("encounter");
+    const std::vector<Json> actions = {
+        {{"kind", "select_map_node"}, {"col", 1}, {"row", 2}},
+        {{"kind", "choose_option"}, {"option_index", 0}},
+        {{"kind", "select_cards"}, {"indices", Json::array({1, 0})}},
+        {{"kind", "select_card_reward"}, {"card_index", 0}},
+        {{"kind", "reward_alternative"}, {"index", 0}},
+        {{"kind", "select_bundle"}, {"bundle_index", 0}},
+        {{"kind", "take_reward"}, {"index", 0}},
+        {{"kind", "pick_treasure"}, {"index", 0}},
+        {{"kind", "buy_card"}, {"card_index", 0}},
+        {{"kind", "buy_relic"}, {"relic_index", 0}},
+        {{"kind", "buy_potion"}, {"potion_index", 0}},
+        {{"kind", "use_potion"}, {"potion_index", 0}, {"target", "enemy_0"}},
+        {{"kind", "discard_potion"}, {"potion_index", 0}},
+        {{"kind", "skip_select"}}, {{"kind", "skip_card_reward"}},
+        {{"kind", "skip_rewards"}}, {{"kind", "remove_card"}},
+        {{"kind", "proceed"}}, {{"kind", "abandon"}}
+    };
+    for (const auto& action : actions) {
+        value["actions"][0]["action"] = action;
+        EXPECT_NO_THROW(parse(value)) << action.dump();
+        auto broken = value;
+        broken["actions"][0]["action"]["unexpected"] = true;
+        EXPECT_THROW(parse(broken), std::invalid_argument);
+    }
+    for (const auto* kind : {"open_map", "map", "state", "view_deck", "inventory", "help", "save", "leave_room"}) {
+        value["actions"][0]["action"] = {{"kind", kind}};
+        EXPECT_THROW(parse(value), std::invalid_argument) << kind;
+    }
+    for (const auto& action : std::vector<Json>{
+        {{"kind", "select_map_node"}, {"col", 256}, {"row", 1}},
+        {{"kind", "choose_option"}, {"option_index", -1}},
+        {{"kind", "select_cards"}, {"indices", Json::array({0, 0})}},
+        {{"kind", "select_cards"}, {"indices", Json::array({0})}, {"card_instances", Json::array({"card_0"})}},
+        {{"kind", "use_potion"}}, {{"kind", "buy_card"}, {"card_index", 0.5}}}) {
+        value["actions"][0]["action"] = action;
+        EXPECT_THROW(parse(value), std::invalid_argument) << action.dump();
+    }
+}
 class InvalidActionFormat : public testing::TestWithParam<Json> {};
 TEST_P(InvalidActionFormat, RejectsMalformedAction) {
     auto value = example();

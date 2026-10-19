@@ -13,12 +13,13 @@ import tempfile
 import uuid
 
 from record import (FEATURES, REPO, JsonProcess, atomic_write, check_scope,
-                    reference_build, require, validate, wire_json)
+                    reference_build, require, validate, wire_json, strict_json, start_request, action_request)
 
 HELP = """Commands (positions start at 1):
   play CARD [ENEMY]  Play a card from the displayed hand; attacks default to enemy 1.
   end                End your turn.
-  state              Show the current combat and hand again.
+  act 'JSON'         Submit a schema-valid gameplay action (use single quotes around JSON).
+  state/map/deck/inventory  Inspect the last captured state without recording an action.
   save               Save an extra state checkpoint now.
   every N            Change the state checkpoint interval (measured from action 1).
   quit               Save a final checkpoint and exit. EOF/Ctrl+C also save the last validated state.
@@ -36,7 +37,12 @@ def positive_int(text):
     return value
 
 
-def new_actions(seed, recording_id):
+def new_actions(seed, recording_id, run=False):
+    if run:
+        return {'schema_version': 1, 'profile': 'actions-v1', 'state_profile': 'run-parity-v1',
+                'recording_id': recording_id, 'required_features': ['run_flow_v1'],
+                'setup': {'kind': 'seeded_run', 'character': 'Ironclad', 'ascension': 0, 'seed': seed},
+                'actions': []}
     return {'schema_version': 1, 'profile': 'actions-v1', 'state_profile': 'run-parity-v1',
             'recording_id': recording_id, 'required_features': list(FEATURES),
             'setup': {'kind': 'seeded_combat', 'character': 'Ironclad', 'ascension': 0,
@@ -60,6 +66,8 @@ def show_state(state, write=print):
     player = state['players'][0]
     combat = state['combat']
     if combat is None:
+        if state.get('run_flow'):
+            write(wire_json(state['run_flow']))
         write(f"HP {player['current_hp']}/{player['max_hp']} | {state['boundary_kind']}")
         return
     pc = combat['players'][0]
@@ -81,8 +89,35 @@ def show_state(state, write=print):
               + (f" ({state['run_ending_reason']})" if state['run_ending_reason'] else ''))
 
 
+def show_view(tokens, state, write):
+    player = state['players'][0]
+    if tokens == ['deck']:
+        for index, card in enumerate(player['deck'], 1):
+            write(f"{index}. {card['id']} +{card['current_upgrade_level']}")
+    elif tokens == ['inventory']:
+        write(f"Gold: {player['gold']}")
+        write('Relics: ' + wire_json(player['relics']))
+        write('Potions: ' + wire_json(player['potions']))
+    elif tokens != ['state']:
+        flow = state.get('run_flow')
+        if flow and flow['room']['kind'] == 'map':
+            write('Reachable map nodes: ' + wire_json(flow['room']['choices']))
+        else:
+            write('Map choices are shown at a captured map boundary.')
+    else:
+        show_state(state, write)
+
+
 def parse_action(tokens, state):
     """Map displayed positions to this audited exporter's stable action identities."""
+    if tokens and tokens[0] == 'act':
+        try:
+            action = strict_json(' '.join(tokens[1:]))
+        except (ValueError, TypeError) as error:
+            raise ValueError(f'Invalid action JSON: {error}') from None
+        if not isinstance(action, dict):
+            raise ValueError('Action must be a JSON object')
+        return action
     if tokens == ['end']:
         return {'kind': 'end_turn'}
     if not tokens or tokens[0] != 'play' or len(tokens) not in (2, 3):
@@ -196,9 +231,7 @@ class PlaySession:
         validate(self.validator, 'actions', self.actions)
         check_scope(self.actions)
         require(self.host.receive().get('type') == 'ready', 'Missing reference ready message')
-        response = self.host.send({'cmd': 'oracle_start', 'request_id': 'initial',
-                                   'setup': self.actions['setup'],
-                                   'required_features': self.actions['required_features']})
+        response = self.host.send(start_request(self.actions))
         self.state, self.identity = self.response_state(response, 'initial')
         self.sequence = {'initial': self.state, 'transitions': []}
         self.publish()
@@ -214,17 +247,21 @@ class PlaySession:
             self.checkpoint()
         return self.writer.publish(self.actions, self.sequence, dict(self.provenance, **self.identity))
 
+    def finished(self):
+        return (self.state['boundary_kind'] == 'run_complete' if self.actions['setup']['kind'] == 'seeded_run'
+                else combat_finished(self.state))
+
     def step(self, action):
-        require(not combat_finished(self.state), 'Action after combat end')
+        require(not self.finished(), 'Action after combat end')
         index = len(self.actions['actions']) + 1
         entry = {'id': f'action-{index:06d}', 'action': action}
         candidate = dict(self.actions, actions=[*self.actions['actions'], entry])
         validate(self.validator, 'actions', candidate)
         check_scope(candidate)
-        response = self.host.send({'cmd': 'oracle_action', 'request_id': entry['id'], 'action': action})
+        response = self.host.send(action_request(self.actions, action, self.state, entry['id']))
         state, _ = self.response_state(response, entry['id'])
         self.actions, self.state = candidate, state
-        if index % self.checkpoint_every == 0 or combat_finished(state):
+        if index % self.checkpoint_every == 0 or self.finished():
             self.checkpoint()
         self.publish()
 
@@ -234,7 +271,7 @@ def play(session, read=input, write=print):
     write(HELP)
     show_state(session.state, write)
     try:
-        while not combat_finished(session.state):
+        while not session.finished():
             try:
                 tokens = shlex.split(read('sts2> '))
             except (EOFError, KeyboardInterrupt):
@@ -250,8 +287,8 @@ def play(session, read=input, write=print):
             if tokens == ['help']:
                 write(HELP)
                 continue
-            if tokens == ['state']:
-                show_state(session.state, write)
+            if tokens in (['state'], ['map'], ['open_map'], ['open', 'map'], ['deck'], ['inventory']):
+                show_view(tokens, session.state, write)
                 continue
             if tokens == ['save']:
                 session.publish(final=True)
@@ -288,6 +325,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--game-dir', type=Path, required=True)
     parser.add_argument('--output-dir', type=Path, required=True, help='New directory for this session')
+    parser.add_argument('--run', action='store_true', help='Record a seeded run through the run backend')
     parser.add_argument('--seed', default='ORACLECHECK01')
     parser.add_argument('--checkpoint-every', type=positive_int, default=1, metavar='N')
     parser.add_argument('--validator', type=Path, default=REPO / 'build/debug/parity_validate')
@@ -302,9 +340,12 @@ def main():
     directory.mkdir(parents=True, exist_ok=False)
     logs = directory / 'logs'
     logs.mkdir()
-    actions = new_actions(args.seed, directory.name)
-    print('Starting Ironclad A0 / SHRINKER_BEETLE_WEAK (audited combat scope).')
-    print('Map, reward, shop, event, and other character recordings are not supported by this exporter.')
+    actions = new_actions(args.seed, directory.name, run=args.run)
+    if args.run:
+        print('Starting a seeded Ironclad run; combat exporter coverage remains limited.')
+    else:
+        print('Starting Ironclad A0 / SHRINKER_BEETLE_WEAK (audited combat scope).')
+        print('Map, reward, shop, event, and other character recordings are not supported by this exporter.')
     with reference_build(args.game_dir, logs, extra_sources=(Path(__file__),)) as (command, env, provenance):
         host = JsonProcess(command, env, logs / 'reference', args.timeout, log_protocol=args.protocol_log)
         try:

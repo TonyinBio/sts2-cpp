@@ -331,6 +331,7 @@ public partial class RunSimulator
                 }); break;
             }
             case "proceed": case "leave_room": {
+                Require(room != null && room is not MapRoom, "Opening the map is not a gameplay decision; select a reachable map node");
                 Require(!(room is CombatRoom && CombatManager.Instance.IsInProgress), "Cannot leave an active combat");
                 if (room is CombatRoom combat && !_runCombatRewardsOffered) {
                     _runCombatRewardsOffered = true;
@@ -355,6 +356,16 @@ public partial class RunSimulator
                     await RunManager.Instance.ProceedFromTerminalRewardsScreen();
                     if (ReferenceEquals(run.CurrentRoom, room)) await RunManager.Instance.EnterRoom(new MapRoom());
                 }); break;
+            }
+            case "use_potion": case "discard_potion": {
+                var i = Index("potion_index");
+                var potions = player.Potions.ToList();
+                Require(i >= 0 && i < potions.Count && potions[i] != null, "Invalid potion slot");
+                if (kind == "use_potion" && potions[i]!.TargetType == TargetType.AnyEnemy)
+                    Require(args.TryGetProperty("target_index", out _), "Explicit potion target required");
+                var values = args.EnumerateObject().ToDictionary(p => p.Name, p => (object?)p.Value.GetInt32());
+                BeginRunOperation(kind, i, () => { CheckResponse(ExecuteAction(kind, values)); return Task.CompletedTask; });
+                break;
             }
             case "play_card": case "end_turn": {
                 Require(room is CombatRoom && CombatManager.Instance.IsInProgress, "Combat action outside active combat");

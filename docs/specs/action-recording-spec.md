@@ -1,6 +1,6 @@
 # Action Recording Specification
 
-An action recording tells a runner how to start one combat and which player decisions to
+An action recording tells a runner how to start a run or combat and which player decisions to
 replay. Expected states are stored in a separate result file.
 
 See the [shared terms](README.md#terms-used-in-these-sheets) for definitions of parity, snapshot, boundary, and model ID.
@@ -18,7 +18,7 @@ See the [shared terms](README.md#terms-used-in-these-sheets) for definitions of 
 | --- | --- |
 | Status | Implemented; support is limited to the scope below |
 | Profile / reference | `actions-v1` |
-| Scope | Combat initialization, ordered player decisions, and result association. |
+| Scope | Run/combat initialization, ordered gameplay decisions, and result association. |
 
 ## How to read the requirements
 
@@ -28,7 +28,7 @@ they do not add support for other mechanics.
 
 ## Overview
 
-An action recording is a JSON document describing how to initialize one combat and which
+An action recording is a JSON document describing how to initialize a run or combat and which
 player decisions to execute, in order. It contains no expected states. See
 `tests/parity/schema/actions-v1.json`, `ActionRecording` in
 `tests/parity/support/recording.hpp`, and `tests/parity/examples/starter.actions.json`.
@@ -79,7 +79,9 @@ infer that a particular loadout or encounter needs additional features.
 
 ### Setup rules
 
-The initial profile supports `seeded_combat` only. The reference runner translates it to
+`seeded_run` starts the native seeded run at its initial ancient event, without an
+encounter field. Use `required_features: ["run_flow_v1"]` for this reference backend.
+`seeded_combat` retains the isolated encounter setup below. The reference runner translates it to
 `start_run` with character, seed, ascension, and explicit English language, then
 `enter_room` with type `combat` and the given encounter. Use the character's default
 loadout. Encounter names are unlocalized protocol entries, e.g. `SHRINKER_BEETLE_WEAK`,
@@ -99,11 +101,44 @@ seed generation are supported by this first profile.
 | `end_turn` | None | End the player's turn |
 | `select_cards` | `card_instances` | Resolve a pending card selection with an ordered array of distinct card IDs |
 | `select_target` | `target` | Resolve a pending creature-target selection |
+| `select_map_node` | `col`, `row` | Commit travel to a reachable map node |
+| `choose_option` | `option_index` | Choose an event or rest-site option |
+| `select_cards` | `indices` | Resolve a noncombat card choice using its displayed candidate order |
+| `skip_select` | None | Cancel a pending selection when cancellation is allowed |
+| `select_card_reward` | `card_index` | Choose an offered reward card |
+| `reward_alternative` | `index` | Choose a native card reward alternative |
+| `skip_card_reward` | None | Decline an optional card reward |
+| `select_bundle` | `bundle_index` | Choose an offered bundle |
+| `take_reward` | `index` | Claim an offered reward |
+| `skip_rewards` | None | Decline the remaining optional rewards |
+| `pick_treasure` | `index` | Claim a treasure relic |
+| `buy_card` / `buy_relic` / `buy_potion` | `card_index` / `relic_index` / `potion_index` | Purchase the chosen shop offer |
+| `remove_card` | None | Buy card removal; the resulting selection is a separate decision |
+| `use_potion` | `potion_index`, optional `target` | Use a potion in its inventory slot |
+| `discard_potion` | `potion_index` | Discard an owned potion |
+| `proceed` | None | Commit room departure or resolve the native postcombat/act transition |
+| `abandon` | None | End the run by abandonment |
+
+Only gameplay actions belong in this closed union. Opening/closing the map, inspecting
+cards/deck/inventory, hovering, help, saving a recording, changing checkpoint frequency,
+and exiting the recorder are not gameplay decisions and must not become action entries.
+Opening a map is distinct from committing travel with `select_map_node`. `proceed`
+commits a native room/reward/act transition; it is not an alias for opening a view.
+`leave_room` is a backend alias; recordings use only the canonical `proceed` action.
+
+All offer/slot/coordinate indices are zero-based integers. Card-choice indices are
+distinct and ordered; choose exactly one representation (`indices` or `card_instances`).
+An empty selection and cancellation are separate intents: `skip_select` is allowed only
+when native preferences permit cancelling. Offer indices are resolved against the
+current pending boundary, never against a newly generated offer. Potion slots refer to
+inventory slots, not model IDs. Targeted potion use requires an explicit creature ID.
+Schema support describes intent; a backend must reject unsupported mechanics explicitly.
+Combat exporter and generic target-selection limitations remain unchanged.
 
 Action instance IDs use recording-driver identities. Snapshot object links use
 document-local JSON Pointers; the exporter maps action identities to runtime objects
 independently of local snapshot labels. The driver must preserve its action mapping
-throughout the recording. Actions never store shifting hand indices,
+throughout the combat. Combat card actions never store shifting hand indices,
 localized names, model IDs as substitutes for instance IDs, or raw object addresses. For
 example:
 
@@ -127,9 +162,8 @@ the current sts2-cli protocol does not provide a generic target-selection comman
 
 ### Sending actions to the reference adapter
 
-Runners resolve identities to protocol indices immediately before each action. For
-`select_cards`, sts2-cli currently expects a comma-separated `indices` string. That wire
-encoding belongs in its adapter, not this format. Random results are generated from
+Runners resolve identities to protocol indices immediately before each action. The run backend accepts noncombat `select_cards.indices` as a JSON integer array;
+combat selections retain the existing identity representation. Random results are generated from
 engine RNG state; they are not player actions or alternate actions chosen by the runner.
 
 ## Recording the results

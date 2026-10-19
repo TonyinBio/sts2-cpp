@@ -27,42 +27,79 @@
       "uniqueItems": true
     },
     "setup": {
-      "type": "object",
-      "properties": {
-        "kind": {
-          "const": "seeded_combat"
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "seeded_combat"
+            },
+            "seed": {
+              "type": "string",
+              "minLength": 1
+            },
+            "character": {
+              "enum": [
+                "Ironclad",
+                "Silent",
+                "Defect",
+                "Regent",
+                "Necrobinder"
+              ]
+            },
+            "ascension": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "encounter": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "kind",
+            "seed",
+            "character",
+            "ascension",
+            "encounter"
+          ],
+          "additionalProperties": false
         },
-        "seed": {
-          "type": "string",
-          "minLength": 1
-        },
-        "character": {
-          "enum": [
-            "Ironclad",
-            "Silent",
-            "Defect",
-            "Regent",
-            "Necrobinder"
-          ]
-        },
-        "ascension": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 10
-        },
-        "encounter": {
-          "type": "string",
-          "minLength": 1
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "seeded_run"
+            },
+            "seed": {
+              "type": "string",
+              "minLength": 1
+            },
+            "character": {
+              "enum": [
+                "Ironclad",
+                "Silent",
+                "Defect",
+                "Regent",
+                "Necrobinder"
+              ]
+            },
+            "ascension": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            }
+          },
+          "required": [
+            "kind",
+            "seed",
+            "character",
+            "ascension"
+          ],
+          "additionalProperties": false
         }
-      },
-      "required": [
-        "kind",
-        "seed",
-        "character",
-        "ascension",
-        "encounter"
-      ],
-      "additionalProperties": false
+      ]
     },
     "actions": {
       "type": "array",
@@ -86,6 +123,60 @@
               },
               {
                 "$ref": "#/$defs/select_target"
+              },
+              {
+                "$ref": "#/$defs/select_map_node"
+              },
+              {
+                "$ref": "#/$defs/choose_option"
+              },
+              {
+                "$ref": "#/$defs/select_card_reward"
+              },
+              {
+                "$ref": "#/$defs/reward_alternative"
+              },
+              {
+                "$ref": "#/$defs/select_bundle"
+              },
+              {
+                "$ref": "#/$defs/take_reward"
+              },
+              {
+                "$ref": "#/$defs/pick_treasure"
+              },
+              {
+                "$ref": "#/$defs/buy_card"
+              },
+              {
+                "$ref": "#/$defs/buy_relic"
+              },
+              {
+                "$ref": "#/$defs/buy_potion"
+              },
+              {
+                "$ref": "#/$defs/discard_potion"
+              },
+              {
+                "$ref": "#/$defs/skip_select"
+              },
+              {
+                "$ref": "#/$defs/skip_card_reward"
+              },
+              {
+                "$ref": "#/$defs/skip_rewards"
+              },
+              {
+                "$ref": "#/$defs/remove_card"
+              },
+              {
+                "$ref": "#/$defs/proceed"
+              },
+              {
+                "$ref": "#/$defs/abandon"
+              },
+              {
+                "$ref": "#/$defs/use_potion"
               }
             ]
           }
@@ -143,25 +234,50 @@
       "additionalProperties": false
     },
     "select_cards": {
-      "type": "object",
-      "properties": {
-        "kind": {
-          "const": "select_cards"
-        },
-        "card_instances": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "select_cards"
+            },
+            "card_instances": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            }
           },
-          "uniqueItems": true
+          "required": [
+            "kind",
+            "card_instances"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "select_cards"
+            },
+            "indices": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "kind",
+            "indices"
+          ],
+          "additionalProperties": false
         }
-      },
-      "required": [
-        "kind",
-        "card_instances"
-      ],
-      "additionalProperties": false
+      ]
     },
     "select_target": {
       "type": "object",
@@ -177,6 +293,293 @@
       "required": [
         "kind",
         "target"
+      ],
+      "additionalProperties": false
+    },
+    "select_map_node": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "select_map_node"
+        },
+        "col": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "row": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        }
+      },
+      "required": [
+        "kind",
+        "col",
+        "row"
+      ],
+      "additionalProperties": false
+    },
+    "choose_option": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "choose_option"
+        },
+        "option_index": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kind",
+        "option_index"
+      ],
+      "additionalProperties": false
+    },
+    "select_card_reward": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "select_card_reward"
+        },
+        "card_index": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kind",
+        "card_index"
+      ],
+      "additionalProperties": false
+    },
+    "reward_alternative": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "reward_alternative"
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kind",
+        "index"
+      ],
+      "additionalProperties": false
+    },
+    "select_bundle": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "select_bundle"
+        },
+        "bundle_index": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kind",
+        "bundle_index"
+      ],
+      "additionalProperties": false
+    },
+    "take_reward": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "take_reward"
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kind",
+        "index"
+      ],
+      "additionalProperties": false
+    },
+    "pick_treasure": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "pick_treasure"
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kind",
+        "index"
+      ],
+      "additionalProperties": false
+    },
+    "buy_card": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "buy_card"
+        },
+        "card_index": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kind",
+        "card_index"
+      ],
+      "additionalProperties": false
+    },
+    "buy_relic": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "buy_relic"
+        },
+        "relic_index": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kind",
+        "relic_index"
+      ],
+      "additionalProperties": false
+    },
+    "buy_potion": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "buy_potion"
+        },
+        "potion_index": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kind",
+        "potion_index"
+      ],
+      "additionalProperties": false
+    },
+    "discard_potion": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "discard_potion"
+        },
+        "potion_index": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kind",
+        "potion_index"
+      ],
+      "additionalProperties": false
+    },
+    "skip_select": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "skip_select"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "skip_card_reward": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "skip_card_reward"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "skip_rewards": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "skip_rewards"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "remove_card": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "remove_card"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "proceed": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "proceed"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "abandon": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "abandon"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "use_potion": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "use_potion"
+        },
+        "potion_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "kind",
+        "potion_index"
       ],
       "additionalProperties": false
     }

@@ -89,3 +89,32 @@ are disabled by default to avoid duplicating every unsampled state on disk. Pass
 `--protocol-log` to retain full responses for debugging; their size is independent of
 the checkpoint interval. The source digest includes the interactive runner as well as
 the injected adapter, shared recorder, schemas and game DLLs.
+
+
+## Seeded runs and gameplay decisions
+
+Pass `--run` to initialize a native seeded Ironclad run instead of the starter encounter.
+This writes `seeded_run` setup and the `run_flow_v1` feature declaration. Submit any
+schema-valid gameplay decision with the `act` command, for example:
+
+```text
+act '{"kind":"choose_option","option_index":0}'
+act '{"kind":"select_cards","indices":[0]}'
+act '{"kind":"proceed"}'
+act '{"kind":"select_map_node","col":1,"row":1}'
+act '{"kind":"abandon"}'
+```
+
+All positions inside action JSON are zero-based. The existing `play` command uses
+one-based displayed hand positions and records card identities. See the complete
+[action vocabulary](action-recording-spec.md#actions-and-replay-rules).
+
+`state`, `map`, `deck`, and `inventory` inspect the last validated snapshot locally.
+They do not call the gameplay backend, create action entries, or advance checkpoint
+sampling. `map` shows reachable nodes at a captured map boundary; it does not request a
+new native map screen. Saving, help, interval changes, and quitting likewise stay out
+of the action log. Quitting the recorder preserves the run prefix; use `abandon` to
+record abandonment as a gameplay decision. The schema rejects view-only action kinds.
+
+The run recorder can traverse noncombat decisions but retains the existing bounded
+combat exporter: reaching unsupported combat content stops recording explicitly.

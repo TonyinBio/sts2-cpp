@@ -56,7 +56,7 @@ The accepted reference is v0.111.0 DLL SHA-256
 `0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9` and clean
 sts2-cli revision `084d1aa3d8e118ca7ce8d8774ad16d6be9c92367`.
 
-The live driver supports Ironclad A0, Burning Blood, the default starter deck and
+The seeded-combat driver supports Ironclad A0, Burning Blood, the default starter deck and
 SHRINKER_BEETLE_WEAK. Required action features are basic_combat and
 ironclad_starter_shrinker_v1. Supported actions are play_card and end_turn; unsupported
 models, attachments, generated cards, selectors, potions, pets, and modifiers fail.
@@ -101,8 +101,8 @@ wire parsing, schema validation, reference checks and publication failure behavi
 
 ## Run backend
 
-`RunRecordingSession.cs` adds a separate backend protocol. The action recording
-schema and interactive recorder controls retain their existing combat scope.
+`RunRecordingSession.cs` adds a separate backend protocol. The action recording schema supports gameplay decisions through `seeded_run`;
+interactive run recording is enabled with `play.py --run`.
 These endpoints are available in the disposable build produced by `reference_build`:
 
 ```json
@@ -118,7 +118,8 @@ native seeded run setup and initial ancient event. Backend operations include
 `skip_card_reward`, `select_bundle` (bundle_index), `take_reward` (index),
 `skip_rewards`, `buy_card` (card_index), `buy_relic` (relic_index), `buy_potion`
 (potion_index), `remove_card`, `pick_treasure` (index), `proceed`, and `abandon`.
-These are backend command names, not additions to actions-v1.
+These gameplay commands have corresponding actions-v1 variants. Recordings use
+`proceed` as the canonical form of `leave_room`. Inspection commands are excluded.
 
 Native asynchronous operations pause at captured choices without choosing a default.
 Selection bounds, cancellation and confirmation flags come from native preferences.
@@ -146,3 +147,15 @@ The audit validates seeded Neow choices and map transition, native shop purchase
 Smith selection/upgrade, treasure collection, abandonment, native combat death,
 and the Architect victory event. Room fixtures avoid
 requiring unsupported combat models to reach each noncombat scenario.
+
+
+Record the seeded-run action example with sparse checkpoints:
+
+```sh
+python3 tools/oracle/record.py tests/parity/examples/run.actions.json \
+  --output build/run.states.json --checkpoint-every 3 \
+  --game-dir '/mnt/c/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2'
+```
+
+Gameplay actions alone advance the checkpoint interval. Snapshot inspection does not
+send gameplay commands or append actions. Unsupported combat models still fail export.

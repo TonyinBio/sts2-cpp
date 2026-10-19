@@ -7,7 +7,7 @@
 int main() {
     using namespace sts2::parity;
     using Json = nlohmann::json;
-    const std::set<std::string> features = {"basic_combat", "ironclad_starter_shrinker_v1"};
+    const std::set<std::string> features = {"basic_combat", "ironclad_starter_shrinker_v1", "run_flow_v1"};
     std::string line;
     while (std::getline(std::cin, line)) {
         try {

@@ -13,7 +13,7 @@ import unittest
 # Allow direct execution without installing the reference tools as a package.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools/oracle'))
 
-from record import JsonProcess, atomic_write, record_session, strict_json, validate
+from record import JsonProcess, atomic_write, record_session, strict_json, validate, start_request, action_request
 
 VALIDATOR = Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 else None
 
@@ -174,12 +174,29 @@ for line in sys.stdin:
             with self.subTest(interval=interval), self.assertRaisesRegex(RuntimeError, 'positive integer'):
                 record_session([], {}, {}, None, Path('/unused'), 1, interval)
 
+    def test_run_action_mapping_preserves_decisions(self):
+        actions = {'setup': {'kind': 'seeded_run'}, 'required_features': ['run_flow_v1']}
+        self.assertEqual(start_request(actions)['cmd'], 'oracle_run_start')
+        state = {'combat': {'players': [{'piles': {'Hand': ['/combat/cards/card_9']}}],
+                            'enemies': ['/combat/creatures/enemy_0'],
+                            'creatures': {'enemy_0': {'monster': {'current_hp': 10}}}}}
+        request = action_request(actions, {'kind': 'play_card', 'card_instance': 'card_9', 'target': 'enemy_0'}, state, 'a')
+        self.assertEqual(request['args'], {'card_index': 0, 'target_index': 0})
+        self.assertEqual(request['cmd'], 'oracle_run_action')
+        for decision in ({'kind': 'select_cards', 'indices': [2, 0]},
+                         {'kind': 'choose_option', 'option_index': 0}, {'kind': 'abandon'}):
+            request = action_request(actions, decision, state, 'b')
+            self.assertEqual(request['action'], decision['kind'])
+            self.assertEqual(request['args'], {k:v for k,v in decision.items() if k != 'kind'})
+        with self.assertRaisesRegex(RuntimeError, 'not in hand'):
+            action_request(actions, {'kind': 'play_card', 'card_instance': 'card_1'}, state, 'c')
+
     def test_response_identity_mismatch_fails_before_publication(self):
         with tempfile.TemporaryDirectory() as directory:
             code = 'import json,sys; print(json.dumps({"type":"ready"}),flush=True); sys.stdin.readline(); print(json.dumps({"type":"oracle_state","request_id":"wrong"}),flush=True)'
             with self.assertRaisesRegex(RuntimeError, 'Mismatched response'):
                 record_session([sys.executable, '-c', code], os.environ,
-                               {'setup': {}, 'required_features': [], 'actions': []},
+                               {'setup': {'kind': 'seeded_combat'}, 'required_features': [], 'actions': []},
                                VALIDATOR, Path(directory) / 'fake', 2)
 
 if __name__ == '__main__':

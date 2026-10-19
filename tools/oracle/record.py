@@ -50,6 +50,9 @@ def validate(validator, kind, value, actions=None):
 
 
 def check_scope(actions):
+    if actions['setup']['kind'] == 'seeded_run':
+        require(actions['required_features'] == ['run_flow_v1'], 'Seeded runs require run_flow_v1')
+        return
     require(actions['required_features'] == FEATURES, f'Required features must be {FEATURES}')
     setup = actions['setup']
     require(setup['character'] == 'Ironclad' and setup['ascension'] == 0 and
@@ -204,14 +207,47 @@ def reference_build(game_dir, log_dir, extra_sources=()):
                {'revision': revision, 'game_dll_sha256': GAME_SHA256, 'adapter_sha256': digest.hexdigest()})
 
 
+def start_request(actions):
+    run = actions['setup']['kind'] == 'seeded_run'
+    return {'cmd': 'oracle_run_start' if run else 'oracle_start', 'request_id': 'initial',
+            'setup': actions['setup'], 'required_features': actions['required_features']}
+
+
+def action_request(actions, action, state, request_id):
+    if actions['setup']['kind'] != 'seeded_run':
+        return {'cmd': 'oracle_action', 'request_id': request_id, 'action': action}
+    kind = action['kind']
+    args = {key: value for key, value in action.items() if key != 'kind'}
+    if kind == 'play_card':
+        hand = state['combat']['players'][0]['piles']['Hand']
+        ref = '/combat/cards/' + args.pop('card_instance')
+        require(ref in hand, 'Recorded card is not in hand')
+        args['card_index'] = hand.index(ref)
+    if kind == 'select_cards' and 'card_instances' in args:
+        raise RuntimeError('Noncombat selections use pending-choice indices, not combat card identities')
+    if 'target' in args:
+        target = args.pop('target')
+        require(target.startswith('enemy_') and target[6:].isdigit(), 'Unsupported target identity')
+        ref = '/combat/creatures/' + target
+        def alive(pointer):
+            value = state
+            for token in pointer[1:].split('/'):
+                token = token.replace('~1', '/').replace('~0', '~')
+                value = value[int(token)] if isinstance(value, list) else value[token]
+            return value['monster']['current_hp'] > 0
+        enemies = [pointer for pointer in state['combat']['enemies'] if alive(pointer)]
+        require(ref in enemies, 'Recorded target is not present or alive')
+        args['target_index'] = enemies.index(ref)
+    return {'cmd': 'oracle_run_action', 'request_id': request_id, 'action': kind, 'args': args}
+
+
 def record_session(command, env, actions, validator, log_prefix, timeout, checkpoint_every=1):
     require(isinstance(checkpoint_every, int) and not isinstance(checkpoint_every, bool) and checkpoint_every > 0,
             'Checkpoint interval must be a positive integer')
     host = JsonProcess(command, env, log_prefix, timeout)
     try:
         require(host.receive().get('type') == 'ready', 'Missing reference ready message')
-        response = host.send({'cmd': 'oracle_start', 'request_id': 'initial',
-                              'setup': actions['setup'], 'required_features': actions['required_features']})
+        response = host.send(start_request(actions))
         def state(response, request_id):
             require(response.get('type') == 'oracle_state' and response.get('request_id') == request_id,
                     f'Mismatched response for {request_id}')
@@ -226,7 +262,7 @@ def record_session(command, env, actions, validator, log_prefix, timeout, checkp
             require(previous['boundary_kind'] != 'run_complete', f'{entry["id"]}: action after run completion')
             request_id = f'action-{index}'
             try:
-                response = host.send({'cmd': 'oracle_action', 'request_id': request_id, 'action': entry['action']})
+                response = host.send(action_request(actions, entry['action'], previous, request_id))
             except (RuntimeError, OSError) as error:
                 raise RuntimeError(f'Action {index} ({entry["id"]}): {error}') from error
             require(all(response.get(key) == value for key, value in identity.items()), 'Reference identity changed')

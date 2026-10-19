@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "profile": "actions-v1",
+  "recording_id": "neow-choice-and-abandon",
+  "state_profile": "run-parity-v1",
+  "required_features": [
+    "run_flow_v1"
+  ],
+  "setup": {
+    "kind": "seeded_run",
+    "seed": "PARITY",
+    "character": "Ironclad",
+    "ascension": 0
+  },
+  "actions": [
+    {
+      "id": "1",
+      "action": {
+        "kind": "choose_option",
+        "option_index": 0
+      }
+    },
+    {
+      "id": "2",
+      "action": {
+        "kind": "select_cards",
+        "indices": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "3",
+      "action": {
+        "kind": "proceed"
+      }
+    },
+    {
+      "id": "4",
+      "action": {
+        "kind": "abandon"
+      }
+    }
+  ]
+}

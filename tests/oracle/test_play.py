@@ -151,6 +151,22 @@ class InteractiveRecorderTests(unittest.TestCase):
                          ['action-000001', 'action-000002'])
         self.assertEqual(len([r for r in self.host.requests if r['cmd'] == 'oracle_action']), 2)
 
+    def test_inspection_commands_do_not_record_or_dispatch(self):
+        self.run_commands(['map', 'open_map', 'open map', 'deck', 'inventory', 'state', 'help', 'quit'])
+        actions, states = self.saved()
+        self.assertEqual(actions['actions'], [])
+        self.assertEqual(states['transitions'], [])
+        self.assertEqual([r['cmd'] for r in self.host.requests], ['oracle_start'])
+
+    def test_run_commands_use_run_backend_and_preserve_gameplay_only(self):
+        self.session.actions = new_actions('PARITY', 'run-test', run=True)
+        self.run_commands(['map', "act '{\"kind\":\"choose_option\",\"option_index\":0}'", 'deck', 'quit'])
+        actions, states = self.saved()
+        self.assertEqual([r['cmd'] for r in self.host.requests], ['oracle_run_start', 'oracle_run_action'])
+        self.assertEqual(actions['actions'][0]['action'], {'kind': 'choose_option', 'option_index': 0})
+        self.assertEqual(len(actions['actions']), 1)
+        self.assertEqual(len(states['transitions']), 1)
+
     def test_bad_input_does_not_dispatch_actions(self):
         messages = self.run_commands(['play 999', 'every 0', 'every', 'end extra', '"', 'quit'])
         self.assertEqual(self.saved()[0]['actions'], [])
