@@ -70,11 +70,11 @@ not used by the current deterministic demo and does not claim game RNG compatibi
 The installed-DLL state-access check and its verified scope are documented in
 [Oracle state access](docs/specs/oracle-state-access-spec.md).
 
-The [combat state format](docs/specs/combat-state-spec.md) defines the shared combat-state
-schema, validation, identity/order rules, and exact comparison behavior. Run its offline
-tests with `ctest --preset debug -L combat_state`. Engine exporters and fixture replay are
-not implemented yet.
+The [run parity state format](docs/specs/run-parity-spec.md) defines the shared run and
+combat snapshot schema, validation, identity/order rules, and exact comparison behavior.
+Run its offline tests with `ctest --preset debug -L combat_state`. The reference exporter
+supports the audited starter encounter; simulator fixture replay is not implemented yet.
 
 The [action-recording format](docs/specs/action-recording-spec.md) defines versioned inputs
-using the existing combat-state schema. The [oracle recorder](docs/specs/oracle-recording-spec.md)
+using the run-parity state schema. The [oracle recorder](docs/specs/oracle-recording-spec.md)
 executes supported sequences against local game DLLs and writes validated state transitions.

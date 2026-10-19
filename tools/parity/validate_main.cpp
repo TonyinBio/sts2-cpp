@@ -14,7 +14,10 @@ int main() {
             const auto request = Json::parse(line);
             const auto kind = request.at("kind").get<std::string>();
             if (kind == "actions") (void)ActionRecording::parse(request.at("value"), features);
-            else if (kind == "snapshot") (void)Snapshot::parse(request.at("value"), features);
+            else if (kind == "snapshot") {
+                if (request.at("value").is_string()) (void)Snapshot::parse_text(request.at("value").get<std::string>());
+                else (void)Snapshot::parse(request.at("value"));
+            }
             else if (kind == "states") validate_state_recording(request.at("value"),
                 ActionRecording::parse(request.at("actions"), features), features);
             else throw std::invalid_argument("Unknown validation kind");

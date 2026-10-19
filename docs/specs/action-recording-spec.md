@@ -33,12 +33,12 @@ player decisions to execute, in order. It contains no expected states. See
 `tests/parity/schema/actions-v1.json`, `ActionRecording` in
 `tests/parity/support/recording.hpp`, and `tests/parity/examples/starter.actions.json`.
 
-Resulting states use the existing [combat-v1 format](combat-state-spec.md), validated by
+Resulting states use the existing [run-parity-v1 format](run-parity-spec.md), validated by
 `Snapshot::parse`. This action schema does not change or duplicate it. The example is
 executable with the reference recorder; its captured output lives in
 `tests/parity/fixtures/starter.states.json`. It is not paired with the synthetic
 `starter.json` state example. The extra feature `ironclad_starter_shrinker_v1` declares
-the recorder's audited encounter, powers, and counter conventions.
+the recorder's audited encounter and exporter coverage.
 
 ## File format and combat setup
 
@@ -47,7 +47,7 @@ the recorder's audited encounter, powers, and counter conventions.
   "schema_version": 1,
   "profile": "actions-v1",
   "recording_id": "starter-two-turns",
-  "state_profile": "combat-v1",
+  "state_profile": "run-parity-v1",
   "required_features": ["basic_combat", "ironclad_starter_shrinker_v1"],
   "setup": {
     "kind": "seeded_combat",
@@ -73,8 +73,8 @@ alone.
 ### Required mechanics
 
 `required_features` declares all mechanics required by the initialized encounter and its
-subsequent actions, using the same feature vocabulary as combat-v1. Consumers must
-supply their list of supported features. Validation rejects unknown features; it cannot
+subsequent actions. These exporter coverage declarations live outside run-parity state.
+Consumers must supply their list of supported features. Validation rejects unknown features; it cannot
 infer that a particular loadout or encounter needs additional features.
 
 ### Setup rules
@@ -100,8 +100,10 @@ seed generation are supported by this first profile.
 | `select_cards` | `card_instances` | Resolve a pending card selection with an ordered array of distinct card IDs |
 | `select_target` | `target` | Resolve a pending creature-target selection |
 
-IDs use combat-v1 recording-local identities. The recorder must establish and preserve
-the same mapping in every state it emits. Actions never store shifting hand indices,
+Action instance IDs use recording-driver identities. Snapshot object links use
+document-local JSON Pointers; the exporter maps action identities to runtime objects
+independently of local snapshot labels. The driver must preserve its action mapping
+throughout the recording. Actions never store shifting hand indices,
 localized names, model IDs as substitutes for instance IDs, or raw object addresses. For
 example:
 
@@ -134,15 +136,15 @@ engine RNG state; they are not player actions or alternate actions chosen by the
 
 Keep action input and state output in separate files. The `states-v1` envelope is
 defined in `tests/parity/schema/states-v1.json` and validated with the existing C++
-combat parser. The recorder produces:
+run-state parser. The recorder produces:
 
 - A versioned result envelope containing the recording ID, SHA-256 of the exact action
   file bytes, reference submodule revision, original game DLL hash, adapter identity,
-  and state profile. Adapter identity must cover exporter/runtime patch changes.
-- An initial combat-v1 snapshot after setup, before any player decision.
-- One subsequent combat-v1 snapshot per action, keyed by its unique action ID and in
-  execution order. Capture at the next settled player-action, selection, or combat-end
-  boundary, not merely when a command is acknowledged.
+  and envelope profile. Adapter identity must cover exporter/runtime patch changes.
+- An initial run-parity-v1 snapshot after setup, before any player decision.
+- One subsequent run-parity-v1 snapshot per action, keyed by its unique action ID and in
+  execution order. Capture at the next settled awaiting_input or run_complete boundary,
+  not merely when a command is acknowledged. Combat completion alone does not imply run_complete.
 
 ### Required snapshot count
 
@@ -158,9 +160,8 @@ The reference runner and scoped exporter are implemented in `tools/oracle/record
 `RecordingSession.cs`; see [Running the oracle recorder](oracle-recording-spec.md). The
 current exporter supports `play_card` and `end_turn` in the audited starter encounter.
 Selection actions remain part of actions-v1 but are explicitly rejected by this
-exporter. The C++ `parity_replay` runner imports the initial snapshot, replays supported
-actions, and compares each resulting state against these reference sequences. Support is
-limited to the audited starter encounter profile.
+exporter. These files are comparison inputs; snapshot-based engine initialization and
+a C++ replay exporter for the full run-parity contract are not implemented.
 
 ## Validation and checks
 

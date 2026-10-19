@@ -5,91 +5,61 @@
 namespace sts2::parity {
 namespace {
 using Json = nlohmann::json;
-Json example() {
-    std::ifstream input(PARITY_EXAMPLE_PATH);
-    return Json::parse(input);
-}
-Snapshot parse(const Json& value) { return Snapshot::parse(value, {"basic_combat"}); }
-
-TEST(CombatStateFormat, AcceptsExampleAndMatchesIdenticalState) {
+Json example() { std::ifstream input(PARITY_EXAMPLE_PATH); return Json::parse(input); }
+Snapshot parse(const Json& value) { return Snapshot::parse(value); }
+TEST(RunParityFormat, AcceptsExampleAndMatchesIdenticalState) {
     const auto value = parse(example());
     EXPECT_TRUE(compare(value, value).empty());
 }
-TEST(CombatStateFormat, ReportsExactFieldAndValues) {
+TEST(RunParityFormat, ReportsExactNativeFieldAndValues) {
     auto value = example();
-    value["player"]["hp"] = 72;
+    const auto hp = value["players"][0]["current_hp"].get<int>();
+    value["players"][0]["current_hp"] = hp - 1;
     const auto diff = compare(parse(example()), parse(value));
     ASSERT_EQ(diff.size(), 1u);
-    EXPECT_EQ(diff[0].path, "/player/hp");
-    EXPECT_EQ(diff[0].expected, 80);
-    EXPECT_EQ(diff[0].actual, 72);
+    EXPECT_EQ(diff[0].path, "/players/0/current_hp");
+    EXPECT_EQ(diff[0].expected, hp);
+    EXPECT_EQ(diff[0].actual, hp - 1);
 }
-TEST(CombatStateFormat, PreservesPileOrderAndInstanceIdentity) {
+TEST(RunParityFormat, PreservesPileOrderAndAliasing) {
     auto value = example();
-    std::swap(value["piles"]["hand"][0], value["piles"]["hand"][1]);
-    const auto diff = compare(parse(example()), parse(value));
-    ASSERT_EQ(diff.size(), 2u);
-    EXPECT_EQ(diff[0].path, "/piles/hand/0");
+    auto& piles = value["combat"]["players"][0]["piles"];
+    piles["Play"] = Json::array();
+    piles["Hand"].push_back("/combat/cards/survivor");
+    auto actual = value;
+    std::swap(actual["combat"]["players"][0]["piles"]["Hand"][0], actual["combat"]["players"][0]["piles"]["Hand"][1]);
+    EXPECT_FALSE(compare(parse(value), parse(actual)).empty());
 }
-TEST(CombatStateFormat, PreservesCardInventoryOrder) {
+TEST(RunParityFormat, ComparesNativeUint64WithoutPrecisionLoss) {
     auto value = example();
-    std::swap(value["cards"][0], value["cards"][1]);
-    EXPECT_EQ(parse(value).json(), value);
-    const auto diff = compare(parse(example()), parse(value));
-    ASSERT_FALSE(diff.empty());
-    EXPECT_EQ(diff[0].path, "/cards/0/instance_id");
-}
-TEST(CombatStateFormat, PreservesFlagOrder) {
-    auto expected = example();
-    expected["cards"][0]["flags"] = {"a", "b"};
-    auto actual = expected;
-    actual["cards"][0]["flags"] = {"b", "a"};
-    EXPECT_EQ(parse(actual).json(), actual);
-    const auto diff = compare(parse(expected), parse(actual));
-    ASSERT_EQ(diff.size(), 2u);
-    EXPECT_EQ(diff[0].path, "/cards/0/flags/0");
-}
-TEST(CombatStateFormat, PreservesFeatureDeclarationOrder) {
-    auto expected = example();
-    expected["required_features"] = {"basic_combat", "powers"};
-    auto actual = expected;
-    actual["required_features"] = {"powers", "basic_combat"};
-    const std::set<std::string> supported = {"basic_combat", "powers"};
-    const auto parsed = Snapshot::parse(actual, supported);
-    EXPECT_EQ(parsed.json(), actual);
-    const auto diff = compare(Snapshot::parse(expected, supported), parsed);
-    ASSERT_EQ(diff.size(), 2u);
-    EXPECT_EQ(diff[0].path, "/required_features/0");
-}
-TEST(CombatStateFormat, PreservesPowerOrder) {
-    auto expected = example();
-    expected["player"]["powers"] = Json::array({
-        {{"instance_id", "power_0"}, {"model_id", "POWER.A"}, {"amount", 1}, {"counters", Json::object()}},
-        {{"instance_id", "power_1"}, {"model_id", "POWER.B"}, {"amount", 1}, {"counters", Json::object()}}});
-    auto actual = expected;
-    std::swap(actual["player"]["powers"][0], actual["player"]["powers"][1]);
-    EXPECT_FALSE(compare(parse(expected), parse(actual)).empty());
-}
-TEST(CombatStateFormat, ComparesRngWordsWithoutPrecisionLoss) {
-    auto value = example();
-    value["randomness"]["run"]["Shuffle"]["s3"] = "18446744073709551614";
+    const auto word = value["rng"]["rngs"]["shuffle"]["s3"].get<std::uint64_t>();
+    value["rng"]["rngs"]["shuffle"]["s3"] = word ^ 1ULL;
     const auto diff = compare(parse(example()), parse(value));
     ASSERT_EQ(diff.size(), 1u);
-    EXPECT_EQ(diff[0].path, "/randomness/run/Shuffle/s3");
-    EXPECT_EQ(diff[0].expected, "18446744073709551615");
+    EXPECT_EQ(diff[0].path, "/rng/rngs/shuffle/s3");
 }
-TEST(CombatStateFormat, RequiresRngStateWithoutModeSelector) {
+TEST(RunParityFormat, SupportsNonCombatAndCompletedRun) {
     auto value = example();
-    value["randomness"]["mode"] = "obsolete";
-    EXPECT_THROW(parse(value), std::invalid_argument);
-    value = example();
-    value["randomness"].erase("run");
-    EXPECT_THROW(parse(value), std::invalid_argument);
-    value = example();
-    value["randomness"].erase("player");
+    value["combat"] = nullptr; value["pending_choice"] = nullptr; value["current_room"] = nullptr;
+    EXPECT_NO_THROW(parse(value));
+    value["boundary_kind"] = "run_complete"; value["run_ending_reason"] = "victory";
+    EXPECT_NO_THROW(parse(value));
+    value["run_ending_reason"] = nullptr;
     EXPECT_THROW(parse(value), std::invalid_argument);
 }
-
+TEST(RunParityFormat, CombatCompletionIsNotRunCompletion) {
+    auto value = example();
+    value["pending_choice"] = nullptr;
+    value["combat"]["turn_control"]["is_in_progress"] = false;
+    EXPECT_NO_THROW(parse(value));
+}
+TEST(RunParityFormat, PreservesNativeDefaultsAndMissingModelState) {
+    auto value = example();
+    value["combat"]["cards"]["survivor"]["saved"]["id"] = "CARD.CLAW";
+    auto actual = value;
+    actual["combat"]["cards"]["survivor"]["model_fields"]["Claw._extraDamageFromClawPlays"] = 0;
+    EXPECT_FALSE(compare(parse(value), parse(actual)).empty());
+}
 class InvalidSnapshot : public testing::TestWithParam<std::pair<std::string, Json>> {};
 TEST_P(InvalidSnapshot, RejectsUnsupportedOrIncompleteState) {
     auto value = example();
@@ -98,67 +68,115 @@ TEST_P(InvalidSnapshot, RejectsUnsupportedOrIncompleteState) {
     EXPECT_THROW(parse(value), std::invalid_argument) << pointer;
 }
 INSTANTIATE_TEST_SUITE_P(Schema, InvalidSnapshot, testing::Values(
-    std::pair<std::string, Json>{"/schema_version", 2},
-    std::pair<std::string, Json>{"/schema_version", 1.0},
-    std::pair<std::string, Json>{"/profile", "unknown"},
-    std::pair<std::string, Json>{"/required_features", Json::array({"unimplemented_card"})},
-    std::pair<std::string, Json>{"/player/hp", -1},
-    std::pair<std::string, Json>{"/player/hp", 81},
-    std::pair<std::string, Json>{"/player/energy", 2.5},
-    std::pair<std::string, Json>{"/player/counters", {{"foo", 1.5}}},
-    std::pair<std::string, Json>{"/player/extra", 1},
-    std::pair<std::string, Json>{"/randomness/run/Shuffle/s0", "18446744073709551616"},
-    std::pair<std::string, Json>{"/randomness/run/Shuffle/s0", "01"},
-    std::pair<std::string, Json>{"/randomness/run/Shuffle/s0", 42},
-    std::pair<std::string, Json>{"/cards/1/instance_id", "card_0"},
-    std::pair<std::string, Json>{"/piles/draw", Json::array({"card_0"})},
-    std::pair<std::string, Json>{"/piles/hand", Json::array({"missing"})},
-    std::pair<std::string, Json>{"/piles/hand", Json::array({"card_0"})},
-    std::pair<std::string, Json>{"/boundary", "combat_end"},
-    std::pair<std::string, Json>{"/combat/active_side", "enemy"},
-    std::pair<std::string, Json>{"/selection/kind", "card"},
-    std::pair<std::string, Json>{"/cards/0/cost", {{"kind", "x"}, {"amount", 1}}}
+    std::pair<std::string, Json>{"/schema_version", 1},
+    std::pair<std::string, Json>{"/profile", "combat-v1"},
+    std::pair<std::string, Json>{"/boundary_kind", "combat_end"},
+    std::pair<std::string, Json>{"/run_ending_reason", "victory"},
+    std::pair<std::string, Json>{"/combat", nullptr},
+    std::pair<std::string, Json>{"/current_room", nullptr},
+    std::pair<std::string, Json>{"/combat/players/0/energy", 2.5},
+    std::pair<std::string, Json>{"/combat/creatures/player/hp_is_infinite", 0},
+    std::pair<std::string, Json>{"/combat/creatures/player/monster", Json::object()},
+    std::pair<std::string, Json>{"/combat/cards/survivor/saved/id", "invalid"},
+    std::pair<std::string, Json>{"/combat/cards/survivor/model_fields", {{"unverified_counter", 1}}},
+    std::pair<std::string, Json>{"/combat/cards/survivor/model_fields", {{"Claw._extraDamageFromClawPlays", "three"}}},
+    std::pair<std::string, Json>{"/combat/players/0/piles/Hand", Json::array({"/combat/cards/missing"})},
+    std::pair<std::string, Json>{"/combat/players/0/piles/Hand", Json::array({"/combat/cards/survivor"})},
+    std::pair<std::string, Json>{"/combat/players/0/piles/Hand", Json::array({"/combat/creatures/player"})},
+    std::pair<std::string, Json>{"/combat/cards/discard_candidate/deck_version", "/combat/cards/survivor"},
+    std::pair<std::string, Json>{"/pending_choice/min_select", 2},
+    std::pair<std::string, Json>{"/pending_choice/candidates", Json::array({"/combat/creatures/player"})},
+    std::pair<std::string, Json>{"/native_model_state", {{"/players/0/deck/100", {{"model_fields", Json::object()}}}}}
 ));
-TEST(CombatStateFormat, MissingCounterIsDifferentFromExplicitZero) {
+TEST(RunParityFormat, MissingFieldsDoNotReceiveDefaults) {
+    auto value = example(); value["players"][0].erase("current_hp");
+    EXPECT_THROW(parse(value), std::invalid_argument);
+    value = example(); value.erase("native_model_state");
+    EXPECT_THROW(parse(value), std::invalid_argument);
+}
+TEST(RunParityFormat, ComparesDecimalTokensWithoutRounding) {
     auto value = example();
-    value["player"]["counters"]["cards_played"] = 0;
-    const auto diff = compare(parse(example()), parse(value));
+    value["combat"]["cards"]["survivor"]["dynamic_vars"]["Block"] = "DECIMAL_TOKEN";
+    auto text = value.dump();
+    const auto at = text.find("\"DECIMAL_TOKEN\"");
+    ASSERT_NE(at, std::string::npos);
+    auto first = text, second = text;
+    first.replace(at, 15, "0.1234567890123456789012345678");
+    second.replace(at, 15, "0.1234567890123456789012345679");
+    const auto diff = compare(Snapshot::parse_text(first), Snapshot::parse_text(second));
     ASSERT_EQ(diff.size(), 1u);
-    EXPECT_EQ(diff[0].path, "/player/counters/cards_played");
-    EXPECT_TRUE(diff[0].expected.is_null());
-    EXPECT_EQ(diff[0].actual, 0);
+    EXPECT_EQ(diff[0].path, "/combat/cards/survivor/dynamic_vars/Block");
+    second = text;
+    second.replace(at, 15, "1234567890123456789012345678e-28");
+    EXPECT_TRUE(compare(Snapshot::parse_text(first), Snapshot::parse_text(second)).empty());
 }
-TEST(CombatStateFormat, TargetSelectionsRequireCreatureIdentities) {
-    auto value = example();
-    value["boundary"] = "selection";
-    value["selection"] = {{"kind", "target"}, {"options", {"enemy_0"}}, {"min", 1}, {"max", 1}};
-    EXPECT_NO_THROW(parse(value));
-    value["selection"]["options"] = {"card_0"};
-    EXPECT_THROW(parse(value), std::invalid_argument);
+TEST(RunParityFormat, RejectsDuplicateWireKeys) {
+    EXPECT_THROW(Snapshot::parse_text("{\"boundary_kind\":null,\"boundary_kind\":null}"), std::invalid_argument);
 }
-TEST(CombatStateFormat, MissingFieldsDoNotReceiveDefaults) {
-    auto value = example();
-    value["randomness"]["run"].erase("Shuffle");
-    EXPECT_THROW(parse(value), std::invalid_argument);
-    value = example();
-    value["player"].erase("powers");
-    try { (void)parse(value); FAIL() << "Accepted missing powers"; }
-    catch (const std::invalid_argument& error) {
-        EXPECT_NE(std::string(error.what()).find("/player/powers"), std::string::npos);
+TEST(RunParityFormat, IgnoresBijectiveLocalLabelChanges) {
+    auto text = example().dump();
+    const std::string old = "survivor", replacement = "renamed_card";
+    std::size_t offset = 0;
+    while ((offset = text.find(old, offset)) != std::string::npos) {
+        text.replace(offset, old.size(), replacement); offset += replacement.size();
     }
+    EXPECT_TRUE(compare(parse(example()), Snapshot::parse_text(text)).empty());
 }
-TEST(CombatStateFormat, ValidatesSelectionsAndTerminalBoundaries) {
-    auto value = example();
-    value["boundary"] = "selection";
-    value["selection"] = {{"kind", "card"}, {"options", {"card_0"}}, {"min", 1}, {"max", 1}};
-    EXPECT_NO_THROW(parse(value));
-    value["selection"]["options"] = {"missing"};
-    EXPECT_THROW(parse(value), std::invalid_argument);
-    value = example();
-    value["boundary"] = "combat_end";
-    value["combat"]["outcome"] = "victory";
-    value["combat"]["active_side"] = "none";
-    EXPECT_NO_THROW(parse(value));
+TEST(RunParityFormat, NormalizesSetsWhilePreservingLists) {
+    auto left = example();
+    left["combat"]["cards"]["survivor"]["local_keywords"] = {"Retain", "Exhaust"};
+    auto right = left;
+    right["combat"]["cards"]["survivor"]["local_keywords"] = {"Exhaust", "Retain"};
+    EXPECT_TRUE(compare(parse(left), parse(right)).empty());
 }
-} // namespace
-} // namespace sts2::parity
+
+TEST(RunParityFormat, NativeStringsAreNotObjectReferences) {
+    auto expected = example();
+    expected["rng"]["seed"] = "/combat/cards/survivor";
+    auto text = expected.dump();
+    const std::string old = "survivor", replacement = "renamed_card";
+    std::size_t offset = 0;
+    while ((offset = text.find(old, offset)) != std::string::npos) {
+        text.replace(offset, old.size(), replacement); offset += replacement.size();
+    }
+    // Local labels changed bijectively, but the native seed is real data.
+    const auto diff = compare(parse(expected), Snapshot::parse_text(text));
+    ASSERT_EQ(diff.size(), 1u);
+    EXPECT_EQ(diff[0].path, "/rng/seed");
+}
+TEST(RunParityFormat, ExtraTableObjectsCannotDisappearDuringAlignment) {
+    auto actual = example();
+    actual["combat"]["cards"]["extra"] = actual["combat"]["cards"]["survivor"];
+    EXPECT_FALSE(compare(parse(example()), parse(actual)).empty());
+}
+
+TEST(RunParityFormat, NormalizesReferenceDictionaryOrderAndLocalLabels) {
+    auto expected = example();
+    expected["pending_choice"] = nullptr;
+    expected["combat"]["active_card_plays"] = Json::array();
+    expected["combat"]["card_plays"] = Json::object();
+    expected["combat"]["history"] = Json::array();
+    expected["combat"]["powers"]["dampen"] = {
+        {"id", "POWER.DAMPEN_POWER"}, {"amount", 1}, {"amount_on_turn_start", 0},
+        {"skip_next_duration_tick", false}, {"applier", nullptr}, {"target", nullptr},
+        {"dynamic_vars", Json::object()}, {"model_fields", {
+            {"DampenPower.downgradedCardsToOldUpgradeLevels", Json::array({
+                {{"key", "/combat/cards/survivor"}, {"value", 1}},
+                {{"key", "/combat/cards/discard_candidate"}, {"value", 2}}})}}}};
+    expected["combat"]["creatures"]["player"]["powers"] = {"/combat/powers/dampen"};
+    auto text = expected.dump();
+    for (const auto& [old, replacement] : std::vector<std::pair<std::string, std::string>>{
+        {"survivor", "a"}, {"discard_candidate", "z"}}) {
+        std::size_t offset = 0;
+        while ((offset = text.find(old, offset)) != std::string::npos) {
+            text.replace(offset, old.size(), replacement); offset += replacement.size();
+        }
+    }
+    auto actual = Json::parse(text);
+    auto& entries = actual["combat"]["powers"]["dampen"]["model_fields"]["DampenPower.downgradedCardsToOldUpgradeLevels"];
+    std::swap(entries[0], entries[1]);
+    EXPECT_TRUE(compare(parse(expected), parse(actual)).empty());
+}
+
+}
+}

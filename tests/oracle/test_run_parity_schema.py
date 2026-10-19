@@ -87,10 +87,10 @@ class RunParitySchemaTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.native_schema = exact_json((REPO / 'docs/specs/schemas/serializable-run-v20.schema.json').read_text())
-        cls.schema = exact_json((REPO / 'docs/specs/proposals/run-parity-v1.schema.json').read_text())
+        cls.schema = exact_json((REPO / 'docs/specs/schemas/run-parity-v1.schema.json').read_text())
         cls.native = exact_json((REPO / 'tests/native/fixtures/serializable-run-v20.json').read_text())
         Draft202012Validator.check_schema(cls.schema)
-        uri = urljoin(cls.schema['$id'], '../schemas/serializable-run-v20.schema.json')
+        uri = urljoin(cls.schema['$id'], 'serializable-run-v20.schema.json')
         registry = Registry().with_resource(uri, Resource.from_contents(cls.native_schema))
         cls.validator = Draft202012Validator(cls.schema, registry=registry)
         cls.native_validator = Draft202012Validator(cls.native_schema)
@@ -101,7 +101,7 @@ class RunParitySchemaTests(unittest.TestCase):
         self.assertEqual(set(projection['properties']), set(root['properties']))
         self.assertEqual(projection['required'], root['required'])
         for name, definition in projection['properties'].items():
-            self.assertEqual(definition, {'$ref': '../schemas/serializable-run-v20.schema.json'
+            self.assertEqual(definition, {'$ref': 'serializable-run-v20.schema.json'
                 '#/$defs/SerializableRun/properties/' + name})
 
     def test_native_payload_is_unchanged(self):
@@ -184,8 +184,19 @@ class RunParitySchemaTests(unittest.TestCase):
         fields['DampenPower.downgradedCardsToOldUpgradeLevels'][0]['value'] = 'one'
         self.assertFalse(self.validator.is_valid(value))
 
+    def test_all_parity_fixtures_use_run_schema(self):
+        example = exact_json((REPO / 'tests/parity/examples/starter.json').read_text())
+        self.validator.validate(example)
+        recording = exact_json((REPO / 'tests/parity/fixtures/starter.states.json').read_text())
+        for state in [recording['initial']] + [step['state'] for step in recording['transitions']]:
+            self.validator.validate(state)
+            self.native_validator.validate({k: v for k, v in state.items() if k not in EXTENSIONS})
+        for path in (REPO / 'tests/parity').rglob('*.actions.json'):
+            actions = exact_json(path.read_text())
+            self.assertEqual(actions['state_profile'], 'run-parity-v1')
+
     def test_checked_in_example(self):
-        path = REPO / 'docs/specs/proposals/examples/run-parity-survivor.json'
+        path = REPO / 'docs/specs/schemas/examples/run-parity-survivor.json'
         value = exact_json(path.read_text())
         self.validator.validate(value)
         self.assertEqual(value, survivor_fixture(self.native))

@@ -10,7 +10,6 @@ Json read(const char* path) { std::ifstream stream(path); return Json::parse(str
 Json actions() { return read(ACTION_EXAMPLE_PATH); }
 Json example() {
     auto state = read(PARITY_EXAMPLE_PATH);
-    state["required_features"] = actions()["required_features"];
     Json transitions = Json::array();
     const auto input = actions();
     for (const auto& action : input["actions"])
@@ -24,7 +23,7 @@ Json example() {
 void validate(const Json& value) {
     validate_state_recording(value, ActionRecording::parse(actions(), features), features);
 }
-TEST(StateRecording, ValidatesEnvelopeAndExistingCombatSchema) { EXPECT_NO_THROW(validate(example())); }
+TEST(StateRecording, ValidatesEnvelopeAndRunParitySchema) { EXPECT_NO_THROW(validate(example())); }
 TEST(StateRecording, RejectsMissingExtraOrReorderedTransitions) {
     auto value = example(); value["transitions"].erase(0);
     EXPECT_THROW(validate(value), std::invalid_argument);
@@ -33,23 +32,26 @@ TEST(StateRecording, RejectsMissingExtraOrReorderedTransitions) {
     value = example(); std::swap(value["transitions"][0], value["transitions"][1]);
     EXPECT_THROW(validate(value), std::invalid_argument);
 }
-TEST(StateRecording, RejectsInvalidSnapshotAndFeatureMismatch) {
-    auto value = example(); value["initial"]["piles"]["hand"].push_back("unknown");
+TEST(StateRecording, RejectsInvalidRunSnapshot) {
+    auto value = example(); value["initial"]["combat"]["players"][0]["piles"]["Hand"].push_back("/combat/cards/unknown");
     EXPECT_THROW(validate(value), std::invalid_argument);
-    value = example(); value["transitions"][0]["state"]["required_features"] = {"basic_combat"};
+    value = example(); value["initial"]["profile"] = "old";
     EXPECT_THROW(validate(value), std::invalid_argument);
 }
 TEST(StateRecording, RejectsActionsAfterTerminalState) {
     auto value = example();
     auto& state = value["transitions"][0]["state"];
-    state["boundary"] = "combat_end";
-    state["combat"]["active_side"] = "none";
-    state["combat"]["outcome"] = "victory";
+    state["boundary_kind"] = "run_complete";
+    state["run_ending_reason"] = "victory";
+    state["pending_choice"] = nullptr;
     EXPECT_THROW(validate(value), std::invalid_argument);
 }
-TEST(StateRecording, RejectsChangedCardIdentity) {
-    auto value = example(); value["transitions"][0]["state"]["cards"][0]["model_id"] = "CARD.OTHER";
-    EXPECT_THROW(validate(value), std::invalid_argument);
+TEST(StateRecording, AllowsDocumentLocalLabelsAcrossBoundaries) {
+    auto value = example();
+    EXPECT_NO_THROW(validate(value));
+    value["transitions"][0]["state"]["combat"]["cards"]["survivor"]["saved"]["id"] = "CARD.OTHER";
+    // A local label is not a persistent instance identity across snapshots.
+    EXPECT_NO_THROW(validate(value));
 }
 TEST(StateRecording, RejectsInvalidProvenance) {
     auto value = example(); value["actions_sha256"] = "not-a-hash";

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "profile": "actions-v1",
   "recording_id": "ironclad-shrinker-victory",
-  "state_profile": "combat-v1",
+  "state_profile": "run-parity-v1",
   "required_features": [
     "basic_combat",
     "ironclad_starter_shrinker_v1"

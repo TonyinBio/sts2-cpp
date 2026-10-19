@@ -349,7 +349,7 @@ probe or by the declaration inventory. Before claiming it, the remaining work is
 4. Capture representative complete-run endings and agree on post-cleanup timing.
 
 These are explicit audit gaps, not generic `runtime_state` placeholders that claim to
-solve them. The [replacement parity proposal](proposals/run-parity-spec.md) now uses
+solve them. The [run parity state contract](run-parity-spec.md) now uses
 these findings for its initial concrete contract and explicitly retains these coverage
 gaps. It does not claim complete coverage. The native v20 schema is deliberately
 unchanged.

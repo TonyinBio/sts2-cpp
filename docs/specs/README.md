@@ -8,12 +8,11 @@ and what has been checked against the installed game.
 | I want to… | Read |
 | --- | --- |
 | Understand the intended full-game simulator | [Full-game design](full-game-simulator-design.md) |
-| Understand a combat snapshot | [Combat state](combat-state-spec.md) |
+| Understand run and combat snapshots | [Run parity state](run-parity-spec.md) |
 | Record player decisions and replay them | [Action recording](action-recording-spec.md), then [Oracle recording](oracle-recording-spec.md) |
 | Read or validate a native game save | [Real-game save JSON](real-game-save-json-spec.md) |
 | Check what game state the adapter can read | [State-access probe](oracle-state-access-spec.md) |
 | Find gameplay data missing from native saves | [Combat runtime audit](combat-runtime-audit.md), then [Model field audit](combat-model-field-audit.md) |
-| Review the proposed broader comparison format | [Run parity proposal](proposals/run-parity-spec.md) |
 
 ## Current formats and support
 
@@ -23,11 +22,10 @@ right object. A file that passes schema validation is not proof that both engine
 
 | Sheet | Status and scope | Schema |
 | --- | --- | --- |
-| [Combat state](combat-state-spec.md) | Implemented snapshot format; adapters support the audited starter encounter | `tests/parity/schema/combat-v1.json` |
+| [Run parity state](run-parity-spec.md) | Native run and combat snapshot contract; bounded starter exporter | [run-parity-v1.schema.json](schemas/run-parity-v1.schema.json) |
 | [Action recording](action-recording-spec.md) | Implemented action format; selection actions have limited adapter support | `tests/parity/schema/actions-v1.json` |
 | [Oracle recording](oracle-recording-spec.md) | Implemented reference recorder for the audited Ironclad/Shrinker encounter | `tests/parity/schema/states-v1.json` |
 | [Real-game save JSON](real-game-save-json-spec.md) | Native v20 save structure, with separate saving/loading checks | [serializable-run-v20.schema.json](schemas/serializable-run-v20.schema.json) |
-| [Run parity proposal](proposals/run-parity-spec.md) | Draft extension; exporters are not implemented | [run-parity-v1.schema.json](proposals/run-parity-v1.schema.json) |
 
 The [full-game design](full-game-simulator-design.md) describes the intended system.
 It does not describe the current implementation's coverage. The probe and audit sheets
@@ -47,7 +45,7 @@ for other mechanics or game versions.
 | Instance ID | The ID of one particular card, creature, power, or relic. Two copies of a card have different instance IDs. |
 | RNG | Random-number generator. Its saved state determines its future random values. |
 | Native | The game's own data or format. |
-| Profile | A named format or supported set of mechanics, such as `combat-v1`. |
+| Profile | A named format or supported set of mechanics, such as `actions-v1`. |
 | Envelope | The outer part of a recording file, containing IDs and source information alongside snapshots. |
 | JSON Pointer | A path to a value in a JSON document, such as `/players/0/deck/3`. |
 

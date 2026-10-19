@@ -29,22 +29,20 @@ def require(condition, message):
 
 
 def strict_json(text):
-    def pairs(items):
-        result = {}
-        for key, value in items:
-            require(key not in result, f'Duplicate JSON field: {key}')
-            result[key] = value
-        return result
-    def invalid_constant(value):
-        raise ValueError(f'Invalid JSON constant: {value}')
-    return json.loads(text, object_pairs_hook=pairs, parse_constant=invalid_constant)
+    from native_run import exact_json
+    return exact_json(text)
+
+
+def wire_json(value):
+    from native_run import exact_dump
+    return exact_dump(value)
 
 
 def validate(validator, kind, value, actions=None):
-    request = {'kind': kind, 'value': value}
+    request = {'kind': kind, 'value': wire_json(value) if kind == 'snapshot' else value}
     if actions is not None:
         request['actions'] = actions
-    result = subprocess.run([str(validator)], input=json.dumps(request) + '\n',
+    result = subprocess.run([str(validator)], input=wire_json(request) + '\n',
                             capture_output=True, text=True, timeout=30)
     require(result.returncode == 0, f'Validator failed: {result.stderr}')
     response = strict_json(result.stdout)
@@ -113,7 +111,7 @@ class JsonProcess:
 
     def send(self, command):
         require(self.process.poll() is None, 'Reference process has exited')
-        self.process.stdin.write(json.dumps(command) + '\n')
+        self.process.stdin.write(wire_json(command) + '\n')
         self.process.stdin.flush()
         return self.receive()
 
@@ -145,7 +143,8 @@ def inject(source):
         'case "oracle_start": return sim.OracleStart(cmd);\n'
         '            case "oracle_action": return sim.OracleAction(cmd);\n'
         '            case "start_run":', 1))
-    shutil.copy2(Path(__file__).parent / 'adapters' / 'RecordingSession.cs', source)
+    for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs'):
+        shutil.copy2(Path(__file__).parent / 'adapters' / name, source)
 
 
 @contextlib.contextmanager
@@ -180,6 +179,8 @@ def reference_build(game_dir, log_dir):
         for path in sorted(inputs):
             digest.update(path.relative_to(root).as_posix().encode() + b'\0' + path.read_bytes())
         for path in [Path(__file__), *sorted((REPO / 'tests/parity/schema').glob('*.json')),
+                     REPO / 'docs/specs/schemas/run-parity-v1.schema.json',
+                     REPO / 'docs/specs/schemas/serializable-run-v20.schema.json',
                      *sorted(lib.glob('*.dll'))]:
             digest.update(path.name.encode() + b'\0' + path.read_bytes())
         env = dict(os.environ, DOTNET_CLI_TELEMETRY_OPTOUT='1',
@@ -204,14 +205,13 @@ def record_session(command, env, actions, validator, log_prefix, timeout):
                     f'Mismatched response for {request_id}')
             snapshot = response['state']
             validate(validator, 'snapshot', snapshot)
-            require(snapshot['required_features'] == actions['required_features'], 'Feature mismatch')
             return snapshot
         initial = state(response, 'initial')
         identity = {key: response[key] for key in ('assembly_mvid', 'runtime_version')}
         transitions = []
         previous = initial
         for index, entry in enumerate(actions['actions']):
-            require(previous['boundary'] != 'combat_end', f'{entry["id"]}: action after combat end')
+            require(previous['boundary_kind'] != 'run_complete', f'{entry["id"]}: action after combat end')
             request_id = f'action-{index}'
             try:
                 response = host.send({'cmd': 'oracle_action', 'request_id': request_id, 'action': entry['action']})
@@ -235,7 +235,7 @@ def atomic_write(path, value):
         with tempfile.NamedTemporaryFile(mode='w', dir=path.parent, prefix=path.name + '.',
                                          suffix='.tmp', delete=False) as stream:
             temporary = Path(stream.name)
-            stream.write(json.dumps(value, indent=2) + '\n')
+            stream.write(wire_json(value) + '\n')
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary, path)

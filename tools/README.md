@@ -1,7 +1,7 @@
 # Tools
 
 - `parity/validate_main.cpp`: entry point for the CMake `parity_validate` target,
-  which validates combat snapshots, actions, and reference-state recordings.
+  which validates run-parity snapshots, actions, and reference-state recordings.
 - `oracle/record.py`: captures reference-game combat recordings.
 - `oracle/check_state_access.py`: probes access to game internals.
 - `oracle/check_combat_fields.py`: audits combat fields in the reference game.

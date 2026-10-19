@@ -37,10 +37,12 @@ if(BUILD_TESTING)
   )
   FetchContent_MakeAvailable(nlohmann_json)
   set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/schema/combat-v1.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/docs/specs/schemas/run-parity-v1.schema.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/docs/specs/schemas/serializable-run-v20.schema.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/schema/actions-v1.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/schema/states-v1.json")
-  file(READ tests/parity/schema/combat-v1.json COMBAT_SCHEMA)
+  file(READ docs/specs/schemas/run-parity-v1.schema.json RUN_PARITY_SCHEMA)
+  file(READ docs/specs/schemas/serializable-run-v20.schema.json NATIVE_RUN_SCHEMA)
   file(READ tests/parity/schema/actions-v1.json ACTIONS_SCHEMA)
   file(READ tests/parity/schema/states-v1.json STATES_SCHEMA)
   configure_file(tests/parity/support/schema.hpp.in generated/parity/schema.hpp @ONLY)
@@ -70,6 +72,8 @@ if(BUILD_TESTING)
     ACTION_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/examples/starter.actions.json")
   find_package(Python3 COMPONENTS Interpreter QUIET)
   if(Python3_Interpreter_FOUND)
+    add_test(NAME run_parity_schema COMMAND "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/oracle/test_run_parity_schema.py")
     add_test(NAME native_run_unit COMMAND "${Python3_EXECUTABLE}"
       "${CMAKE_CURRENT_SOURCE_DIR}/tests/oracle/test_native_run.py")
     set_tests_properties(native_run_unit PROPERTIES LABELS "native_run")

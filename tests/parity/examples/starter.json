@@ -1,195 +1,924 @@
 {
-  "schema_version": 1,
-  "profile": "combat-v1",
-  "required_features": [
-    "basic_combat"
+  "acts": [
+    {
+      "id": "ACT.OVERGROWTH",
+      "rooms": {
+        "ancient_id": null,
+        "boss_encounters_visited": 0,
+        "boss_id": null,
+        "elite_encounter_ids": [
+          "ENCOUNTER.TEST_ELITE"
+        ],
+        "elite_encounters_visited": 0,
+        "event_ids": [
+          "EVENT.NEOW"
+        ],
+        "events_visited": 1,
+        "normal_encounter_ids": [
+          "ENCOUNTER.SHRINKER_BEETLE_WEAK"
+        ],
+        "normal_encounters_visited": 0,
+        "second_boss_id": null
+      },
+      "saved_map": {
+        "boss": {
+          "can_modify": true,
+          "children": [],
+          "coord": {
+            "col": 0,
+            "row": 2
+          },
+          "type": "boss"
+        },
+        "height": 3,
+        "points": [
+          {
+            "can_modify": true,
+            "children": [
+              {
+                "col": 0,
+                "row": 2
+              }
+            ],
+            "coord": {
+              "col": 0,
+              "row": 1
+            },
+            "type": "monster"
+          }
+        ],
+        "start": {
+          "can_modify": true,
+          "children": [
+            {
+              "col": 0,
+              "row": 1
+            }
+          ],
+          "coord": {
+            "col": 0,
+            "row": 0
+          },
+          "type": "ancient"
+        },
+        "start_coords": [
+          {
+            "col": 0,
+            "row": 0
+          }
+        ],
+        "width": 1
+      }
+    }
   ],
-  "boundary": "player_action",
-  "combat": {
-    "round": 1,
-    "active_side": "player",
-    "outcome": "ongoing"
+  "ascension": 0,
+  "current_act_index": 0,
+  "dailyTime": "2026-10-17T00:00:00+00:00",
+  "events_seen": [
+    "EVENT.NEOW"
+  ],
+  "extra_fields": {
+    "started_with_neow": true
   },
-  "player": {
-    "instance_id": "player_0",
-    "model_id": "CHARACTER.IRONCLAD",
-    "hp": 80,
-    "max_hp": 80,
-    "block": 0,
-    "powers": [],
-    "counters": {},
-    "energy": 3,
-    "max_energy": 3,
-    "relics": [
+  "game_mode": "daily",
+  "map_drawings": "H4sIAAAAAAAEA2NgYGAAABzfRCEEAAAA",
+  "map_point_history": [
+    [
       {
-        "instance_id": "relic_0",
-        "model_id": "RELIC.BURNING_BLOOD",
-        "counters": {}
+        "map_point_type": "ancient",
+        "player_stats": [
+          {
+            "ancient_choice": [
+              {
+                "TextKey": "TEST",
+                "title": {
+                  "key": "TEST.title",
+                  "table": "events"
+                },
+                "was_chosen": true
+              }
+            ],
+            "card_choices": [
+              {
+                "card": {
+                  "current_upgrade_level": 1,
+                  "floor_added_to_deck": 2,
+                  "id": "CARD.BASH"
+                },
+                "was_picked": false
+              }
+            ],
+            "cards_enchanted": [
+              {
+                "card": {
+                  "current_upgrade_level": 1,
+                  "floor_added_to_deck": 2,
+                  "id": "CARD.BASH"
+                },
+                "enchantment": "ENCHANTMENT.TEST"
+              }
+            ],
+            "cards_gained": [
+              {
+                "current_upgrade_level": 1,
+                "floor_added_to_deck": 2,
+                "id": "CARD.BASH"
+              }
+            ],
+            "cards_removed": [
+              {
+                "current_upgrade_level": 1,
+                "floor_added_to_deck": 2,
+                "id": "CARD.BASH"
+              }
+            ],
+            "cards_transformed": [
+              {
+                "final_card": {
+                  "current_upgrade_level": 1,
+                  "floor_added_to_deck": 2,
+                  "id": "CARD.BASH"
+                },
+                "original_card": {
+                  "current_upgrade_level": 1,
+                  "floor_added_to_deck": 2,
+                  "id": "CARD.BASH"
+                }
+              }
+            ],
+            "current_gold": 0,
+            "current_hp": 0,
+            "damage_taken": 0,
+            "event_choices": [
+              {
+                "title": {
+                  "key": "TEST.title",
+                  "table": "events"
+                },
+                "variables": {
+                  "Precise": {
+                    "type": "Decimal",
+                    "decimal_value": 0.1234567890123456789012345678,
+                    "bool_value": false,
+                    "string_value": null
+                  },
+                  "Largest": {
+                    "type": "Decimal",
+                    "decimal_value": 79228162514264337593543950335,
+                    "bool_value": false,
+                    "string_value": null
+                  },
+                  "Label": {
+                    "type": "String",
+                    "decimal_value": 0,
+                    "bool_value": false,
+                    "string_value": "example"
+                  },
+                  "Flag": {
+                    "type": "Bool",
+                    "decimal_value": 0,
+                    "bool_value": true,
+                    "string_value": null
+                  }
+                }
+              }
+            ],
+            "gold_gained": 0,
+            "gold_lost": 0,
+            "gold_spent": 0,
+            "gold_stolen": 0,
+            "hp_healed": 0,
+            "is_affected_by_fur_coat": false,
+            "max_hp": 0,
+            "max_hp_gained": 0,
+            "max_hp_lost": 0,
+            "player_id": 18446744073709551615,
+            "potion_choices": [
+              {
+                "choice": "POTION.TEST",
+                "was_picked": false
+              }
+            ],
+            "relic_choices": [
+              {
+                "choice": "RELIC.BURNING_BLOOD",
+                "was_picked": true
+              }
+            ],
+            "stolen_loot": 0
+          }
+        ],
+        "rooms": [
+          {
+            "model_id": "EVENT.NEOW",
+            "room_type": "event",
+            "turns_taken": 0
+          }
+        ]
+      }
+    ]
+  ],
+  "modifiers": [
+    {
+      "id": "MODIFIER.TEST",
+      "props": {
+        "bools": [
+          {
+            "name": "Triggered",
+            "value": true
+          }
+        ],
+        "card_arrays": [
+          {
+            "name": "SavedCards",
+            "value": [
+              {
+                "current_upgrade_level": 1,
+                "floor_added_to_deck": 2,
+                "id": "CARD.BASH"
+              },
+              {
+                "current_upgrade_level": 1,
+                "floor_added_to_deck": 2,
+                "id": "CARD.BASH"
+              }
+            ]
+          }
+        ],
+        "cards": [
+          {
+            "name": "SavedCard",
+            "value": {
+              "current_upgrade_level": 1,
+              "floor_added_to_deck": 2,
+              "id": "CARD.BASH"
+            }
+          }
+        ],
+        "int_arrays": [
+          {
+            "name": "History",
+            "value": [
+              0,
+              1,
+              -2
+            ]
+          }
+        ],
+        "ints": [
+          {
+            "name": "Counter",
+            "value": -2147483648
+          },
+          {
+            "name": "OtherCounter",
+            "value": 2147483647
+          }
+        ],
+        "model_ids": [
+          {
+            "name": "Model",
+            "value": "CARD.BASH"
+          }
+        ],
+        "strings": [
+          {
+            "name": "Label",
+            "value": "preserve ~ / Unicode: é"
+          }
+        ]
+      }
+    }
+  ],
+  "num_reloads": 4,
+  "odds": {
+    "unknown_map_point_elite_odds_value": -1,
+    "unknown_map_point_monster_odds_value": 0.1,
+    "unknown_map_point_shop_odds_value": 0.03,
+    "unknown_map_point_treasure_odds_value": 0.02
+  },
+  "platform_type": "none",
+  "players": [
+    {
+      "base_orb_slot_count": 0,
+      "character_id": "CHARACTER.IRONCLAD",
+      "current_hp": 67,
+      "deck": [
+        {
+          "id": "CARD.STRIKE_IRONCLAD"
+        },
+        {
+          "current_upgrade_level": 1,
+          "enchantment": {
+            "amount": 3,
+            "id": "ENCHANTMENT.TEST",
+            "props": {
+              "bools": [
+                {
+                  "name": "Triggered",
+                  "value": true
+                }
+              ],
+              "card_arrays": [
+                {
+                  "name": "SavedCards",
+                  "value": [
+                    {
+                      "current_upgrade_level": 1,
+                      "floor_added_to_deck": 2,
+                      "id": "CARD.BASH"
+                    },
+                    {
+                      "current_upgrade_level": 1,
+                      "floor_added_to_deck": 2,
+                      "id": "CARD.BASH"
+                    }
+                  ]
+                }
+              ],
+              "cards": [
+                {
+                  "name": "SavedCard",
+                  "value": {
+                    "current_upgrade_level": 1,
+                    "floor_added_to_deck": 2,
+                    "id": "CARD.BASH"
+                  }
+                }
+              ],
+              "int_arrays": [
+                {
+                  "name": "History",
+                  "value": [
+                    0,
+                    1,
+                    -2
+                  ]
+                }
+              ],
+              "ints": [
+                {
+                  "name": "Counter",
+                  "value": -2147483648
+                },
+                {
+                  "name": "OtherCounter",
+                  "value": 2147483647
+                }
+              ],
+              "model_ids": [
+                {
+                  "name": "Model",
+                  "value": "CARD.BASH"
+                }
+              ],
+              "strings": [
+                {
+                  "name": "Label",
+                  "value": "preserve ~ / Unicode: é"
+                }
+              ]
+            }
+          },
+          "floor_added_to_deck": 2,
+          "id": "CARD.BASH",
+          "props": {
+            "bools": [
+              {
+                "name": "Triggered",
+                "value": true
+              }
+            ],
+            "card_arrays": [
+              {
+                "name": "SavedCards",
+                "value": [
+                  {
+                    "current_upgrade_level": 1,
+                    "floor_added_to_deck": 2,
+                    "id": "CARD.BASH"
+                  },
+                  {
+                    "current_upgrade_level": 1,
+                    "floor_added_to_deck": 2,
+                    "id": "CARD.BASH"
+                  }
+                ]
+              }
+            ],
+            "cards": [
+              {
+                "name": "SavedCard",
+                "value": {
+                  "current_upgrade_level": 1,
+                  "floor_added_to_deck": 2,
+                  "id": "CARD.BASH"
+                }
+              }
+            ],
+            "int_arrays": [
+              {
+                "name": "History",
+                "value": [
+                  0,
+                  1,
+                  -2
+                ]
+              }
+            ],
+            "ints": [
+              {
+                "name": "Counter",
+                "value": -2147483648
+              },
+              {
+                "name": "OtherCounter",
+                "value": 2147483647
+              }
+            ],
+            "model_ids": [
+              {
+                "name": "Model",
+                "value": "CARD.BASH"
+              }
+            ],
+            "strings": [
+              {
+                "name": "Label",
+                "value": "preserve ~ / Unicode: é"
+              }
+            ]
+          }
+        },
+        {
+          "current_upgrade_level": 1,
+          "floor_added_to_deck": 2,
+          "id": "CARD.BASH"
+        }
+      ],
+      "discovered_epochs": [
+        "NEOW"
+      ],
+      "extra_fields": {},
+      "gold": 42,
+      "max_energy": 3,
+      "max_hp": 80,
+      "max_potion_slot_count": 3,
+      "net_id": 18446744073709551615,
+      "odds": {
+        "card_rarity_odds_value": -0.05,
+        "potion_reward_odds_value": 0.4
+      },
+      "potions": [
+        {
+          "id": "POTION.TEST",
+          "slot_index": 1
+        }
+      ],
+      "relic_grab_bag": {
+        "relic_id_lists": {
+          "common": [
+            "RELIC.BURNING_BLOOD"
+          ]
+        }
+      },
+      "relics": [
+        {
+          "floor_added_to_deck": 1,
+          "id": "RELIC.BURNING_BLOOD",
+          "props": {
+            "bools": [
+              {
+                "name": "Triggered",
+                "value": true
+              }
+            ],
+            "card_arrays": [
+              {
+                "name": "SavedCards",
+                "value": [
+                  {
+                    "current_upgrade_level": 1,
+                    "floor_added_to_deck": 2,
+                    "id": "CARD.BASH"
+                  },
+                  {
+                    "current_upgrade_level": 1,
+                    "floor_added_to_deck": 2,
+                    "id": "CARD.BASH"
+                  }
+                ]
+              }
+            ],
+            "cards": [
+              {
+                "name": "SavedCard",
+                "value": {
+                  "current_upgrade_level": 1,
+                  "floor_added_to_deck": 2,
+                  "id": "CARD.BASH"
+                }
+              }
+            ],
+            "int_arrays": [
+              {
+                "name": "History",
+                "value": [
+                  0,
+                  1,
+                  -2
+                ]
+              }
+            ],
+            "ints": [
+              {
+                "name": "Counter",
+                "value": -2147483648
+              },
+              {
+                "name": "OtherCounter",
+                "value": 2147483647
+              }
+            ],
+            "model_ids": [
+              {
+                "name": "Model",
+                "value": "CARD.BASH"
+              }
+            ],
+            "strings": [
+              {
+                "name": "Label",
+                "value": "preserve ~ / Unicode: é"
+              }
+            ]
+          }
+        }
+      ],
+      "rng": {
+        "rngs": {
+          "rewards": {
+            "counter": 17,
+            "s0": 0,
+            "s1": 9223372036854775808,
+            "s2": 18446744073709551615,
+            "s3": 1
+          },
+          "shops": {
+            "counter": 17,
+            "s0": 0,
+            "s1": 9223372036854775808,
+            "s2": 18446744073709551615,
+            "s3": 1
+          },
+          "transformations": {
+            "counter": 17,
+            "s0": 0,
+            "s1": 9223372036854775808,
+            "s2": 18446744073709551615,
+            "s3": 1
+          }
+        },
+        "seed": 18446744073709551615
+      },
+      "unlock_state": {
+        "encounters_seen": [],
+        "number_of_runs": 3,
+        "unlocked_epochs": [
+          "NEOW"
+        ]
+      }
+    }
+  ],
+  "pre_finished_room": {
+    "encounter_id": "ENCOUNTER.SHRINKER_BEETLE_WEAK",
+    "encounter_state": {
+      "phase": "example"
+    },
+    "event_id": null,
+    "extra_rewards": {
+      "18446744073709551615": [
+        {
+          "card_pools": [],
+          "custom_description_encounter_source_id": "NONE.NONE",
+          "gold_amount": 0,
+          "option_count": 0,
+          "predetermined_model_id": "NONE.NONE",
+          "rarity_odds": "none",
+          "reward_type": "special_card",
+          "source": "none",
+          "special_card": {
+            "current_upgrade_level": 1,
+            "floor_added_to_deck": 2,
+            "id": "CARD.BASH"
+          },
+          "was_gold_stolen_back": false
+        }
+      ]
+    },
+    "is_pre_finished": true,
+    "parent_event_id": null,
+    "reward_proportion": 1,
+    "room_type": "monster",
+    "should_resume_parent_event": true
+  },
+  "rng": {
+    "rngs": {
+      "up_front": {
+        "counter": 17,
+        "s0": 0,
+        "s1": 9223372036854775808,
+        "s2": 18446744073709551615,
+        "s3": 1
+      },
+      "shuffle": {
+        "counter": 17,
+        "s0": 0,
+        "s1": 9223372036854775808,
+        "s2": 18446744073709551615,
+        "s3": 1
+      },
+      "unknown_map_point": {
+        "counter": 17,
+        "s0": 0,
+        "s1": 9223372036854775808,
+        "s2": 18446744073709551615,
+        "s3": 1
+      },
+      "combat_card_generation": {
+        "counter": 17,
+        "s0": 0,
+        "s1": 9223372036854775808,
+        "s2": 18446744073709551615,
+        "s3": 1
+      },
+      "combat_potion_generation": {
+        "counter": 17,
+        "s0": 0,
+        "s1": 9223372036854775808,
+        "s2": 18446744073709551615,
+        "s3": 1
+      },
+      "combat_card_selection": {
+        "counter": 17,
+        "s0": 0,
+        "s1": 9223372036854775808,
+        "s2": 18446744073709551615,
+        "s3": 1
+      },
+      "combat_energy_costs": {
+        "counter": 17,
+        "s0": 0,
+        "s1": 9223372036854775808,
+        "s2": 18446744073709551615,
+        "s3": 1
+      },
+      "combat_targets": {
+        "counter": 17,
+        "s0": 0,
+        "s1": 9223372036854775808,
+        "s2": 18446744073709551615,
+        "s3": 1
+      },
+      "monster_ai": {
+        "counter": 17,
+        "s0": 0,
+        "s1": 9223372036854775808,
+        "s2": 18446744073709551615,
+        "s3": 1
+      },
+      "niche": {
+        "counter": 17,
+        "s0": 0,
+        "s1": 9223372036854775808,
+        "s2": 18446744073709551615,
+        "s3": 1
+      },
+      "combat_orbs": {
+        "counter": 17,
+        "s0": 0,
+        "s1": 9223372036854775808,
+        "s2": 18446744073709551615,
+        "s3": 1
+      },
+      "treasure_room_relics": {
+        "counter": 17,
+        "s0": 0,
+        "s1": 9223372036854775808,
+        "s2": 18446744073709551615,
+        "s3": 1
+      }
+    },
+    "seed": "ROUNDTRIP01"
+  },
+  "run_time": 23,
+  "save_time": 123,
+  "schema_version": 20,
+  "shared_relic_grab_bag": {
+    "relic_id_lists": {
+      "common": [
+        "RELIC.BURNING_BLOOD"
+      ]
+    }
+  },
+  "start_time": 100,
+  "visited_map_coords": [
+    {
+      "col": 0,
+      "row": 0
+    }
+  ],
+  "win_time": 0,
+  "boundary_kind": "awaiting_input",
+  "run_ending_reason": null,
+  "current_room": {
+    "encounter_id": "ENCOUNTER.SHRINKER_BEETLE_WEAK",
+    "event_id": null,
+    "is_pre_finished": false,
+    "parent_event_id": null,
+    "reward_proportion": 1,
+    "room_type": "monster",
+    "should_resume_parent_event": false
+  },
+  "native_model_state": {},
+  "combat": {
+    "round_number": 1,
+    "current_side": "Player",
+    "turn_control": {
+      "is_in_progress": true,
+      "is_starting": false,
+      "is_enemy_turn_started": false,
+      "ending_player_turn_phase_one": false,
+      "ending_player_turn_phase_two": false,
+      "has_pending_loss": false,
+      "player_actions_disabled": false,
+      "card_or_potion_effect_depth": 1,
+      "players_taking_extra_turn": [],
+      "players_ready_to_end_turn": [],
+      "players_ready_to_begin_enemy_turn": []
+    },
+    "allies": [
+      "/combat/creatures/player"
+    ],
+    "enemies": [],
+    "escaped_creatures": [],
+    "spawned_enemy_ids": [],
+    "encounter_fields": {},
+    "players": [
+      {
+        "player": "/players/0",
+        "creature": "/combat/creatures/player",
+        "turn_number": 1,
+        "phase": "Play",
+        "energy": 2,
+        "stars": 0,
+        "can_use_or_remove_potions": true,
+        "is_active_for_hooks": true,
+        "piles": {
+          "Hand": [
+            "/combat/cards/discard_candidate"
+          ],
+          "Draw": [],
+          "Discard": [],
+          "Exhaust": [],
+          "Play": [
+            "/combat/cards/survivor"
+          ]
+        },
+        "pets": [],
+        "orb_capacity": 0,
+        "orbs": []
+      }
+    ],
+    "creatures": {
+      "player": {
+        "player": "/players/0",
+        "monster": null,
+        "side": "Player",
+        "block": 8,
+        "hp_is_infinite": false,
+        "slot_name": null,
+        "pet_owner": null,
+        "powers": []
+      }
+    },
+    "cards": {
+      "survivor": {
+        "saved": {
+          "id": "CARD.SURVIVOR",
+          "current_upgrade_level": 0,
+          "floor_added_to_deck": 0
+        },
+        "owner": "/players/0",
+        "deck_version": null,
+        "clone_of": null,
+        "is_dupe": false,
+        "base_replay_count": 0,
+        "local_keywords": [],
+        "exhaust_on_next_play": false,
+        "has_single_turn_retain": false,
+        "has_single_turn_sly": false,
+        "has_been_removed_from_state": false,
+        "dynamic_vars": {},
+        "energy_cost": {
+          "base": 1,
+          "captured_x_value": 0,
+          "local_modifiers": []
+        },
+        "base_star_cost": 0,
+        "temporary_star_costs": [],
+        "last_stars_spent": 0,
+        "affliction": null,
+        "enchantment_runtime": null,
+        "model_fields": {}
+      },
+      "discard_candidate": {
+        "saved": {
+          "id": "CARD.STRIKE_IRONCLAD"
+        },
+        "owner": "/players/0",
+        "deck_version": "/players/0/deck/0",
+        "clone_of": null,
+        "is_dupe": false,
+        "base_replay_count": 0,
+        "local_keywords": [],
+        "exhaust_on_next_play": false,
+        "has_single_turn_retain": false,
+        "has_single_turn_sly": false,
+        "has_been_removed_from_state": false,
+        "dynamic_vars": {},
+        "energy_cost": {
+          "base": 1,
+          "captured_x_value": 0,
+          "local_modifiers": []
+        },
+        "base_star_cost": 0,
+        "temporary_star_costs": [],
+        "last_stars_spent": 0,
+        "affliction": null,
+        "enchantment_runtime": null,
+        "model_fields": {}
+      }
+    },
+    "powers": {},
+    "orbs": {},
+    "afflictions": {},
+    "attacks": {},
+    "retained_inventory_models": {},
+    "card_plays": {
+      "play0": {
+        "card": "/combat/cards/survivor",
+        "player": "/players/0",
+        "target": null,
+        "result_pile": "Discard",
+        "resources": {
+          "energy_spent": 1,
+          "energy_value": 1,
+          "stars_spent": 0,
+          "star_value": 0
+        },
+        "is_auto_play": false,
+        "play_index": 0,
+        "play_count": 1
+      }
+    },
+    "active_card_plays": [
+      {
+        "card_play": "/combat/card_plays/play0",
+        "result_location": {
+          "player": "/players/0",
+          "pile_type": "Discard",
+          "position": "Bottom"
+        }
+      }
+    ],
+    "history": [
+      {
+        "kind": "CardPlayStartedEntry",
+        "actor": "/combat/creatures/player",
+        "round_number": 1,
+        "current_side": "Player",
+        "player_turn_numbers": [
+          {
+            "player": "/players/0",
+            "turn_number": 1
+          }
+        ],
+        "card_play": "/combat/card_plays/play0"
       }
     ]
   },
-  "enemies": [
-    {
-      "instance_id": "enemy_0",
-      "model_id": "MONSTER.SHRINKER_BEETLE",
-      "hp": 38,
-      "max_hp": 38,
-      "block": 0,
-      "powers": [],
-      "counters": {},
-      "move_id": "example_move",
-      "move_history": []
-    }
-  ],
-  "cards": [
-    {
-      "instance_id": "card_0",
-      "model_id": "CARD.STRIKE_IRONCLAD",
-      "upgrade_level": 0,
-      "cost": {
-        "kind": "fixed",
-        "amount": 1
-      },
-      "flags": [],
-      "counters": {}
-    },
-    {
-      "instance_id": "card_1",
-      "model_id": "CARD.DEFEND_IRONCLAD",
-      "upgrade_level": 0,
-      "cost": {
-        "kind": "fixed",
-        "amount": 1
-      },
-      "flags": [],
-      "counters": {}
-    }
-  ],
-  "piles": {
-    "hand": [
-      "card_0",
-      "card_1"
+  "pending_choice": {
+    "player": "/players/0",
+    "sources": [
+      "/combat/cards/survivor"
     ],
-    "draw": [],
-    "discard": [],
-    "exhaust": [],
-    "playing": []
-  },
-  "selection": {
-    "kind": "none",
-    "options": [],
-    "min": 0,
-    "max": 0
-  },
-  "randomness": {
-    "run": {
-      "UpFront": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "18446744073709551615"
-      },
-      "Shuffle": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "18446744073709551615"
-      },
-      "UnknownMapPoint": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "18446744073709551615"
-      },
-      "CombatCardGeneration": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "18446744073709551615"
-      },
-      "CombatPotionGeneration": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "18446744073709551615"
-      },
-      "CombatCardSelection": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "18446744073709551615"
-      },
-      "CombatEnergyCosts": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "18446744073709551615"
-      },
-      "CombatTargets": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "18446744073709551615"
-      },
-      "MonsterAi": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "18446744073709551615"
-      },
-      "Niche": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "18446744073709551615"
-      },
-      "CombatOrbs": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "18446744073709551615"
-      },
-      "TreasureRoomRelics": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "18446744073709551615"
-      }
-    },
-    "player": {
-      "Rewards": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "4"
-      },
-      "Shops": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "4"
-      },
-      "Transformations": {
-        "counter": 0,
-        "s0": "1",
-        "s1": "2",
-        "s2": "3",
-        "s3": "4"
-      }
-    }
+    "candidates": [
+      "/combat/cards/discard_candidate"
+    ],
+    "min_select": 1,
+    "max_select": 1,
+    "require_manual_confirmation": false,
+    "cancelable": false
   }
 }

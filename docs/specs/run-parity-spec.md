@@ -1,31 +1,56 @@
-# Native run combat parity state
+# Run parity state
 
-This proposal adds combat state and pending choices to the native run-save layout so
-tests can compare data held by both engines. Exporters are not implemented, and some
-paused effects and choice types still need coverage.
+This contract adds combat state and pending choices to the native run-save layout so
+tests can compare data held by both engines. The reference recorder implements a
+bounded starter-encounter exporter; paused effects and additional choice types still need coverage.
 
-See the [shared terms](../README.md#terms-used-in-these-sheets) for definitions of parity, snapshot, boundary, and model ID.
+See the [shared terms](README.md#terms-used-in-these-sheets) for definitions of parity, snapshot, boundary, and model ID.
 
 ## On this page
 
+- [Validation and fixtures](#validation-and-fixtures)
 - [Added top-level fields](#added-top-level-fields)
 - [Combat objects, IDs, and links](#combat-objects-ids-and-links)
 - [Gameplay fields to capture](#gameplay-fields-to-capture)
 - [Enemy decisions, history, and pending choices](#enemy-decisions-history-and-pending-choices)
 - [Capture timing and remaining gaps](#capture-timing-and-remaining-gaps)
 
-The [schema](run-parity-v1.schema.json) replaces the previous run-parity-v1 proposal in
-place. It extends [SerializableRun v20](../schemas/serializable-run-v20.schema.json) for
-comparing held gameplay data in the real engine and simulator. The native schema and
+The [schema](schemas/run-parity-v1.schema.json) replaces the previous combat-only
+state contract. Consumers must migrate their fixtures. It extends
+[SerializableRun v20](schemas/serializable-run-v20.schema.json) for comparing held gameplay data in the real engine and simulator. The native schema and
 nested native objects remain unchanged. This is one evolving representation; update both
-exporters and affected tests together. Exporters are not implemented here.
+exporters and affected tests together. See [recorder scope](oracle-recording-spec.md)
+for the implemented reference subset.
 
 The contract is grounded in the installed v0.111.0 implementation inspected in the
-[runtime audit](../combat-runtime-audit.md) and [model-member
-inventory](../combat-model-field-audit.md). It provides an initial concrete contract,
+[runtime audit](combat-runtime-audit.md) and [model-member
+inventory](combat-model-field-audit.md). It provides an initial concrete contract,
 with the coverage limits below. It does not cover every choice within a paused effect.
 JSON is used only for parity testing, never to initialize, resume or restore either
 engine, or as the simulator's agent API.
+
+## Validation and fixtures
+
+Snapshot `schema_version` is the native version, **20**. The state has no
+`profile` or `required_features`; feature coverage belongs to actions-v1 and source
+information belongs to the states-v1 recording envelope.
+
+`tests/parity/support/snapshot.*` validates the embedded schema and references, pile
+membership, player/card ownership, and selection bounds. Its comparator follows
+bijective local table labels and preserves reference aliasing. Ordered piles and history
+remain ordered; local keyword sets, readiness sets, spawned definition sets and model
+reference dictionaries are normalized for comparison. Use `Snapshot::parse_text` on
+file/wire input to retain exact decimal tokens. Passing an already parsed JSON value
+cannot recover precision lost by its caller. Native RNG words remain numeric uint64s.
+
+Schema validation is deliberately not a proof of complete gameplay capture. Model-field
+applicability, suspended effects, and additional reference-kind constraints require
+exporter checks and scenario-specific tests, as described below.
+The live exporter remains limited to the audited starter encounter.
+
+`tests/parity/examples/starter.json` is a synthetic Survivor selection copied from the
+schema example. It is not a live starter encounter capture. The live capture in
+`tests/parity/fixtures/starter.states.json` is paired with `starter.actions.json`.
 
 ## Added top-level fields
 
@@ -37,6 +62,11 @@ engine, or as the simulator's agent API.
 | `native_model_state` | Additional gameplay fields on existing native objects, keyed by document-local JSON Pointer |
 | `combat` | Combat runtime, or null when no relevant combat state remains |
 | `pending_choice` | Unresolved card selection, or null during ordinary free play and after run completion |
+
+`boundary_kind` distinguishes awaiting input from completion of the entire run.
+Combat completion can still be an `awaiting_input` boundary in an ongoing run.
+`run_ending_reason` is non-null only at `run_complete`. `combat` and `pending_choice`
+may be null under the schema's conditions.
 
 Game build/hash, recorder version and boundary/action indices belong in the recording
 envelope. They are not gameplay state. There are no profiles or compatibility paths for
@@ -195,5 +225,5 @@ unique pile membership, exactly one owner, source-model field applicability, min
 <= max-select, or consistency between active plays and history. These are semantic
 checks for exporters/comparators. The schema tests include an illustrative Survivor
 selection fixture and verify its reference resolution; the fixture is [synthetic
-example](examples/run-parity-survivor.json), not a claimed full export from the real
+example](schemas/examples/run-parity-survivor.json), not a claimed full export from the real
 engine.

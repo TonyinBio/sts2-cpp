@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sts2-simulator.local/schema/proposals/run-parity-v1.schema.json",
+  "$id": "https://sts2-simulator.local/schema/run-parity-v1.schema.json",
   "title": "Native SerializableRun v20 with combat parity state",
-  "description": "One evolving comparison-only representation for single-player awaiting_input and run_complete boundaries. Native payload stays unchanged. Known suspended-operation coverage gaps are documented in run-parity-spec.md; this is not a restorable save or agent observation interface.",
+  "description": "One evolving comparison-only representation for single-player awaiting_input and run_complete boundaries. Native payload stays unchanged. Known suspended-operation coverage gaps are documented in ../run-parity-spec.md; this is not a restorable save or agent observation interface.",
   "type": "object",
   "allOf": [
     {
@@ -74,7 +74,7 @@
       "then": {
         "properties": {
           "current_room": {
-            "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRoom"
+            "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRoom"
           }
         }
       }
@@ -98,7 +98,7 @@
     "current_room": {
       "anyOf": [
         {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRoom"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRoom"
         },
         {
           "type": "null"
@@ -150,73 +150,73 @@
       "type": "object",
       "properties": {
         "acts": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/acts"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/acts"
         },
         "ascension": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/ascension"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/ascension"
         },
         "current_act_index": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/current_act_index"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/current_act_index"
         },
         "dailyTime": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/dailyTime"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/dailyTime"
         },
         "events_seen": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/events_seen"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/events_seen"
         },
         "extra_fields": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/extra_fields"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/extra_fields"
         },
         "game_mode": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/game_mode"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/game_mode"
         },
         "map_drawings": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/map_drawings"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/map_drawings"
         },
         "map_point_history": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/map_point_history"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/map_point_history"
         },
         "modifiers": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/modifiers"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/modifiers"
         },
         "num_reloads": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/num_reloads"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/num_reloads"
         },
         "odds": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/odds"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/odds"
         },
         "platform_type": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/platform_type"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/platform_type"
         },
         "players": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/players"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/players"
         },
         "pre_finished_room": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/pre_finished_room"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/pre_finished_room"
         },
         "rng": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/rng"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/rng"
         },
         "run_time": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/run_time"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/run_time"
         },
         "save_time": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/save_time"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/save_time"
         },
         "schema_version": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/schema_version"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/schema_version"
         },
         "shared_relic_grab_bag": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/shared_relic_grab_bag"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/shared_relic_grab_bag"
         },
         "start_time": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/start_time"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/start_time"
         },
         "visited_map_coords": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/visited_map_coords"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/visited_map_coords"
         },
         "win_time": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRun/properties/win_time"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/win_time"
         }
       },
       "required": [
@@ -261,7 +261,7 @@
       "type": "object",
       "properties": {
         "amount": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "type": {
           "enum": [
@@ -293,10 +293,10 @@
       "type": "object",
       "properties": {
         "base": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "captured_x_value": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "local_modifiers": {
           "type": "array",
@@ -316,7 +316,7 @@
       "type": "object",
       "properties": {
         "cost": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "clears_when_turn_ends": {
           "type": "boolean"
@@ -336,10 +336,10 @@
       "type": "object",
       "properties": {
         "id": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/ModelId"
+          "$ref": "serializable-run-v20.schema.json#/$defs/ModelId"
         },
         "amount": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         }
       },
       "required": [
@@ -371,7 +371,7 @@
       "type": "object",
       "properties": {
         "saved": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableCard"
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableCard"
         },
         "owner": {
           "anyOf": [
@@ -407,7 +407,7 @@
           "type": "boolean"
         },
         "base_replay_count": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "local_keywords": {
           "type": "array",
@@ -444,7 +444,7 @@
           "$ref": "#/$defs/EnergyCost"
         },
         "base_star_cost": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "temporary_star_costs": {
           "type": "array",
@@ -453,7 +453,7 @@
           }
         },
         "last_stars_spent": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "affliction": {
           "anyOf": [
@@ -506,13 +506,13 @@
       "type": "object",
       "properties": {
         "id": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/ModelId"
+          "$ref": "serializable-run-v20.schema.json#/$defs/ModelId"
         },
         "amount": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "amount_on_turn_start": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "skip_next_duration_tick": {
           "type": "boolean"
@@ -563,7 +563,7 @@
       "type": "object",
       "properties": {
         "id": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/ModelId"
+          "$ref": "serializable-run-v20.schema.json#/$defs/ModelId"
         },
         "model_fields": {
           "$ref": "#/$defs/ModelFields"
@@ -651,13 +651,13 @@
       "type": "object",
       "properties": {
         "id": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/ModelId"
+          "$ref": "serializable-run-v20.schema.json#/$defs/ModelId"
         },
         "current_hp": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "max_hp": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "spawned_this_turn": {
           "type": "boolean"
@@ -713,7 +713,7 @@
           ]
         },
         "block": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "hp_is_infinite": {
           "type": "boolean"
@@ -789,7 +789,7 @@
           "$ref": "#/$defs/Ref"
         },
         "turn_number": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "phase": {
           "enum": [
@@ -802,10 +802,10 @@
           ]
         },
         "energy": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "stars": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "can_use_or_remove_potions": {
           "type": "boolean"
@@ -863,7 +863,7 @@
           }
         },
         "orb_capacity": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "orbs": {
           "type": "array",
@@ -913,7 +913,7 @@
           "type": "boolean"
         },
         "card_or_potion_effect_depth": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "players_taking_extra_turn": {
           "type": "array",
@@ -953,16 +953,16 @@
       "type": "object",
       "properties": {
         "energy_spent": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "energy_value": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "stars_spent": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "star_value": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         }
       },
       "required": [
@@ -1013,10 +1013,10 @@
           "type": "boolean"
         },
         "play_index": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "play_count": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         }
       },
       "required": [
@@ -1079,16 +1079,16 @@
           "$ref": "#/$defs/Ref"
         },
         "props": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "blocked_damage": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "unblocked_damage": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "overkill_damage": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "was_block_broken": {
           "type": "boolean"
@@ -1132,7 +1132,7 @@
           "description": "Cards.Rampage._extraDamageFromPlays; native storage member, including internal Data where applicable."
         },
         "Regret._cardsInHand": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Cards.Regret._cardsInHand; native storage member, including internal Data where applicable."
         },
         "SovereignBlade._currentDamage": {
@@ -1150,7 +1150,7 @@
         "SpoilsMap.SpoilsCoord": {
           "anyOf": [
             {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/MapCoord"
+              "$ref": "serializable-run-v20.schema.json#/$defs/MapCoord"
             },
             {
               "type": "null"
@@ -1167,7 +1167,7 @@
           "description": "Cards.Thrash._extraDamage; native storage member, including internal Data where applicable."
         },
         "UpMySleeve._timesPlayedThisCombat": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Cards.UpMySleeve._timesPlayedThisCombat; native storage member, including internal Data where applicable."
         },
         "Glam._usedThisCombat": {
@@ -1175,7 +1175,7 @@
           "description": "Enchantments.Glam._usedThisCombat; native storage member, including internal Data where applicable."
         },
         "Momentum._extraDamage": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Enchantments.Momentum._extraDamage; native storage member, including internal Data where applicable."
         },
         "GremlinMercNormal._goldWasStolen": {
@@ -1191,17 +1191,17 @@
           "description": "Modifiers.Hoarder._cardsToSkip; native storage member, including internal Data where applicable."
         },
         "Aeonglass._additionalStrength": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Monsters.Aeonglass._additionalStrength; native storage member, including internal Data where applicable."
         },
         "Aeonglass._witherUpgradeCount": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Monsters.Aeonglass._witherUpgradeCount; native storage member, including internal Data where applicable."
         },
         "Axebot._stockOverrideAmount": {
           "anyOf": [
             {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             {
               "type": "null"
@@ -1216,7 +1216,7 @@
         "Fabricator._lastSpawned": {
           "anyOf": [
             {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/ModelId"
+              "$ref": "serializable-run-v20.schema.json#/$defs/ModelId"
             },
             {
               "type": "null"
@@ -1229,7 +1229,7 @@
           "description": "Monsters.FrogKnight._hasBeetleCharged; native storage member, including internal Data where applicable."
         },
         "KnowledgeDemon._curseOfKnowledgeCounter": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Monsters.KnowledgeDemon._curseOfKnowledgeCounter; native storage member, including internal Data where applicable."
         },
         "Nibbit._isFront": {
@@ -1256,11 +1256,11 @@
           "description": "Monsters.Queen._amalgam; native storage member, including internal Data where applicable."
         },
         "TestSubject._respawns": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Monsters.TestSubject._respawns; native storage member, including internal Data where applicable."
         },
         "TestSubject._extraMultiClawCount": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Monsters.TestSubject._extraMultiClawCount; native storage member, including internal Data where applicable."
         },
         "Toadpole._isFront": {
@@ -1272,19 +1272,19 @@
           "description": "Monsters.ToughEgg._isHatched; native storage member, including internal Data where applicable."
         },
         "TwoTailedRat._turnsUntilSummonable": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Monsters.TwoTailedRat._turnsUntilSummonable; native storage member, including internal Data where applicable."
         },
         "TwoTailedRat._callForBackupCount": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Monsters.TwoTailedRat._callForBackupCount; native storage member, including internal Data where applicable."
         },
         "WaterfallGiant._currentPressureGunDamage": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Monsters.WaterfallGiant._currentPressureGunDamage; native storage member, including internal Data where applicable."
         },
         "WaterfallGiant._steamEruptionDamage": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Monsters.WaterfallGiant._steamEruptionDamage; native storage member, including internal Data where applicable."
         },
         "DarkOrb._evokeVal": {
@@ -1308,7 +1308,7 @@
                 "$ref": "#/$defs/Ref"
               },
               "value": {
-                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
               }
             },
             "required": [
@@ -1320,7 +1320,7 @@
           "description": "Powers.AfterimagePower.amountsForPlayedCards; native storage member, including internal Data where applicable."
         },
         "AutomationPower.cardsLeft": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Powers.AutomationPower.cardsLeft; native storage member, including internal Data where applicable."
         },
         "CalamityPower.amountsForPlayedCards": {
@@ -1332,7 +1332,7 @@
                 "$ref": "#/$defs/Ref"
               },
               "value": {
-                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
               }
             },
             "required": [
@@ -1375,7 +1375,7 @@
                 "$ref": "#/$defs/Ref"
               },
               "value": {
-                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
               }
             },
             "required": [
@@ -1387,11 +1387,11 @@
           "description": "Powers.DampenPower.downgradedCardsToOldUpgradeLevels; native storage member, including internal Data where applicable."
         },
         "DarkEmbracePower.etherealCount": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Powers.DarkEmbracePower.etherealCount; native storage member, including internal Data where applicable."
         },
         "FeralPower.zeroCostAttacksPlayed": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Powers.FeralPower.zeroCostAttacksPlayed; native storage member, including internal Data where applicable."
         },
         "GigantificationPower.commandToModify": {
@@ -1414,7 +1414,7 @@
                 "$ref": "#/$defs/Ref"
               },
               "value": {
-                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
               }
             },
             "required": [
@@ -1430,7 +1430,7 @@
           "description": "Powers.HardenedShellPower.damageReceivedThisTurn; native storage member, including internal Data where applicable."
         },
         "HellraiserPower.infiniteAutoPlaysThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Powers.HellraiserPower.infiniteAutoPlaysThisTurn; native storage member, including internal Data where applicable."
         },
         "IllusionPower.isReviving": {
@@ -1449,7 +1449,7 @@
           "description": "Powers.IllusionPower._followUpStateId; native storage member, including internal Data where applicable."
         },
         "JugglingPower.attacksPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Powers.JugglingPower.attacksPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "MonologuePower.amountsForPlayedCards": {
@@ -1461,7 +1461,7 @@
                 "$ref": "#/$defs/Ref"
               },
               "value": {
-                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
               }
             },
             "required": [
@@ -1496,7 +1496,7 @@
                 "$ref": "#/$defs/Ref"
               },
               "value": {
-                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
               }
             },
             "required": [
@@ -1508,11 +1508,11 @@
           "description": "Powers.OblivionPower.amountsForPlayedCards; native storage member, including internal Data where applicable."
         },
         "OrbitPower.energySpent": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Powers.OrbitPower.energySpent; native storage member, including internal Data where applicable."
         },
         "OrbitPower.triggerCount": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Powers.OrbitPower.triggerCount; native storage member, including internal Data where applicable."
         },
         "PaleBlueDotPower.alreadyActivatedThisTurn": {
@@ -1580,7 +1580,7 @@
                 "$ref": "#/$defs/Ref"
               },
               "value": {
-                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
               }
             },
             "required": [
@@ -1600,7 +1600,7 @@
                 "$ref": "#/$defs/Ref"
               },
               "value": {
-                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
               }
             },
             "required": [
@@ -1616,7 +1616,7 @@
           "description": "Powers.SkittishPower.hasGainedBlockThisTurn; native storage member, including internal Data where applicable."
         },
         "SlothPower._cardsPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Powers.SlothPower._cardsPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "SoulboundPower._isAddingSoul": {
@@ -1632,7 +1632,7 @@
                 "$ref": "#/$defs/Ref"
               },
               "value": {
-                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
               }
             },
             "required": [
@@ -1652,7 +1652,7 @@
                 "$ref": "#/$defs/Ref"
               },
               "value": {
-                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
               }
             },
             "required": [
@@ -1672,7 +1672,7 @@
                 "$ref": "#/$defs/Ref"
               },
               "value": {
-                "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
               }
             },
             "required": [
@@ -1702,7 +1702,7 @@
           "description": "Powers.SwipePower._stolenCard; native storage member, including internal Data where applicable."
         },
         "TenderPower._cardsPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Powers.TenderPower._cardsPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "VigorPower.commandToModify": {
@@ -1717,11 +1717,11 @@
           "description": "Powers.VigorPower.commandToModify; native storage member, including internal Data where applicable."
         },
         "VigorPower.amountWhenAttackStarted": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Powers.VigorPower.amountWhenAttackStarted; native storage member, including internal Data where applicable."
         },
         "VoidFormPower.cardsPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Powers.VoidFormPower.cardsPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "ArtOfWar._anyAttacksPlayedLastTurn": {
@@ -1756,7 +1756,7 @@
           "description": "Relics.BingBong._cardsToSkip; native storage member, including internal Data where applicable."
         },
         "BrilliantScarf._cardsPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.BrilliantScarf._cardsPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "BurningSticks._wasUsedThisCombat": {
@@ -1776,23 +1776,23 @@
           "description": "Relics.FakeOrichalcum._shouldTrigger; native storage member, including internal Data where applicable."
         },
         "JossPaper._etherealCount": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.JossPaper._etherealCount; native storage member, including internal Data where applicable."
         },
         "Kunai._attacksPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.Kunai._attacksPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "Kusarigama._attacksPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.Kusarigama._attacksPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "LetterOpener._skillsPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.LetterOpener._skillsPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "Metronome._orbsChanneled": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.Metronome._orbsChanneled; native storage member, including internal Data where applicable."
         },
         "MiniRegent._usedThisTurn": {
@@ -1819,7 +1819,7 @@
           "description": "Relics.Orichalcum._shouldTrigger; native storage member, including internal Data where applicable."
         },
         "OrnamentalFan._attacksPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.OrnamentalFan._attacksPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "PaelsEye._usedThisCombat": {
@@ -1831,7 +1831,7 @@
           "description": "Relics.PaelsEye._wasOwnerPartOfLastPlayerTurn; native storage member, including internal Data where applicable."
         },
         "PaelsLegion._cooldown": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.PaelsLegion._cooldown; native storage member, including internal Data where applicable."
         },
         "PaelsLegion._triggeredBlockLastTurn": {
@@ -1869,27 +1869,27 @@
           "description": "Relics.Permafrost._activatedThisCombat; native storage member, including internal Data where applicable."
         },
         "Pocketwatch._cardsPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.Pocketwatch._cardsPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "Pocketwatch._cardsPlayedLastTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.Pocketwatch._cardsPlayedLastTurn; native storage member, including internal Data where applicable."
         },
         "RainbowRing._attacksPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.RainbowRing._attacksPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "RainbowRing._skillsPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.RainbowRing._skillsPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "RainbowRing._powersPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.RainbowRing._powersPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "RainbowRing._activationCountThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.RainbowRing._activationCountThisTurn; native storage member, including internal Data where applicable."
         },
         "RedSkull._strengthApplied": {
@@ -1905,7 +1905,7 @@
           "description": "Relics.RuinedHelmet._usedThisCombat; native storage member, including internal Data where applicable."
         },
         "Shuriken._attacksPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.Shuriken._attacksPlayedThisTurn; native storage member, including internal Data where applicable."
         },
         "ThrowingAxe._usedThisCombat": {
@@ -1957,7 +1957,7 @@
           "description": "Relics.Vambrace._blockGainedThisCombat; native storage member, including internal Data where applicable."
         },
         "VelvetChoker._cardsPlayedThisTurn": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32",
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.VelvetChoker._cardsPlayedThisTurn; native storage member, including internal Data where applicable."
         }
       },
@@ -1983,7 +1983,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2001,7 +2001,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2012,10 +2012,10 @@
               }
             },
             "amount": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "props": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "card_play": {
               "anyOf": [
@@ -2057,7 +2057,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2075,7 +2075,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2120,7 +2120,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2138,7 +2138,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2179,7 +2179,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2197,7 +2197,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2242,7 +2242,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2260,7 +2260,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2301,7 +2301,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2319,7 +2319,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2371,7 +2371,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2389,7 +2389,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2430,7 +2430,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2448,7 +2448,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2493,7 +2493,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2511,7 +2511,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2555,7 +2555,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2573,7 +2573,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2636,7 +2636,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2654,7 +2654,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2665,7 +2665,7 @@
               }
             },
             "amount": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             }
           },
           "required": [
@@ -2695,7 +2695,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2713,7 +2713,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2754,7 +2754,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2772,7 +2772,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2828,7 +2828,7 @@
               ]
             },
             "round_number": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             },
             "current_side": {
               "enum": [
@@ -2846,7 +2846,7 @@
                     "$ref": "#/$defs/Ref"
                   },
                   "turn_number": {
-                    "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+                    "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
                   }
                 },
                 "required": [
@@ -2857,7 +2857,7 @@
               }
             },
             "amount": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+              "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
             }
           },
           "required": [
@@ -2921,7 +2921,7 @@
       "type": "object",
       "properties": {
         "round_number": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "current_side": {
           "enum": [
@@ -2955,7 +2955,7 @@
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/ModelId"
+            "$ref": "serializable-run-v20.schema.json#/$defs/ModelId"
           }
         },
         "encounter_fields": {
@@ -3104,7 +3104,7 @@
           ]
         },
         "hit_count": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "source_type": {
           "enum": [
@@ -3167,7 +3167,7 @@
           ]
         },
         "damage_props": {
-          "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/Int32"
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
         },
         "is_randomly_targeted": {
           "type": "boolean"
@@ -3210,7 +3210,7 @@
               "const": "potion"
             },
             "saved": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializablePotion"
+              "$ref": "serializable-run-v20.schema.json#/$defs/SerializablePotion"
             },
             "owner": {
               "$ref": "#/$defs/Ref"
@@ -3238,7 +3238,7 @@
               "const": "relic"
             },
             "saved": {
-              "$ref": "../schemas/serializable-run-v20.schema.json#/$defs/SerializableRelic"
+              "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRelic"
             },
             "owner": {
               "$ref": "#/$defs/Ref"

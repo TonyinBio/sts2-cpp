@@ -2,6 +2,7 @@
 """Offline recorder failure tests; no game or .NET required."""
 import json
 import hashlib
+from decimal import Decimal
 import os
 from pathlib import Path
 import sys
@@ -22,7 +23,7 @@ class RecorderTests(unittest.TestCase):
             with self.subTest(text=text), self.assertRaises((ValueError, RuntimeError)):
                 strict_json(text)
 
-    def test_captured_fixture_validates_and_matches_action_digest(self):
+    def test_run_parity_capture_validates_and_matches_action_digest(self):
         if VALIDATOR is None:
             self.skipTest('Pass parity_validate executable')
         repo = Path(__file__).resolve().parents[2]
@@ -31,6 +32,16 @@ class RecorderTests(unittest.TestCase):
         states = strict_json((repo / 'tests/parity/fixtures/starter.states.json').read_bytes())
         self.assertEqual(states['actions_sha256'], hashlib.sha256(raw).hexdigest())
         validate(VALIDATOR, 'states', states, actions)
+
+    def test_decimal_wire_and_publication_are_lossless(self):
+        from record import wire_json
+        value = strict_json('{"amount":0.1234567890123456789012345678}')
+        self.assertEqual(value['amount'], Decimal('0.1234567890123456789012345678'))
+        self.assertEqual(strict_json(wire_json(value)), value)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'exact.json'
+            atomic_write(path, value)
+            self.assertEqual(strict_json(path.read_text()), value)
 
     def test_process_crash_and_timeout(self):
         with tempfile.TemporaryDirectory() as directory:

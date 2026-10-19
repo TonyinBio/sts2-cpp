@@ -20,8 +20,12 @@ public static class NativeRunRoundTrip
         if (value is IDictionary dictionary)
         {
             var result = new JsonObject();
+            // Ask the native dictionary converter for keys (including enum key
+            // converters); enum.ToString() is not the native JSON spelling.
+            var keys = JsonSerializer.SerializeToElement(value, info).EnumerateObject().Select(p => p.Name).ToArray();
+            int index = 0;
             foreach (DictionaryEntry entry in dictionary)
-                result.Add(entry.Key.ToString()!, State(entry.Value));
+                result.Add(keys[index++], State(entry.Value));
             return result;
         }
         if (value is IEnumerable sequence && value is not string)
@@ -55,6 +59,8 @@ public static class NativeRunRoundTrip
         }
         return record;
     }
+
+    public static JsonNode? Capture(object? value) => State(value);
 
     public static Dictionary<string, object?> Run(JsonElement command)
     {

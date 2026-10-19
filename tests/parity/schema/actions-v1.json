@@ -15,7 +15,7 @@
       "minLength": 1
     },
     "state_profile": {
-      "const": "combat-v1"
+      "const": "run-parity-v1"
     },
     "required_features": {
       "type": "array",
