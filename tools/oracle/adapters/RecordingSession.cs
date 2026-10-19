@@ -369,6 +369,7 @@ public partial class RunSimulator
         native["native_model_state"] = new System.Text.Json.Nodes.JsonObject();
         native["combat"] = JsonSerializer.SerializeToNode(runtime);
         native["pending_choice"] = null;
+        native["run_flow"] = null;
         return native;
     }
 }

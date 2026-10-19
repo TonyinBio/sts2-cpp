@@ -284,6 +284,27 @@ Snapshot Snapshot::parse(const Json& value) {
             if (!card["affliction"].is_null()) (void)target(card["affliction"], "/combat/afflictions/", "/combat/cards/affliction");
         }
     }
+    const auto& flow = value["run_flow"];
+    if (!flow.is_null()) {
+        if (!value["combat"].is_null()) invalid("/run_flow", "run flow requires a noncombat boundary");
+        const auto& selection = flow["pending_choice"];
+        if (!selection.is_null() && selection["kind"] == "card_select") {
+            const auto& cards = selection["cards"];
+            const auto& indices = selection["deck_indices"];
+            if (indices.size() != cards.size() || selection["min_select"] > selection["max_select"] ||
+                selection["max_select"].get<std::size_t>() > cards.size())
+                invalid("/run_flow/pending_choice", "inconsistent selection bounds or deck aliases");
+            std::set<std::size_t> seen;
+            for (std::size_t i = 0; i < indices.size(); ++i) if (!indices[i].is_null()) {
+                const auto index = indices[i].get<std::size_t>();
+                const auto& deck = value["players"][0]["deck"];
+                if (index >= deck.size() || !seen.insert(index).second || cards[i] != deck[index])
+                    invalid("/run_flow/pending_choice/deck_indices", "invalid native deck alias");
+            }
+        }
+        if (!selection.is_null() && flow["operations"].empty())
+            invalid("/run_flow/operations", "pending choice requires a suspended operation");
+    }
     const auto& choice = value["pending_choice"];
     if (!choice.is_null()) {
         if (choice["min_select"] > choice["max_select"] || choice["max_select"].get<std::size_t>() > choice["candidates"].size())

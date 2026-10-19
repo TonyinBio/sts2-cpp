@@ -62,18 +62,19 @@ def check_scope(actions):
 
 class JsonProcess:
     """Single-flight line protocol with deadlines and continuously drained stderr."""
-    def __init__(self, command, env, log_prefix, timeout):
+    def __init__(self, command, env, log_prefix, timeout, log_protocol=True):
         self.timeout = timeout
         self.lines = queue.Queue()
         self.stdout_log = open(str(log_prefix) + '.stdout.log', 'w')
         self.stderr_log = open(str(log_prefix) + '.stderr.log', 'w')
         self.process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE, text=True, env=env)
+                                        stderr=subprocess.PIPE, text=True, env=env, start_new_session=True)
         def drain_stdout():
             try:
                 for line in self.process.stdout:
-                    self.stdout_log.write(line)
-                    self.stdout_log.flush()
+                    if log_protocol or not line.lstrip().startswith(('{', '[')):
+                        self.stdout_log.write(line)
+                        self.stdout_log.flush()
                     self.lines.put(line)
             finally:
                 self.lines.put(None)
@@ -135,6 +136,12 @@ def inject(source):
     text = text.replace('public class RunSimulator', 'public partial class RunSimulator', 1)
     # Avoid UI preview calculations and post-combat reward generation in recording mode.
     text = text.replace(anchor, anchor + '\n        if (_oracleActive) return new() { ["type"] = "oracle_ack" };', 1)
+    require(text.count('CardSelectCmd.UseSelector(_cardSelector);') == 2,
+            'Unexpected native card selector setup')
+    require(text.count('sim._pendingBundles = bundles;') == 1,
+            'Unexpected bundle selector setup')
+    text = text.replace("CardSelectCmd.UseSelector(_cardSelector);", "CardSelectCmd.UseSelector(_oracleRunMode ? (MegaCrit.Sts2.Core.TestSupport.ICardSelector)_runSelector : _cardSelector);")
+    text = text.replace("sim._pendingBundles = bundles;", "sim._runBundleOwner = RunOwnerContext.Value;\n        sim._pendingBundles = bundles;")
     sim.write_text(text)
     program = source / 'Program.cs'
     text = program.read_text()
@@ -142,13 +149,16 @@ def inject(source):
     program.write_text(text.replace('case "start_run":',
         'case "oracle_start": return sim.OracleStart(cmd);\n'
         '            case "oracle_action": return sim.OracleAction(cmd);\n'
+        '            case "oracle_run_start": return sim.OracleRunStart(cmd);\n'
+        '            case "oracle_run_action": return sim.OracleRunAction(cmd);\n'
+        '            case "oracle_run_state": return sim.OracleRunState(cmd);\n'
         '            case "start_run":', 1))
-    for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs'):
+    for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs', 'RunRecordingSession.cs'):
         shutil.copy2(Path(__file__).parent / 'adapters' / name, source)
 
 
 @contextlib.contextmanager
-def reference_build(game_dir, log_dir):
+def reference_build(game_dir, log_dir, extra_sources=()):
     game = game_dir.resolve()
     if not (game / 'sts2.dll').is_file():
         candidates = list(game.glob('data_*/sts2.dll'))
@@ -178,7 +188,7 @@ def reference_build(game_dir, log_dir):
         inputs = [p for p in (root / 'src').rglob('*') if p.suffix in ('.cs', '.csproj')]
         for path in sorted(inputs):
             digest.update(path.relative_to(root).as_posix().encode() + b'\0' + path.read_bytes())
-        for path in [Path(__file__), *sorted((REPO / 'tests/parity/schema').glob('*.json')),
+        for path in [Path(__file__), *extra_sources, *sorted((REPO / 'tests/parity/schema').glob('*.json')),
                      REPO / 'docs/specs/schemas/run-parity-v1.schema.json',
                      REPO / 'docs/specs/schemas/serializable-run-v20.schema.json',
                      *sorted(lib.glob('*.dll'))]:
@@ -194,7 +204,9 @@ def reference_build(game_dir, log_dir):
                {'revision': revision, 'game_dll_sha256': GAME_SHA256, 'adapter_sha256': digest.hexdigest()})
 
 
-def record_session(command, env, actions, validator, log_prefix, timeout):
+def record_session(command, env, actions, validator, log_prefix, timeout, checkpoint_every=1):
+    require(isinstance(checkpoint_every, int) and not isinstance(checkpoint_every, bool) and checkpoint_every > 0,
+            'Checkpoint interval must be a positive integer')
     host = JsonProcess(command, env, log_prefix, timeout)
     try:
         require(host.receive().get('type') == 'ready', 'Missing reference ready message')
@@ -211,7 +223,7 @@ def record_session(command, env, actions, validator, log_prefix, timeout):
         transitions = []
         previous = initial
         for index, entry in enumerate(actions['actions']):
-            require(previous['boundary_kind'] != 'run_complete', f'{entry["id"]}: action after combat end')
+            require(previous['boundary_kind'] != 'run_complete', f'{entry["id"]}: action after run completion')
             request_id = f'action-{index}'
             try:
                 response = host.send({'cmd': 'oracle_action', 'request_id': request_id, 'action': entry['action']})
@@ -219,7 +231,9 @@ def record_session(command, env, actions, validator, log_prefix, timeout):
                 raise RuntimeError(f'Action {index} ({entry["id"]}): {error}') from error
             require(all(response.get(key) == value for key, value in identity.items()), 'Reference identity changed')
             previous = state(response, request_id)
-            transitions.append({'action_id': entry['id'], 'state': previous})
+            if ((index + 1) % checkpoint_every == 0 or index + 1 == len(actions['actions']) or
+                    previous['boundary_kind'] == 'run_complete'):
+                transitions.append({'action_id': entry['id'], 'state': previous})
         require(host.send({'cmd': 'quit'}).get('type') == 'quit_result', 'Reference shutdown failed')
         host.process.wait(timeout=timeout)
         require(host.process.returncode == 0, 'Reference exited unsuccessfully')
@@ -252,8 +266,11 @@ def main():
     parser.add_argument('--validator', type=Path, default=REPO / 'build/debug/parity_validate')
     parser.add_argument('--verify-repeat', action='store_true')
     parser.add_argument('--timeout', type=float, default=30)
+    parser.add_argument('--checkpoint-every', type=int, default=1, metavar='N',
+                        help='Save a state after every N actions, plus the final action (default: 1)')
     args = parser.parse_args()
     require(args.timeout > 0, 'Timeout must be positive')
+    require(args.checkpoint_every > 0, 'Checkpoint interval must be a positive integer')
     require(args.actions.resolve() != args.output.resolve(), 'Output must not overwrite the action input')
     validator = args.validator.resolve()
     require(validator.is_file(), 'Build the parity_validate CMake target first, or pass --validator')
@@ -265,15 +282,16 @@ def main():
     logs = output.parent / (output.name + '.logs')
     logs.mkdir(parents=True, exist_ok=True)
     with reference_build(args.game_dir, logs) as (command, env, provenance):
-        states, identity = record_session(command, env, actions, validator, logs / 'run1', args.timeout)
+        states, identity = record_session(command, env, actions, validator, logs / 'run1', args.timeout, args.checkpoint_every)
         if args.verify_repeat:
-            repeated, repeated_identity = record_session(command, env, actions, validator, logs / 'run2', args.timeout)
+            repeated, repeated_identity = record_session(command, env, actions, validator, logs / 'run2', args.timeout, args.checkpoint_every)
             require(states == repeated and identity == repeated_identity, 'Same-input reference replay diverged')
     result = {'schema_version': 1, 'profile': 'states-v1', 'recording_id': actions['recording_id'],
               'actions_sha256': hashlib.sha256(raw).hexdigest(), 'reference': dict(provenance, **identity), **states}
     validate(validator, 'states', result, actions)
     atomic_write(output, result)
-    print(f'Recorded {len(result["transitions"])} transitions plus initial state: {output}')
+    print(f'Recorded {len(result["transitions"])} checkpoints plus initial state '
+          f'for {len(actions["actions"])} actions: {output}')
 
 
 if __name__ == '__main__':

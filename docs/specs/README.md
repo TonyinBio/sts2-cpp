@@ -9,6 +9,7 @@ and what has been checked against the installed game.
 | --- | --- |
 | Understand the intended full-game simulator | [Full-game design](full-game-simulator-design.md) |
 | Understand run and combat snapshots | [Run parity state](run-parity-spec.md) |
+| Play while recording actions and states | [Interactive recording](interactive-recording-spec.md) |
 | Record player decisions and replay them | [Action recording](action-recording-spec.md), then [Oracle recording](oracle-recording-spec.md) |
 | Read or validate a native game save | [Real-game save JSON](real-game-save-json-spec.md) |
 | Check what game state the adapter can read | [State-access probe](oracle-state-access-spec.md) |

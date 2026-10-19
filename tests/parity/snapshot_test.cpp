@@ -178,5 +178,31 @@ TEST(RunParityFormat, NormalizesReferenceDictionaryOrderAndLocalLabels) {
     EXPECT_TRUE(compare(parse(expected), parse(actual)).empty());
 }
 
+TEST(RunParityFormat, ValidatesNoncombatSelectionBoundsAndDeckAliases) {
+    auto value = example();
+    value["combat"] = nullptr;
+    value["pending_choice"] = nullptr;
+    value["native_model_state"] = Json::object();
+    value["run_flow"] = {
+        {"room", {{"kind", "rest_site"}, {"options", Json::array()}}},
+        {"pending_choice", {{"kind", "card_select"},
+            {"cards", Json::array({value["players"][0]["deck"][0]})},
+            {"deck_indices", Json::array({0})}, {"min_select", 1}, {"max_select", 1},
+            {"require_manual_confirmation", true}, {"cancelable", true}}},
+        {"reward_sets", Json::array()},
+        {"operations", Json::array({{{"kind", "choose_option"}, {"index", 1}}})},
+        {"combat_rewards_offered", false}};
+    EXPECT_NO_THROW(parse(value));
+    for (const auto& [pointer, replacement] : std::vector<std::pair<std::string, Json>>{
+        {"/run_flow/pending_choice/max_select", 2},
+        {"/run_flow/pending_choice/deck_indices", Json::array()},
+        {"/run_flow/pending_choice/deck_indices/0", 999},
+        {"/run_flow/operations", Json::array()}}) {
+        auto broken = value;
+        broken[Json::json_pointer(pointer)] = replacement;
+        EXPECT_THROW(parse(broken), std::invalid_argument) << pointer;
+    }
+}
+
 }
 }

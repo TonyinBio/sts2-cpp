@@ -24,10 +24,31 @@ void validate(const Json& value) {
     validate_state_recording(value, ActionRecording::parse(actions(), features), features);
 }
 TEST(StateRecording, ValidatesEnvelopeAndRunParitySchema) { EXPECT_NO_THROW(validate(example())); }
-TEST(StateRecording, RejectsMissingExtraOrReorderedTransitions) {
+TEST(StateRecording, AcceptsSparseAndInitialOnlyCheckpoints) {
     auto value = example(); value["transitions"].erase(0);
+    EXPECT_NO_THROW(validate(value));
+    value = example(); value["transitions"] = Json::array({value["transitions"].back()});
+    EXPECT_NO_THROW(validate(value));
+    value["transitions"] = Json::array();
+    EXPECT_NO_THROW(validate(value));
+}
+TEST(StateRecording, AcceptsCheckpointsAfterFiveAndTenActions) {
+    auto input = actions(); input["actions"] = Json::array();
+    for (int i = 1; i <= 12; ++i)
+        input["actions"].push_back({{"id", "action-" + std::to_string(i)}, {"action", {{"kind", "end_turn"}}}});
+    auto value = example();
+    const auto state = value["initial"];
+    value["transitions"] = Json::array({
+        {{"action_id", "action-5"}, {"state", state}},
+        {{"action_id", "action-10"}, {"state", state}}});
+    EXPECT_NO_THROW(validate_state_recording(value, ActionRecording::parse(input, features), features));
+}
+TEST(StateRecording, RejectsUnknownDuplicateOrReorderedCheckpoints) {
+    auto value = example(); value["transitions"][0]["action_id"] = "unknown";
     EXPECT_THROW(validate(value), std::invalid_argument);
     value = example(); value["transitions"].push_back(value["transitions"][0]);
+    EXPECT_THROW(validate(value), std::invalid_argument);
+    value = example(); value["transitions"][1]["action_id"] = value["transitions"][0]["action_id"];
     EXPECT_THROW(validate(value), std::invalid_argument);
     value = example(); std::swap(value["transitions"][0], value["transitions"][1]);
     EXPECT_THROW(validate(value), std::invalid_argument);
@@ -45,6 +66,27 @@ TEST(StateRecording, RejectsActionsAfterTerminalState) {
     state["run_ending_reason"] = "victory";
     state["pending_choice"] = nullptr;
     EXPECT_THROW(validate(value), std::invalid_argument);
+}
+TEST(StateRecording, RejectsUnrecordedActionsAfterTerminalCheckpoint) {
+    auto value = example();
+    auto step = value["transitions"][0];
+    step["state"]["boundary_kind"] = "run_complete";
+    step["state"]["run_ending_reason"] = "death";
+    step["state"]["pending_choice"] = nullptr;
+    value["transitions"] = Json::array({step});
+    EXPECT_THROW(validate(value), std::invalid_argument);
+    value["transitions"][0]["action_id"] = actions()["actions"].back()["id"];
+    EXPECT_NO_THROW(validate(value));
+}
+TEST(StateRecording, TerminalInitialStateRequiresNoActions) {
+    auto value = example();
+    value["transitions"] = Json::array();
+    value["initial"]["boundary_kind"] = "run_complete";
+    value["initial"]["run_ending_reason"] = "victory";
+    value["initial"]["pending_choice"] = nullptr;
+    EXPECT_THROW(validate(value), std::invalid_argument);
+    auto input = actions(); input["actions"] = Json::array();
+    EXPECT_NO_THROW(validate_state_recording(value, ActionRecording::parse(input, features), features));
 }
 TEST(StateRecording, AllowsDocumentLocalLabelsAcrossBoundaries) {
     auto value = example();

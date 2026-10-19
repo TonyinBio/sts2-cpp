@@ -920,5 +920,6 @@
     "max_select": 1,
     "require_manual_confirmation": false,
     "cancelable": false
-  }
+  },
+  "run_flow": null
 }

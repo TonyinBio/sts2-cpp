@@ -73,8 +73,55 @@ The installed-DLL state-access check and its verified scope are documented in
 The [run parity state format](docs/specs/run-parity-spec.md) defines the shared run and
 combat snapshot schema, validation, identity/order rules, and exact comparison behavior.
 Run its offline tests with `ctest --preset debug -L combat_state`. The reference exporter
-supports the audited starter encounter; simulator fixture replay is not implemented yet.
+supports the audited starter encounter; partial simulator snapshot replay is described below.
 
 The [action-recording format](docs/specs/action-recording-spec.md) defines versioned inputs
 using the run-parity state schema. The [oracle recorder](docs/specs/oracle-recording-spec.md)
 executes supported sequences against local game DLLs and writes validated state transitions.
+
+Play the supported starter combat while recording your decisions and state checkpoints:
+
+```sh
+python3 tools/oracle/play.py --game-dir '/path/to/game' \
+  --output-dir build/recordings/my-session --checkpoint-every 5
+```
+
+Use `play 1`, `end`, `save`, and `quit` in the prompt. See
+[interactive recording](docs/specs/interactive-recording-spec.md) for setup, output files,
+and the current Ironclad/Shrinker combat scope.
+
+## Replay parity harness
+
+`replay_parity_test` exercises the full-state replay comparator with actions-v1 and
+states-v1 inputs. Run `ctest --preset debug -L replay_parity`. Tests require OpenSSL
+Crypto development headers for SHA-256 verification.
+
+`tests/parity/support/replay.hpp` provides a backend interface for restoring the initial
+snapshot, action execution (including stable identity resolution), and settled-boundary
+snapshot export. The runner validates both recordings, verifies the exact action-file digest and
+independently supplied reference provenance, compares initialization and each recorded
+checkpoint, and stops at the first divergence. It executes all actions even when
+checkpoints are sparse. Differences include the action ID, JSON Pointer, expected value,
+and actual value. Exact decimal values and document-local reference normalization use
+the existing snapshot comparator.
+
+`SimulatorSnapshot` in `tests/parity/support/simulator_snapshot.hpp` is the incremental
+C++ adapter. `load(initial)` restores player HP/block, enemy HP, energy, turn and up to
+five Strike/Defend hand cards into `CombatState`. `snapshot()` writes these fields and
+ordered hand/discard references back into the shared schema. `backend()` connects this
+adapter directly to `replay_parity`; initialization receives the validated initial
+snapshot, so replay does not need seeded combat construction.
+
+The adapter preserves unmodeled fields from the initial snapshot, including RNG,
+history, powers and monster AI. Those fields are frozen, not simulated; no subsequent
+expected checkpoint is supplied to the adapter. As simulator support grows, replace
+these preserved fields with loaded runtime state and independently generated output.
+A passing initial round trip only tests restoration, not full game parity.
+
+Action IDs follow the reference driver's initial Hand/Draw/Discard/Exhaust/Play card
+enumeration independently of snapshot table labels. The adapter supports playing Strike
+against `enemy_0` and untargeted Defend. It rejects end-turn and selection actions until
+draw/shuffle identities and selection state are implemented. The live fixture now loads
+successfully and reports its first gameplay divergence at `defend-1`, where unimplemented
+history/runtime changes differ. Tests cover this expected failure as well as loader,
+state output, identity resolution and exact preservation of unmodeled decimals.

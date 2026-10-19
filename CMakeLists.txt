@@ -70,6 +70,16 @@ if(BUILD_TESTING)
   target_compile_definitions(state_recording_test PRIVATE
     PARITY_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/examples/starter.json"
     ACTION_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/examples/starter.actions.json")
+  find_package(OpenSSL REQUIRED COMPONENTS Crypto)
+  add_library(parity_replay_support STATIC tests/parity/support/replay.cpp
+    tests/parity/support/simulator_snapshot.cpp)
+  target_link_libraries(parity_replay_support PUBLIC combat_state sts2_simulator PRIVATE OpenSSL::Crypto)
+  add_executable(replay_parity_test tests/parity/replay_parity_test.cpp)
+  target_link_libraries(replay_parity_test PRIVATE GTest::gtest_main
+    parity_replay_support sts2_simulator OpenSSL::Crypto)
+  target_compile_definitions(replay_parity_test PRIVATE
+    ACTION_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/examples/starter.actions.json"
+    STATE_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/fixtures/starter.states.json")
   find_package(Python3 COMPONENTS Interpreter QUIET)
   if(Python3_Interpreter_FOUND)
     add_test(NAME run_parity_schema COMMAND "${Python3_EXECUTABLE}"
@@ -80,8 +90,12 @@ if(BUILD_TESTING)
     add_test(NAME oracle_recorder_unit COMMAND "${Python3_EXECUTABLE}"
       "${CMAKE_CURRENT_SOURCE_DIR}/tests/oracle/test_record.py" "$<TARGET_FILE:parity_validate>")
     set_tests_properties(oracle_recorder_unit PROPERTIES LABELS "recorder")
+    add_test(NAME interactive_recorder_unit COMMAND "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/oracle/test_play.py" "$<TARGET_FILE:parity_validate>")
+    set_tests_properties(interactive_recorder_unit PROPERTIES LABELS "recorder")
   endif()
   include(GoogleTest)
+  gtest_discover_tests(replay_parity_test PROPERTIES LABELS replay_parity)
   gtest_discover_tests(state_recording_test PROPERTIES LABELS state_recording)
   gtest_discover_tests(action_recording_test PROPERTIES LABELS action_recording)
   gtest_discover_tests(combat_state_test PROPERTIES LABELS combat_state)

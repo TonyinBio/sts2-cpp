@@ -30,6 +30,9 @@
           },
           "pending_choice": {
             "type": "null"
+          },
+          "run_flow": {
+            "type": "null"
           }
         }
       },
@@ -134,6 +137,16 @@
           "type": "null"
         }
       ]
+    },
+    "run_flow": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RunFlow"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "required": [
@@ -142,7 +155,8 @@
     "current_room",
     "native_model_state",
     "combat",
-    "pending_choice"
+    "pending_choice",
+    "run_flow"
   ],
   "unevaluatedProperties": false,
   "$defs": {
@@ -3260,6 +3274,642 @@
           "additionalProperties": false
         }
       ]
+    },
+    "RunMapChoice": {
+      "type": "object",
+      "properties": {
+        "col": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "row": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "point_type": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "col",
+        "row",
+        "point_type"
+      ],
+      "additionalProperties": false
+    },
+    "RunEventOption": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "is_locked": {
+          "type": "boolean"
+        },
+        "is_proceed": {
+          "type": "boolean"
+        },
+        "was_chosen": {
+          "type": "boolean"
+        },
+        "relic": {
+          "anyOf": [
+            {
+              "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRelic"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "key",
+        "is_locked",
+        "is_proceed",
+        "was_chosen",
+        "relic"
+      ],
+      "additionalProperties": false
+    },
+    "RunRestOption": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "enabled"
+      ],
+      "additionalProperties": false
+    },
+    "RunShopCard": {
+      "type": "object",
+      "properties": {
+        "saved": {
+          "anyOf": [
+            {
+              "$ref": "serializable-run-v20.schema.json#/$defs/SerializableCard"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "base_price": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "price": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "stocked": {
+          "type": "boolean"
+        },
+        "on_sale": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "saved",
+        "base_price",
+        "price",
+        "stocked",
+        "on_sale"
+      ],
+      "additionalProperties": false
+    },
+    "RunShopRelic": {
+      "type": "object",
+      "properties": {
+        "saved": {
+          "anyOf": [
+            {
+              "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRelic"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "base_price": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "price": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "stocked": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "saved",
+        "base_price",
+        "price",
+        "stocked"
+      ],
+      "additionalProperties": false
+    },
+    "RunShopPotion": {
+      "type": "object",
+      "properties": {
+        "saved": {
+          "anyOf": [
+            {
+              "$ref": "serializable-run-v20.schema.json#/$defs/SerializablePotion"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "base_price": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "price": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "stocked": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "saved",
+        "base_price",
+        "price",
+        "stocked"
+      ],
+      "additionalProperties": false
+    },
+    "RunRoom": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "map"
+            },
+            "current_coord": {
+              "anyOf": [
+                {
+                  "$ref": "serializable-run-v20.schema.json#/$defs/MapCoord"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "choices": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/RunMapChoice"
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "current_coord",
+            "choices"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "event"
+            },
+            "id": {
+              "$ref": "serializable-run-v20.schema.json#/$defs/ModelId"
+            },
+            "finished": {
+              "type": "boolean"
+            },
+            "page": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/RunEventOption"
+              }
+            },
+            "dynamic_vars": {
+              "$ref": "#/$defs/DynamicVars"
+            },
+            "string_vars": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "rng": {
+              "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRng"
+            }
+          },
+          "required": [
+            "kind",
+            "id",
+            "finished",
+            "page",
+            "options",
+            "dynamic_vars",
+            "string_vars",
+            "rng"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "rest_site"
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/RunRestOption"
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "options"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "shop"
+            },
+            "cards": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/RunShopCard"
+              }
+            },
+            "relics": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/RunShopRelic"
+              }
+            },
+            "potions": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/RunShopPotion"
+              }
+            },
+            "removal": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "base_price": {
+                      "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+                    },
+                    "price": {
+                      "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+                    },
+                    "used": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "base_price",
+                    "price",
+                    "used"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "cards",
+            "relics",
+            "potions",
+            "removal"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "treasure"
+            },
+            "relics": {
+              "type": "array",
+              "items": {
+                "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRelic"
+              }
+            },
+            "picked": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "relics",
+            "picked"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "combat_end"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "victory"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "RunPendingChoice": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "card_select"
+            },
+            "cards": {
+              "type": "array",
+              "items": {
+                "$ref": "serializable-run-v20.schema.json#/$defs/SerializableCard"
+              }
+            },
+            "deck_indices": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "min_select": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_select": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "require_manual_confirmation": {
+              "type": "boolean"
+            },
+            "cancelable": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "cards",
+            "deck_indices",
+            "min_select",
+            "max_select",
+            "require_manual_confirmation",
+            "cancelable"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "card_reward"
+            },
+            "cards": {
+              "type": "array",
+              "items": {
+                "$ref": "serializable-run-v20.schema.json#/$defs/SerializableCard"
+              }
+            },
+            "alternatives": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "can_skip": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "cards",
+            "alternatives",
+            "can_skip"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "bundle_select"
+            },
+            "bundles": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "serializable-run-v20.schema.json#/$defs/SerializableCard"
+                }
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "bundles"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "RunReward": {
+      "type": "object",
+      "properties": {
+        "saved": {
+          "anyOf": [
+            {
+              "$ref": "serializable-run-v20.schema.json#/$defs/SerializableReward"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "taken": {
+          "type": "boolean"
+        },
+        "cards": {
+          "type": "array",
+          "items": {
+            "$ref": "serializable-run-v20.schema.json#/$defs/SerializableCard"
+          }
+        },
+        "relic": {
+          "anyOf": [
+            {
+              "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRelic"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "potion": {
+          "anyOf": [
+            {
+              "$ref": "serializable-run-v20.schema.json#/$defs/SerializablePotion"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "can_skip": {
+          "type": "boolean"
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "kind",
+        "saved",
+        "taken",
+        "cards",
+        "relic",
+        "potion",
+        "can_skip"
+      ],
+      "additionalProperties": false
+    },
+    "RunRewardSet": {
+      "type": "object",
+      "properties": {
+        "rewards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RunReward"
+          }
+        },
+        "can_skip": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "rewards",
+        "can_skip"
+      ],
+      "additionalProperties": false
+    },
+    "RunFlow": {
+      "type": "object",
+      "properties": {
+        "room": {
+          "$ref": "#/$defs/RunRoom"
+        },
+        "pending_choice": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RunPendingChoice"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reward_sets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RunRewardSet"
+          }
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "index": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "index"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "combat_rewards_offered": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "room",
+        "pending_choice",
+        "reward_sets",
+        "operations",
+        "combat_rewards_offered"
+      ],
+      "additionalProperties": false
     }
   }
 }

@@ -13,8 +13,9 @@ void validate_state_recording(const nlohmann::json& value, const ActionRecording
     const auto& actions = recording.json();
     if (value["recording_id"] != actions["recording_id"])
         detail::invalid("/recording_id", "recording identity mismatch");
-    if (value["transitions"].size() != actions["actions"].size())
-        detail::invalid("/transitions", "expected exactly one state per action");
+    std::map<std::string, std::size_t> action_positions;
+    for (std::size_t i = 0; i < actions["actions"].size(); ++i)
+        action_positions.emplace(actions["actions"][i]["id"].get<std::string>(), i);
     // Table labels are document-local, so identity cannot be compared by label
     // across boundaries. Each state validates its own reference graph.
     auto check = [&](const nlohmann::json& state, const std::string& path) {
@@ -22,15 +23,21 @@ void validate_state_recording(const nlohmann::json& value, const ActionRecording
         catch (const std::invalid_argument& e) { detail::invalid(path, e.what()); }
     };
     check(value["initial"], "/initial");
-    auto boundary = value["initial"]["boundary_kind"];
+    if (value["initial"]["boundary_kind"] == "run_complete" && !actions["actions"].empty())
+        detail::invalid("/initial", "actions follow terminal state");
+    std::size_t next_action = 0;
     for (std::size_t i = 0; i < value["transitions"].size(); ++i) {
         const auto path = "/transitions/" + std::to_string(i);
-        if (boundary == "run_complete") detail::invalid(path, "action follows terminal state");
         const auto& step = value["transitions"][i];
-        if (step["action_id"] != actions["actions"][i]["id"])
-            detail::invalid(path + "/action_id", "action identity/order mismatch");
+        const auto found = action_positions.find(step["action_id"].get<std::string>());
+        if (found == action_positions.end())
+            detail::invalid(path + "/action_id", "unknown action identity");
+        if (found->second < next_action)
+            detail::invalid(path + "/action_id", "duplicate or out-of-order checkpoint");
+        next_action = found->second + 1;
         check(step["state"], path + "/state");
-        boundary = step["state"]["boundary_kind"];
+        if (step["state"]["boundary_kind"] == "run_complete" && next_action < actions["actions"].size())
+            detail::invalid(path + "/state", "actions follow terminal checkpoint");
     }
 }
 }

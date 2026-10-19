@@ -95,6 +95,85 @@ class RecorderTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'Invalid actions'):
             validate(VALIDATOR, 'actions', {'profile': 'wrong'})
 
+    def fake_session(self, checkpoint_every=1, action_count=12, terminal_after=-1, invalid_after=-1):
+        if VALIDATOR is None:
+            self.skipTest('Pass parity_validate executable')
+        repo = Path(__file__).resolve().parents[2]
+        actions = strict_json((repo / 'tests/parity/examples/starter.actions.json').read_bytes())
+        actions['actions'] = [{'id': f'action-{i}', 'action': {'kind': 'end_turn'}}
+                              for i in range(1, action_count + 1)]
+        # A protocol peer records every dispatched action and stamps the state with
+        # its position, so the assertions verify execution as well as sampling.
+        code = r"""
+import json, sys
+state = json.load(open(sys.argv[1]))['initial']
+terminal_after, invalid_after = map(int, sys.argv[3:5])
+count = 0
+print(json.dumps({'type': 'ready'}), flush=True)
+for line in sys.stdin:
+    command = json.loads(line)
+    if command['cmd'] == 'quit':
+        print(json.dumps({'type': 'quit_result'}), flush=True)
+        break
+    if command['cmd'] == 'oracle_action':
+        count += 1
+        with open(sys.argv[2], 'a') as log:
+            log.write(json.dumps(command['action']) + '\n')
+    snapshot = json.loads(json.dumps(state))
+    snapshot['run_time'] = count
+    if count == terminal_after:
+        snapshot.update(boundary_kind='run_complete', run_ending_reason='death', pending_choice=None)
+        snapshot['combat']['turn_control']['is_in_progress'] = False
+    if count == invalid_after:
+        del snapshot['native_model_state']
+    print(json.dumps({'type': 'oracle_state', 'request_id': command['request_id'],
+                      'assembly_mvid': 'fake', 'runtime_version': 'fake', 'state': snapshot}), flush=True)
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'actions.log'
+            command = [sys.executable, '-c', code,
+                       str(repo / 'tests/parity/fixtures/starter.states.json'), str(log),
+                       str(terminal_after), str(invalid_after)]
+            sequence, identity = record_session(command, os.environ, actions, VALIDATOR,
+                                                Path(directory) / 'fake', 10, checkpoint_every)
+            dispatched = [json.loads(line) for line in log.read_text().splitlines()] if log.exists() else []
+            self.assertEqual(dispatched, [entry['action'] for entry in actions['actions']])
+            return sequence
+
+    def test_sparse_checkpoints_execute_every_action_and_include_final_partial_interval(self):
+        value = self.fake_session(checkpoint_every=5)
+        self.assertEqual([step['action_id'] for step in value['transitions']],
+                         ['action-5', 'action-10', 'action-12'])
+        self.assertEqual([step['state']['run_time'] for step in value['transitions']], [5, 10, 12])
+        self.assertEqual(value['initial']['run_time'], 0)
+
+    def test_default_records_every_action(self):
+        self.assertEqual(len(self.fake_session(action_count=3)['transitions']), 3)
+
+    def test_long_interval_still_records_final_action(self):
+        value = self.fake_session(checkpoint_every=20, action_count=3)
+        self.assertEqual([step['action_id'] for step in value['transitions']], ['action-3'])
+
+    def test_zero_actions_records_only_initial_state(self):
+        self.assertEqual(self.fake_session(checkpoint_every=5, action_count=0)['transitions'], [])
+
+    def test_invalid_intermediate_state_is_rejected_even_when_not_saved(self):
+        with self.assertRaisesRegex(RuntimeError, 'Invalid snapshot'):
+            self.fake_session(checkpoint_every=5, invalid_after=2)
+
+    def test_terminal_state_between_checkpoints_stops_following_actions(self):
+        with self.assertRaisesRegex(RuntimeError, 'action after run completion'):
+            self.fake_session(checkpoint_every=5, terminal_after=2)
+
+    def test_final_terminal_state_is_retained_between_checkpoints(self):
+        value = self.fake_session(checkpoint_every=5, action_count=2, terminal_after=2)
+        self.assertEqual(value['transitions'][0]['state']['boundary_kind'], 'run_complete')
+
+    def test_invalid_checkpoint_intervals_fail_before_launching_reference(self):
+        for interval in (0, -1, 1.5, True):
+            with self.subTest(interval=interval), self.assertRaisesRegex(RuntimeError, 'positive integer'):
+                record_session([], {}, {}, None, Path('/unused'), 1, interval)
+
     def test_response_identity_mismatch_fails_before_publication(self):
         with tempfile.TemporaryDirectory() as directory:
             code = 'import json,sys; print(json.dumps({"type":"ready"}),flush=True); sys.stdin.readline(); print(json.dumps({"type":"oracle_state","request_id":"wrong"}),flush=True)'

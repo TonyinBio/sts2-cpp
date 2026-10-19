@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdint>
 #include <regex>
+#include <map>
 #include <set>
 #include <stdexcept>
 namespace sts2::parity::detail {
@@ -116,8 +117,14 @@ Evaluated check(const Json& value, const Json& rule, const Json& root, const std
     if (value.is_string()) {
         const auto& text = value.get_ref<const std::string&>();
         if (text.size() < rule.value("minLength", std::size_t{0})) invalid(path, "string too short");
-        if (rule.contains("pattern") && !std::regex_search(text, std::regex(rule["pattern"].get<std::string>())))
-            invalid(path, "string does not match pattern");
+        if (rule.contains("pattern")) {
+            // Native runs repeat model IDs hundreds of times. Reuse the few
+            // embedded schema patterns instead of recompiling for every value.
+            static thread_local std::map<std::string, std::regex> patterns;
+            const auto pattern = rule["pattern"].get<std::string>();
+            const auto matcher = patterns.try_emplace(pattern, pattern).first;
+            if (!std::regex_search(text, matcher->second)) invalid(path, "string does not match pattern");
+        }
         if (rule.value("format", "") == "uint64-decimal") {
             std::uint64_t word;
             const auto [end, error] = std::from_chars(text.data(), text.data() + text.size(), word);

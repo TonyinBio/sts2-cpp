@@ -5,7 +5,7 @@
   `support/` contains their shared C++ validation and comparison code;
   `schema/`, `examples/`, and `fixtures/` contain the interchange contracts and data.
 - `oracle/`: offline Python tests for the reference recorder, native saves, and
-  proposed run-parity schema. These import utilities from `tools/oracle/`.
+  run-parity schema and interactive recording. These import utilities from `tools/oracle/`.
 - `native/fixtures/`: golden native serialization data and its provenance.
 
 Run the configured C++ and Python tests with:

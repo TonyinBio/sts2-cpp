@@ -17,13 +17,13 @@ except ImportError:
     Draft202012Validator = None
 
 EXTENSIONS = {'boundary_kind', 'run_ending_reason', 'current_room',
-              'native_model_state', 'combat', 'pending_choice'}
+              'native_model_state', 'combat', 'pending_choice', 'run_flow'}
 
 
 def fixture(native):
     value = copy.deepcopy(native)
     value.update(boundary_kind='awaiting_input', run_ending_reason=None,
-                 current_room=None, native_model_state={}, combat=None, pending_choice=None)
+                 current_room=None, native_model_state={}, combat=None, pending_choice=None, run_flow=None)
     return value
 
 
@@ -245,6 +245,33 @@ class RunParitySchemaTests(unittest.TestCase):
             mutate(value)
             with self.subTest(index=index):
                 self.assertFalse(self.validator.is_valid(value))
+
+    def test_noncombat_rooms_and_pending_choices(self):
+        rooms = [dict(kind='map', current_coord=None, choices=[]),
+                 dict(kind='rest_site', options=[dict(id='SMITH', enabled=True)]),
+                 dict(kind='shop', cards=[], relics=[], potions=[], removal=None),
+                 dict(kind='treasure', relics=[], picked=False),
+                 dict(kind='combat_end'), dict(kind='victory')]
+        card = copy.deepcopy(self.native['players'][0]['deck'][0])
+        choices = [None,
+            dict(kind='card_select', cards=[card], deck_indices=[0], min_select=1,
+                 max_select=1, require_manual_confirmation=True, cancelable=False),
+            dict(kind='card_reward', cards=[card], alternatives=['SkipCardRewardAlternative'], can_skip=True),
+            dict(kind='bundle_select', bundles=[[card]])]
+        for room in rooms:
+            for choice in choices:
+                value = fixture(self.native)
+                value['run_flow'] = dict(room=room, pending_choice=choice, reward_sets=[],
+                    operations=[] if choice is None else [dict(kind='choose_option', index=0)],
+                    combat_rewards_offered=False)
+                with self.subTest(room=room['kind'], choice=choice):
+                    self.validator.validate(value)
+                    broken = copy.deepcopy(value)
+                    broken['run_flow']['room']['unexpected'] = True
+                    self.assertFalse(self.validator.is_valid(broken))
+                    broken = copy.deepcopy(value)
+                    broken.update(boundary_kind='run_complete', run_ending_reason='abandoned')
+                    self.assertFalse(self.validator.is_valid(broken))
 
 
 if __name__ == '__main__':

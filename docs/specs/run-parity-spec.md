@@ -2,7 +2,8 @@
 
 This contract adds combat state and pending choices to the native run-save layout so
 tests can compare data held by both engines. The reference recorder implements a
-bounded starter-encounter exporter; paused effects and additional choice types still need coverage.
+bounded starter-encounter combat exporter and a separate noncombat run backend.
+Paused combat effects still need coverage.
 
 See the [shared terms](README.md#terms-used-in-these-sheets) for definitions of parity, snapshot, boundary, and model ID.
 
@@ -33,7 +34,8 @@ engine, or as the simulator's agent API.
 
 Snapshot `schema_version` is the native version, **20**. The state has no
 `profile` or `required_features`; feature coverage belongs to actions-v1 and source
-information belongs to the states-v1 recording envelope.
+information belongs to the states-v1 recording envelope. Its transitions may sample
+an ordered subset of action IDs; see [sparse checkpoints](action-recording-spec.md#sparse-checkpoints).
 
 `tests/parity/support/snapshot.*` validates the embedded schema and references, pile
 membership, player/card ownership, and selection bounds. Its comparator follows
@@ -227,3 +229,15 @@ checks for exporters/comparators. The schema tests include an illustrative Survi
 selection fixture and verify its reference resolution; the fixture is [synthetic
 example](schemas/examples/run-parity-survivor.json), not a claimed full export from the real
 engine.
+
+## Noncombat run flow
+
+The required `run_flow` field is null for combat exports and terminal snapshots.
+At noncombat input boundaries it contains a typed `room`, optional `pending_choice`,
+ordered `reward_sets`, suspended `operations`, and `combat_rewards_offered`.
+Room variants cover map, event, rest_site, shop, treasure, combat_end and victory.
+Card selections retain native saved cards and optional deck indices, exact selection
+bounds, manual confirmation and cancellation policy. Card rewards and bundles retain
+the concrete offered cards. The C++ validator checks selection bounds and deck aliases.
+The top-level `pending_choice` continues to describe combat selection only.
+See the [run backend protocol](oracle-recording-spec.md#run-backend) for capture scope.

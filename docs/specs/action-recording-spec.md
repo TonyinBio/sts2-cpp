@@ -142,19 +142,29 @@ run-state parser. The recorder produces:
   file bytes, reference submodule revision, original game DLL hash, adapter identity,
   and envelope profile. Adapter identity must cover exporter/runtime patch changes.
 - An initial run-parity-v1 snapshot after setup, before any player decision.
-- One subsequent run-parity-v1 snapshot per action, keyed by its unique action ID and in
-  execution order. Capture at the next settled awaiting_input or run_complete boundary,
+- Subsequent run-parity-v1 checkpoints for an ordered subset of actions, keyed by each
+  checkpoint's preceding action ID. Capture at the next settled awaiting_input or run_complete boundary,
   not merely when a command is acknowledged. Combat completion alone does not imply run_complete.
 
-### Required snapshot count
+### Sparse checkpoints
 
-For N actions, a complete recording has N+1 snapshots. A selection is an explicit action
-in the input, so a card that prompts for a choice yields a selection-boundary snapshot
-before the next recorded selection resolves it. Earlier-than-expected combat
-termination, unconsumed input, missing results, or failed export makes the recording
-incomplete. Do not present partial results as passing reference data or overwrite a good
-result file on failure. Verify source information and action-file digest before
-comparison.
+All player actions remain in the action input. The state recording always contains an
+initial snapshot; transitions may contain any strictly ordered subset of action IDs.
+A checkpoint describes the settled state after its named action, with all preceding
+actions executed. Omitted checkpoints do not mean omitted actions. Consumers replay
+every action between checkpoints, then compare at matching action IDs.
+
+For example, 12 actions can have checkpoints after actions 5 and 10, or after 5, 10 and
+12. With no transitions, only the initial state can be compared. The recorder's
+`--checkpoint-every 5` option chooses the latter sequence automatically, always including
+the final action. The default interval 1 retains N+1 snapshots for N actions. A choice
+answer remains an explicit action whether or not the preceding choice state is saved.
+
+Unknown, duplicate and out-of-order checkpoint IDs fail validation. A terminal initial
+state requires zero input actions; a terminal checkpoint must refer to the final input
+action. This also forbids unrecorded actions after a known terminal boundary.
+Early termination with unconsumed input or failed export still fails the recorder.
+Verify source information and action-file digest before comparison.
 
 The reference runner and scoped exporter are implemented in `tools/oracle/record.py` and
 `RecordingSession.cs`; see [Running the oracle recorder](oracle-recording-spec.md). The

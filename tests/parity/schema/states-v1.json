@@ -55,6 +55,7 @@
       "$ref": "../../../docs/specs/schemas/run-parity-v1.schema.json"
     },
     "transitions": {
+      "description": "Full-state checkpoints after a strictly ordered subset of action IDs. All actions remain in the associated actions-v1 file; omitted checkpoints do not omit actions.",
       "type": "array",
       "items": {
         "type": "object",
