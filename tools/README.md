@@ -3,8 +3,10 @@
 - `parity/validate_main.cpp`: entry point for the CMake `parity_validate` target,
   which validates run-parity snapshots, actions, and reference-state recordings.
 - `oracle/reference_runtime.py`: shared build, protocol, and validation helpers for interactive recording and live audits.
-- `oracle/play.py`: interactive action/state recorder with starter-combat and seeded-run modes.
+- `oracle/play.py`: sts2-cli play interface with validated action/state recording.
+- `oracle/upstream_play.py`: checked upstream interface hooks and gameplay-command recording transport.
 - `oracle/check_state_access.py`: probes access to game internals.
+- `oracle/check_play.py`: checks full-state equivalence of seeded gameplay with native display enabled and disabled.
 - `oracle/check_combat_export.py`: validates shared combat export and fail-closed model storage against the pinned game.
 - `oracle/combat-field-contract.json`: checked classifications for concrete model storage.
 - `oracle/check_combat_fields.py`: audits combat fields in the reference game.

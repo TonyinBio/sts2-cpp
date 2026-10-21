@@ -80,16 +80,17 @@ The [action-recording format](docs/specs/action-recording-spec.md) defines versi
 using the run-parity state schema. The [oracle recorder](docs/specs/oracle-recording-spec.md)
 executes supported sequences against local game DLLs and writes validated state transitions.
 
-Play the supported starter combat while recording your decisions and state checkpoints:
+Play through the sts2-cli interface while recording gameplay decisions and full state checkpoints:
 
 ```sh
 python3 tools/oracle/play.py --game-dir '/path/to/game' \
   --output-dir build/recordings/my-session --checkpoint-every 5
 ```
 
-Use `play 1`, `end`, `save`, and `quit` in the prompt. See
-[interactive recording](docs/specs/interactive-recording-spec.md) for setup, output files,
-and the current Ironclad/Shrinker combat scope.
+Use the displayed zero-based indices, `e` to end your turn, and the usual sts2-cli
+inspection and save commands. Add `--character Silent` to choose another character.
+See [interactive recording](docs/specs/interactive-recording-spec.md) for controls,
+output files, and coverage limits.
 
 ## Replay parity harness
 

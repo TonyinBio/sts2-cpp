@@ -34,6 +34,8 @@ def check(game_dir, validator, logs):
                     state = host.send(request)['state']
                     reference.validate(validator, 'snapshot', state)
                     reference.require(state['pending_choice'] is not None, 'Missing suspended choice')
+                    display = host.send({'cmd': 'oracle_display'})
+                    reference.require(display['decision'] == 'card_select' and display['cards'], 'Missing selection display')
                     repeated = host.send(dict(cmd='oracle_run_state', request_id='repeat'))['state']
                     reference.require(repeated == state, 'Repeated capture changed full state')
                     # Discovery allows cancellation; Survivor requires a discard.

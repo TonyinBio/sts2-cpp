@@ -200,12 +200,11 @@ action. This also forbids unrecorded actions after a known terminal boundary.
 Early termination with unconsumed input or failed export still fails the recorder.
 Verify source information and action-file digest before comparison.
 
-The reference runner and scoped exporter are implemented in `tools/oracle/play.py` and
-`RecordingSession.cs`; see [Running the oracle recorder](oracle-recording-spec.md). The
-current exporter supports `play_card` and `end_turn` in the audited starter encounter.
-Selection actions remain part of actions-v1 but are explicitly rejected by this
-exporter. These files are comparison inputs; snapshot-based engine initialization and
-a C++ replay exporter for the full run-parity contract are not implemented.
+The reference interface is `tools/oracle/play.py`, backed by the recording transport
+and shared C# run/combat adapters. See [Running the oracle recorder](oracle-recording-spec.md).
+The interface records gameplay decisions, including automatic room/reward transitions,
+and excludes inspection commands. Pending choices are separate recorded decisions.
+A complete C++ replay exporter for the full run-parity contract is not implemented.
 
 ## Validation and checks
 

@@ -172,6 +172,20 @@ def inject(source):
     public void Pump() => Post(_ => { }, null);
 }
 """ + text[context_end:]
+    # Reuse upstream event formatting without its implicit transitions or pumping.
+    event_start = text.index('    private Dictionary<string, object?> EventChoiceState(')
+    event_end = text.index('    private Dictionary<string, object?> RestSiteState(', event_start)
+    event = text[event_start:event_end]
+    body = event[event.index('        var options = currentOptions'):]
+    event = """    private Dictionary<string, object?> RecordingEventState(EventRoom eventRoom)
+    {
+        var localEvent = MegaCrit.Sts2.Core.Runs.RunManager.Instance.EventSynchronizer.GetLocalEvent();
+        Require(localEvent != null && !localEvent.IsFinished, "Event must settle before display");
+        var currentOptions = localEvent.CurrentOptions;
+""" + body
+    text = text[:event_end] + event + text[event_end:]
+    require(text.count('["potions"] = player.Potions?.Select') == 1, 'Unexpected potion display')
+    text = text.replace('["potions"] = player.Potions?.Select', '["potions"] = player.PotionSlots?.Select', 1)
     sim.write_text(text)
     stub = source.parent / 'GodotStubs/Types.cs'
     stubs = stub.read_text()
@@ -186,13 +200,14 @@ def inject(source):
     text = program.read_text()
     require(text.count('case "start_run":') == 1, 'Unexpected command dispatcher')
     program.write_text(text.replace('case "start_run":',
-        'case "oracle_start": return sim.OracleStart(cmd);\n'
+        'case "oracle_display": return sim.OracleDisplay(cmd);\n'
+        '            case "oracle_start": return sim.OracleStart(cmd);\n'
         '            case "oracle_action": return sim.OracleAction(cmd);\n'
         '            case "oracle_run_start": return sim.OracleRunStart(cmd);\n'
         '            case "oracle_run_action": return sim.OracleRunAction(cmd);\n'
         '            case "oracle_run_state": return sim.OracleRunState(cmd);\n'
         '            case "start_run":', 1))
-    for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs', 'RunRecordingSession.cs', 'CombatModelFields.cs'):
+    for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs', 'RunRecordingSession.cs', 'CombatModelFields.cs', 'RecordingDisplay.cs'):
         shutil.copy2(Path(__file__).parent / 'adapters' / name, source)
 
     contract = strict_json((Path(__file__).parent / 'combat-field-contract.json').read_bytes())

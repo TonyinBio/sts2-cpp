@@ -51,7 +51,10 @@ def check(game_dir, validator, logs):
                         total += 1
                         return state
                     state = capture()
-                    reference.require(state == capture(), f'{character}: snapshot capture mutated state')
+                    display = host.send({'cmd': 'oracle_display'})
+                    reference.require(display['decision'] == 'combat_play', 'Missing native combat display')
+                    reference.require(display['hand'] and display['hand'][0]['description'], 'Missing readable cards')
+                    reference.require(state == capture(), f'{character}: display/capture mutated full state')
                     if character == 'Ironclad':
                         graph = capture('audit_generic_graph')
                         cards = graph['combat']['cards']

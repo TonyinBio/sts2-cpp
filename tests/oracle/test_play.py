@@ -2,6 +2,8 @@
 """Interactive recorder and matched-file publication checks; no game or .NET required."""
 import argparse
 import copy
+import contextlib
+import io
 import hashlib
 import os
 from pathlib import Path
@@ -11,8 +13,8 @@ import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools/oracle'))
-from play import (PlaySession, RecordingWriter, new_actions, parse_action, play,
-                  positive_int)
+from play import PlaySession, RecordingWriter, new_actions, positive_int
+from upstream_play import RecordingTransport, load_interface
 from reference_runtime import strict_json, validate
 
 VALIDATOR = Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 else None
@@ -32,12 +34,22 @@ class FakeHost:
 
     def send(self, request):
         self.requests.append(request)
-        if request['cmd'] == 'oracle_action':
+        if request['cmd'] == 'quit':
+            return {'type': 'quit_result'}
+        if request['cmd'] == 'get_map':
+            return {'type': 'unavailable'}
+        if request['cmd'] == 'oracle_display':
+            return {'type': 'decision', 'decision': 'combat_play', 'round': 1,
+                    'energy': 3, 'max_energy': 3, 'hand': [], 'enemies': [],
+                    'player': {'name': 'Ironclad', 'hp': 80, 'max_hp': 80}}
+        if request['cmd'] == 'oracle_run_action':
             self.count += 1
         state = copy.deepcopy(FIXTURE['initial'])
         state['run_time'] = self.count
         if self.stop_after == self.count:
             state['combat']['turn_control']['is_in_progress'] = False
+            state['boundary_kind'] = 'run_complete'
+            state['run_ending_reason'] = 'death'
         response = {'type': 'oracle_state', 'request_id': request['request_id'],
                     'assembly_mvid': 'fake', 'runtime_version': 'fake', 'state': state}
         if self.bad_response == 'identity':
@@ -62,34 +74,68 @@ class CommandTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(argparse.ArgumentTypeError):
                 positive_int(value)
 
-    def test_displayed_hand_positions_map_to_stable_action_ids(self):
-        state = FIXTURE['initial']
-        hand = state['combat']['players'][0]['piles']['Hand']
-        for index, ref in enumerate(hand, 1):
-            from play import resolve
-            model = resolve(state, ref)['saved']['id']
-            action = parse_action(['play', str(index)], state)
-            self.assertEqual(action['card_instance'], ref.rsplit('/', 1)[1])
-            if model == 'CARD.DEFEND_IRONCLAD':
-                self.assertNotIn('target', action)
-            else:
-                self.assertEqual(action['target'], 'enemy_0')
-        self.assertEqual(parse_action(['end'], state), {'kind': 'end_turn'})
-
-    def test_bad_positions_targets_and_insufficient_energy_are_local_errors(self):
-        for tokens in (['play', '0'], ['play', '999'], ['play', 'x'], ['play'], ['end', 'extra']):
-            with self.subTest(tokens=tokens), self.assertRaises(ValueError):
-                parse_action(tokens, FIXTURE['initial'])
-        state = copy.deepcopy(FIXTURE['initial'])
-        state['combat']['players'][0]['energy'] = 0
-        with self.assertRaisesRegex(ValueError, 'energy'):
-            parse_action(['play', '1'], state)
+    def test_transport_resolves_hand_positions_to_stable_ids(self):
+        from types import SimpleNamespace
         from play import resolve
-        for index, ref in enumerate(state['combat']['players'][0]['piles']['Hand'], 1):
-            state['combat']['players'][0]['energy'] = 3
-            model = resolve(state, ref)['saved']['id']
-            with self.assertRaises(ValueError):
-                parse_action(['play', str(index), '2'], state)
+        state = FIXTURE['initial']
+        actions = []
+        bridge = RecordingTransport(SimpleNamespace(state=state, step=actions.append))
+        bridge._action('play_card', {'card_index': 0, 'target_index': 0})
+        self.assertEqual(actions[0]['card_instance'],
+                         state['combat']['players'][0]['piles']['Hand'][0].rsplit('/', 1)[1])
+        self.assertEqual(actions[0]['target'], 'enemy_0')
+        self.assertNotIn('card_index', actions[0])
+        self.assertNotIn('target_index', actions[0])
+
+    def test_all_characters_and_ascensions_reach_recording_setup(self):
+        for character in ('Ironclad', 'Silent', 'Defect', 'Regent', 'Necrobinder'):
+            actions = new_actions('SEED', 'test', run=True, character=character, ascension=7)
+            self.assertEqual(actions['setup']['character'], character)
+            self.assertEqual(actions['setup']['ascension'], 7)
+
+    def test_transport_preserves_combat_selection_identity_and_noncombat_indices(self):
+        from types import SimpleNamespace
+        state = copy.deepcopy(FIXTURE['initial'])
+        actions = []
+        bridge = RecordingTransport(SimpleNamespace(state=state, step=actions.append))
+        refs = state['combat']['players'][0]['piles']['Hand']
+        state['pending_choice'] = {'candidates': refs}
+        bridge._action('select_cards', {'indices': '0,1'})
+        self.assertEqual(actions[-1], {'kind': 'select_cards', 'card_instances':
+                                      [ref.rsplit('/', 1)[1] for ref in refs[:2]]})
+        state['pending_choice'] = None
+        bridge._action('select_cards', {'indices': '0,1'})
+        self.assertEqual(actions[-1], {'kind': 'select_cards', 'indices': [0, 1]})
+
+    def test_implicit_transitions_and_rewards_are_recorded(self):
+        from types import SimpleNamespace
+        states = [
+            {'room': {'kind': 'event', 'finished': True}, 'pending_choice': None, 'reward_sets': []},
+            {'room': {'kind': 'treasure', 'picked': False}, 'pending_choice': None, 'reward_sets': []},
+            {'room': {'kind': 'treasure', 'picked': True}, 'pending_choice': None, 'reward_sets': []},
+            {'room': {'kind': 'combat_end'}, 'pending_choice': None,
+             'reward_sets': [{'rewards': [{'kind': 'CardReward', 'taken': False}]}]},
+        ]
+        actions = []
+        session = SimpleNamespace(state={'run_flow': states[0]}, finished=lambda: False)
+        def step(action):
+            actions.append(action)
+            session.state = {'run_flow': states[len(actions)]} if len(actions) < len(states) else {
+                'pending_choice': {'kind': 'card_reward'}}
+        session.step = step
+        RecordingTransport(session)._settle_interface()
+        self.assertEqual(actions, [{'kind': 'proceed'}, {'kind': 'pick_treasure', 'index': 0},
+                                  {'kind': 'proceed'}, {'kind': 'take_reward', 'index': 0}])
+
+    def test_renderers_remain_the_upstream_functions(self):
+        import types
+        source = (REPO / 'sts2-cli/python/play.py').read_text()
+        module = load_interface()
+        original = compile(source, str(REPO / 'sts2-cli/python/play.py'), 'exec')
+        for code in original.co_consts:
+            if isinstance(code, types.CodeType) and code.co_name.startswith('show_'):
+                self.assertEqual(getattr(module, code.co_name).__code__.co_code,
+                                 code.co_code, code.co_name)
 
 
 @unittest.skipUnless(VALIDATOR, 'Pass parity_validate executable')
@@ -102,7 +148,7 @@ class InteractiveRecorderTests(unittest.TestCase):
         self.writer = RecordingWriter(self.directory, VALIDATOR)
         provenance = {key: FIXTURE['reference'][key]
                       for key in ('revision', 'game_dll_sha256', 'adapter_sha256')}
-        self.session = PlaySession(self.host, new_actions('ORACLECHECK01', 'interactive-test'),
+        self.session = PlaySession(self.host, new_actions('ORACLECHECK01', 'interactive-test', run=True),
                                    provenance, VALIDATOR, self.writer, 5)
 
     def saved(self):
@@ -124,9 +170,15 @@ class InteractiveRecorderTests(unittest.TestCase):
             if isinstance(value, BaseException):
                 raise value
             return value
-        messages = []
-        play(self.session, read=read, write=messages.append)
-        return messages
+        output = io.StringIO()
+        interface = load_interface()
+        interface.LANG = 'en'
+        interface.SAVE_DIR = str(self.directory / 'saves')
+        transport = RecordingTransport(self.session)
+        with patch('builtins.input', side_effect=read), contextlib.redirect_stdout(output):
+            interface.play(seed='ORACLECHECK01', log=False, command_sender=transport,
+                           checkpoint=lambda: self.session.publish(final=True))
+        return output.getvalue().splitlines()
 
     def test_every_action_autosaves_but_only_periodic_states_accumulate(self):
         self.session.start()
@@ -143,53 +195,49 @@ class InteractiveRecorderTests(unittest.TestCase):
         self.assertEqual(states['transitions'][-1]['state']['run_time'], 6)
         self.assertEqual(len(list(self.directory.glob('.pending-*'))), 1)
 
-    def test_manual_save_interval_change_and_quit_do_not_become_game_actions(self):
-        self.run_commands(['end', 'save', 'save', 'every 2', 'end', 'quit'])
+    def test_manual_save_and_quit_do_not_become_game_actions(self):
+        self.run_commands(['e', 'save', 'save', 'e', 'quit', 'n'])
         actions, states = self.saved()
         self.assertEqual(len(actions['actions']), 2)
         self.assertEqual([s['action_id'] for s in states['transitions']],
                          ['action-000001', 'action-000002'])
-        self.assertEqual(len([r for r in self.host.requests if r['cmd'] == 'oracle_action']), 2)
+        self.assertEqual(len([r for r in self.host.requests if r['cmd'] == 'oracle_run_action']), 2)
 
-    def test_inspection_commands_do_not_record_or_dispatch(self):
-        self.run_commands(['map', 'open_map', 'open map', 'deck', 'inventory', 'state', 'help', 'quit'])
+    def test_inspection_commands_do_not_record_gameplay(self):
+        self.run_commands(['map', 'deck', 'potions', 'relics', 'help', 'quit', 'n'])
         actions, states = self.saved()
         self.assertEqual(actions['actions'], [])
         self.assertEqual(states['transitions'], [])
-        self.assertEqual([r['cmd'] for r in self.host.requests], ['oracle_start'])
+        self.assertFalse(any(r['cmd'] == 'oracle_run_action' for r in self.host.requests))
 
-    def test_run_commands_use_run_backend_and_preserve_gameplay_only(self):
-        self.session.actions = new_actions('PARITY', 'run-test', run=True)
-        self.run_commands(['map', "act '{\"kind\":\"choose_option\",\"option_index\":0}'", 'deck', 'quit'])
-        actions, states = self.saved()
-        self.assertEqual([r['cmd'] for r in self.host.requests], ['oracle_run_start', 'oracle_run_action'])
-        self.assertEqual(actions['actions'][0]['action'], {'kind': 'choose_option', 'option_index': 0})
-        self.assertEqual(len(actions['actions']), 1)
-        self.assertEqual(len(states['transitions']), 1)
+    def test_abandon_is_recorded_but_quit_is_not(self):
+        self.run_commands(['abandon', 'y'])
+        actions, _ = self.saved()
+        self.assertEqual([entry['action'] for entry in actions['actions']], [{'kind': 'abandon'}])
 
     def test_bad_input_does_not_dispatch_actions(self):
-        messages = self.run_commands(['play 999', 'every 0', 'every', 'end extra', '"', 'quit'])
+        messages = self.run_commands(['999', 'invalid', 'quit', 'n'])
         self.assertEqual(self.saved()[0]['actions'], [])
-        self.assertTrue(any(message.startswith('Input:') for message in messages))
-        self.assertFalse(any(r['cmd'] == 'oracle_action' for r in self.host.requests))
+        self.assertTrue(any('Invalid. Options:' in message for message in messages))
+        self.assertFalse(any(r['cmd'] == 'oracle_run_action' for r in self.host.requests))
 
     def test_eof_and_ctrl_c_save_final_partial_interval(self):
         for ending in (EOFError(), KeyboardInterrupt()):
             with self.subTest(ending=ending):
                 # Fresh writer/session for each interruption path.
                 self.setUp()
-                self.run_commands(['end', ending])
+                self.run_commands(['e', ending])
                 actions, states = self.saved()
                 self.assertEqual(len(actions['actions']), 1)
                 self.assertEqual(states['transitions'][0]['action_id'], 'action-000001')
 
     def test_combat_end_forces_final_checkpoint_and_stops_prompting(self):
         self.host.stop_after = 2
-        self.run_commands(['end', 'end'])
+        self.run_commands(['e', 'e'])
         actions, states = self.saved()
         self.assertEqual(len(actions['actions']), 2)
         self.assertEqual(states['transitions'][0]['action_id'], 'action-000002')
-        self.assertEqual(states['transitions'][0]['state']['boundary_kind'], 'awaiting_input')
+        self.assertEqual(states['transitions'][0]['state']['boundary_kind'], 'run_complete')
 
     def test_invalid_responses_leave_previous_pair_and_action_prefix_intact(self):
         self.session.start()
@@ -201,10 +249,13 @@ class InteractiveRecorderTests(unittest.TestCase):
             self.assertEqual(self.session.actions['actions'], [])
 
     def test_interrupt_during_action_saves_only_validated_prefix(self):
-        def read(_):
-            self.host.bad_response = 'interrupt'
-            return 'end'
-        play(self.session, read=read, write=lambda message: None)
+        self.session.start()
+        self.host.bad_response = 'interrupt'
+        transport = RecordingTransport(self.session)
+        with self.assertRaises(KeyboardInterrupt):
+            transport({'cmd': 'action', 'action': 'end_turn'})
+        self.host.bad_response = None
+        transport({'cmd': 'quit'})
         actions, states = self.saved()
         self.assertEqual(self.host.count, 1)
         self.assertEqual(actions['actions'], [])

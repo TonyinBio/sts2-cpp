@@ -102,7 +102,7 @@ wire parsing, schema validation, reference checks and publication failure behavi
 ## Run backend
 
 `RunRecordingSession.cs` adds a separate backend protocol. The action recording schema supports gameplay decisions through `seeded_run`;
-interactive run recording is enabled with `play.py --run`.
+interactive run recording is the default in `play.py`.
 These endpoints are available in the disposable build produced by `reference_build`:
 
 ```json

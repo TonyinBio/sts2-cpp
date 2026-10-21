@@ -20,6 +20,7 @@ public partial class RunSimulator {
     {
         __result.SaveTime = 0;
         __result.RunTime = 0;
+        __result.StartTime = 0;
     }
     public Dictionary<string, object?> AuditFreezeClock()
     {
