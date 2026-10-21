@@ -15,7 +15,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools/oracle'))
 from play import PlaySession, RecordingWriter, new_actions, positive_int
 from upstream_play import RecordingTransport, load_interface
-from reference_runtime import strict_json, validate
+from reference_runtime import JsonProcess, strict_json, validate
 
 VALIDATOR = Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 else None
 REPO = Path(__file__).resolve().parents[2]
@@ -68,6 +68,19 @@ class FakeHost:
 
 
 class CommandTests(unittest.TestCase):
+    def test_backend_errors_keep_stack_trace_in_stderr_log(self):
+        with tempfile.TemporaryDirectory() as directory:
+            prefix = Path(directory) / 'error'
+            code = 'import json; print(json.dumps({"type":"error","message":"event failed","stack_trace":"event stack trace"}))'
+            host = JsonProcess([sys.executable, '-c', code], os.environ, prefix, 5,
+                               log_protocol=False)
+            try:
+                with self.assertRaisesRegex(RuntimeError, 'event failed'):
+                    host.receive()
+            finally:
+                host.close()
+            self.assertIn('event stack trace', Path(str(prefix) + '.stderr.log').read_text())
+
     def test_positive_interval(self):
         self.assertEqual(positive_int('5'), 5)
         for value in ('0', '-1', '1.5', 'five'):

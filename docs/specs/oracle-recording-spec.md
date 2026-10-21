@@ -161,6 +161,18 @@ Gameplay actions alone advance the checkpoint interval. Snapshot inspection does
 send gameplay commands or append actions. Unsupported combat models still fail export.
 
 
+## Headless event presentation
+
+The disposable recorder provides a debug-audio instance and suppresses its playback.
+Native event choices can call `NDebugAudioManager.Instance.Play` without checking for
+an absent scene tree. Suppressing audio keeps the original choice's HP, gold, RNG,
+hooks and event completion logic intact. Required Godot audio signatures are added
+only to the disposable stub build; the pinned submodule stays unchanged.
+
+`check_event_choices.py` validates both Jungle Maze Adventure branches, their native
+gold/HP effects, completion and transition back to the map. Backend exception stack
+traces are written to the session's stderr log even when protocol logging is disabled.
+
 ## Shared combat model export
 
 `RecordingSession.cs` captures common card, creature, power, monster AI, orb,

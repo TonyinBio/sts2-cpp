@@ -124,6 +124,29 @@ public partial class RunSimulator
         }
     }
 
+    // The real game owns this node; headless has no scene tree. Keep debug audio
+    // presentation-only, including callers that dereference Instance without a guard.
+    private static MegaCrit.Sts2.Core.Audio.Debug.NDebugAudioManager? _recordingDebugAudio;
+    public static bool RecordingDebugAudioInstance(ref MegaCrit.Sts2.Core.Audio.Debug.NDebugAudioManager? __result)
+    {
+        __result = _recordingDebugAudio ??= new();
+        return false;
+    }
+    public static bool RecordingDebugAudioPlay(ref int __result)
+    {
+        __result = -1;
+        return false;
+    }
+    private static void PatchRecordingDebugAudio()
+    {
+        var type = typeof(MegaCrit.Sts2.Core.Audio.Debug.NDebugAudioManager);
+        var harmony = new Harmony("sts2.oracle.debugaudio");
+        harmony.Patch(type.GetProperty("Instance")!.GetMethod!,
+            prefix: new HarmonyMethod(typeof(RunSimulator).GetMethod(nameof(RecordingDebugAudioInstance))!));
+        harmony.Patch(type.GetMethod("Play")!,
+            prefix: new HarmonyMethod(typeof(RunSimulator).GetMethod(nameof(RecordingDebugAudioPlay))!));
+    }
+
     public Dictionary<string, object?> OracleRunStart(JsonElement command)
     {
         Require(!_oracleActive, "One run per recording process");
@@ -133,6 +156,7 @@ public partial class RunSimulator
         var seed = setup.GetProperty("seed").GetString()!;
         Require(new[] { "Ironclad", "Silent", "Defect", "Regent", "Necrobinder" }.Contains(character), "Unknown character");
         Require(ascension >= 0 && ascension <= 10 && !string.IsNullOrEmpty(seed), "Invalid ascension or seed");
+        PatchRecordingDebugAudio();
         _oracleActive = _oracleRunMode = true;
         _runSelector = new RunSelector(this);
         var harmony = new Harmony("sts2.oracle.runchoices");

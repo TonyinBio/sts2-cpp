@@ -47,6 +47,7 @@ public partial class RunSimulator
     public Dictionary<string, object?> OracleStart(JsonElement command)
     {
         Require(!_oracleActive, "One combat per recording process");
+        PatchRecordingDebugAudio();
         var setup = command.GetProperty("setup");
         Require(setup.GetProperty("kind").GetString() == "seeded_combat" &&
             setup.GetProperty("character").GetString() == "Ironclad" &&

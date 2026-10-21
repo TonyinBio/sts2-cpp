@@ -107,7 +107,11 @@ class JsonProcess:
                     raise RuntimeError(f'Malformed reference JSON: {line[:200]}')
                 continue
             require(isinstance(value, dict), 'Reference response must be an object')
-            require(value.get('type') != 'error', f'Reference error: {value.get("message", value)}')
+            if value.get('type') == 'error':
+                if value.get('stack_trace'):
+                    self.stderr_log.write(value['stack_trace'] + '\n')
+                    self.stderr_log.flush()
+                raise RuntimeError(f'Reference error: {value.get("message", value)}')
             return value
 
     def send(self, command):
@@ -195,6 +199,24 @@ def inject(source):
     stubs = stubs.replace('public void Call(params Variant[] args) => (_delegate as Action)?.Invoke();',
         'public void Call(params Variant[] args) { if (args.Length == 0) _delegate?.DynamicInvoke(); else (_delegate as Action)?.Invoke(); }', 1)
     stub.write_text(stubs)
+
+    # Harmony resolves the original debug-audio IL before installing its no-op.
+    # Supply the pinned Godot signatures even though playback is suppressed.
+    audio_stub = source.parent / 'GodotStubs/UI.cs'
+    audio = audio_stub.read_text()
+    require(audio.count('public float VolumeDb { get; set; }') == 1, 'Unexpected audio stub')
+    audio = audio.replace('public float VolumeDb { get; set; }',
+        'public float VolumeDb { get; set; }\n'
+        '    public float VolumeLinear { get; set; }\n'
+        '    public float PitchScale { get; set; }\n'
+        '    public StringName Bus { get; set; } = "";', 1)
+    audio_stub.write_text(audio)
+    core_stub = source.parent / 'GodotStubs/Core.cs'
+    core = core_stub.read_text()
+    require(core.count('public class GodotObject\n{') == 1, 'Unexpected Godot object stub')
+    core_stub.write_text(core.replace('public class GodotObject\n{',
+        'public class GodotObject\n{\n'
+        '    public Error Connect(StringName signal, Callable callable, uint flags = 0) => Error.Ok;', 1))
 
     program = source / 'Program.cs'
     text = program.read_text()
