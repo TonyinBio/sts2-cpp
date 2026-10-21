@@ -3,12 +3,12 @@
 import argparse
 from pathlib import Path
 import shutil
-import record
+import reference_runtime as reference
 
 
 def check(game_dir, validator, logs):
     logs.mkdir(parents=True, exist_ok=True)
-    original = record.inject
+    original = reference.inject
 
     def inject(source):
         original(source)
@@ -17,36 +17,36 @@ def check(game_dir, validator, logs):
         program.write_text(program.read_text().replace('case "start_run":',
             'case "audit_choice_setup": return sim.AuditChoiceSetup(cmd);\ncase "start_run":', 1))
 
-    record.inject = inject
+    reference.inject = inject
     try:
-        with record.reference_build(game_dir, logs) as (command, env, _):
+        with reference.reference_build(game_dir, logs) as (command, env, _):
             for card in ('Survivor', 'Discovery'):
-                host = record.JsonProcess(command, env, logs / card, 30)
+                host = reference.JsonProcess(command, env, logs / card, 30)
                 try:
                     host.receive()
                     host.send(dict(cmd='oracle_run_start', request_id='init',
                                    setup=dict(character='Ironclad', ascension=0, seed='CHOICE')))
                     host.send(dict(cmd='enter_room', type='combat', encounter='SHRINKER_BEETLE_WEAK'))
                     response = host.send(dict(cmd='audit_choice_setup', request_id='setup', card=card))
-                    record.validate(validator, 'snapshot', response['state'])
-                    request = record.action_request({'setup': {'kind': 'seeded_run'}},
+                    reference.validate(validator, 'snapshot', response['state'])
+                    request = reference.action_request({'setup': {'kind': 'seeded_run'}},
                         dict(kind='play_card', card_instance=response['card_instance']), response['state'], 'play')
                     state = host.send(request)['state']
-                    record.validate(validator, 'snapshot', state)
-                    record.require(state['pending_choice'] is not None, 'Missing suspended choice')
+                    reference.validate(validator, 'snapshot', state)
+                    reference.require(state['pending_choice'] is not None, 'Missing suspended choice')
                     repeated = host.send(dict(cmd='oracle_run_state', request_id='repeat'))['state']
-                    record.require(repeated == state, 'Repeated capture changed full state')
+                    reference.require(repeated == state, 'Repeated capture changed full state')
                     # Discovery allows cancellation; Survivor requires a discard.
                     action = 'skip_select' if card == 'Discovery' else 'select_cards'
                     args = {} if action == 'skip_select' else dict(indices=[0])
                     state = host.send(dict(cmd='oracle_run_action', request_id='answer', action=action, args=args))['state']
-                    record.validate(validator, 'snapshot', state)
-                    record.require(state['pending_choice'] is None, 'Choice did not resume')
+                    reference.validate(validator, 'snapshot', state)
+                    reference.require(state['pending_choice'] is None, 'Choice did not resume')
                     print(f'{card}: full-state capture and choice resumption validated')
                 finally:
                     host.close()
     finally:
-        record.inject = original
+        reference.inject = original
 
 
 if __name__ == '__main__':

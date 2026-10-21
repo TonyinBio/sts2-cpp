@@ -8,7 +8,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools/oracle'))
 from native_run import assert_unchanged, exact_json
-from record import REPO
+from reference_runtime import REPO
 
 try:
     from jsonschema import Draft202012Validator

@@ -200,7 +200,7 @@ action. This also forbids unrecorded actions after a known terminal boundary.
 Early termination with unconsumed input or failed export still fails the recorder.
 Verify source information and action-file digest before comparison.
 
-The reference runner and scoped exporter are implemented in `tools/oracle/record.py` and
+The reference runner and scoped exporter are implemented in `tools/oracle/play.py` and
 `RecordingSession.cs`; see [Running the oracle recorder](oracle-recording-spec.md). The
 current exporter supports `play_card` and `end_turn` in the audited starter encounter.
 Selection actions remain part of actions-v1 but are explicitly rejected by this

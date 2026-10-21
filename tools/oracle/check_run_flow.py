@@ -2,7 +2,7 @@
 """Audit run backend boundaries against the pinned installed game (no interactive UI)."""
 import argparse
 from pathlib import Path
-from record import JsonProcess, reference_build, require, validate
+from reference_runtime import JsonProcess, reference_build, require, validate
 
 
 def check(game_dir, validator, logs):

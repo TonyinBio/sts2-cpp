@@ -74,8 +74,7 @@ The action file contains the complete validated action prefix. Its exact bytes m
 `actions_sha256` in the state file. `transitions[*].action_id` identifies the action
 immediately preceding that checkpoint. Autosave runs after each successful action,
 including actions without a saved state. Both files are schema-validated before
-publication. Their format is the same as the offline recorder's files, so actions.json
-can be passed to `tools/oracle/record.py` later.
+publication. These files can be consumed by the parity replay framework.
 
 The program writes a new pair in a private generation directory, then atomically
 switches the `current` directory symlink. The previous generation is retired after
@@ -88,7 +87,7 @@ Build output, diagnostics and stderr live in `logs/`. Full protocol-state transc
 are disabled by default to avoid duplicating every unsampled state on disk. Pass
 `--protocol-log` to retain full responses for debugging; their size is independent of
 the checkpoint interval. The source digest includes the interactive runner as well as
-the injected adapter, shared recorder, schemas and game DLLs.
+the injected adapter, shared reference runtime, schemas and game DLLs.
 
 
 ## Seeded runs and gameplay decisions

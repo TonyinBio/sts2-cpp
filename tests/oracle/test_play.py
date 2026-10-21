@@ -13,7 +13,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools/oracle'))
 from play import (PlaySession, RecordingWriter, new_actions, parse_action, play,
                   positive_int)
-from record import strict_json, validate
+from reference_runtime import strict_json, validate
 
 VALIDATOR = Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 else None
 REPO = Path(__file__).resolve().parents[2]

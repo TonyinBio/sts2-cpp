@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
-"""Record actions-v1 input against a disposable, pinned sts2-cli reference build."""
-import argparse
+"""Shared reference build, protocol, and validation support for interactive recording."""
 import contextlib
 import hashlib
 import json
@@ -9,7 +7,6 @@ from pathlib import Path
 import queue
 import shutil
 import subprocess
-import sys
 import tempfile
 import threading
 import time
@@ -294,43 +291,6 @@ def action_request(actions, action, state, request_id):
     return {'cmd': 'oracle_run_action', 'request_id': request_id, 'action': kind, 'args': args}
 
 
-def record_session(command, env, actions, validator, log_prefix, timeout, checkpoint_every=1):
-    require(isinstance(checkpoint_every, int) and not isinstance(checkpoint_every, bool) and checkpoint_every > 0,
-            'Checkpoint interval must be a positive integer')
-    host = JsonProcess(command, env, log_prefix, timeout)
-    try:
-        require(host.receive().get('type') == 'ready', 'Missing reference ready message')
-        response = host.send(start_request(actions))
-        def state(response, request_id):
-            require(response.get('type') == 'oracle_state' and response.get('request_id') == request_id,
-                    f'Mismatched response for {request_id}')
-            snapshot = response['state']
-            validate(validator, 'snapshot', snapshot)
-            return snapshot
-        initial = state(response, 'initial')
-        identity = {key: response[key] for key in ('assembly_mvid', 'runtime_version')}
-        transitions = []
-        previous = initial
-        for index, entry in enumerate(actions['actions']):
-            require(previous['boundary_kind'] != 'run_complete', f'{entry["id"]}: action after run completion')
-            request_id = f'action-{index}'
-            try:
-                response = host.send(action_request(actions, entry['action'], previous, request_id))
-            except (RuntimeError, OSError) as error:
-                raise RuntimeError(f'Action {index} ({entry["id"]}): {error}') from error
-            require(all(response.get(key) == value for key, value in identity.items()), 'Reference identity changed')
-            previous = state(response, request_id)
-            if ((index + 1) % checkpoint_every == 0 or index + 1 == len(actions['actions']) or
-                    previous['boundary_kind'] == 'run_complete'):
-                transitions.append({'action_id': entry['id'], 'state': previous})
-        require(host.send({'cmd': 'quit'}).get('type') == 'quit_result', 'Reference shutdown failed')
-        host.process.wait(timeout=timeout)
-        require(host.process.returncode == 0, 'Reference exited unsuccessfully')
-        return {'initial': initial, 'transitions': transitions}, identity
-    finally:
-        host.close()
-
-
 def atomic_write(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
@@ -345,47 +305,3 @@ def atomic_write(path, value):
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('actions', type=Path)
-    parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--game-dir', type=Path, required=True)
-    parser.add_argument('--validator', type=Path, default=REPO / 'build/debug/parity_validate')
-    parser.add_argument('--verify-repeat', action='store_true')
-    parser.add_argument('--timeout', type=float, default=30)
-    parser.add_argument('--checkpoint-every', type=int, default=1, metavar='N',
-                        help='Save a state after every N actions, plus the final action (default: 1)')
-    args = parser.parse_args()
-    require(args.timeout > 0, 'Timeout must be positive')
-    require(args.checkpoint_every > 0, 'Checkpoint interval must be a positive integer')
-    require(args.actions.resolve() != args.output.resolve(), 'Output must not overwrite the action input')
-    validator = args.validator.resolve()
-    require(validator.is_file(), 'Build the parity_validate CMake target first, or pass --validator')
-    raw = args.actions.read_bytes()
-    actions = strict_json(raw)
-    validate(validator, 'actions', actions)
-    check_scope(actions)
-    output = args.output.resolve()
-    logs = output.parent / (output.name + '.logs')
-    logs.mkdir(parents=True, exist_ok=True)
-    with reference_build(args.game_dir, logs) as (command, env, provenance):
-        states, identity = record_session(command, env, actions, validator, logs / 'run1', args.timeout, args.checkpoint_every)
-        if args.verify_repeat:
-            repeated, repeated_identity = record_session(command, env, actions, validator, logs / 'run2', args.timeout, args.checkpoint_every)
-            require(states == repeated and identity == repeated_identity, 'Same-input reference replay diverged')
-    result = {'schema_version': 1, 'profile': 'states-v1', 'recording_id': actions['recording_id'],
-              'actions_sha256': hashlib.sha256(raw).hexdigest(), 'reference': dict(provenance, **identity), **states}
-    validate(validator, 'states', result, actions)
-    atomic_write(output, result)
-    print(f'Recorded {len(result["transitions"])} checkpoints plus initial state '
-          f'for {len(actions["actions"])} actions: {output}')
-
-
-if __name__ == '__main__':
-    try:
-        main()
-    except (RuntimeError, ValueError, OSError, subprocess.SubprocessError) as error:
-        print(f'Recording failed: {error}', file=sys.stderr)
-        sys.exit(1)

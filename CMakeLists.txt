@@ -87,9 +87,6 @@ if(BUILD_TESTING)
     add_test(NAME native_run_unit COMMAND "${Python3_EXECUTABLE}"
       "${CMAKE_CURRENT_SOURCE_DIR}/tests/oracle/test_native_run.py")
     set_tests_properties(native_run_unit PROPERTIES LABELS "native_run")
-    add_test(NAME oracle_recorder_unit COMMAND "${Python3_EXECUTABLE}"
-      "${CMAKE_CURRENT_SOURCE_DIR}/tests/oracle/test_record.py" "$<TARGET_FILE:parity_validate>")
-    set_tests_properties(oracle_recorder_unit PROPERTIES LABELS "recorder")
     add_test(NAME interactive_recorder_unit COMMAND "${Python3_EXECUTABLE}"
       "${CMAKE_CURRENT_SOURCE_DIR}/tests/oracle/test_play.py" "$<TARGET_FILE:parity_validate>")
     set_tests_properties(interactive_recorder_unit PROPERTIES LABELS "recorder")

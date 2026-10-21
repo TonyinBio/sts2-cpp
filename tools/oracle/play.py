@@ -12,7 +12,7 @@ import sys
 import tempfile
 import uuid
 
-from record import (FEATURES, REPO, JsonProcess, atomic_write, check_scope,
+from reference_runtime import (FEATURES, REPO, JsonProcess, atomic_write, check_scope,
                     reference_build, require, validate, wire_json, strict_json, start_request, action_request)
 
 HELP = """Commands (positions start at 1):

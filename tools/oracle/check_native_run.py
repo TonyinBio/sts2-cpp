@@ -10,7 +10,7 @@ import tempfile
 
 from native_run import assert_unchanged, differences, exact_dump, exact_json, reference_build
 from native_run_fixtures import rich_save
-from record import GAME_SHA256, REFERENCE_REVISION, JsonProcess, REPO, require
+from reference_runtime import GAME_SHA256, REFERENCE_REVISION, JsonProcess, REPO, require
 
 
 def wire_state(text):

@@ -4,12 +4,12 @@ import argparse
 from decimal import Decimal
 from pathlib import Path
 import shutil
-import record
+import reference_runtime as reference
 
 
 def check(game_dir, validator, logs):
     logs.mkdir(parents=True, exist_ok=True)
-    original = record.inject
+    original = reference.inject
     def inject(source):
         original(source)
         shutil.copy2(Path(__file__).parent / 'adapters/CombatExportAudit.cs', source)
@@ -18,9 +18,9 @@ def check(game_dir, validator, logs):
             'case "audit_freeze_clock": return sim.AuditFreezeClock();\n'
             'case "audit_generic_contract": return sim.AuditGenericContract();\n'
             'case "audit_generic_graph": return sim.AuditGenericGraph(cmd);\ncase "start_run":', 1))
-    record.inject = inject
+    reference.inject = inject
     try:
-        with record.reference_build(game_dir, logs) as (command, env, _):
+        with reference.reference_build(game_dir, logs) as (command, env, _):
             total = 0
             def resolve(state, ref):
                 value = state
@@ -29,7 +29,7 @@ def check(game_dir, validator, logs):
                     value = value[int(key)] if isinstance(value, list) else value[key]
                 return value
             for character in ('Ironclad', 'Silent', 'Defect', 'Regent', 'Necrobinder'):
-                host = record.JsonProcess(command, env, logs / character, 30)
+                host = reference.JsonProcess(command, env, logs / character, 30)
                 try:
                     host.receive()
                     host.send({'cmd': 'oracle_run_start', 'request_id': 'initial', 'setup':
@@ -38,7 +38,7 @@ def check(game_dir, validator, logs):
                     if character == 'Ironclad':
                         # The deliberately unclassified test model is outside the DLL catalog.
                         contract = host.send({'cmd': 'audit_generic_contract'})
-                        record.require(contract['members'] >= 293 and contract['unknown_field_rejected'], 'Incomplete field audit')
+                        reference.require(contract['members'] >= 293 and contract['unknown_field_rejected'], 'Incomplete field audit')
                     if character == 'Ironclad':
                         host.send(dict(cmd='set_player', potions=['WEAK_POTION']))
                     encounters = {'Silent': 'BOWLBUGS_WEAK', 'Defect': 'CUBEX_CONSTRUCT_NORMAL', 'Regent': 'CEREMONIAL_BEAST_BOSS'}
@@ -47,33 +47,33 @@ def check(game_dir, validator, logs):
                         nonlocal total
                         response = host.send(dict(cmd=cmd, request_id='capture'))
                         state = response['state']
-                        record.validate(validator, 'snapshot', state)
+                        reference.validate(validator, 'snapshot', state)
                         total += 1
                         return state
                     state = capture()
-                    record.require(state == capture(), f'{character}: snapshot capture mutated state')
+                    reference.require(state == capture(), f'{character}: snapshot capture mutated state')
                     if character == 'Ironclad':
                         graph = capture('audit_generic_graph')
                         cards = graph['combat']['cards']
                         claw_ref = next('/combat/cards/' + key for key, card in cards.items()
                                         if card['saved']['id'] == 'CARD.CLAW' and card['clone_of'] is None)
                         claw = resolve(graph, claw_ref)
-                        record.require(claw['model_fields']['Claw._extraDamageFromClawPlays'] ==
+                        reference.require(claw['model_fields']['Claw._extraDamageFromClawPlays'] ==
                             Decimal('0.1234567890123456789012345678'), 'Decimal field lost precision')
-                        record.require(claw['affliction'] is not None and claw['enchantment_runtime'] is not None, 'Missing attachments')
-                        record.require(any(c['clone_of'] == claw_ref for c in cards.values()), 'Missing clone identity')
+                        reference.require(claw['affliction'] is not None and claw['enchantment_runtime'] is not None, 'Missing attachments')
+                        reference.require(any(c['clone_of'] == claw_ref for c in cards.values()), 'Missing clone identity')
                         powers = list(graph['combat']['powers'].values())
                         afterimage = next(p for p in powers if p['id'] == 'POWER.AFTERIMAGE_POWER')
-                        record.require(afterimage['model_fields']['AfterimagePower.amountsForPlayedCards'] ==
+                        reference.require(afterimage['model_fields']['AfterimagePower.amountsForPlayedCards'] ==
                             [dict(key=claw_ref, value=2)], 'Lost dictionary card alias')
                         nightmare = next(p for p in powers if p['id'] == 'POWER.NIGHTMARE_POWER')
                         floating = nightmare['model_fields']['NightmarePower.selectedCard']
-                        record.require(resolve(graph, floating)['model_fields']['Rampage._extraDamageFromPlays'] == 7, 'Missing floating card')
-                        record.require(len(graph['combat']['orbs']) >= 2 and graph['combat']['attacks'], 'Missing orb/attack tables')
-                        record.require(graph == capture(), 'Repeated graph export mutated state')
+                        reference.require(resolve(graph, floating)['model_fields']['Rampage._extraDamageFromPlays'] == 7, 'Missing floating card')
+                        reference.require(len(graph['combat']['orbs']) >= 2 and graph['combat']['attacks'], 'Missing orb/attack tables')
+                        reference.require(graph == capture(), 'Repeated graph export mutated state')
                     else:
                         response = host.send(dict(cmd='oracle_run_action', request_id='end', action='end_turn', args={}))
-                        record.validate(validator, 'snapshot', response['state'])
+                        reference.validate(validator, 'snapshot', response['state'])
                         total += 1
                         capture()
                     print(f'{character}: generic combat snapshots validated')
@@ -81,7 +81,7 @@ def check(game_dir, validator, logs):
                     host.close()
             print(f'Validated {total} combat snapshots and the declared-field contract')
     finally:
-        record.inject = original
+        reference.inject = original
 
 
 if __name__ == '__main__':

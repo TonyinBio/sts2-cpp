@@ -9,7 +9,7 @@ import shutil
 import subprocess
 import tempfile
 
-from record import DLLS, GAME_SHA256, REFERENCE_REVISION, REPO, require
+from reference_runtime import DLLS, GAME_SHA256, REFERENCE_REVISION, REPO, require
 
 
 def exact_json(text):

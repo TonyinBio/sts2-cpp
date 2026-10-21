@@ -1,7 +1,7 @@
 # Oracle recording
 
-The recorder runs actions-v1 input through a disposable, pinned sts2-cli build and
-exports states-v1 envelopes whose snapshots conform to
+The interactive recorder captures gameplay decisions through a disposable, pinned
+sts2-cli build and exports states-v1 envelopes whose snapshots conform to
 [run-parity-v1.schema.json](schemas/run-parity-v1.schema.json). See the
 [run state contract](run-parity-spec.md) and [action contract](action-recording-spec.md).
 
@@ -10,8 +10,8 @@ Build and run:
 ```sh
 cmake --preset debug
 cmake --build --preset debug
-python3 tools/oracle/record.py tests/parity/examples/starter.actions.json \
-  --output build/recordings/starter.states.json \
+python3 tools/oracle/play.py \
+  --output-dir build/recordings/starter \
   --checkpoint-every 5 \
   --game-dir '/mnt/c/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2'
 ```
@@ -34,8 +34,7 @@ is 20. Feature declarations remain in the associated action recording.
 executed and its exported state validated, even when that state is not retained.
 The initial and final states are always saved. For 12 actions at interval 5, the file
 contains initial plus checkpoints after actions 5, 10, and 12. A zero-action input
-contains only initial. This reduces the state file size, but full per-action protocol
-responses still appear in the offline recorder's logs.
+contains only initial. This reduces the state file size. Full protocol logs are optional with `--protocol-log`.
 
 The validator accepts any strictly ordered subset of known action IDs, including an
 empty subset or a final checkpoint before the last action. Such a file only supplies
@@ -82,20 +81,19 @@ path; a settled combat loss exports run_complete with reason death. Full-run vic
 and abandonment remain outside this seeded driver. The state validator supports all
 schema-defined ending reasons and null/residual combat.
 
-Native save/start/run times are retained. `--verify-repeat` requires equality of every
-saved checkpoint field in two fresh processes, including these clock-derived native fields; it can fail
-when timestamps differ. It never silently ignores them. Deterministic clock control is
-required for reliable full-run repeat checks.
+Native save/start/run times are retained and compared in full. Reliable repeated-run
+comparison requires deterministic clock control in the test fixtures.
 
 ## Publication and failures
 
 Source and DLL copies live in a temporary directory; the installed game and submodule
-stay unchanged. Recording bypasses UI preview and reward generation. Logs next to the
-output retain build output and stdout/stderr for each process. Malformed responses,
-identity mismatches, invalid states, process failure, timeout and actions after
-run_complete fail before publication. Runtime combat commands also reject actions after
-combat ends. Output is atomically replaced only after validation; failure preserves an
-existing output.
+stay unchanged. The shared `reference_runtime.py` module provides process communication,
+validation and disposable builds for `play.py` and live audits; it has no batch recorder.
+Build and runtime diagnostics are stored in the session's `logs/` directory.
+Malformed responses, identity mismatches, invalid states, process failure and timeouts
+stop recording. The last published action/state pair remains available. Each successful
+action is validated before the interactive recorder publishes a new pair atomically.
+See [interactive recording](interactive-recording-spec.md#checkpoints-and-files).
 
 `starter.states.json` is a fresh live capture in the new contract, not a structural
 conversion of a combat-only recording. Offline tests cover envelope/action association,
@@ -134,8 +132,8 @@ and event RNG, rest options, treasure offers, reward sets and suspended operatio
 Manual or filtered card rewards that native saves cannot serialize have `saved: null`;
 their concrete offered cards, native class name, taken status and skip policy remain
 explicit. This is comparison data, not a restorable coroutine representation.
-Active combats use the shared, checked combat exporter below. Suspended combat
-choices still require captured execution context and fail explicitly.
+Active combats use the shared, checked combat exporter below, including supported
+suspended choices and active card plays.
 
 Run the optional live backend audit:
 
@@ -151,11 +149,11 @@ and the Architect victory event. Room fixtures avoid
 requiring unsupported combat models to reach each noncombat scenario.
 
 
-Record the seeded-run action example with sparse checkpoints:
+Record a seeded run interactively with sparse checkpoints:
 
 ```sh
-python3 tools/oracle/record.py tests/parity/examples/run.actions.json \
-  --output build/run.states.json --checkpoint-every 3 \
+python3 tools/oracle/play.py --run \
+  --output-dir build/recordings/my-run --checkpoint-every 3 \
   --game-dir '/mnt/c/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2'
 ```
 
@@ -207,6 +205,5 @@ python3 tools/oracle/check_combat_export.py \
 It checks all five character loadouts, multiple enemy types and a boss, generated and
 floating cards, clone identity, attachments, nested power dictionaries, orbs, inventory,
 AI aliases and calculated attacks. Negative probes check unknown fields, active test
-overrides and uncaptured callbacks. Repeated-capture checks ignore only native
-`run_time` and `save_time`, which advance with the wall clock; recorded snapshots retain
-them unchanged. The fixtures set up isolated states, not completed campaigns.
+overrides and uncaptured callbacks. Live fixtures fix native clock values so
+repeated captures compare the entire state without excluding fields. The fixtures set up isolated states, not completed campaigns.
