@@ -132,62 +132,48 @@ TEST_F(ReplayParity, LoadsAndExportsRealInitialState) {
     EXPECT_EQ(simulator.state().hand_size, 5);
     EXPECT_EQ(simulator.state().hand[0], Card::defend);
     EXPECT_EQ(simulator.state().hand[2], Card::attack);
-    EXPECT_TRUE(compare(initial, simulator.snapshot()).empty());
+    EXPECT_THROW(simulator.snapshot(), std::invalid_argument);
+    EXPECT_FALSE(simulator.unsupported_fields().empty());
 }
 TEST_F(ReplayParity, ExportsCppChangesAndPreservesCardIdentityAfterHandRemoval) {
     SimulatorSnapshot simulator;
     simulator.load(Snapshot::parse(states["initial"]));
     simulator.apply({{"kind", "play_card"}, {"card_instance", "card_0"}});
     simulator.apply({{"kind", "play_card"}, {"card_instance", "card_2"}, {"target", "enemy_0"}});
-    const auto exported = simulator.snapshot().json();
+    const auto exported = simulator.produced_state();
     EXPECT_EQ(simulator.state().player_block, 5);
     EXPECT_EQ(simulator.state().enemy_hp, 32);
     EXPECT_EQ(exported["combat"]["players"][0]["energy"], 1);
-    const auto player = exported["combat"]["players"][0]["creature"].get<std::string>();
+    const auto player = states["initial"]["combat"]["players"][0]["creature"].get<std::string>();
     EXPECT_EQ(exported.at(Json::json_pointer(player))["block"], 5);
-    const auto enemy = exported["combat"]["enemies"][0].get<std::string>();
+    const auto enemy = states["initial"]["combat"]["enemies"][0].get<std::string>();
     EXPECT_EQ(exported.at(Json::json_pointer(enemy))["monster"]["current_hp"], 32);
     EXPECT_EQ(exported["combat"]["players"][0]["piles"]["Hand"],
         Json::array({"/combat/cards/card_1", "/combat/cards/card_3", "/combat/cards/card_4"}));
     EXPECT_EQ(exported["combat"]["players"][0]["piles"]["Discard"],
         Json::array({"/combat/cards/card_0", "/combat/cards/card_2"}));
-    EXPECT_EQ(exported["rng"], states["initial"]["rng"]);
+    EXPECT_FALSE(exported.contains("rng"));
+    EXPECT_FALSE(exported["combat"].contains("history"));
 }
-TEST_F(ReplayParity, SimulatorBackendReplaysModeledCheckpoint) {
-    auto actions = Json::parse(input);
-    actions["actions"] = Json::array({actions["actions"][0]});
-    input = actions.dump();
-    states["actions_sha256"] = digest(input);
-    auto expected = states["initial"];
-    auto& pc = expected["combat"]["players"][0];
-    pc["energy"] = 2;
-    const auto creature = pc["creature"].get<std::string>();
-    expected[Json::json_pointer(creature + "/block")] = 5;
-    const auto played = pc["piles"]["Hand"][0];
-    pc["piles"]["Hand"].erase(0);
-    pc["piles"]["Discard"].push_back(played);
-    states["transitions"] = Json::array({{{"action_id", "defend-1"}, {"state", expected}}});
+TEST_F(ReplayParity, SimulatorBackendCannotPassWithIncompleteState) {
     SimulatorSnapshot simulator;
     backend = simulator.backend();
-    EXPECT_TRUE(run().empty());
-}
-TEST_F(ReplayParity, SimulatorBackendReportsFirstUnimplementedStateChange) {
-    SimulatorSnapshot simulator;
-    backend = simulator.backend();
-    const auto result = run();
-    ASSERT_EQ(result.size(), 1u);
-    // Initialization now restores correctly; divergence is caused by gameplay
-    // state the scaffold does not simulate, rather than default starting HP.
-    EXPECT_EQ(result[0].checkpoint, "defend-1");
-    EXPECT_FALSE(result[0].differences.empty());
-    EXPECT_EQ(simulator.state().energy, 2);
-    EXPECT_EQ(simulator.state().player_block, 5);
+    try { (void)run(); FAIL() << "Partial state must not pass full-state parity"; }
+    catch (const std::runtime_error& error) {
+        EXPECT_NE(std::string(error.what()).find("initial: Full run-parity state export is unsupported"), std::string::npos);
+    }
+    EXPECT_EQ(simulator.state().player_hp, CombatState{}.player_hp);
+    EXPECT_NE(simulator.state().player_hp, states["initial"]["players"][0]["current_hp"]);
+    // Changing expected data never initializes or updates the simulator.
+    states["initial"]["players"][0]["current_hp"] = 1;
+    EXPECT_THROW(run(), std::runtime_error);
+    EXPECT_EQ(simulator.state().player_hp, CombatState{}.player_hp);
 }
 TEST_F(ReplayParity, UnsupportedLoadAndActionsDoNotMutateAdapter) {
     SimulatorSnapshot simulator;
     EXPECT_THROW(simulator.snapshot(), std::logic_error);
     simulator.load(Snapshot::parse(states["initial"]));
-    const auto before = simulator.snapshot();
+    const auto before = simulator.produced_state();
     for (const auto& action : std::vector<Json>{
         {{"kind", "end_turn"}},
         {{"kind", "play_card"}, {"card_instance", "unknown"}},
@@ -195,24 +181,25 @@ TEST_F(ReplayParity, UnsupportedLoadAndActionsDoNotMutateAdapter) {
         {{"kind", "play_card"}, {"card_instance", "card_2"}},
         {{"kind", "play_card"}, {"card_instance", "card_0"}, {"target", "enemy_0"}}}) {
         EXPECT_THROW(simulator.apply(action), std::invalid_argument);
-        EXPECT_TRUE(compare(before, simulator.snapshot()).empty());
+        EXPECT_EQ(before, simulator.produced_state());
     }
     auto unsupported = states["initial"];
     unsupported["combat"]["cards"]["card_0"]["saved"]["id"] = "CARD.BASH";
     EXPECT_THROW(simulator.load(Snapshot::parse(unsupported)), std::invalid_argument);
-    EXPECT_TRUE(compare(before, simulator.snapshot()).empty());
+    EXPECT_EQ(before, simulator.produced_state());
 }
-TEST_F(ReplayParity, AdapterPreservesExactUnmodeledDecimals) {
-    auto initial = states["initial"];
-    initial["combat"]["cards"]["card_0"]["dynamic_vars"]["Block"] = "DECIMAL_TOKEN";
-    auto text = initial.dump();
-    const auto position = text.find("\"DECIMAL_TOKEN\"");
-    ASSERT_NE(position, std::string::npos);
-    text.replace(position, 15, "0.1234567890123456789012345678");
-    const auto exact = Snapshot::parse_text(text);
+TEST_F(ReplayParity, AdapterDoesNotCopyUnmodeledExpectedFields) {
     SimulatorSnapshot simulator;
-    simulator.load(exact);
-    EXPECT_TRUE(compare(exact, simulator.snapshot()).empty());
+    simulator.load(Snapshot::parse(states["initial"]));
+    const auto produced = simulator.produced_state();
+    EXPECT_FALSE(produced.contains("rng"));
+    EXPECT_FALSE(produced.contains("native_model_state"));
+    auto changed = states["initial"];
+    changed["combat"]["cards"]["card_0"]["dynamic_vars"]["Block"] = 999;
+    simulator.load(Snapshot::parse(changed));
+    EXPECT_EQ(produced, simulator.produced_state());
+    EXPECT_THROW(simulator.snapshot(), std::invalid_argument);
 }
+
 }
 }

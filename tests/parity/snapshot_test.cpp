@@ -11,6 +11,21 @@ TEST(RunParityFormat, AcceptsExampleAndMatchesIdenticalState) {
     const auto value = parse(example());
     EXPECT_TRUE(compare(value, value).empty());
 }
+TEST(RunParityFormat, ComparesEntireStateWithoutFieldExclusions) {
+    const auto expected = example();
+    for (const auto& pointer : {
+        "/save_time", "/run_time", "/start_time", "/players/0/gold",
+        "/rng/rngs/shuffle/counter", "/combat/history/0/round_number",
+        "/combat/cards/survivor/energy_cost/base"}) {
+        auto actual = expected;
+        const auto path = Json::json_pointer(pointer);
+        ASSERT_TRUE(actual.contains(path)) << pointer;
+        actual[path] = actual[path].get<std::int64_t>() + 1;
+        const auto differences = compare(parse(expected), parse(actual));
+        ASSERT_EQ(differences.size(), 1u) << pointer;
+        EXPECT_EQ(differences[0].path, pointer);
+    }
+}
 TEST(RunParityFormat, ReportsExactNativeFieldAndValues) {
     auto value = example();
     const auto hp = value["players"][0]["current_hp"].get<int>();
@@ -105,7 +120,7 @@ TEST(RunParityFormat, ComparesDecimalTokensWithoutRounding) {
     second.replace(at, 15, "0.1234567890123456789012345679");
     const auto diff = compare(Snapshot::parse_text(first), Snapshot::parse_text(second));
     ASSERT_EQ(diff.size(), 1u);
-    EXPECT_EQ(diff[0].path, "/combat/cards/survivor/dynamic_vars/Block");
+    EXPECT_EQ(diff[0].path, "/combat/cards/survivor/energy_cost/base");
     second = text;
     second.replace(at, 15, "1234567890123456789012345678e-28");
     EXPECT_TRUE(compare(Snapshot::parse_text(first), Snapshot::parse_text(second)).empty());
@@ -202,6 +217,20 @@ TEST(RunParityFormat, ValidatesNoncombatSelectionBoundsAndDeckAliases) {
         broken[Json::json_pointer(pointer)] = replacement;
         EXPECT_THROW(parse(broken), std::invalid_argument) << pointer;
     }
+}
+
+TEST(RunParityFormat, ValidatesOrbQueueOwnershipAndIdentity) {
+    auto value = example();
+    auto& player = value["combat"]["players"][0];
+    value["combat"]["orbs"]["dark"] = {{"id", "ORB.DARK_ORB"}, {"owner", player["player"]},
+        {"has_been_removed_from_state", false}, {"model_fields", {{"DarkOrb._evokeVal", 6}}}};
+    player["orbs"] = Json::array({"/combat/orbs/dark"});
+    EXPECT_NO_THROW(parse(value));
+    auto wrong = value;
+    wrong["combat"]["orbs"]["dark"]["owner"] = player["creature"];
+    EXPECT_THROW(parse(wrong), std::invalid_argument);
+    player["orbs"].push_back("/combat/orbs/dark");
+    EXPECT_THROW(parse(value), std::invalid_argument);
 }
 
 }

@@ -73,7 +73,8 @@ The installed-DLL state-access check and its verified scope are documented in
 The [run parity state format](docs/specs/run-parity-spec.md) defines the shared run and
 combat snapshot schema, validation, identity/order rules, and exact comparison behavior.
 Run its offline tests with `ctest --preset debug -L combat_state`. The reference exporter
-supports the audited starter encounter; partial simulator snapshot replay is described below.
+uses shared, audited combat model storage and a run backend; suspended combat effects
+still need coverage. Partial simulator snapshot replay is described below.
 
 The [action-recording format](docs/specs/action-recording-spec.md) defines versioned inputs
 using the run-parity state schema. The [oracle recorder](docs/specs/oracle-recording-spec.md)
@@ -106,22 +107,14 @@ and actual value. Exact decimal values and document-local reference normalizatio
 the existing snapshot comparator.
 
 `SimulatorSnapshot` in `tests/parity/support/simulator_snapshot.hpp` is the incremental
-C++ adapter. `load(initial)` restores player HP/block, enemy HP, energy, turn and up to
-five Strike/Defend hand cards into `CombatState`. `snapshot()` writes these fields and
-ordered hand/discard references back into the shared schema. `backend()` connects this
-adapter directly to `replay_parity`; initialization receives the validated initial
-snapshot, so replay does not need seeded combat construction.
+C++ adapter. Replay initializes it from the action setup without copying expected
+snapshots. `load(initial)` is available only for fixture tests of the modeled HP,
+block, energy, turn and Strike/Defend hand cards. `produced_state()` exposes those
+modeled fields for diagnostics.
 
-The adapter preserves unmodeled fields from the initial snapshot, including RNG,
-history, powers and monster AI. Those fields are frozen, not simulated; no subsequent
-expected checkpoint is supplied to the adapter. As simulator support grows, replace
-these preserved fields with loaded runtime state and independently generated output.
-A passing initial round trip only tests restoration, not full game parity.
-
-Action IDs follow the reference driver's initial Hand/Draw/Discard/Exhaust/Play card
-enumeration independently of snapshot table labels. The adapter supports playing Strike
-against `enemy_0` and untargeted Defend. It rejects end-turn and selection actions until
-draw/shuffle identities and selection state are implemented. The live fixture now loads
-successfully and reports its first gameplay divergence at `defend-1`, where unimplemented
-history/runtime changes differ. Tests cover this expected failure as well as loader,
-state output, identity resolution and exact preservation of unmodeled decimals.
+Full parity compares every field in the shared state schema, including clocks, RNG,
+history, powers and monster AI. The current C++ engine cannot independently produce
+all of these fields, so `snapshot()` reports missing capabilities and replay fails
+at the initial checkpoint. It does not preserve expected fields or pass a partial
+state as a complete snapshot. Tests verify that changing expected data cannot alter
+simulator initialization or supply unmodeled output.

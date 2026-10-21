@@ -16,21 +16,22 @@ int integer(const Json& value) {
         throw std::invalid_argument("Scaffold state requires nonnegative int fields");
     return value.get<int>();
 }
-// Preserve exact decimal tokens in frozen fields instead of rounding via double.
-std::string wire(const Json& value, const std::map<std::string, std::string>& numbers,
-                 const std::string& path = "") {
-    if (value.is_number_float()) return numbers.at(path);
-    if (!value.is_structured()) return value.dump();
-    std::string result = value.is_array() ? "[" : "{";
-    bool first = true;
-    for (const auto& [key, item] : value.items()) {
-        if (!first) result += ',';
-        first = false;
-        if (value.is_object()) result += Json(key).dump() + ':';
-        result += wire(item, numbers, path + "/" + detail::pointer_token(key));
-    }
-    return result + (value.is_array() ? "]" : "}");
 }
+void SimulatorSnapshot::initialize(const Json& setup) {
+    if (setup.at("kind") != "seeded_combat" || setup.at("character") != "Ironclad" ||
+        setup.at("ascension") != 0 || setup.at("encounter") != "SHRINKER_BEETLE_WEAK" ||
+        !setup.at("seed").is_string() || setup.at("seed").get<std::string>().empty())
+        throw std::invalid_argument("Simulator does not implement this run setup");
+    SimulatorSnapshot next;
+    next.initialized_ = true;
+    // These are the actual scaffold defaults. Native seeded initialization is
+    // still unsupported and is never filled from expected/reference snapshots.
+    for (std::size_t i = 0; i < next.state_.hand_size; ++i) {
+        auto id = "card_" + std::to_string(i);
+        auto ref = "/combat/cards/" + id;
+        next.hand_.push_back(ref); next.card_ids_.emplace(id, ref);
+    }
+    *this = std::move(next);
 }
 void SimulatorSnapshot::load(const Snapshot& initial) {
     const auto& value = initial.json();
@@ -68,26 +69,37 @@ void SimulatorSnapshot::load(const Snapshot& initial) {
         for (const auto& ref : pc["piles"][pile])
             next.card_ids_.emplace("card_" + std::to_string(index++), ref.get<std::string>());
     next.discarded_ = pc["piles"]["Discard"].get<std::vector<std::string>>();
-    next.initial_ = initial;
+    next.initialized_ = true;
     *this = std::move(next);
 }
-Snapshot SimulatorSnapshot::snapshot() const {
-    if (!initial_) throw std::logic_error("Load a snapshot before exporting");
-    auto value = initial_->json();
+Json SimulatorSnapshot::produced_state() const {
+    if (!initialized_) throw std::logic_error("Initialize the simulator before exporting");
+    Json value = Json::object();
     value[Json::json_pointer(player_ + "/current_hp")] = state_.player_hp;
     value[Json::json_pointer(creature_ + "/block")] = state_.player_block;
     value[Json::json_pointer(enemy_ + "/monster/current_hp")] = state_.enemy_hp;
-    auto& pc = value["combat"]["players"][0];
-    pc["energy"] = state_.energy;
-    pc["turn_number"] = state_.turn;
-    pc["piles"]["Hand"] = hand_;
-    pc["piles"]["Discard"] = discarded_;
-    if (state_.outcome == Outcome::victory)
-        value["combat"]["turn_control"]["is_in_progress"] = false;
-    return Snapshot::parse_text(wire(value, initial_->numbers()));
+    value["combat"]["players"] = Json::array({{
+        {"energy", state_.energy}, {"turn_number", state_.turn},
+        {"piles", {{"Hand", hand_}, {"Discard", discarded_}}}}});
+    value["combat"]["turn_control"]["is_in_progress"] = state_.outcome == Outcome::ongoing;
+    return value;
+}
+std::vector<std::string> SimulatorSnapshot::unsupported_fields() const {
+    return {"native seeded initialization", "native run fields", "RNG", "room and run progression",
+        "card runtime state", "draw/exhaust/play piles", "history", "monster AI", "powers and inventory",
+        "pets and orbs", "pending choices", "run endings"};
+}
+Snapshot SimulatorSnapshot::snapshot() const {
+    if (!initialized_) throw std::logic_error("Initialize the simulator before exporting");
+    std::string message = "Full run-parity state export is unsupported; missing simulator state: ";
+    bool first = true;
+    for (const auto& field : unsupported_fields()) {
+        if (!first) message += ", "; first = false; message += field;
+    }
+    throw std::invalid_argument(message);
 }
 void SimulatorSnapshot::apply(const Json& action) {
-    if (!initial_) throw std::logic_error("Load a snapshot before replaying");
+    if (!initialized_) throw std::logic_error("Load a snapshot before replaying");
     if (action.at("kind") != "play_card")
         throw std::invalid_argument("Scaffold replay supports play_card only; draw/shuffle identities are not implemented");
     const auto id = action.at("card_instance").get<std::string>();
@@ -108,7 +120,7 @@ void SimulatorSnapshot::apply(const Json& action) {
     hand_.erase(card);
 }
 ReplayBackend SimulatorSnapshot::backend() {
-    return {[this](const Json&, const Snapshot& initial) { load(initial); },
+    return {[this](const Json& setup, const Snapshot&) { initialize(setup); },
             [this](const Json& action) { apply(action); },
             [this] { return snapshot(); }};
 }

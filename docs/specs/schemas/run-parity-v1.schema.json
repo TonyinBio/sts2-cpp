@@ -373,6 +373,9 @@
         },
         "model_fields": {
           "$ref": "#/$defs/ModelFields"
+        },
+        "dynamic_vars": {
+          "$ref": "#/$defs/DynamicVars"
         }
       },
       "required": [
@@ -581,11 +584,19 @@
         },
         "model_fields": {
           "$ref": "#/$defs/ModelFields"
+        },
+        "owner": {
+          "$ref": "#/$defs/Ref"
+        },
+        "has_been_removed_from_state": {
+          "type": "boolean"
         }
       },
       "required": [
         "id",
-        "model_fields"
+        "model_fields",
+        "owner",
+        "has_been_removed_from_state"
       ],
       "additionalProperties": false
     },
@@ -684,6 +695,9 @@
         },
         "model_fields": {
           "$ref": "#/$defs/ModelFields"
+        },
+        "rng": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRng"
         }
       },
       "required": [
@@ -693,7 +707,8 @@
         "spawned_this_turn",
         "is_performing_move",
         "ai",
-        "model_fields"
+        "model_fields",
+        "rng"
       ],
       "additionalProperties": false
     },
@@ -1973,6 +1988,94 @@
         "VelvetChoker._cardsPlayedThisTurn": {
           "$ref": "serializable-run-v20.schema.json#/$defs/Int32",
           "description": "Relics.VelvetChoker._cardsPlayedThisTurn; native storage member, including internal Data where applicable."
+        },
+        "CeremonialBeast._beastCryState": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Alias to an exported monster AI state; unregistered/custom states require an explicit handler."
+        },
+        "DecimillipedeSegment._deadState": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Alias to an exported monster AI state; unregistered/custom states require an explicit handler."
+        },
+        "Queen._burnBrightForMeState": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Alias to an exported monster AI state; unregistered/custom states require an explicit handler."
+        },
+        "Queen._enragedState": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Alias to an exported monster AI state; unregistered/custom states require an explicit handler."
+        },
+        "TerrorEel._terrorState": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Alias to an exported monster AI state; unregistered/custom states require an explicit handler."
+        },
+        "TestSubject._deadState": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Alias to an exported monster AI state; unregistered/custom states require an explicit handler."
+        },
+        "ToughEgg._afterHatchedState": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Alias to an exported monster AI state; unregistered/custom states require an explicit handler."
+        },
+        "WaterfallGiant._aboutToBlowState": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Alias to an exported monster AI state; unregistered/custom states require an explicit handler."
         }
       },
       "additionalProperties": false,
@@ -2887,49 +2990,14 @@
       ]
     },
     "PendingChoice": {
-      "type": "object",
-      "properties": {
-        "player": {
-          "$ref": "#/$defs/Ref"
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CardSelectionChoice"
         },
-        "sources": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Ref"
-          }
-        },
-        "candidates": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Ref"
-          }
-        },
-        "min_select": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "max_select": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "require_manual_confirmation": {
-          "type": "boolean"
-        },
-        "cancelable": {
-          "type": "boolean"
+        {
+          "$ref": "#/$defs/CombatOfferedChoice"
         }
-      },
-      "required": [
-        "player",
-        "sources",
-        "candidates",
-        "min_select",
-        "max_select",
-        "require_manual_confirmation",
-        "cancelable"
-      ],
-      "additionalProperties": false,
-      "description": "An unresolved card selection using CardSelectorPrefs. Null for ordinary free play. Other choice families require explicit future definitions; do not silently coerce them to card selection."
+      ]
     },
     "Combat": {
       "type": "object",
@@ -3094,6 +3162,15 @@
       "properties": {
         "model_fields": {
           "$ref": "#/$defs/ModelFields"
+        },
+        "dynamic_vars": {
+          "$ref": "#/$defs/DynamicVars"
+        },
+        "enchantment_status": {
+          "enum": [
+            "Normal",
+            "Disabled"
+          ]
         }
       },
       "required": [
@@ -3234,6 +3311,9 @@
             },
             "model_fields": {
               "$ref": "#/$defs/ModelFields"
+            },
+            "dynamic_vars": {
+              "$ref": "#/$defs/DynamicVars"
             }
           },
           "required": [
@@ -3262,6 +3342,9 @@
             },
             "model_fields": {
               "$ref": "#/$defs/ModelFields"
+            },
+            "dynamic_vars": {
+              "$ref": "#/$defs/DynamicVars"
             }
           },
           "required": [
@@ -3908,6 +3991,105 @@
         "reward_sets",
         "operations",
         "combat_rewards_offered"
+      ],
+      "additionalProperties": false
+    },
+    "CardSelectionChoice": {
+      "type": "object",
+      "properties": {
+        "player": {
+          "$ref": "#/$defs/Ref"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "min_select": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_select": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "require_manual_confirmation": {
+          "type": "boolean"
+        },
+        "cancelable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "player",
+        "sources",
+        "candidates",
+        "min_select",
+        "max_select",
+        "require_manual_confirmation",
+        "cancelable"
+      ],
+      "additionalProperties": false,
+      "description": "An unresolved card selection using CardSelectorPrefs. Null for ordinary free play. Other choice families require explicit future definitions; do not silently coerce them to card selection."
+    },
+    "CombatOfferedChoice": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "card_reward",
+            "bundle_select"
+          ]
+        },
+        "player": {
+          "$ref": "#/$defs/Ref"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "bundles": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Ref"
+            }
+          }
+        },
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "can_skip": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "player",
+        "sources",
+        "candidates",
+        "bundles",
+        "alternatives",
+        "can_skip"
       ],
       "additionalProperties": false
     }

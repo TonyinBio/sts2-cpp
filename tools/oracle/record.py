@@ -144,8 +144,47 @@ def inject(source):
     require(text.count('sim._pendingBundles = bundles;') == 1,
             'Unexpected bundle selector setup')
     text = text.replace("CardSelectCmd.UseSelector(_cardSelector);", "CardSelectCmd.UseSelector(_oracleRunMode ? (MegaCrit.Sts2.Core.TestSupport.ICardSelector)_runSelector : _cardSelector);")
-    text = text.replace("sim._pendingBundles = bundles;", "sim._runBundleOwner = RunOwnerContext.Value;\n        sim._pendingBundles = bundles;")
+    text = text.replace("sim._pendingBundles = bundles;", "sim._runBundleOwner = RunOwnerContext.Value ?? sim._runActionOwner;\n        sim._pendingBundles = bundles;")
+    # Native queued actions can post from timer threads. Serialize the disposable
+    # CLI context's queue without holding its lock while invoking callbacks.
+    context_start = text.index('internal class InlineSynchronizationContext : SynchronizationContext')
+    context_end = text.index('\n/// <summary>', context_start)
+    text = text[:context_start] + """internal class InlineSynchronizationContext : SynchronizationContext
+{
+    private readonly Queue<(SendOrPostCallback, object?)> _queue = new();
+    private readonly object _gate = new();
+    private bool _executing;
+    public override void Post(SendOrPostCallback callback, object? state)
+    {
+        lock (_gate) {
+            _queue.Enqueue((callback, state));
+            if (_executing) return;
+            _executing = true;
+        }
+        while (true) {
+            (SendOrPostCallback callback, object? state) next;
+            lock (_gate) {
+                if (_queue.Count == 0) { _executing = false; return; }
+                next = _queue.Dequeue();
+            }
+            try { next.callback(next.state); }
+            catch { lock (_gate) { _executing = false; } throw; }
+        }
+    }
+    public override void Send(SendOrPostCallback callback, object? state) => callback(state);
+    public void Pump() => Post(_ => { }, null);
+}
+""" + text[context_end:]
     sim.write_text(text)
+    stub = source.parent / 'GodotStubs/Types.cs'
+    stubs = stub.read_text()
+    require(stubs.count('public static Callable From(Action action)') == 1, 'Unexpected Callable stub')
+    stubs = stubs.replace('public static Callable From(Action action)',
+        'public static Callable From<T>(Func<T> function) => new(function);\n    public static Callable From(Action action)', 1)
+    stubs = stubs.replace('public void Call(params Variant[] args) => (_delegate as Action)?.Invoke();',
+        'public void Call(params Variant[] args) { if (args.Length == 0) _delegate?.DynamicInvoke(); else (_delegate as Action)?.Invoke(); }', 1)
+    stub.write_text(stubs)
+
     program = source / 'Program.cs'
     text = program.read_text()
     require(text.count('case "start_run":') == 1, 'Unexpected command dispatcher')
@@ -156,8 +195,17 @@ def inject(source):
         '            case "oracle_run_action": return sim.OracleRunAction(cmd);\n'
         '            case "oracle_run_state": return sim.OracleRunState(cmd);\n'
         '            case "start_run":', 1))
-    for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs', 'RunRecordingSession.cs'):
+    for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs', 'RunRecordingSession.cs', 'CombatModelFields.cs'):
         shutil.copy2(Path(__file__).parent / 'adapters' / name, source)
+
+    contract = strict_json((Path(__file__).parent / 'combat-field-contract.json').read_bytes())
+    require(contract['game_dll_sha256'] == GAME_SHA256, 'Combat field contract targets another DLL')
+    schema = strict_json((REPO / 'docs/specs/schemas/run-parity-v1.schema.json').read_bytes())
+    # Embed the checked contract; no runtime dependency on the checkout or build audit output.
+    (source / 'CombatModelContract.g.cs').write_text(
+        'namespace Sts2Headless; internal static class CombatModelContract {\n'
+        + 'internal const string Members = ' + json.dumps(wire_json(contract['members'])) + ';\n'
+        + 'internal const string Schema = ' + json.dumps(wire_json(schema['$defs']['ModelFields']['properties'])) + ';\n}\n')
 
 
 @contextlib.contextmanager
@@ -224,7 +272,12 @@ def action_request(actions, action, state, request_id):
         require(ref in hand, 'Recorded card is not in hand')
         args['card_index'] = hand.index(ref)
     if kind == 'select_cards' and 'card_instances' in args:
-        raise RuntimeError('Noncombat selections use pending-choice indices, not combat card identities')
+        choice = state.get('pending_choice')
+        require(choice is not None and 'min_select' in choice, 'No pending combat card selection')
+        candidates = [ref.rsplit('/', 1)[1] for ref in choice['candidates']]
+        identities = args.pop('card_instances')
+        require(all(identity in candidates for identity in identities), 'Selected card is not an offered candidate')
+        args['indices'] = [candidates.index(identity) for identity in identities]
     if 'target' in args:
         target = args.pop('target')
         require(target.startswith('enemy_') and target[6:].isdigit(), 'Unsupported target identity')

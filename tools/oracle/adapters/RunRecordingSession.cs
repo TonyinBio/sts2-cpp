@@ -4,6 +4,8 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.GameActions;
+using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Combat;
@@ -37,6 +39,7 @@ public partial class RunSimulator
     private readonly List<RunRewards> _runRewards = new();
     private RunSelector _runSelector = null!;
     private RunOperation? _runBundleOwner;
+    private volatile RunOperation? _runActionOwner;
     private static readonly AsyncLocal<RunOperation?> RunOwnerContext = new();
     private static RunSimulator? RunEndingSession;
 
@@ -45,6 +48,7 @@ public partial class RunSimulator
         public string Kind = kind;
         public int? Index = index;
         public Task Task = Task.CompletedTask;
+        public AbstractModel? Source;
     }
     private sealed class RunRewards(RewardsSet set, RunOperation owner)
     {
@@ -62,7 +66,7 @@ public partial class RunSimulator
         public TaskCompletionSource<IEnumerable<CardModel>> CardsDone = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<CardRewardSelection> RewardDone = new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
-    private sealed class RunSelector : ICardSelector
+    private sealed class RunSelector(RunSimulator simulator) : ICardSelector
     {
         private readonly object _gate = new();
         private RunSelection? _pending;
@@ -72,7 +76,7 @@ public partial class RunSimulator
             var prefs = RunChoiceContextCapture.Prefs.Value;
             Require(prefs.HasValue && prefs.Value.MinSelect == minSelect && prefs.Value.MaxSelect == maxSelect,
                 "Card selection has no captured native preferences");
-            var pending = new RunSelection { Kind = "card_select", Owner = RunOwnerContext.Value
+            var pending = new RunSelection { Kind = "card_select", Owner = (RunOwnerContext.Value ?? simulator._runActionOwner)
                 ?? throw new InvalidOperationException("Card selection outside a tracked run operation"),
                 Cards = options.ToList(), Prefs = prefs.Value };
             lock (_gate) { Require(_pending == null, "Overlapping card selections"); _pending = pending; }
@@ -81,7 +85,7 @@ public partial class RunSimulator
         public CardRewardSelection GetSelectedCardReward(IReadOnlyList<CardCreationResult> options,
             IReadOnlyList<CardRewardAlternative> alternatives)
         {
-            var pending = new RunSelection { Kind = "card_reward", Owner = RunOwnerContext.Value
+            var pending = new RunSelection { Kind = "card_reward", Owner = (RunOwnerContext.Value ?? simulator._runActionOwner)
                 ?? throw new InvalidOperationException("Card reward outside a tracked run operation"),
                 Cards = options.Select(c => c.Card).ToList(), Alternatives = alternatives.ToArray() };
             lock (_gate) { Require(_pending == null, "Overlapping reward selections"); _pending = pending; }
@@ -130,7 +134,7 @@ public partial class RunSimulator
         Require(new[] { "Ironclad", "Silent", "Defect", "Regent", "Necrobinder" }.Contains(character), "Unknown character");
         Require(ascension >= 0 && ascension <= 10 && !string.IsNullOrEmpty(seed), "Invalid ascension or seed");
         _oracleActive = _oracleRunMode = true;
-        _runSelector = new RunSelector();
+        _runSelector = new RunSelector(this);
         var harmony = new Harmony("sts2.oracle.runchoices");
         foreach (var method in typeof(CardSelectCmd).GetMethods(BindingFlags.Static | BindingFlags.Public))
             if (method.GetParameters().Any(p => p.ParameterType == typeof(CardSelectorPrefs)) || method.Name == "FromChooseACardScreen")
@@ -144,8 +148,11 @@ public partial class RunSimulator
         // StartRun performs the real seeded setup and enters the initial act/Neow;
         // recorder mode bypasses its UI-oriented decision detection.
         CheckResponse(StartRun(character, ascension, seed, "en"));
+        if (setup.TryGetProperty("kind", out var setupKind) && setupKind.GetString() == "seeded_combat")
+            CheckResponse(EnterRoom("combat", setup.GetProperty("encounter").GetString(), null));
         _runState!.Players[0].Creature.Died += _ => _runDeathObserved = true;
         AwaitRunBoundary();
+        RegisterCombatIdentities();
         return OracleRunResponse(command);
     }
 
@@ -211,6 +218,7 @@ public partial class RunSimulator
     {
         Require(_oracleRunMode, "No run recording session");
         AwaitRunBoundary();
+        RegisterCombatIdentities();
         return OracleRunResponse(command);
     }
 
@@ -237,8 +245,6 @@ public partial class RunSimulator
                 RunManager.Instance.OnEnded(false); _runEndingFinalized = true;
             });
         } else if (pending != null) {
-            Require(_runState.CurrentRoom is not CombatRoom || !CombatManager.Instance.IsInProgress,
-                "Suspended combat choices require additional combat exporter coverage");
             if (pending.Kind == "card_select") {
                 Require(kind is "select_cards" or "skip_select", "Resolve the pending card selection first");
                 var indices = kind == "skip_select" ? Array.Empty<int>() : args.GetProperty("indices").EnumerateArray().Select(v => v.GetInt32()).ToArray();
@@ -251,7 +257,10 @@ public partial class RunSimulator
                 var selection = new CardRewardSelection();
                 if (kind == "select_card_reward") { var i = Index("card_index"); Require(i >= 0 && i < pending.Cards.Count, "Invalid reward card index"); selection.card = pending.Cards[i]; }
                 if (kind == "reward_alternative") { var i = Index(); Require(i >= 0 && i < pending.Alternatives.Count, "Invalid reward alternative"); selection.alternative = pending.Alternatives[i]; }
-                if (kind == "skip_card_reward") Require(pending.Alternatives.Any(a => a.GetType().Name.Contains("Skip")), "This card reward cannot be skipped");
+                if (kind == "skip_card_reward") {
+                    Require(pending.Alternatives.Any(a => a.GetType().Name.Contains("Skip")), "This card reward cannot be skipped");
+                    selection.alternative = pending.Alternatives.First(a => a.GetType().Name.Contains("Skip"));
+                }
                 _runSelector.Clear(pending); pending.RewardDone.TrySetResult(selection);
             }
         } else if (_pendingBundles != null) {
@@ -274,6 +283,7 @@ public partial class RunSimulator
             }
         } else RunRoomAction(kind, args);
         AwaitRunBoundary();
+        RegisterCombatIdentities();
         return OracleRunResponse(command);
     }
 
@@ -299,7 +309,7 @@ public partial class RunSimulator
                     BeginRunOperation(kind, i, () => e!.CurrentOptions[i].Chosen());
                 } else if (room is RestSiteRoom rest) {
                     Require(i >= 0 && i < rest.Options.Count && rest.Options[i].IsEnabled, "Invalid rest-site option");
-                    BeginRunOperation(kind, i, async () => { Require(await RunManager.Instance.RestSiteSynchronizer.ChooseLocalOption(i), "Rest-site choice did not complete"); });
+                    BeginRunOperation(kind, i, async () => { await RunManager.Instance.RestSiteSynchronizer.ChooseLocalOption(i); });
                 } else throw new InvalidOperationException("Option choice outside an event/rest site");
                 break;
             }
@@ -311,7 +321,7 @@ public partial class RunSimulator
                     kind == "buy_relic" ? inv.RelicEntries.Cast<MerchantEntry>().ToList() :
                     kind == "buy_potion" ? inv.PotionEntries.Cast<MerchantEntry>().ToList() : new List<MerchantEntry> { inv.CardRemovalEntry! };
                 Require(i >= 0 && i < entries.Count && entries[i] != null && entries[i].IsStocked && entries[i].EnoughGold, "Invalid, unavailable, or unaffordable shop entry");
-                BeginRunOperation(kind, i, async () => { Require(await entries[i].OnTryPurchaseWrapper(inv), "Purchase did not succeed"); }); break;
+                BeginRunOperation(kind, i, async () => { await entries[i].OnTryPurchaseWrapper(inv); }); break;
             }
             case "pick_treasure": {
                 Require(room is TreasureRoom && !_runTreasurePicked, "No unresolved treasure choice");
@@ -358,31 +368,75 @@ public partial class RunSimulator
                 }); break;
             }
             case "use_potion": case "discard_potion": {
-                var i = Index("potion_index");
-                var potions = player.Potions.ToList();
-                Require(i >= 0 && i < potions.Count && potions[i] != null, "Invalid potion slot");
-                if (kind == "use_potion" && potions[i]!.TargetType == TargetType.AnyEnemy)
-                    Require(args.TryGetProperty("target_index", out _), "Explicit potion target required");
-                var values = args.EnumerateObject().ToDictionary(p => p.Name, p => (object?)p.Value.GetInt32());
-                BeginRunOperation(kind, i, () => { CheckResponse(ExecuteAction(kind, values)); return Task.CompletedTask; });
+                var slot = Index("potion_index");
+                Require(slot >= 0 && slot < player.PotionSlots.Count && player.PotionSlots[slot] != null, "Invalid or empty potion slot");
+                Require(player.CanUseOrRemovePotions, "Potions are currently disabled");
+                var potion = player.PotionSlots[slot]!;
+                if (kind == "discard_potion") BeginRunOperation(kind, slot, () => PotionCmd.Discard(potion));
+                else {
+                    var target = ResolveRunTarget(potion.TargetType, args);
+                    QueueRunAction(kind, slot, new UsePotionAction(potion, target, CombatManager.Instance.IsInProgress), potion);
+                }
                 break;
             }
-            case "play_card": case "end_turn": {
-                Require(room is CombatRoom && CombatManager.Instance.IsInProgress, "Combat action outside active combat");
-                Require(_runSelector.Pending == null, "Resolve the pending choice first");
-                var values = args.EnumerateObject().ToDictionary(p => p.Name, p => (object?)p.Value.GetInt32());
-                if (kind == "play_card") {
-                    var i = Index("card_index"); var hand = player.PlayerCombatState!.Hand.Cards;
-                    Require(i >= 0 && i < hand.Count, "Invalid hand position");
-                    if (hand[i].TargetType == TargetType.AnyEnemy) {
-                        var target = Index("target_index"); var enemies = CombatManager.Instance.DebugOnlyGetState()!.Enemies.Where(e => e.IsAlive).ToList();
-                        Require(target >= 0 && target < enemies.Count, "Explicit living enemy target required");
-                    }
-                }
-                BeginRunOperation(kind, null, () => { CheckResponse(ExecuteAction(kind, values)); return Task.CompletedTask; }); break;
+            case "play_card": {
+                Require(room is CombatRoom && CombatManager.Instance.IsInProgress, "Card play outside combat");
+                var i = Index("card_index"); var hand = player.PlayerCombatState!.Hand.Cards;
+                Require(i >= 0 && i < hand.Count, "Invalid hand position");
+                var card = hand[i];
+                Require(card.CanPlay(out _, out _), "Card cannot currently be played");
+                var target = ResolveRunTarget(card.TargetType, args, cardAction: true);
+                Require(card.IsValidTarget(target), "Invalid card target");
+                QueueRunAction(kind, i, new PlayCardAction(card, target), card);
+                break;
+            }
+            case "end_turn": {
+                Require(room is CombatRoom && CombatManager.Instance.IsInProgress && IsPlayPhase(), "End turn outside player input");
+                var before = player.PlayerCombatState!.TurnNumber;
+                BeginRunOperation(kind, null, async () => {
+                    _runActionOwner = RunOwnerContext.Value;
+                    YieldPatches.SuppressYield = true;
+                    try {
+                        PlayerCmd.EndTurn(player, canBackOut: false);
+                        while (CombatManager.Instance.IsInProgress && (player.PlayerCombatState.TurnNumber <= before || !IsPlayPhase()))
+                            await Task.Delay(1);
+                    } finally { YieldPatches.SuppressYield = false; _runActionOwner = null; }
+                }); break;
             }
             default: throw new InvalidOperationException($"Unsupported run backend action: {kind}");
         }
+    }
+
+    private Creature? ResolveRunTarget(TargetType type, JsonElement args, bool cardAction = false)
+    {
+        var player = _runState!.Players.Single();
+        if (type == TargetType.AnyEnemy) {
+            Require(args.TryGetProperty("target_index", out var supplied), "An explicit enemy target is required");
+            var enemies = CombatManager.Instance.DebugOnlyGetState()?.Enemies.Where(e => e.IsAlive).ToList();
+            var i = supplied.GetInt32();
+            Require(enemies != null && i >= 0 && i < enemies.Count, "Invalid or dead enemy target");
+            return enemies![i];
+        }
+        if (args.TryGetProperty("target_index", out _)) throw new InvalidOperationException("This action does not accept an enemy target");
+        if (cardAction) return null; // Native cards resolve implicit self/player/Osty targeting internally.
+        return type switch {
+            TargetType.Self or TargetType.AnyPlayer or TargetType.TargetedNoCreature => player.Creature,
+            TargetType.Osty => player.Osty,
+            TargetType.AnyAlly => throw new InvalidOperationException("No other player exists in single-player"),
+            _ => null
+        };
+    }
+    private void QueueRunAction(string kind, int? index, GameAction action, AbstractModel source)
+    {
+        BeginRunOperation(kind, index, async () => {
+            _runActionOwner = RunOwnerContext.Value;
+            _runActionOwner!.Source = source;
+            try {
+                RunManager.Instance.ActionQueueSet.EnqueueWithoutSynchronizing(action);
+                await action.CompletionTask;
+                if (action.Exception != null) throw new InvalidOperationException("Native action failed", action.Exception);
+            } finally { _runActionOwner = null; }
+        });
     }
 
     private Dictionary<string, object?> OracleRunResponse(JsonElement command) => new() {
@@ -393,21 +447,28 @@ public partial class RunSimulator
     private static JsonNode? Saved(object? value) => NativeRunRoundTrip.Capture(value);
     private static object[] SavedCards(IEnumerable<CardModel> cards) => cards.Select(c => (object)Saved(c.ToSerializable())!).ToArray();
 
+    private void RegisterCombatIdentities()
+    {
+        if (_runState!.CurrentRoom is not CombatRoom || !CombatManager.Instance.IsInProgress) return;
+        var combat = CombatManager.Instance.DebugOnlyGetState()!;
+        var player = _runState.Players.Single();
+        if (!ReferenceEquals(combat, _runCombatScope)) {
+            _runCombatScope = combat; _oracleIds.Clear(); _oracleCards.Clear(); _oracleEnemies.Clear();
+            _oracleIds.Add(player.Creature, "player_0");
+        }
+        foreach (var enemy in combat.Enemies) if (!_oracleIds.ContainsKey(enemy)) {
+            _oracleIds.Add(enemy, $"enemy_{_oracleEnemies.Count}"); _oracleEnemies.Add(enemy);
+        }
+        foreach (var card in player.PlayerCombatState!.AllCards) if (!_oracleIds.ContainsKey(card)) {
+            _oracleIds.Add(card, $"card_{_oracleCards.Count}"); _oracleCards.Add(card);
+        }
+    }
+
     private object ExportRunFlowState()
     {
         var run = _runState!; var player = run.Players.Single();
         if (_oracleRunEndingReason == null && run.CurrentRoom is CombatRoom && CombatManager.Instance.IsInProgress) {
-            Require(_runSelector.Pending == null && _pendingBundles == null && RewardFrames().Length == 0,
-                "Suspended combat choices require additional combat exporter coverage");
-            var combat = CombatManager.Instance.DebugOnlyGetState()!;
-            if (!ReferenceEquals(combat, _runCombatScope)) {
-                _runCombatScope = combat; _oracleIds.Clear(); _oracleCards.Clear(); _oracleEnemies.Clear();
-                _oracleIds.Add(player.Creature, "player_0");
-                foreach (var enemy in combat.Enemies) { _oracleIds.Add(enemy, $"enemy_{_oracleEnemies.Count}"); _oracleEnemies.Add(enemy); }
-                foreach (var card in player.PlayerCombatState!.AllCards) {
-                    _oracleIds.Add(card, $"card_{_oracleCards.Count}"); _oracleCards.Add(card);
-                }
-            }
+            RegisterCombatIdentities();
             return ExportRun(); // Existing closed combat model guards are unchanged.
         }
         var state = Saved(RunManager.Instance.ToSave(null))!.AsObject();

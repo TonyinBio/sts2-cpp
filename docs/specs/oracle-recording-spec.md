@@ -58,8 +58,9 @@ sts2-cli revision `084d1aa3d8e118ca7ce8d8774ad16d6be9c92367`.
 
 The seeded-combat driver supports Ironclad A0, Burning Blood, the default starter deck and
 SHRINKER_BEETLE_WEAK. Required action features are basic_combat and
-ironclad_starter_shrinker_v1. Supported actions are play_card and end_turn; unsupported
-models, attachments, generated cards, selectors, potions, pets, and modifiers fail.
+ironclad_starter_shrinker_v1. Its action driver remains play_card/end_turn only.
+The seeded-run backend uses the shared combat exporter described below; model IDs
+are no longer restricted to that starter encounter.
 
 The exporter captures native run data through native serialization metadata, plus
 current room, turn control, ordered piles, card runtime data, creature/power tables,
@@ -72,8 +73,9 @@ Action identities such as card_0 and enemy_0 remain recording-driver identifiers
 Snapshot references use document-local JSON Pointers, such as /combat/cards/card_0.
 Table labels need not persist between boundaries.
 
-Capture requires player Play phase during ongoing combat, no running action or monster
-move, and no pending selector/reward/bundle. An ended combat is exported after its hooks
+The seeded-combat driver captures settled player Play boundaries. The run driver also
+captures suspended card selections, generated card rewards and bundle choices, with
+the active play and source references retained until the answer resumes execution. An ended combat is exported after its hooks
 settle, with its actual retained objects. Winning this encounter leaves the run ongoing
 and uses awaiting_input. The driver observes CombatWon and CombatEnded to distinguish victory from the loss
 path; a settled combat loss exports run_complete with reason death. Full-run victory
@@ -132,8 +134,8 @@ and event RNG, rest options, treasure offers, reward sets and suspended operatio
 Manual or filtered card rewards that native saves cannot serialize have `saved: null`;
 their concrete offered cards, native class name, taken status and skip policy remain
 explicit. This is comparison data, not a restorable coroutine representation.
-Active combats still use the existing closed combat exporter. Additional combat
-models and suspended combat choices remain unsupported and fail explicitly.
+Active combats use the shared, checked combat exporter below. Suspended combat
+choices still require captured execution context and fail explicitly.
 
 Run the optional live backend audit:
 
@@ -159,3 +161,52 @@ python3 tools/oracle/record.py tests/parity/examples/run.actions.json \
 
 Gameplay actions alone advance the checkpoint interval. Snapshot inspection does not
 send gameplay commands or append actions. Unsupported combat models still fail export.
+
+
+## Shared combat model export
+
+`RecordingSession.cs` captures common card, creature, power, monster AI, orb,
+affliction and inventory state. It follows references through piles, history,
+model fields and retained attacks until all reachable objects are exported. Generated
+cards receive driver identities when first discovered; clone, floating-card, pet,
+orb-owner and removed-inventory relationships remain explicit references.
+
+`CombatModelFields.cs` reads model storage through the checked
+`tools/oracle/combat-field-contract.json`, grounded in the
+[model field audit](combat-model-field-audit.md). One serializer handles all 125
+additional gameplay fields and eight AI state aliases, including nested power data,
+ordered lists, sets and model-keyed dictionaries. The contract checks all 293 declared
+storage members against the pinned DLL once per process; capture checks each encountered
+model. Newly added content with no extra storage uses common export automatically.
+New storage requires an audited classification and, for gameplay values, a typed schema
+entry. Unknown members/shapes, active test overrides and missing power data fail;
+presentation fields are excluded explicitly rather than by naming heuristics.
+
+Native saved properties remain in native objects. Additional native-model fields and
+stored numeric dynamic variables live under `native_model_state`; card/power runtime
+fields live in their combat tables. Enchantment status, concrete orb values, monster
+RNG, effective move follow-ups and registered AI aliases are captured without previews
+or RNG draws. Every monster includes its own native `rng` record, separate from the run RNG set.
+The starter recording fixture is recaptured with the shared exporter.
+
+Stored attack commands include their targets, sources, hit configuration and results.
+Calculated-damage variables reference their owning card's captured inputs; only pinned,
+stateless calculation callbacks are accepted. Retained callbacks with captured storage,
+unregistered AI aliases, custom move-state storage, and suspended combat continuations
+still require explicit handlers. This implementation is not a claim of complete
+all-mechanics or complete-run parity coverage.
+
+Run the optional live audit:
+
+```sh
+python3 tools/oracle/check_combat_export.py \
+  --game-dir '/mnt/c/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2' \
+  --validator build/debug/parity_validate --logs build/combat-export-audit
+```
+
+It checks all five character loadouts, multiple enemy types and a boss, generated and
+floating cards, clone identity, attachments, nested power dictionaries, orbs, inventory,
+AI aliases and calculated attacks. Negative probes check unknown fields, active test
+overrides and uncaptured callbacks. Repeated-capture checks ignore only native
+`run_time` and `save_time`, which advance with the wall clock; recorded snapshots retain
+them unchanged. The fixtures set up isolated states, not completed campaigns.

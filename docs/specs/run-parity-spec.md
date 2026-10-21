@@ -2,8 +2,8 @@
 
 This contract adds combat state and pending choices to the native run-save layout so
 tests can compare data held by both engines. The reference recorder implements a
-bounded starter-encounter combat exporter and a separate noncombat run backend.
-Paused combat effects still need coverage.
+shared combat model exporter and a noncombat run backend.
+Paused combat effects and unusual captured execution state still need coverage.
 
 See the [shared terms](README.md#terms-used-in-these-sheets) for definitions of parity, snapshot, boundary, and model ID.
 
@@ -48,7 +48,8 @@ cannot recover precision lost by its caller. Native RNG words remain numeric uin
 Schema validation is deliberately not a proof of complete gameplay capture. Model-field
 applicability, suspended effects, and additional reference-kind constraints require
 exporter checks and scenario-specific tests, as described below.
-The live exporter remains limited to the audited starter encounter.
+The shared exporter supports audited model storage across content; suspended combat
+continuations and unhandled AI/callback storage still fail explicitly.
 
 `tests/parity/examples/starter.json` is a synthetic Survivor selection copied from the
 schema example. It is not a live starter encounter capture. The live capture in
@@ -178,7 +179,9 @@ reference points to the retained live object, rather than an invented past snaps
 `pending_choice` uses the inspected CardSelectorPrefs: ordered candidates, min/max,
 manual confirmation and cancellation, plus player and source relationships. It has no
 rendered prompt, legal-action catalogue, duplicate-selection flag or scheduler label.
-Ordinary free play has **null** pending choice. Candidate/source order is preserved.
+Generated card rewards and bundle selections use the typed `card_reward` and
+`bundle_select` variants, retaining candidates, bundles, alternatives, skip eligibility
+and player/source references. Ordinary free play has **null** pending choice. Candidate/source order is preserved.
 Capture at the point the request awaits an answer, before UI-only tentative selection.
 
 ### Active card plays

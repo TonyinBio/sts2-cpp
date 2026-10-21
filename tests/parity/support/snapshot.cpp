@@ -245,7 +245,7 @@ Snapshot Snapshot::parse(const Json& value) {
             if (!name.starts_with(prefix)) invalid(path, "incorrect reference target kind");
             return resolve(name, path);
         };
-        std::set<std::string> placed, owners, creatures, powers;
+        std::set<std::string> placed, owners, creatures, powers, orb_owners;
         for (const auto& pc : combat["players"]) {
             const auto& player = target(pc["player"], "/players/", "/combat/players/player");
             if (!player.contains("deck")) invalid("/combat/players/player", "expected native player");
@@ -258,7 +258,11 @@ Snapshot Snapshot::parse(const Json& value) {
                 if (!placed.insert(ref.get<std::string>()).second) invalid("/combat/players/piles", "card appears in multiple piles");
             }
             for (const auto& ref : pc["pets"]) (void)target(ref, "/combat/creatures/", "/combat/players/pets");
-            for (const auto& ref : pc["orbs"]) (void)target(ref, "/combat/orbs/", "/combat/players/orbs");
+            for (const auto& ref : pc["orbs"]) {
+                const auto& orb = target(ref, "/combat/orbs/", "/combat/players/orbs");
+                if (orb["owner"] != pc["player"] || !orb_owners.insert(ref.get<std::string>()).second)
+                    invalid("/combat/players/orbs", "orb owner mismatch or duplicate queue membership");
+            }
         }
         for (const auto* collection : {"allies", "enemies", "escaped_creatures"})
             for (const auto& ref : combat[collection]) {
@@ -306,7 +310,9 @@ Snapshot Snapshot::parse(const Json& value) {
             invalid("/run_flow/operations", "pending choice requires a suspended operation");
     }
     const auto& choice = value["pending_choice"];
-    if (!choice.is_null()) {
+    if (!choice.is_null() && !choice["player"].get<std::string>().starts_with("/players/"))
+        invalid("/pending_choice/player", "expected native player");
+    if (!choice.is_null() && !choice.contains("kind")) {
         if (choice["min_select"] > choice["max_select"] || choice["max_select"].get<std::size_t>() > choice["candidates"].size())
             invalid("/pending_choice", "inconsistent selection bounds");
         if (!choice["player"].get<std::string>().starts_with("/players/")) invalid("/pending_choice/player", "expected native player");

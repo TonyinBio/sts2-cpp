@@ -7,7 +7,9 @@ and what has been checked against the installed game.
 
 | I want to… | Read |
 | --- | --- |
-| Understand the intended full-game simulator | [Full-game design](full-game-simulator-design.md) |
+| Understand the intended full-game simulator | [Full-game design](engine/full-game-simulator-design.md) |
+| See the proposed files, classes and memory ownership | [Full-game architecture](engine/full-game-simulator-architecture.md) |
+| See the pinned full-game matching target, decisions and state inventory | [Matching contract](engine/matching-contract.md) |
 | Understand run and combat snapshots | [Run parity state](run-parity-spec.md) |
 | Play while recording actions and states | [Interactive recording](interactive-recording-spec.md) |
 | Record player decisions and replay them | [Action recording](action-recording-spec.md), then [Oracle recording](oracle-recording-spec.md) |
@@ -28,7 +30,7 @@ right object. A file that passes schema validation is not proof that both engine
 | [Oracle recording](oracle-recording-spec.md) | Implemented reference recorder for the audited Ironclad/Shrinker encounter | `tests/parity/schema/states-v1.json` |
 | [Real-game save JSON](real-game-save-json-spec.md) | Native v20 save structure, with separate saving/loading checks | [serializable-run-v20.schema.json](schemas/serializable-run-v20.schema.json) |
 
-The [full-game design](full-game-simulator-design.md) describes the intended system.
+The [full-game design](engine/full-game-simulator-design.md) describes the intended system.
 It does not describe the current implementation's coverage. The probe and audit sheets
 record evidence for the inspected build and scenarios; they do not establish support
 for other mechanics or game versions.

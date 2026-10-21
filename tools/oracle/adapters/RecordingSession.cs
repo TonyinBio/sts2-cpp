@@ -1,5 +1,8 @@
 // Compiled only into the recorder's disposable sts2-cli build.
 using System.Diagnostics;
+using System.Collections;
+using MegaCrit.Sts2.Core.Commands.Builders;
+using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using System.Reflection;
 using System.Text.Json;
 using MegaCrit.Sts2.Core.Combat;
@@ -179,15 +182,20 @@ public partial class RunSimulator
         var manager = CombatManager.Instance;
         var combat = manager.DebugOnlyGetState();
         Require(combat != null, "No retained combat state; this exporter supports combat rooms only");
-        Require(!_cardSelector.HasPending && !pcs.PlayPile.Cards.Any(), "Suspended effects are outside this exporter scope");
-        Require(!player.Potions.Any() && !pcs.Pets.Any() && !pcs.OrbQueue.Orbs.Any() && !combat!.Modifiers.Any(), "Unsupported inventory, pets, or modifiers");
-        Require(player.Relics.Count == 1 && player.Relics[0].Id.Entry == "BURNING_BLOOD", "Unsupported relics");
+        Require(_oracleRunMode || (!_cardSelector.HasPending && !pcs.PlayPile.Cards.Any()), "Use the run recording backend for combat choices");
         var native = NativeRunRoundTrip.Capture(RunManager.Instance.ToSave(null))!.AsObject();
         string PlayerRef() => "/players/0";
         var creatures = new Dictionary<string, object>();
         var cards = new Dictionary<string, object>();
         var powers = new Dictionary<string, object>();
         var plays = new Dictionary<string, object>();
+        var orbs = new Dictionary<string, object>();
+        var afflictions = new Dictionary<string, object>();
+        var attacks = new Dictionary<string, object>();
+        var retained = new Dictionary<string, object>();
+        var nativeModels = new Dictionary<string, object>();
+        var modelQueue = new List<AbstractModel>();
+        var attackQueue = new List<AttackCommand>();
         var refs = new Dictionary<object, string>(ReferenceEqualityComparer.Instance) { [player] = PlayerRef() };
         var creatureQueue = new List<Creature>();
         var cardQueue = new List<CardModel>();
@@ -200,12 +208,44 @@ public partial class RunSimulator
             switch (instance)
             {
                 case Creature c:
-                    name = $"/combat/creatures/{creatureQueue.Count}"; creatureQueue.Add(c); break;
+                    if (!_oracleIds.ContainsKey(c)) {
+                        if (c.Monster != null && c.Side == CombatSide.Enemy) {
+                            _oracleIds.Add(c, $"enemy_{_oracleEnemies.Count}"); _oracleEnemies.Add(c);
+                        } else _oracleIds.Add(c, $"ally_{creatureQueue.Count}");
+                    }
+                    name = $"/combat/creatures/{Id(c)}"; creatureQueue.Add(c); break;
                 case CardModel c:
-                    Require(_oracleIds.ContainsKey(c), "Unsupported generated card");
+                    if (!_oracleIds.ContainsKey(c)) { _oracleIds.Add(c, $"card_{_oracleCards.Count}"); _oracleCards.Add(c); }
                     name = $"/combat/cards/{Id(c)}"; cardQueue.Add(c); break;
                 case PowerModel p:
                     name = $"/combat/powers/{powerQueue.Count}"; powerQueue.Add(p); break;
+                case MonsterModel m: return Ref(m.Creature);
+                case OrbModel m:
+                    name = $"/combat/orbs/{modelQueue.Count}"; modelQueue.Add(m); break;
+                case AfflictionModel m:
+                    name = $"/combat/afflictions/{modelQueue.Count}"; modelQueue.Add(m); break;
+                case RelicModel m:
+                    name = $"/combat/retained_inventory_models/{modelQueue.Count}"; modelQueue.Add(m); break;
+                case PotionModel m:
+                    name = $"/combat/retained_inventory_models/{modelQueue.Count}"; modelQueue.Add(m); break;
+                case CalculatedDamageVar variable:
+                    Require(variable.GetType() == typeof(CalculatedDamageVar), "Custom calculated variable requires an explicit handler");
+                    var owner = Field<AbstractModel?>(variable, "_owner") as CardModel;
+                    Require(owner != null && owner.DynamicVars.TryGetValue(variable.Name, out var stored) && ReferenceEquals(stored, variable),
+                        "Calculated variable is not owned by an exported card");
+                    var calculation = Field<Delegate?>(variable, "_multiplierCalc");
+                    Require(calculation != null && (calculation.Target == null ||
+                        (calculation.Target.GetType().IsDefined(typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), false) &&
+                        calculation.Target.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Length == 0)),
+                        "Calculated attack callback captures storage; explicit handler required");
+                    var ownerPath = Ref(owner)!;
+                    name = (ownerPath.StartsWith("/combat/") ? ownerPath : "/native_model_state/" + ownerPath.Replace("~", "~0").Replace("/", "~1"))
+                        + "/dynamic_vars/" + variable.Name.Replace("~", "~0").Replace("/", "~1");
+                    refs.Add(instance, name); return name;
+                case MonsterState state:
+                    throw new InvalidOperationException($"AI state {state.Id} is not registered in an exported machine; explicit AI handler required");
+                case AttackCommand a:
+                    name = $"/combat/attacks/{attackQueue.Count}"; attackQueue.Add(a); break;
                 case CardPlay p:
                     name = $"/combat/card_plays/{plays.Count}";
                     refs.Add(instance, name);
@@ -221,6 +261,16 @@ public partial class RunSimulator
             refs.Add(instance, name);
             return name;
         }
+        Dictionary<string, object?> Fields(AbstractModel model) => CombatModelFields.Capture(model, Ref);
+        void RegisterNative(AbstractModel model, string path) { refs.Add(model, path); modelQueue.Add(model); }
+        for (int i = 0; i < player.Deck.Cards.Count; ++i) RegisterNative(player.Deck.Cards[i], $"/players/0/deck/{i}");
+        for (int i = 0; i < player.Relics.Count; ++i) RegisterNative(player.Relics[i], $"/players/0/relics/{i}");
+        for (int i = 0; i < player.Potions.Count(); ++i)
+            RegisterNative(player.Potions.ElementAt(i), $"/players/0/potions/{i}");
+        for (int i = 0; i < run.Modifiers.Count; ++i) RegisterNative(run.Modifiers[i], $"/modifiers/{i}");
+        // Character data is definition-only in the audited build; still check for unclassified storage.
+        Require(Fields(player.Character).Count == 0, "Character runtime state requires an explicit schema location");
+        var encounterFields = Fields(combat!.Encounter!);
         object Damage(DamageResult d) => new { receiver = Ref(d.Receiver), props = (int)d.Props,
             blocked_damage = d.BlockedDamage, unblocked_damage = d.UnblockedDamage,
             overkill_damage = d.OverkillDamage, was_block_broken = d.WasBlockBroken,
@@ -249,6 +299,9 @@ public partial class RunSimulator
                     if (kind == "CardDrawnEntry") item["from_hand_draw"] = Member(entry, "FromHandDraw");
                     if (kind == "CardGeneratedEntry") item["creator"] = Ref(Member(entry, "Creator"));
                     break;
+                case "CardAfflictedEntry":
+                    item["card"] = Ref(Member(entry, "Card")); item["affliction"] = Ref(Member(entry, "Affliction")); break;
+                case "OrbChanneledEntry": item["orb"] = Ref(Member(entry, "Orb")); break;
                 case "EnergySpentEntry": case "StarsModifiedEntry": item["amount"] = Member(entry, "Amount"); break;
                 case "BlockGainedEntry":
                     item["amount"] = Member(entry, "Amount"); item["props"] = Convert.ToInt32(Member(entry, "Props"));
@@ -265,6 +318,25 @@ public partial class RunSimulator
             }
             history.Add(item);
         }
+        var activePlays = manager.History.Entries.Where(e => e.GetType().Name == "CardPlayStartedEntry")
+            .Select(e => (CardPlay)Member(e, "CardPlay")!)
+            .Where(p => !manager.History.Entries.Any(e => e.GetType().Name == "CardPlayFinishedEntry" && ReferenceEquals(Member(e, "CardPlay"), p))).ToArray();
+        var active = activePlays.Select(p => new { card_play = Ref(p), result_location = new {
+            player = Ref(p.Player), pile_type = p.ResultPile.ToString(), position = "Bottom" } }).ToArray();
+        object? pendingChoice = null;
+        if (_oracleRunMode && (_runSelector.Pending != null || _pendingBundles != null)) {
+            var pending = _runSelector.Pending;
+            var sources = activePlays.Select(p => Ref(p.Card)).Concat(_runActionOwner?.Source is { } source ? new[] { Ref(source) } : Array.Empty<string>()).Distinct().ToArray();
+            if (pending?.Kind == "card_select") pendingChoice = new { player = PlayerRef(), sources,
+                candidates = pending.Cards.Select(c => Ref(c)).ToArray(), min_select = pending.Prefs.MinSelect,
+                max_select = Math.Min(pending.Prefs.MaxSelect, pending.Cards.Count),
+                require_manual_confirmation = pending.Prefs.RequireManualConfirmation, cancelable = pending.Prefs.Cancelable };
+            else pendingChoice = new { kind = pending?.Kind ?? "bundle_select", player = PlayerRef(), sources,
+                candidates = pending?.Cards.Select(c => Ref(c)).ToArray() ?? Array.Empty<string>(),
+                bundles = _pendingBundles?.Select(b => b.Select(c => Ref(c)).ToArray()).ToArray() ?? Array.Empty<string[]>(),
+                alternatives = pending?.Alternatives.Select(a => a.GetType().Name).ToArray() ?? Array.Empty<string>(),
+                can_skip = pending?.Alternatives.Any(a => a.GetType().Name.Contains("Skip")) ?? false };
+        }
         var allies = combat!.Allies.Select(c => Ref(c)).ToArray();
         var enemies = combat.Enemies.Select(c => Ref(c)).ToArray();
         var escaped = combat.EscapedCreatures.Select(c => Ref(c)).ToArray();
@@ -272,11 +344,11 @@ public partial class RunSimulator
             phase = pcs.Phase.ToString(), energy = pcs.Energy, stars = pcs.Stars,
             can_use_or_remove_potions = player.CanUseOrRemovePotions, is_active_for_hooks = player.IsActiveForHooks,
             piles = pcs.AllPiles.ToDictionary(p => p.Type.ToString(), p => p.Cards.Select(c => Ref(c)).ToArray()),
-            pets = Array.Empty<string>(), orb_capacity = pcs.OrbQueue.Capacity, orbs = Array.Empty<string>() };
+            pets = pcs.Pets.Select(c => Ref(c)).ToArray(), orb_capacity = pcs.OrbQueue.Capacity, orbs = pcs.OrbQueue.Orbs.Select(o => Ref(o)).ToArray() };
         // References can retain cards, removed powers and dead creatures through history.
         // Drain the queues to closure instead of exporting only current pile membership.
-        int ci = 0, pi = 0, ai = 0;
-        while (ci < creatureQueue.Count || pi < powerQueue.Count || ai < cardQueue.Count)
+        int ci = 0, pi = 0, ai = 0, mi = 0, ti = 0;
+        while (ci < creatureQueue.Count || pi < powerQueue.Count || ai < cardQueue.Count || mi < modelQueue.Count || ti < attackQueue.Count)
         {
             while (ci < creatureQueue.Count)
             {
@@ -285,10 +357,14 @@ public partial class RunSimulator
                 if (creature.Monster != null)
                 {
                     var m = creature.Monster;
-                    Require(m.Id.Entry == "SHRINKER_BEETLE", "Unsupported monster");
-                    var machine = m.MoveStateMachine!;
+
+                    var machine = m.MoveStateMachine ?? throw new InvalidOperationException($"Missing monster AI: {m.Id}");
+                    foreach (var entry in machine.States) if (entry.Value is MoveState) {
+                        Require(entry.Value.GetType() == typeof(MoveState), "Custom move-state storage requires an explicit AI handler");
+                        refs.TryAdd(entry.Value, Ref(creature) + "/monster/ai/move_states/" + entry.Key.Replace("~", "~0").Replace("/", "~1"));
+                    }
                     monster = new { id = m.Id.ToString(), current_hp = creature.CurrentHp, max_hp = creature.MaxHp,
-                        spawned_this_turn = m.SpawnedThisTurn, is_performing_move = m.IsPerformingMove,
+                        spawned_this_turn = m.SpawnedThisTurn, is_performing_move = m.IsPerformingMove, rng = NativeRunRoundTrip.Capture(m.Rng.ToSerializable()),
                         ai = new { current_state = Field<MonsterState>(machine, "_currentState").Id,
                             initial_state = Field<MonsterState>(machine, "_initialState").Id, next_move = m.NextMove?.Id,
                             state_log = machine.StateLog.Select(s => s.Id).ToArray(),
@@ -297,7 +373,7 @@ public partial class RunSimulator
                                 var move = (MoveState)p.Value;
                                 return new { performed_at_least_once = Field<bool>(move, "_performedAtLeastOnce"),
                                     must_perform_once_before_transitioning = move.MustPerformOnceBeforeTransitioning,
-                                    follow_up_state = move.FollowUpState?.Id }; }) }, model_fields = new { } };
+                                    follow_up_state = move.FollowUpState?.Id ?? move.FollowUpStateId }; }) }, model_fields = Fields(m) };
                 }
                 creatures.Add(Ref(creature)!.Split('/').Last(), new { player = creature.IsPlayer ? PlayerRef() : null,
                     monster, side = creature.Side.ToString(), block = creature.Block,
@@ -308,13 +384,12 @@ public partial class RunSimulator
             while (pi < powerQueue.Count)
             {
                 var p = powerQueue[pi++];
-                Require(p.Id.Entry is "SHRINK_POWER" or "VULNERABLE_POWER", "Unsupported power");
                 var item = new Dictionary<string, object?> {
                     ["id"] = p.Id.ToString(), ["amount"] = p.Amount, ["amount_on_turn_start"] = p.AmountOnTurnStart,
                     ["skip_next_duration_tick"] = p.SkipNextDurationTick, ["applier"] = Ref(p.Applier),
                     ["target"] = Ref(p.Target), ["dynamic_vars"] = p.DynamicVars
                         .Where(v => v.Value is not MegaCrit.Sts2.Core.Localization.DynamicVars.StringVar)
-                        .ToDictionary(v => v.Key, v => v.Value.BaseValue), ["model_fields"] = new { }
+                        .ToDictionary(v => v.Key, v => v.Value.BaseValue), ["model_fields"] = Fields(p)
                 };
                 if (!creatureQueue.Any(c => c.Powers.Contains(p))) item["detached_owner"] = Ref(p.Owner);
                 powers.Add(Ref(p)!.Split('/').Last(), item);
@@ -322,13 +397,11 @@ public partial class RunSimulator
             while (ai < cardQueue.Count)
             {
                 var card = cardQueue[ai++];
-                Require(card.Id.Entry is "STRIKE_IRONCLAD" or "DEFEND_IRONCLAD" or "BASH", "Unsupported card");
-                Require(card.Enchantment == null && card.Affliction == null && card.CloneOf == null, "Unsupported card attachment/clone");
                 var deckIndex = card.DeckVersion == null ? -1 : player.Deck.Cards.ToList().IndexOf(card.DeckVersion);
                 Require(card.DeckVersion == null || deckIndex >= 0, "Unresolved deck version");
                 cards.Add(Ref(card)!.Split('/').Last(), new { saved = NativeRunRoundTrip.Capture(card.ToSerializable()),
                     owner = card.Owner == null ? null : PlayerRef(), deck_version = deckIndex < 0 ? null : $"/players/0/deck/{deckIndex}",
-                    clone_of = (string?)null, is_dupe = card.IsDupe, base_replay_count = card.BaseReplayCount,
+                    clone_of = Ref(card.CloneOf), is_dupe = card.IsDupe, base_replay_count = card.BaseReplayCount,
                     local_keywords = (Field<HashSet<CardKeyword>?>(card, "_keywords") ?? card.CanonicalKeywords.ToHashSet()).Select(k => k.ToString()).ToArray(),
                     exhaust_on_next_play = card.ExhaustOnNextPlay,
                     has_single_turn_retain = Field<bool>(card, "_hasSingleTurnRetain"),
@@ -342,8 +415,46 @@ public partial class RunSimulator
                     base_star_cost = card.BaseStarCost,
                     temporary_star_costs = Field<List<TemporaryCardCost>>(card, "_temporaryStarCosts").Select(c => new {
                         cost = c.Cost, clears_when_turn_ends = c.ClearsWhenTurnEnds, clears_when_card_is_played = c.ClearsWhenCardIsPlayed }).ToArray(),
-                    last_stars_spent = card.LastStarsSpent, affliction = (string?)null,
-                    enchantment_runtime = (object?)null, model_fields = new { } });
+                    last_stars_spent = card.LastStarsSpent, affliction = Ref(card.Affliction),
+                    enchantment_runtime = card.Enchantment == null ? null : (object)new { status = card.Enchantment.Status.ToString(), model_fields = Fields(card.Enchantment), dynamic_vars = CombatModelFields.DynamicValues(card.Enchantment) }, model_fields = Fields(card) });
+            }
+            while (mi < modelQueue.Count) {
+                var model = modelQueue[mi++]; var path = Ref(model)!;
+                var fields = Fields(model);
+                if (!path.StartsWith("/combat/")) {
+                    nativeModels.Add(path, new { model_fields = fields, dynamic_vars = CombatModelFields.DynamicValues(model) });
+                    if (model is CardModel deckCard && deckCard.Enchantment != null) {
+                        var enchantment = deckCard.Enchantment;
+                        nativeModels.Add(path + "/enchantment", new { model_fields = Fields(enchantment), dynamic_vars = CombatModelFields.DynamicValues(enchantment), enchantment_status = enchantment.Status.ToString() });
+                    }
+                    continue;
+                }
+                var key = path.Split('/').Last();
+                if (model is OrbModel orb) orbs.Add(key, new { id = orb.Id.ToString(), owner = Ref(orb.Owner),
+                    has_been_removed_from_state = orb.HasBeenRemovedFromState, model_fields = fields });
+                else if (model is AfflictionModel affliction) {
+                    Require(fields.Count == 0, "Affliction model fields require schema coverage");
+                    afflictions.Add(key, new { id = affliction.Id.ToString(), amount = affliction.Amount });
+                }
+                else if (model is RelicModel relic) retained.Add(key, new { kind = "relic", saved = NativeRunRoundTrip.Capture(relic.ToSerializable()),
+                    owner = Ref(relic.Owner), has_been_removed_from_state = relic.HasBeenRemovedFromState, model_fields = fields, dynamic_vars = CombatModelFields.DynamicValues(relic) });
+                else if (model is PotionModel potion) retained.Add(key, new { kind = "potion", saved = NativeRunRoundTrip.Capture(potion.ToSerializable(-1)),
+                    owner = Ref(potion.Owner), has_been_removed_from_state = potion.HasBeenRemovedFromState, model_fields = fields, dynamic_vars = CombatModelFields.DynamicValues(potion) });
+                else throw new InvalidOperationException($"Unexported queued model: {model.GetType()}");
+            }
+            while (ti < attackQueue.Count) {
+                var attack = attackQueue[ti++];
+                Require(Field<object?>(attack, "_beforeDamage") == null && Field<object?>(attack, "_afterAttackerAnim") == null,
+                    "Retained attack callbacks require an explicit suspended-effect handler");
+                attacks.Add(Ref(attack)!.Split('/').Last(), new {
+                    damage_per_hit = Field<decimal>(attack, "_damagePerHit"), calculated_damage_var = Ref(Field<CalculatedDamageVar?>(attack, "_calculatedDamageVar")),
+                    hit_count = Field<int>(attack, "_hitCount"), source_type = Field<object>(attack, "_sourceType").ToString(),
+                    single_target = Ref(Field<Creature?>(attack, "_singleTarget")), targets_combat_side = attack.IsMultiTargeted,
+                    does_random_targeting_allow_duplicates = Field<bool>(attack, "_doesRandomTargetingAllowDuplicates"),
+                    attacker = Ref(attack.Attacker), model_source = Ref(attack.ModelSource), card_play = Ref(attack.CardPlay),
+                    target_side = attack.TargetSide.ToString(), damage_props = (int)attack.DamageProps,
+                    is_randomly_targeted = attack.IsRandomlyTargeted,
+                    results = attack.Results.Select(hit => hit.Select(Damage).ToArray()).ToArray() });
             }
         }
         var turn = Field<object>(manager, "_turnState");
@@ -358,17 +469,17 @@ public partial class RunSimulator
                 players_ready_to_begin_enemy_turn = Ready("PlayersReadyToBeginEnemyTurn") },
             allies, enemies, escaped_creatures = escaped,
             spawned_enemy_ids = combat.Encounter!.SpawnedEnemies.Select(m => m.Id.ToString()).Distinct().ToArray(),
-            encounter_fields = new { }, players = new[] { pc }, creatures, cards, powers, card_plays = plays,
-            orbs = new { }, afflictions = new { }, attacks = new { }, retained_inventory_models = new { },
-            active_card_plays = Array.Empty<object>(), history };
+            encounter_fields = encounterFields, players = new[] { pc }, creatures, cards, powers, card_plays = plays,
+            orbs, afflictions, attacks, retained_inventory_models = retained,
+            active_card_plays = active, history };
         // This driver never enters a final victory room or abandons a run.
         // Winning this encounter continues the run; the observed loss path ends it.
         native["boundary_kind"] = _oracleRunEndingReason == null ? "awaiting_input" : "run_complete";
         native["run_ending_reason"] = _oracleRunEndingReason;
         native["current_room"] = NativeRunRoundTrip.Capture(run.CurrentRoom?.ToSerializable());
-        native["native_model_state"] = new System.Text.Json.Nodes.JsonObject();
+        native["native_model_state"] = JsonSerializer.SerializeToNode(nativeModels);
         native["combat"] = JsonSerializer.SerializeToNode(runtime);
-        native["pending_choice"] = null;
+        native["pending_choice"] = JsonSerializer.SerializeToNode(pendingChoice);
         native["run_flow"] = null;
         return native;
     }

@@ -4,11 +4,11 @@
 and records your decisions as you play. It writes actions-v1 input and states-v1
 output using the [run-parity state schema](run-parity-spec.md).
 
-The current exporter supports **Ironclad A0 against SHRINKER_BEETLE_WEAK**, with the
-starter deck and Burning Blood. It does not record a complete map-to-ending run or
-attach to a separately running CLI. Map, reward, shop, event, selector, other character,
-and other encounter decisions need additional audited schema/exporter support. See
-[oracle recording](oracle-recording-spec.md) for the pinned game/CLI versions.
+By default the recorder starts **Ironclad A0 against SHRINKER_BEETLE_WEAK**.
+Use `--run` for a native seeded run with noncombat choices and shared combat model
+export. It does not attach to a separately running CLI. Suspended combat choices and
+unhandled runtime state still stop capture explicitly; complete-run coverage is not
+claimed. See [oracle recording](oracle-recording-spec.md) for scope and pinned versions.
 
 ## Start a recording
 
@@ -116,5 +116,6 @@ new native map screen. Saving, help, interval changes, and quitting likewise sta
 of the action log. Quitting the recorder preserves the run prefix; use `abandon` to
 record abandonment as a gameplay decision. The schema rejects view-only action kinds.
 
-The run recorder can traverse noncombat decisions but retains the existing bounded
-combat exporter: reaching unsupported combat content stops recording explicitly.
+The run recorder uses shared combat model export. The `play` shortcut still recognizes
+starter cards; use `act` with recorded card/target identities for other card models.
+Suspended combat choices and unhandled runtime state stop recording explicitly.

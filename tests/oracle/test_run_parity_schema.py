@@ -95,6 +95,14 @@ class RunParitySchemaTests(unittest.TestCase):
         cls.validator = Draft202012Validator(cls.schema, registry=registry)
         cls.native_validator = Draft202012Validator(cls.native_schema)
 
+    def test_model_storage_contract_matches_typed_schema(self):
+        contract = exact_json((REPO / 'tools/oracle/combat-field-contract.json').read_text())
+        declared = {key.split('.', 1)[1] for key, kind in contract['members'].items()
+                    if kind in ('additional_gameplay', 'ai_state_alias')}
+        self.assertEqual(declared, set(self.schema['$defs']['ModelFields']['properties']))
+        self.assertEqual(sum(kind == 'additional_gameplay' for kind in contract['members'].values()), 125)
+        self.assertEqual(sum(kind == 'ai_state_alias' for kind in contract['members'].values()), 8)
+
     def test_native_field_projection_cannot_drift(self):
         root = self.native_schema['$defs']['SerializableRun']
         projection = self.schema['$defs']['NativeRunFields']
