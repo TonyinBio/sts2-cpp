@@ -1,42 +1,51 @@
 # sts2-simulator
 
-A headless C++20 Slay the Spire 2 simulator for high-throughput AI search and simulation.
+A headless C++23 Slay the Spire 2 simulator for high-throughput AI search and simulation.
 
-This repository currently contains a buildable scaffold, not a faithful game implementation.
-The demo supports one enemy, attack/block cards, energy, hand removal, turn progression,
-and victory/defeat. Each turn refills a fixed hand; draw/discard piles, enemy AI,
-relics, powers, and game-compatible RNG are not implemented.
+The C++23 engine implements native seeded setup for all five characters, standard
+map generation and a native Neow → map → Shrinker combat → rewards → map loop,
+including natural death. It also supports isolated Survivor choices, clones and
+binary combat/run checkpoints. Full-state
+reference replays cover those supported paths, including clocks, RNG and history.
+Complete-run gameplay remains unfinished; see [engine status](docs/specs/engine/implementation-status.md).
+
+The older `sts2_cli` demo remains separate during migration. Its fixed hand and simple
+enemy behavior do not represent the new kernel or faithful game rules.
 
 ## Build and run
 
-Requires a C++20 compiler, CMake 3.20+, Make, and Git.
+Requires a C++23 compiler, CMake 3.20+, Make, and Git.
 With testing enabled (the default), the first configure fetches GoogleTest v1.17.0
 from GitHub and requires network access. The shared combat state tests also fetch
-nlohmann/json v3.12.0; neither dependency links into the production simulator.
+nlohmann/json v3.12.0. JSON also links into the optional native integration tools.
+The rules/kernel and combat CLI require neither dependency; disable testing and
+`STS2_BUILD_INTEGRATION` to build only those targets.
 
 ```sh
 cmake --preset debug
 cmake --build --preset debug
 ctest --preset debug
-./build/debug/sts2_cli
+./build/debug/sts2_combat --auto
 
 cmake --preset release
 cmake --build --preset release
 ctest --preset release
-./build/release/simulation_benchmark
+./build/release/kernel_benchmark
 ```
 
-The benchmark measures the tiny scaffold combat only, not full-game throughput.
-Combat state is trivially copyable and transitions use fixed-capacity storage without
-heap allocation. The simulator library has no runtime dependency on sts2-cli.
+The benchmark measures isolated combat execution with warmed storage and clone resets;
+it reports allocation counts and state footprint. It does not establish full-game
+throughput or a speedup over the reference. Kernel transitions depend on immutable
+compiled rules, with no runtime dependency on `sts2-cli`, JSON, files or game assemblies.
 
 ## Tests
 
-Tests use GoogleTest and are individually registered with CTest under the `unit`
-and `combat_state` labels.
+Tests use GoogleTest and are individually registered with CTest under the `engine`,
+`unit` and `combat_state` labels.
 The test framework links only into test executables.
 
 ```sh
+ctest --preset debug -L engine
 ctest --preset debug -L unit
 ./build/debug/simulator_test --gtest_filter='RngTest.*'
 ```
@@ -56,7 +65,7 @@ git submodule update --init --recursive
 ```
 
 Running the reference requires a local game installation and its own setup; see
-[sts2-cli setup](sts2-cli/README.md). It is not needed to build the C++ scaffold.
+[sts2-cli setup](sts2-cli/README.md). It is not needed to build the C++ engine.
 
 Planned differential tests will restore complete combat snapshots, including RNG state,
 replay prerecorded player actions and selection decisions in both engines, and compare
@@ -107,15 +116,24 @@ checkpoints are sparse. Differences include the action ID, JSON Pointer, expecte
 and actual value. Exact decimal values and document-local reference normalization use
 the existing snapshot comparator.
 
-`SimulatorSnapshot` in `tests/parity/support/simulator_snapshot.hpp` is the incremental
-C++ adapter. Replay initializes it from the action setup without copying expected
-snapshots. `load(initial)` is available only for fixture tests of the modeled HP,
-block, energy, turn and Strike/Defend hand cards. `produced_state()` exposes those
-modeled fields for diagnostics.
+`sts2_replay` connects that runner to the new engine's canonical wire session.
+It initializes from action setup, binds recording identities from its own generated
+pile order, and exports every native field for supported scenarios:
 
-Full parity compares every field in the shared state schema, including clocks, RNG,
-history, powers and monster AI. The current C++ engine cannot independently produce
-all of these fields, so `snapshot()` reports missing capabilities and replay fails
-at the initial checkpoint. It does not preserve expected fields or pass a partial
-state as a complete snapshot. Tests verify that changing expected data cannot alter
-simulator initialization or supply unmodeled output.
+```sh
+./build/debug/sts2_replay \
+  --actions tests/parity/fixtures/reference/combat-victory-dense/actions.json \
+  --states tests/parity/fixtures/reference/combat-victory-dense/states.json \
+  --reference tests/parity/fixtures/reference/combat-victory-dense/reference.json
+```
+
+The reference metadata is captured independently from the running backend. Replay
+compares all clocks, RNG, history, powers and monster AI. Unsupported content returns
+an explicit error; expected checkpoints never supply initialization or output.
+`SimulatorSnapshot` remains a diagnostic adapter for the older scaffold and continues
+to reject full-state export.
+
+Verify the canonical recordings independently against the reference with
+[reference self-replay](docs/specs/interactive-recording-spec.md#canonical-recording-verification).
+The [reference corpus](tests/parity/fixtures/reference/README.md) documents verified
+simulator paths and the remaining lifecycle scenarios.

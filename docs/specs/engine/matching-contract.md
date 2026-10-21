@@ -74,8 +74,11 @@ Deprecated pool members, tokens, event-only content and indirect generation requ
 reachability analysis; absence from normal rewards does not establish exclusion.
 Shared powers or entities used by excluded cards can still be required elsewhere.
 
-All rows start `not_implemented`, `not_verified`, `not_verified` for the new full-game
-kernel. The old attack/block scaffold does not establish an implementation of a pinned
+Rows without coverage evidence remain `not_implemented`, `not_verified`,
+`not_verified`. The inventory generator merges [scoped coverage annotations](../../../data/builds/v0.111.0/coverage.json)
+for the new kernel. `partial` means only the documented setup/mechanics context is
+implemented. Reference and interaction statuses identify the tested subset; they
+never imply complete-run support. The old attack/block scaffold does not establish an implementation of a pinned
 model. Before registering a candidate as supported, resolve its exact model ID,
 single-player reachability, generation conditions and dependencies, then implement its
 semantics. Reference and interaction status advance independently with evidence.

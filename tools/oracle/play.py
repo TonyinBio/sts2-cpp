@@ -24,16 +24,19 @@ def positive_int(text):
     return value
 
 
+DEFAULT_CLOCK = {'kind': 'action_clock_v1', 'epoch_seconds': 1700000000, 'seconds_per_action': 1}
+
+
 def new_actions(seed, recording_id, run=True, character="Ironclad", ascension=0):
     if run:
         return {'schema_version': 1, 'profile': 'actions-v1', 'state_profile': 'run-parity-v1',
                 'recording_id': recording_id, 'required_features': ['run_flow_v1'],
-                'setup': {'kind': 'seeded_run', 'character': character, 'ascension': ascension, 'seed': seed},
+                'setup': {'kind': 'seeded_run', 'character': character, 'ascension': ascension, 'seed': seed, 'clock': dict(DEFAULT_CLOCK)},
                 'actions': []}
     return {'schema_version': 1, 'profile': 'actions-v1', 'state_profile': 'run-parity-v1',
             'recording_id': recording_id, 'required_features': list(FEATURES),
             'setup': {'kind': 'seeded_combat', 'character': 'Ironclad', 'ascension': 0,
-                      'seed': seed, 'encounter': 'SHRINKER_BEETLE_WEAK'}, 'actions': []}
+                      'seed': seed, 'clock': dict(DEFAULT_CLOCK), 'encounter': 'SHRINKER_BEETLE_WEAK'}, 'actions': []}
 
 
 def resolve(state, ref):
@@ -77,6 +80,9 @@ class RecordingWriter:
                 stream.flush()
                 os.fsync(stream.fileno())
             atomic_write(temporary / 'states.json', states)
+            # Independently obtained backend identity is also available to the
+            # simulator runner without reading it from expected checkpoints.
+            atomic_write(temporary / 'reference.json', reference)
             os.symlink(temporary.name, link, target_is_directory=True)
             os.replace(link, self.directory / 'current')
         finally:
@@ -197,9 +203,7 @@ def main():
         interface.SAVE_DIR = str(directory / 'saves')
         actions = new_actions(args.seed, directory.name, run=True,
                               character=args.character, ascension=args.ascension)
-        extra_sources = (Path(__file__), Path(__file__).with_name('upstream_play.py'),
-                         REPO / 'sts2-cli/python/play.py', REPO / 'sts2-cli/python/game_log.py')
-        with reference_build(args.game_dir, logs, extra_sources=extra_sources) as (command, env, provenance):
+        with reference_build(args.game_dir, logs) as (command, env, provenance):
             host = JsonProcess(command, env, logs / 'reference', args.timeout, log_protocol=args.protocol_log)
             session = PlaySession(host, actions, provenance, validator,
                                   RecordingWriter(directory, validator), args.checkpoint_every)

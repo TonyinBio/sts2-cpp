@@ -102,8 +102,9 @@ then atomically switches the `current` directory symlink and retires the previou
 generation. Consumers should read the pair after the session stops.
 
 Build output and diagnostics are in `logs/`. Full protocol transcripts are disabled
-by default; enable `--protocol-log` for debugging. Provenance includes the upstream
-interface, recording hooks, adapters, schemas and managed dependencies.
+by default; enable `--protocol-log` for debugging. Backend provenance includes injected adapters, schemas, protocol/build helpers and
+managed dependencies. The pinned wrapper revision also identifies the upstream interface.
+Recorder UI code is outside backend identity so the verifier builds the same backend.
 
 ## Saves and new runs
 
@@ -130,3 +131,32 @@ This compares a seeded Neow/map/combat trace with native rendering enabled and d
 Fixture clocks are fixed; every snapshot field is compared. The combat export and choice
 audits additionally check display purity for all five character loadouts and suspended
 Survivor/Discovery selections.
+
+## Canonical recording verification
+
+New sessions carry the explicit logical clock described in the
+[action contract](action-recording-spec.md#reproducible-clock-input).
+Verify a stopped session's canonical pair with:
+
+```sh
+python3 tools/oracle/replay.py --game-dir '/path/to/game' \
+  --actions build/recordings/my-session/current/actions.json \
+  --states build/recordings/my-session/current/states.json \
+  --logs build/recordings/my-session/verification
+```
+
+This verifies the exact action-file digest, schemas, independently built backend
+provenance and runtime identity before comparing initialization and every saved
+checkpoint. It executes every action, including those between sparse checkpoints,
+without using the interface transport's automatic settling loop. Already-recorded
+reward collection, treasure choices and room transitions therefore execute once.
+The full-state comparator retains exact decimal tokens and document-local identity
+normalization; clock fields are compared. Expected snapshots never initialize the
+backend. Divergence exits with status 2 and the action/checkpoint plus first differing
+JSON Pointer. Reference execution, compatibility and input errors exit with status 1.
+These results establish reference recording reliability, not simulator correctness.
+
+Run `tools/oracle/check_recording_replay.py --game-dir '/path/to/game'
+--output-dir build/self-replay-check` to regenerate the initial corpus and replay each
+recording in two independent processes. The checked-in corpus and its coverage gaps
+are described in `tests/parity/fixtures/reference/README.md`.

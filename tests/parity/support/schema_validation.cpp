@@ -19,6 +19,20 @@ std::string pointer_token(const std::string& key) {
     return result;
 }
 namespace {
+bool numeric_less(const Json& a, const Json& b) {
+    if (a.is_number_integer() && b.is_number_integer()) {
+        if (a.is_number_unsigned()) {
+            if (!b.is_number_unsigned() && b.get<std::int64_t>() < 0) return false;
+            return a.get<std::uint64_t>() < b.get<std::uint64_t>();
+        }
+        if (b.is_number_unsigned()) {
+            const auto value = a.get<std::int64_t>();
+            return value < 0 || static_cast<std::uint64_t>(value) < b.get<std::uint64_t>();
+        }
+        return a.get<std::int64_t>() < b.get<std::int64_t>();
+    }
+    return a.get<long double>() < b.get<long double>();
+}
 using Evaluated = std::set<std::string>;
 // The keyword subset used by the embedded Draft 2020-12 schemas. Return evaluated
 // property names so allOf/conditional/$ref annotations reach unevaluatedProperties.
@@ -111,8 +125,8 @@ Evaluated check(const Json& value, const Json& rule, const Json& root, const std
     }
     if (value.is_number()) {
         // Compare unsigned integers without narrowing through int64 or double.
-        if (rule.contains("minimum") && value < rule["minimum"]) invalid(path, "number below minimum");
-        if (rule.contains("maximum") && value > rule["maximum"]) invalid(path, "number above maximum");
+        if (rule.contains("minimum") && numeric_less(value, rule["minimum"])) invalid(path, "number below minimum");
+        if (rule.contains("maximum") && numeric_less(rule["maximum"], value)) invalid(path, "number above maximum");
     }
     if (value.is_string()) {
         const auto& text = value.get_ref<const std::string&>();

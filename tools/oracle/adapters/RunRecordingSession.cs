@@ -156,6 +156,7 @@ public partial class RunSimulator
         var seed = setup.GetProperty("seed").GetString()!;
         Require(new[] { "Ironclad", "Silent", "Defect", "Regent", "Necrobinder" }.Contains(character), "Unknown character");
         Require(ascension >= 0 && ascension <= 10 && !string.IsNullOrEmpty(seed), "Invalid ascension or seed");
+        ConfigureRecordingClock(command.GetProperty("setup"));
         PatchRecordingDebugAudio();
         _oracleActive = _oracleRunMode = true;
         _runSelector = new RunSelector(this);
@@ -166,12 +167,14 @@ public partial class RunSimulator
         RunEndingSession = this;
         harmony.Patch(typeof(RunManager).GetMethod(nameof(RunManager.WinRun))!,
             prefix: new HarmonyMethod(typeof(RunChoiceContextCapture).GetMethod(nameof(RunChoiceContextCapture.BeforeWin))!));
-        RewardsSet.testSelector = OfferRunRewards;
         CombatManager.Instance.CombatWon += _ => _runCombatWon = true;
         CombatManager.Instance.CombatEnded += _ => { if (!_runCombatWon && _oracleRunEndingReason == null) _runDeathObserved = true; };
         // StartRun performs the real seeded setup and enters the initial act/Neow;
         // recorder mode bypasses its UI-oriented decision detection.
         CheckResponse(StartRun(character, ascension, seed, "en"));
+        // First-time EnsureModelDbInitialized installs sts2-cli's automatic reward
+        // selector. Bind our explicit decision boundary after that initialization.
+        RewardsSet.testSelector = OfferRunRewards;
         if (setup.TryGetProperty("kind", out var setupKind) && setupKind.GetString() == "seeded_combat")
             CheckResponse(EnterRoom("combat", setup.GetProperty("encounter").GetString(), null));
         _runState!.Players[0].Creature.Died += _ => _runDeathObserved = true;
@@ -251,6 +254,7 @@ public partial class RunSimulator
         Require(_oracleRunMode, "No run recording session");
         AwaitRunBoundary();
         Require(_oracleRunEndingReason == null, "Action after run completion");
+        AdvanceRecordingClock();
         var kind = command.GetProperty("action").GetString()!;
         var args = command.TryGetProperty("args", out var supplied) ? supplied : JsonSerializer.SerializeToElement(new { });
         int Index(string name = "index") => args.GetProperty(name).GetInt32();
@@ -282,8 +286,8 @@ public partial class RunSimulator
                 if (kind == "select_card_reward") { var i = Index("card_index"); Require(i >= 0 && i < pending.Cards.Count, "Invalid reward card index"); selection.card = pending.Cards[i]; }
                 if (kind == "reward_alternative") { var i = Index(); Require(i >= 0 && i < pending.Alternatives.Count, "Invalid reward alternative"); selection.alternative = pending.Alternatives[i]; }
                 if (kind == "skip_card_reward") {
-                    Require(pending.Alternatives.Any(a => a.GetType().Name.Contains("Skip")), "This card reward cannot be skipped");
-                    selection.alternative = pending.Alternatives.First(a => a.GetType().Name.Contains("Skip"));
+                    Require(pending.Alternatives.Any(a => a.OptionId == "Skip"), "This card reward cannot be skipped");
+                    selection.alternative = pending.Alternatives.First(a => a.OptionId == "Skip");
                 }
                 _runSelector.Clear(pending); pending.RewardDone.TrySetResult(selection);
             }
@@ -301,7 +305,9 @@ public partial class RunSimulator
             } else {
                 var i = Index(); Require(i >= 0 && i < frame.Set.Rewards.Count && !frame.Set.Rewards[i].SuccessfullySelected, "Invalid or already taken reward");
                 BeginRunOperation(kind, i, async () => {
-                    Require(await RunManager.Instance.RewardsSetSynchronizer.SelectLocalReward(frame.Set.Rewards[i]), "Reward was not obtained");
+                    // False is a valid unresolved reward (card Skip or full potion
+                    // inventory). Keep the offer available for a later decision.
+                    await RunManager.Instance.RewardsSetSynchronizer.SelectLocalReward(frame.Set.Rewards[i]);
                     if (RunManager.Instance.RewardsSetSynchronizer.IsRewardsSetCompleted(frame.Set)) frame.Done.TrySetResult();
                 });
             }
@@ -527,7 +533,7 @@ public partial class RunSimulator
         if (pending == null) return null;
         if (pending.Kind == "card_reward") return new { kind = "card_reward", cards = SavedCards(pending.Cards),
             alternatives = pending.Alternatives.Select(a => a.GetType().Name).ToArray(),
-            can_skip = pending.Alternatives.Any(a => a.GetType().Name.Contains("Skip")) };
+            can_skip = pending.Alternatives.Any(a => a.OptionId == "Skip") };
         var deck = _runState!.Players[0].Deck.Cards.ToList();
         return new { kind = "card_select", cards = SavedCards(pending.Cards),
             deck_indices = pending.Cards.Select(c => { var i = deck.IndexOf(c); return i < 0 ? (int?)null : i; }).ToArray(),

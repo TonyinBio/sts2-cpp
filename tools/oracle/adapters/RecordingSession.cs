@@ -47,6 +47,7 @@ public partial class RunSimulator
     public Dictionary<string, object?> OracleStart(JsonElement command)
     {
         Require(!_oracleActive, "One combat per recording process");
+        ConfigureRecordingClock(command.GetProperty("setup"));
         PatchRecordingDebugAudio();
         var setup = command.GetProperty("setup");
         Require(setup.GetProperty("kind").GetString() == "seeded_combat" &&
@@ -120,6 +121,7 @@ public partial class RunSimulator
         Require(_oracleActive, "No recording session");
         AwaitBoundary();
         Require(CombatManager.Instance.IsInProgress, "Action after combat end");
+        AdvanceRecordingClock();
         var action = command.GetProperty("action");
         var kind = action.GetProperty("kind").GetString();
         var player = _runState!.Players[0];

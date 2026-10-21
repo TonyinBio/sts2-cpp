@@ -55,6 +55,9 @@
             "encounter": {
               "type": "string",
               "minLength": 1
+            },
+            "clock": {
+              "$ref": "#/$defs/logical_clock"
             }
           },
           "required": [
@@ -89,6 +92,9 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 10
+            },
+            "clock": {
+              "$ref": "#/$defs/logical_clock"
             }
           },
           "required": [
@@ -580,6 +586,30 @@
       "required": [
         "kind",
         "potion_index"
+      ],
+      "additionalProperties": false
+    },
+    "logical_clock": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "action_clock_v1"
+        },
+        "epoch_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 253402300799
+        },
+        "seconds_per_action": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 86400
+        }
+      },
+      "required": [
+        "kind",
+        "epoch_seconds",
+        "seconds_per_action"
       ],
       "additionalProperties": false
     }

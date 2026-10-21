@@ -53,6 +53,15 @@ TEST(RunParityFormat, ComparesNativeUint64WithoutPrecisionLoss) {
     ASSERT_EQ(diff.size(), 1u);
     EXPECT_EQ(diff[0].path, "/rng/rngs/shuffle/s3");
 }
+TEST(RunParityFormat, IntegerBoundsHandleSignedAndUnsignedValuesExactly) {
+    auto value = example();
+    value["players"][0]["net_id"] = std::int64_t{1};
+    EXPECT_NO_THROW(parse(value));
+    value["players"][0]["net_id"] = std::uint64_t{UINT64_MAX};
+    EXPECT_NO_THROW(parse(value));
+    value["players"][0]["net_id"] = std::int64_t{-1};
+    EXPECT_THROW(parse(value), std::invalid_argument);
+}
 TEST(RunParityFormat, SupportsNonCombatAndCompletedRun) {
     auto value = example();
     value["combat"] = nullptr; value["pending_choice"] = nullptr; value["current_room"] = nullptr;
@@ -120,7 +129,7 @@ TEST(RunParityFormat, ComparesDecimalTokensWithoutRounding) {
     second.replace(at, 15, "0.1234567890123456789012345679");
     const auto diff = compare(Snapshot::parse_text(first), Snapshot::parse_text(second));
     ASSERT_EQ(diff.size(), 1u);
-    EXPECT_EQ(diff[0].path, "/combat/cards/survivor/energy_cost/base");
+    EXPECT_EQ(diff[0].path, "/combat/cards/survivor/dynamic_vars/Block");
     second = text;
     second.replace(at, 15, "1234567890123456789012345678e-28");
     EXPECT_TRUE(compare(Snapshot::parse_text(first), Snapshot::parse_text(second)).empty());

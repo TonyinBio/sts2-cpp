@@ -170,6 +170,7 @@ class InteractiveRecorderTests(unittest.TestCase):
         actions = strict_json(raw)
         states = strict_json((directory / 'states.json').read_bytes())
         self.assertEqual(states['actions_sha256'], hashlib.sha256(raw).hexdigest())
+        self.assertEqual(strict_json((directory / 'reference.json').read_bytes()), states['reference'])
         validate(VALIDATOR, 'states', states, actions)
         return actions, states
 
@@ -303,6 +304,91 @@ class InteractiveRecorderTests(unittest.TestCase):
         self.assertEqual((self.directory / 'current').resolve(), before)
         self.assertEqual(self.saved()[0]['actions'], [])
         self.assertEqual(len(list(self.directory.glob('.pending-*'))), 1)
+
+
+@unittest.skipUnless(VALIDATOR, 'Pass parity_validate executable')
+class CanonicalReplayTests(unittest.TestCase):
+    setUp = InteractiveRecorderTests.setUp
+
+    def pair(self):
+        self.session.start()
+        for _ in range(7):
+            self.session.step({'kind': 'end_turn'})
+        self.session.publish(final=True)
+        from replay import load_pair
+        current = self.directory / 'current'
+        return load_pair(current / 'actions.json', current / 'states.json', VALIDATOR)
+
+    def test_retained_corpus_digest_schema_and_logical_clocks(self):
+        from replay import load_pair
+        for action_path in sorted((REPO / 'tests/parity/fixtures/reference').glob('*/actions.json')):
+            root = action_path.parent
+            scenario = root.name
+            actions, states = load_pair(root / 'actions.json', root / 'states.json', VALIDATOR)
+            clock = actions['setup']['clock']
+            positions = {entry['id']: index for index, entry in enumerate(actions['actions'], 1)}
+            checkpoints = [('initial', states['initial'])] + [
+                (entry['action_id'], entry['state']) for entry in states['transitions']]
+            for boundary, state in checkpoints:
+                elapsed = 0 if boundary == 'initial' else positions[boundary] * clock['seconds_per_action']
+                with self.subTest(scenario=scenario, boundary=boundary):
+                    self.assertEqual(state['start_time'], clock['epoch_seconds'])
+                    self.assertEqual(state['save_time'], clock['epoch_seconds'] + elapsed)
+                    self.assertEqual(state['run_time'], elapsed)
+
+    def test_sparse_replay_executes_every_action_once(self):
+        from replay import replay
+        actions, states = self.pair()
+        host = FakeHost()
+        self.assertEqual(replay(host, actions, states, self.session.provenance, VALIDATOR), (7, 3))
+        self.assertEqual(host.count, 7)
+        self.assertEqual([r['request_id'] for r in host.requests],
+                         ['initial'] + [a['id'] for a in actions['actions']])
+
+    def test_clock_divergence_stops_before_any_action(self):
+        from replay import replay, ReplayMismatch
+        actions, states = self.pair()
+        states['initial']['start_time'] += 1
+        host = FakeHost()
+        with self.assertRaisesRegex(ReplayMismatch, 'initial.*start_time'):
+            replay(host, actions, states, self.session.provenance, VALIDATOR)
+        self.assertEqual(host.count, 0)
+
+    def test_checkpoint_divergence_reports_action(self):
+        from replay import replay, ReplayMismatch
+        actions, states = self.pair()
+        states['transitions'][0]['state']['run_time'] += 1
+        host = FakeHost()
+        with self.assertRaisesRegex(ReplayMismatch, 'action-000005.*run_time'):
+            replay(host, actions, states, self.session.provenance, VALIDATOR)
+        self.assertEqual(host.count, 5)
+
+    def test_provenance_rejected_before_execution(self):
+        from replay import replay
+        actions, states = self.pair()
+        host = FakeHost()
+        with self.assertRaisesRegex(RuntimeError, 'provenance'):
+            replay(host, actions, states, dict(self.session.provenance, adapter_sha256='0' * 64), VALIDATOR)
+        self.assertEqual(host.requests, [])
+
+    def test_digest_checks_exact_file_bytes(self):
+        from replay import load_pair
+        self.pair()
+        current = self.directory / 'current'
+        with (current / 'actions.json').open('a') as stream:
+            stream.write(' ')
+        with self.assertRaisesRegex(RuntimeError, 'digest'):
+            load_pair(current / 'actions.json', current / 'states.json', VALIDATOR)
+
+    def test_legacy_clock_is_explicitly_unreplayable(self):
+        from replay import load_pair
+        actions = new_actions('ORACLECHECK01', 'legacy', run=True)
+        del actions['setup']['clock']
+        self.session.actions = actions
+        self.session.start()
+        current = self.directory / 'current'
+        with self.assertRaisesRegex(RuntimeError, 'no reproducible clock'):
+            load_pair(current / 'actions.json', current / 'states.json', VALIDATOR)
 
 
 if __name__ == '__main__':

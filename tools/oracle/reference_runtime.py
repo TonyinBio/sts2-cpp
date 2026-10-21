@@ -229,7 +229,7 @@ def inject(source):
         '            case "oracle_run_action": return sim.OracleRunAction(cmd);\n'
         '            case "oracle_run_state": return sim.OracleRunState(cmd);\n'
         '            case "start_run":', 1))
-    for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs', 'RunRecordingSession.cs', 'CombatModelFields.cs', 'RecordingDisplay.cs'):
+    for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs', 'RunRecordingSession.cs', 'CombatModelFields.cs', 'RecordingDisplay.cs', 'RecordingClock.cs'):
         shutil.copy2(Path(__file__).parent / 'adapters' / name, source)
 
     contract = strict_json((Path(__file__).parent / 'combat-field-contract.json').read_bytes())

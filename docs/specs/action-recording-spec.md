@@ -223,3 +223,30 @@ ctest --preset debug -L action_recording
 
 The unit tests run offline once build dependencies are available and require no game
 DLLs.
+
+## Reproducible clock input
+
+New recordings include `setup.clock` for both seeded setup kinds:
+
+```json
+{"kind":"action_clock_v1","epoch_seconds":1700000000,"seconds_per_action":1}
+```
+
+The clock starts at the supplied Unix epoch. Immediately before each canonical action,
+advance it by `seconds_per_action` seconds; keep it constant throughout that action's
+native effects and any resulting prompt. Every recorded automatic transport decision
+counts as an action. Reads, UI display, checkpoint sampling, and save publication do
+not advance time. All three settings are required. Epochs range from 0 through
+253402300799; increments range from 0 through 86400. Exhaustion is an operational
+error before action execution.
+
+The reference adapter substitutes this source for `DateTimeOffset.UtcNow` in pinned
+RunManager setup, elapsed-time, pause and save methods. Native start/save/run/win-time
+calculations remain intact. No expected snapshot values are supplied to execution or
+copied into its output. The C++ `RunClock` implements the same source-clock contract;
+run lifecycle systems must still implement the native pause and win-time rules.
+
+The optional field preserves validation of older actions-v1 files. Absence means the
+legacy wall clock; canonical self-replay rejects these files explicitly because seed
+and actions alone cannot reproduce their clocks. Existing recordings cannot acquire
+exact replay certification by editing their expected states.

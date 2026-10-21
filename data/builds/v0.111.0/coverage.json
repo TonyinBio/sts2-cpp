@@ -1,0 +1,300 @@
+{
+  "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+  "models": [
+    {
+      "category": "Acts",
+      "source_class": "Glory",
+      "implementation": "partial",
+      "reference_verification": "setup_map_fixture_verified",
+      "interaction_verification": "not_verified",
+      "supported_scope": "Standard single-player setup and map generation only, A0..A10. Room gameplay and act transitions remain unsupported.",
+      "evidence": [
+        "tests/fixtures/maps-v1.json",
+        "tests/unit/map_test.cpp",
+        "tests/unit/setup_test.cpp"
+      ]
+    },
+    {
+      "category": "Acts",
+      "source_class": "Hive",
+      "implementation": "partial",
+      "reference_verification": "setup_map_fixture_verified",
+      "interaction_verification": "not_verified",
+      "supported_scope": "Standard single-player setup and map generation only, A0..A10. Room gameplay and act transitions remain unsupported.",
+      "evidence": [
+        "tests/fixtures/maps-v1.json",
+        "tests/unit/map_test.cpp",
+        "tests/unit/setup_test.cpp"
+      ]
+    },
+    {
+      "category": "Acts",
+      "source_class": "Overgrowth",
+      "implementation": "partial",
+      "reference_verification": "setup_map_fixture_verified",
+      "interaction_verification": "not_verified",
+      "supported_scope": "Standard single-player setup and map generation only, A0..A10. Room gameplay and act transitions remain unsupported.",
+      "evidence": [
+        "tests/fixtures/maps-v1.json",
+        "tests/unit/map_test.cpp",
+        "tests/unit/setup_test.cpp"
+      ]
+    },
+    {
+      "category": "Acts",
+      "source_class": "Underdocks",
+      "implementation": "partial",
+      "reference_verification": "setup_map_fixture_verified",
+      "interaction_verification": "not_verified",
+      "supported_scope": "Standard single-player setup and map generation only, A0..A10. Room gameplay and act transitions remain unsupported.",
+      "evidence": [
+        "tests/fixtures/maps-v1.json",
+        "tests/unit/map_test.cpp",
+        "tests/unit/setup_test.cpp"
+      ]
+    },
+    {
+      "category": "Characters",
+      "source_class": "Ironclad",
+      "implementation": "partial",
+      "reference_verification": "setup_fixture_verified",
+      "interaction_verification": "not_verified",
+      "supported_scope": "Seeded setup, initial deck/relics and Neow offers only. Full initial states verified at A0/A4/A10; combat is restricted to the Ironclad slice.",
+      "evidence": [
+        "tests/fixtures/seeded-setup-v1.json",
+        "tests/parity/seeded_run_test.cpp"
+      ]
+    },
+    {
+      "category": "Characters",
+      "source_class": "Silent",
+      "implementation": "partial",
+      "reference_verification": "setup_fixture_verified",
+      "interaction_verification": "not_verified",
+      "supported_scope": "Seeded setup, initial deck/relics and Neow offers only. Full initial states verified at A0/A4/A10; combat is restricted to the Ironclad slice.",
+      "evidence": [
+        "tests/fixtures/seeded-setup-v1.json",
+        "tests/parity/seeded_run_test.cpp"
+      ]
+    },
+    {
+      "category": "Characters",
+      "source_class": "Defect",
+      "implementation": "partial",
+      "reference_verification": "setup_fixture_verified",
+      "interaction_verification": "not_verified",
+      "supported_scope": "Seeded setup, initial deck/relics and Neow offers only. Full initial states verified at A0/A4/A10; combat is restricted to the Ironclad slice.",
+      "evidence": [
+        "tests/fixtures/seeded-setup-v1.json",
+        "tests/parity/seeded_run_test.cpp"
+      ]
+    },
+    {
+      "category": "Characters",
+      "source_class": "Regent",
+      "implementation": "partial",
+      "reference_verification": "setup_fixture_verified",
+      "interaction_verification": "not_verified",
+      "supported_scope": "Seeded setup, initial deck/relics and Neow offers only. Full initial states verified at A0/A4/A10; combat is restricted to the Ironclad slice.",
+      "evidence": [
+        "tests/fixtures/seeded-setup-v1.json",
+        "tests/parity/seeded_run_test.cpp"
+      ]
+    },
+    {
+      "category": "Characters",
+      "source_class": "Necrobinder",
+      "implementation": "partial",
+      "reference_verification": "setup_fixture_verified",
+      "interaction_verification": "not_verified",
+      "supported_scope": "Seeded setup, initial deck/relics and Neow offers only. Full initial states verified at A0/A4/A10; combat is restricted to the Ironclad slice.",
+      "evidence": [
+        "tests/fixtures/seeded-setup-v1.json",
+        "tests/parity/seeded_run_test.cpp"
+      ]
+    },
+    {
+      "category": "Cards",
+      "source_class": "StrikeIronclad",
+      "implementation": "implemented",
+      "reference_verification": "base_full_state_fixture_verified",
+      "interaction_verification": "limited_combat_verified",
+      "supported_scope": "Base and upgraded effect programs. Native full-state fixtures cover base cards only, with A0 Shrinker/Burning Blood/Shrink/Vulnerable and the isolated Survivor setup. Other content interactions are unverified.",
+      "evidence": [
+        "tests/parity/seeded_run_test.cpp",
+        "tests/unit/engine_test.cpp"
+      ]
+    },
+    {
+      "category": "Cards",
+      "source_class": "DefendIronclad",
+      "implementation": "implemented",
+      "reference_verification": "base_full_state_fixture_verified",
+      "interaction_verification": "limited_combat_verified",
+      "supported_scope": "Base and upgraded effect programs. Native full-state fixtures cover base cards only, with A0 Shrinker/Burning Blood/Shrink/Vulnerable and the isolated Survivor setup. Other content interactions are unverified.",
+      "evidence": [
+        "tests/parity/seeded_run_test.cpp",
+        "tests/unit/engine_test.cpp"
+      ]
+    },
+    {
+      "category": "Cards",
+      "source_class": "Bash",
+      "implementation": "implemented",
+      "reference_verification": "base_full_state_fixture_verified",
+      "interaction_verification": "limited_combat_verified",
+      "supported_scope": "Base and upgraded effect programs. Native full-state fixtures cover base cards only, with A0 Shrinker/Burning Blood/Shrink/Vulnerable and the isolated Survivor setup. Other content interactions are unverified.",
+      "evidence": [
+        "tests/parity/seeded_run_test.cpp",
+        "tests/unit/engine_test.cpp"
+      ]
+    },
+    {
+      "category": "Cards",
+      "source_class": "Survivor",
+      "implementation": "implemented",
+      "reference_verification": "base_full_state_fixture_verified",
+      "interaction_verification": "limited_combat_verified",
+      "supported_scope": "Base and upgraded effect programs. Native full-state fixtures cover base cards only, with A0 Shrinker/Burning Blood/Shrink/Vulnerable and the isolated Survivor setup. Other content interactions are unverified.",
+      "evidence": [
+        "tests/parity/seeded_run_test.cpp",
+        "tests/unit/engine_test.cpp"
+      ]
+    },
+    {
+      "category": "Monsters",
+      "source_class": "ShrinkerBeetle",
+      "implementation": "partial",
+      "reference_verification": "full_state_fixture_verified",
+      "interaction_verification": "limited_combat_verified",
+      "supported_scope": "A0 Ironclad starter/Shrinker combat and isolated Survivor scenarios only. Higher ascensions, other power targets and unimplemented content interactions are unsupported.",
+      "evidence": [
+        "tests/parity/fixtures/reference/combat-victory-dense",
+        "tests/parity/fixtures/reference/combat-block-death",
+        "tests/parity/seeded_run_test.cpp"
+      ]
+    },
+    {
+      "category": "Encounters",
+      "source_class": "ShrinkerBeetleWeak",
+      "implementation": "partial",
+      "reference_verification": "full_state_fixture_verified",
+      "interaction_verification": "limited_combat_verified",
+      "supported_scope": "A0 Ironclad starter/Shrinker combat and isolated Survivor scenarios only. Higher ascensions, other power targets and unimplemented content interactions are unsupported.",
+      "evidence": [
+        "tests/parity/fixtures/reference/combat-victory-dense",
+        "tests/parity/fixtures/reference/combat-block-death",
+        "tests/parity/seeded_run_test.cpp"
+      ]
+    },
+    {
+      "category": "Powers",
+      "source_class": "ShrinkPower",
+      "implementation": "partial",
+      "reference_verification": "full_state_fixture_verified",
+      "interaction_verification": "limited_combat_verified",
+      "supported_scope": "A0 Ironclad starter/Shrinker combat and isolated Survivor scenarios only. Higher ascensions, other power targets and unimplemented content interactions are unsupported.",
+      "evidence": [
+        "tests/parity/fixtures/reference/combat-victory-dense",
+        "tests/parity/fixtures/reference/combat-block-death",
+        "tests/parity/seeded_run_test.cpp"
+      ]
+    },
+    {
+      "category": "Powers",
+      "source_class": "VulnerablePower",
+      "implementation": "partial",
+      "reference_verification": "full_state_fixture_verified",
+      "interaction_verification": "limited_combat_verified",
+      "supported_scope": "A0 Ironclad starter/Shrinker combat and isolated Survivor scenarios only. Higher ascensions, other power targets and unimplemented content interactions are unsupported.",
+      "evidence": [
+        "tests/parity/fixtures/reference/combat-victory-dense",
+        "tests/parity/fixtures/reference/combat-block-death",
+        "tests/parity/seeded_run_test.cpp"
+      ]
+    },
+    {
+      "category": "Relics",
+      "source_class": "BurningBlood",
+      "implementation": "partial",
+      "reference_verification": "full_state_fixture_verified",
+      "interaction_verification": "limited_combat_verified",
+      "supported_scope": "A0 Ironclad starter/Shrinker combat and isolated Survivor scenarios only. Higher ascensions, other power targets and unimplemented content interactions are unsupported.",
+      "evidence": [
+        "tests/parity/fixtures/reference/combat-victory-dense",
+        "tests/parity/fixtures/reference/combat-block-death",
+        "tests/parity/seeded_run_test.cpp"
+      ]
+    },
+    {
+      "category": "Relics",
+      "source_class": "GoldenPearl",
+      "implementation": "implemented",
+      "reference_verification": "full_state_fixture_verified",
+      "interaction_verification": "neow_prefix_verified",
+      "supported_scope": "Gain 150 gold on acquisition from Neow. General relic acquisition and interactions remain unsupported.",
+      "evidence": [
+        "tests/parity/fixtures/reference/neow-map"
+      ]
+    },
+    {
+      "category": "Events",
+      "source_class": "Neow",
+      "implementation": "partial",
+      "reference_verification": "full_state_fixture_verified",
+      "interaction_verification": "neow_prefix_verified",
+      "supported_scope": "Generate all three native offers for fully unlocked single-player setup; execute Golden Pearl and proceed to map. Other options return unsupported_content.",
+      "evidence": [
+        "tests/fixtures/seeded-setup-v1.json",
+        "tests/parity/fixtures/reference/neow-map"
+      ]
+    },
+    {
+      "category": "Cards",
+      "source_class": "TrueGrit",
+      "implementation": "partial",
+      "reference_verification": "acquisition_full_state_verified",
+      "interaction_verification": "not_verified",
+      "supported_scope": "Reward generation and acquisition only; combat effect is unsupported.",
+      "evidence": [
+        "tests/parity/fixtures/reference/run-shrinker-victory",
+        "tests/unit/run_test.cpp"
+      ]
+    },
+    {
+      "category": "Cards",
+      "source_class": "Juggling",
+      "implementation": "partial",
+      "reference_verification": "reward_generation_verified",
+      "interaction_verification": "not_verified",
+      "supported_scope": "Reward generation and acquisition only; combat effect is unsupported.",
+      "evidence": [
+        "tests/parity/fixtures/reference/run-shrinker-victory",
+        "tests/unit/run_test.cpp"
+      ]
+    },
+    {
+      "category": "Cards",
+      "source_class": "Rage",
+      "implementation": "partial",
+      "reference_verification": "reward_generation_verified",
+      "interaction_verification": "not_verified",
+      "supported_scope": "Reward generation and acquisition only; combat effect is unsupported.",
+      "evidence": [
+        "tests/parity/fixtures/reference/run-shrinker-victory",
+        "tests/unit/run_test.cpp"
+      ]
+    },
+    {
+      "category": "Potions",
+      "source_class": "PotionOfBinding",
+      "implementation": "partial",
+      "reference_verification": "inventory_full_state_verified",
+      "interaction_verification": "not_verified",
+      "supported_scope": "Reward generation, acquisition and discard only; potion use is unsupported.",
+      "evidence": [
+        "tests/parity/fixtures/reference/run-shrinker-victory"
+      ]
+    }
+  ]
+}

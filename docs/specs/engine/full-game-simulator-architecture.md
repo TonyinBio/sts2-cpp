@@ -11,6 +11,9 @@ machine, and shared immutable rules. Content is data and indexed handlers rather
 an inheritance tree of cards, enemies, or rooms. Keep observations, text formatting,
 serialization, and reference-game tooling outside the transition path.
 
+The implemented setup, map and combat slices are described in [implementation status](implementation-status.md);
+full-game acceptance remains pending.
+
 ## 1. Proposed files and dependency boundaries
 
 Public headers live under `include/sts2/`; implementation files under `src/` mirror
@@ -294,8 +297,8 @@ error under the failure policy above.
 
 The non-recording step-1 contracts are in [Matching contract](matching-contract.md),
 [Decisions and observations](decision-contract.md), and [Complete-state inventory](state-inventory.md).
-They pin the target and inventory requirements; recorder/replay fixtures and parity
-certification remain deferred.
+They pin the target and inventory requirements. Recorder/replay tooling and scoped
+full-state fixtures now exist; complete-run certification remains pending.
 
 1. **Define what the simulator must match.** List the exact game build, supported content
    and configurations. Define what the player can see, which actions they can take, and

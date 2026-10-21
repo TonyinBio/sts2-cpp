@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Inventory pinned decompiled model declarations; never claims reachability/parity."""
+"""Inventory pinned declarations and merge scoped implementation evidence."""
 import argparse
 import csv
 import io
+import json
 from pathlib import Path
 import re
 
@@ -11,8 +12,16 @@ CATEGORIES = ('Acts', 'Characters', 'Cards', 'CardPools', 'Monsters', 'Encounter
               'Orbs', 'Enchantments', 'Afflictions', 'Modifiers')
 
 
-def inventory(root):
+def inventory(root, coverage=None):
     rows = []
+    statuses = {}
+    if coverage is not None:
+        for model in coverage['models']:
+            key = (model['category'], model['source_class'])
+            if key in statuses:
+                raise ValueError(f'Duplicate coverage entry: {key}')
+            statuses[key] = model
+    found = set()
     for category in CATEGORIES:
         directory = root / ('MegaCrit.Sts2.Core.Models.' + category)
         if not directory.is_dir():
@@ -31,8 +40,16 @@ def inventory(root):
             scope = ('excluded_multiplayer' if multiplayer else
                      'excluded_deprecated' if name.startswith('Deprecated') else
                      'candidate_single_player')
-            rows.append((category, name, scope, 'not_implemented', 'not_verified',
-                         'not_verified', path.relative_to(root).as_posix()))
+            status = statuses.get((category, name), {})
+            if status and scope != 'candidate_single_player':
+                raise ValueError(f'Cannot implement excluded content: {category}/{name}')
+            if status:
+                found.add((category, name))
+            rows.append((category, name, scope, status.get('implementation', 'not_implemented'),
+                         status.get('reference_verification', 'not_verified'),
+                         status.get('interaction_verification', 'not_verified'), path.relative_to(root).as_posix()))
+    if found != set(statuses):
+        raise ValueError(f'Unknown coverage declarations: {set(statuses) - found}')
     buffer = io.StringIO(newline='')
     writer = csv.writer(buffer, delimiter='\t', lineterminator='\n')
     writer.writerow(('category', 'source_class', 'scope', 'implementation',
@@ -46,9 +63,14 @@ def main():
     parser.add_argument('--source', type=Path, required=True)
     parser.add_argument('--output', type=Path, default=Path(
         'docs/specs/engine/content-inventory-v0.111.0.tsv'))
+    parser.add_argument('--coverage', type=Path, default=Path(__file__).resolve().parents[2] /
+                        'data/builds/v0.111.0/coverage.json')
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
-    result = inventory(args.source)
+    coverage = json.loads(args.coverage.read_text())
+    if coverage["game_dll_sha256"] != "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9":
+        raise ValueError("Coverage targets another game build")
+    result = inventory(args.source, coverage)
     if args.check:
         if args.output.read_text() != result:
             parser.exit(1, 'Content inventory differs from source declarations\n')

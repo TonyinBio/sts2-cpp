@@ -1,17 +1,17 @@
 category	source_class	scope	implementation	reference_verification	interaction_verification	source
 Acts	DeprecatedAct	excluded_deprecated	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Acts/DeprecatedAct.cs
-Acts	Glory	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Acts/Glory.cs
-Acts	Hive	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Acts/Hive.cs
-Acts	Overgrowth	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Acts/Overgrowth.cs
-Acts	Underdocks	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Acts/Underdocks.cs
-Characters	Defect	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Characters/Defect.cs
+Acts	Glory	candidate_single_player	partial	setup_map_fixture_verified	not_verified	MegaCrit.Sts2.Core.Models.Acts/Glory.cs
+Acts	Hive	candidate_single_player	partial	setup_map_fixture_verified	not_verified	MegaCrit.Sts2.Core.Models.Acts/Hive.cs
+Acts	Overgrowth	candidate_single_player	partial	setup_map_fixture_verified	not_verified	MegaCrit.Sts2.Core.Models.Acts/Overgrowth.cs
+Acts	Underdocks	candidate_single_player	partial	setup_map_fixture_verified	not_verified	MegaCrit.Sts2.Core.Models.Acts/Underdocks.cs
+Characters	Defect	candidate_single_player	partial	setup_fixture_verified	not_verified	MegaCrit.Sts2.Core.Models.Characters/Defect.cs
 Characters	DeprecatedCharacter	excluded_deprecated	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Characters/DeprecatedCharacter.cs
 Characters	Deprived	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Characters/Deprived.cs
-Characters	Ironclad	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Characters/Ironclad.cs
-Characters	Necrobinder	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Characters/Necrobinder.cs
+Characters	Ironclad	candidate_single_player	partial	setup_fixture_verified	not_verified	MegaCrit.Sts2.Core.Models.Characters/Ironclad.cs
+Characters	Necrobinder	candidate_single_player	partial	setup_fixture_verified	not_verified	MegaCrit.Sts2.Core.Models.Characters/Necrobinder.cs
 Characters	RandomCharacter	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Characters/RandomCharacter.cs
-Characters	Regent	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Characters/Regent.cs
-Characters	Silent	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Characters/Silent.cs
+Characters	Regent	candidate_single_player	partial	setup_fixture_verified	not_verified	MegaCrit.Sts2.Core.Models.Characters/Regent.cs
+Characters	Silent	candidate_single_player	partial	setup_fixture_verified	not_verified	MegaCrit.Sts2.Core.Models.Characters/Silent.cs
 Cards	Abrasive	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Abrasive.cs
 Cards	Abundance	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Abundance.cs
 Cards	Accelerant	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Accelerant.cs
@@ -44,7 +44,7 @@ Cards	BallLightning	candidate_single_player	not_implemented	not_verified	not_ver
 Cards	BansheesCry	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/BansheesCry.cs
 Cards	Barrage	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Barrage.cs
 Cards	Barricade	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Barricade.cs
-Cards	Bash	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Bash.cs
+Cards	Bash	candidate_single_player	implemented	base_full_state_fixture_verified	limited_combat_verified	MegaCrit.Sts2.Core.Models.Cards/Bash.cs
 Cards	BattleTrance	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/BattleTrance.cs
 Cards	BeaconOfHope	excluded_multiplayer	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/BeaconOfHope.cs
 Cards	BeamCell	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/BeamCell.cs
@@ -158,7 +158,7 @@ Cards	Debt	candidate_single_player	not_implemented	not_verified	not_verified	Meg
 Cards	Decay	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Decay.cs
 Cards	DecisionsDecisions	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/DecisionsDecisions.cs
 Cards	DefendDefect	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/DefendDefect.cs
-Cards	DefendIronclad	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/DefendIronclad.cs
+Cards	DefendIronclad	candidate_single_player	implemented	base_full_state_fixture_verified	limited_combat_verified	MegaCrit.Sts2.Core.Models.Cards/DefendIronclad.cs
 Cards	DefendNecrobinder	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/DefendNecrobinder.cs
 Cards	DefendRegent	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/DefendRegent.cs
 Cards	DefendSilent	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/DefendSilent.cs
@@ -312,7 +312,7 @@ Cards	Iteration	candidate_single_player	not_implemented	not_verified	not_verifie
 Cards	JackOfAllTrades	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/JackOfAllTrades.cs
 Cards	Jackpot	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Jackpot.cs
 Cards	Juggernaut	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Juggernaut.cs
-Cards	Juggling	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Juggling.cs
+Cards	Juggling	candidate_single_player	partial	reward_generation_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Juggling.cs
 Cards	KinglyKick	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/KinglyKick.cs
 Cards	KinglyPunch	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/KinglyPunch.cs
 Cards	KnifeTrap	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/KnifeTrap.cs
@@ -426,7 +426,7 @@ Cards	Pyre	candidate_single_player	not_implemented	not_verified	not_verified	Meg
 Cards	Quadcast	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Quadcast.cs
 Cards	Quasar	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Quasar.cs
 Cards	Radiate	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Radiate.cs
-Cards	Rage	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Rage.cs
+Cards	Rage	candidate_single_player	partial	reward_generation_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Rage.cs
 Cards	Rainbow	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Rainbow.cs
 Cards	Rally	excluded_multiplayer	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Rally.cs
 Cards	Rampage	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Rampage.cs
@@ -526,7 +526,7 @@ Cards	StormOfSteel	candidate_single_player	not_implemented	not_verified	not_veri
 Cards	Strangle	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Strangle.cs
 Cards	Stratagem	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Stratagem.cs
 Cards	StrikeDefect	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/StrikeDefect.cs
-Cards	StrikeIronclad	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs
+Cards	StrikeIronclad	candidate_single_player	implemented	base_full_state_fixture_verified	limited_combat_verified	MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs
 Cards	StrikeNecrobinder	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/StrikeNecrobinder.cs
 Cards	StrikeRegent	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/StrikeRegent.cs
 Cards	StrikeSilent	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/StrikeSilent.cs
@@ -537,7 +537,7 @@ Cards	Sunder	candidate_single_player	not_implemented	not_verified	not_verified	M
 Cards	Supercritical	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Supercritical.cs
 Cards	Supermassive	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Supermassive.cs
 Cards	Suppress	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Suppress.cs
-Cards	Survivor	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Survivor.cs
+Cards	Survivor	candidate_single_player	implemented	base_full_state_fixture_verified	limited_combat_verified	MegaCrit.Sts2.Core.Models.Cards/Survivor.cs
 Cards	SweepingBeam	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/SweepingBeam.cs
 Cards	SweepingGaze	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/SweepingGaze.cs
 Cards	SwordBoomerang	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/SwordBoomerang.cs
@@ -572,7 +572,7 @@ Cards	Tracking	candidate_single_player	not_implemented	not_verified	not_verified
 Cards	Transfigure	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Transfigure.cs
 Cards	TrashToTreasure	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/TrashToTreasure.cs
 Cards	Tremble	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Tremble.cs
-Cards	TrueGrit	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/TrueGrit.cs
+Cards	TrueGrit	candidate_single_player	partial	acquisition_full_state_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/TrueGrit.cs
 Cards	Turbo	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Turbo.cs
 Cards	Tutor	excluded_multiplayer	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/Tutor.cs
 Cards	TwinStrike	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Cards/TwinStrike.cs
@@ -703,7 +703,7 @@ Monsters	Rocket	candidate_single_player	not_implemented	not_verified	not_verifie
 Monsters	ScrollOfBiting	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Monsters/ScrollOfBiting.cs
 Monsters	Seapunk	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Monsters/Seapunk.cs
 Monsters	SewerClam	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Monsters/SewerClam.cs
-Monsters	ShrinkerBeetle	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Monsters/ShrinkerBeetle.cs
+Monsters	ShrinkerBeetle	candidate_single_player	partial	full_state_fixture_verified	limited_combat_verified	MegaCrit.Sts2.Core.Models.Monsters/ShrinkerBeetle.cs
 Monsters	SingleAttackMoveMonster	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Monsters/SingleAttackMoveMonster.cs
 Monsters	SkulkingColony	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Monsters/SkulkingColony.cs
 Monsters	SlimedBerserker	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Monsters/SlimedBerserker.cs
@@ -804,7 +804,7 @@ Encounters	ScrollsOfBitingWeak	candidate_single_player	not_implemented	not_verif
 Encounters	SeapunkNormal	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Encounters/SeapunkNormal.cs
 Encounters	SeapunkWeak	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Encounters/SeapunkWeak.cs
 Encounters	SewerClamNormal	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Encounters/SewerClamNormal.cs
-Encounters	ShrinkerBeetleWeak	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Encounters/ShrinkerBeetleWeak.cs
+Encounters	ShrinkerBeetleWeak	candidate_single_player	partial	full_state_fixture_verified	limited_combat_verified	MegaCrit.Sts2.Core.Models.Encounters/ShrinkerBeetleWeak.cs
 Encounters	SkulkingColonyElite	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Encounters/SkulkingColonyElite.cs
 Encounters	SlimedBerserkerNormal	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Encounters/SlimedBerserkerNormal.cs
 Encounters	SlimesNormal	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Encounters/SlimesNormal.cs
@@ -1030,7 +1030,7 @@ Powers	ShacklingPotionPower	candidate_single_player	not_implemented	not_verified
 Powers	ShadowStepPower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/ShadowStepPower.cs
 Powers	ShadowmeldPower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/ShadowmeldPower.cs
 Powers	ShriekPower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/ShriekPower.cs
-Powers	ShrinkPower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs
+Powers	ShrinkPower	candidate_single_player	partial	full_state_fixture_verified	limited_combat_verified	MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs
 Powers	ShroudPower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/ShroudPower.cs
 Powers	SicEmPower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/SicEmPower.cs
 Powers	SignalBoostPower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/SignalBoostPower.cs
@@ -1091,7 +1091,7 @@ Powers	ViciousPower	candidate_single_player	not_implemented	not_verified	not_ver
 Powers	VigorPower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/VigorPower.cs
 Powers	VitalSparkPower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/VitalSparkPower.cs
 Powers	VoidFormPower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/VoidFormPower.cs
-Powers	VulnerablePower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs
+Powers	VulnerablePower	candidate_single_player	partial	full_state_fixture_verified	limited_combat_verified	MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs
 Powers	WasteAwayPower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/WasteAwayPower.cs
 Powers	WeakPower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/WeakPower.cs
 Powers	WellLaidPlansPower	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Powers/WellLaidPlansPower.cs
@@ -1132,7 +1132,7 @@ Relics	Bread	candidate_single_player	not_implemented	not_verified	not_verified	M
 Relics	BrilliantScarf	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/BrilliantScarf.cs
 Relics	Brimstone	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/Brimstone.cs
 Relics	BronzeScales	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/BronzeScales.cs
-Relics	BurningBlood	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/BurningBlood.cs
+Relics	BurningBlood	candidate_single_player	partial	full_state_fixture_verified	limited_combat_verified	MegaCrit.Sts2.Core.Models.Relics/BurningBlood.cs
 Relics	BurningSticks	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/BurningSticks.cs
 Relics	Byrdpip	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/Byrdpip.cs
 Relics	CallingBell	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/CallingBell.cs
@@ -1204,7 +1204,7 @@ Relics	Glitter	candidate_single_player	not_implemented	not_verified	not_verified
 Relics	GnarledHammer	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/GnarledHammer.cs
 Relics	GoldPlatedCables	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/GoldPlatedCables.cs
 Relics	GoldenCompass	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/GoldenCompass.cs
-Relics	GoldenPearl	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/GoldenPearl.cs
+Relics	GoldenPearl	candidate_single_player	implemented	full_state_fixture_verified	neow_prefix_verified	MegaCrit.Sts2.Core.Models.Relics/GoldenPearl.cs
 Relics	Gorget	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/Gorget.cs
 Relics	GremlinHorn	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/GremlinHorn.cs
 Relics	HandDrill	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Relics/HandDrill.cs
@@ -1450,7 +1450,7 @@ Potions	MazalethsGift	candidate_single_player	not_implemented	not_verified	not_v
 Potions	OrobicAcid	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Potions/OrobicAcid.cs
 Potions	PoisonPotion	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Potions/PoisonPotion.cs
 Potions	PotOfGhouls	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Potions/PotOfGhouls.cs
-Potions	PotionOfBinding	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Potions/PotionOfBinding.cs
+Potions	PotionOfBinding	candidate_single_player	partial	inventory_full_state_verified	not_verified	MegaCrit.Sts2.Core.Models.Potions/PotionOfBinding.cs
 Potions	PotionOfCapacity	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Potions/PotionOfCapacity.cs
 Potions	PotionOfDoom	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Potions/PotionOfDoom.cs
 Potions	PotionShapedRock	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Potions/PotionShapedRock.cs
@@ -1508,7 +1508,7 @@ Events	JungleMazeAdventure	candidate_single_player	not_implemented	not_verified	
 Events	LostWisp	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Events/LostWisp.cs
 Events	LuminousChoir	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Events/LuminousChoir.cs
 Events	MorphicGrove	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Events/MorphicGrove.cs
-Events	Neow	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Events/Neow.cs
+Events	Neow	candidate_single_player	partial	full_state_fixture_verified	neow_prefix_verified	MegaCrit.Sts2.Core.Models.Events/Neow.cs
 Events	Nonupeipe	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Events/Nonupeipe.cs
 Events	Orobas	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Events/Orobas.cs
 Events	Pael	candidate_single_player	not_implemented	not_verified	not_verified	MegaCrit.Sts2.Core.Models.Events/Pael.cs
