@@ -36,3 +36,17 @@ Recent commits generally use `feat:`, `fix(oracle):`, `refactor(oracle):`, or `d
 ## Engine Boundaries
 
 Keep rules/kernel transitions deterministic and independent of JSON, filesystem access, and game assemblies. Reject unsupported content explicitly. Live oracle checks require a local game installation; consult `tools/README.md` before running them.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live in GitHub Issues. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the five default triage labels. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Use a single-context layout. See `docs/agents/domain.md`.

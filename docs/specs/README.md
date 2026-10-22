@@ -3,6 +3,27 @@
 Use these sheets to understand the simulator design, the files used by comparison tests,
 and what has been checked against the installed game.
 
+Shared domain language lives in the root [glossary](../../GLOSSARY.md).
+Cross-cutting architectural decisions live in [docs/adr](../adr/), starting with
+[complete state versus observations](../adr/0001-separate-complete-state-from-observations.md).
+These sheets retain detailed requirements, schemas and source evidence.
+
+## Document roles
+
+| Material | Location and role |
+| --- | --- |
+| Domain terminology | [GLOSSARY.md](../../GLOSSARY.md); canonical gameplay and parity terms |
+| Architectural decisions | [docs/adr/](../adr/); decisions with rationale and source links |
+| Intended system | [Full-game design](engine/full-game-simulator-design.md) and [architecture](engine/full-game-simulator-architecture.md); targets and proposed structure, not proof of implementation |
+| Normative contracts | [Matching target](engine/matching-contract.md), [decision contract](engine/decision-contract.md), [state inventory](engine/state-inventory.md), and format sheets below |
+| Current coverage | [Implementation status](engine/implementation-status.md); implemented subsets and remaining work |
+| Reference evidence | Runtime/model audits and state-access probe; limited to their inspected builds and scenarios |
+| Future work | GitHub Issues as configured in [issue-tracker.md](../agents/issue-tracker.md); link relevant contracts rather than copying them |
+
+Existing specs remain version-controlled reference documents. Their presence does not
+make unfinished work agent-ready. Publish a scoped feature spec to GitHub when its
+behavior and verification are settled; retain links to the relevant sheets and evidence.
+
 ## Where to start
 
 | I want to… | Read |
@@ -37,20 +58,11 @@ for other mechanics or game versions.
 
 ## Terms used in these sheets
 
-| Term | Meaning here |
-| --- | --- |
-| Parity | The game and simulator produce matching state or behavior for the same inputs. Each sheet states what is compared. |
-| Oracle / reference | The installed game, run through the `sts2-cli` adapter, used as the comparison source. |
-| Adapter | Code that reads an engine's state or sends actions to it in the test format. |
-| Snapshot | A record of game state at one point in play. |
-| Boundary | A capture point: the game is ready for input, waiting for a choice, or finished. |
-| Model ID | The ID of a game definition, such as a card type. |
-| Instance ID | The ID of one particular card, creature, power, or relic. Two copies of a card have different instance IDs. |
-| RNG | Random-number generator. Its saved state determines its future random values. |
-| Native | The game's own data or format. |
-| Profile | A named format or supported set of mechanics, such as `actions-v1`. |
-| Envelope | The outer part of a recording file, containing IDs and source information alongside snapshots. |
-| JSON Pointer | A path to a value in a JSON document, such as `/players/0/deck/3`. |
+Use the [glossary](../../GLOSSARY.md) for domain terms. Format sheets define their
+wire fields and local terminology. In these sheets, an adapter reads engine state or
+sends actions in the test format; an envelope is the outer recording structure carrying
+identity and source information alongside snapshots. RNG means random-number generator;
+JSON Pointer identifies a JSON value, for example `/players/0/deck/3`.
 
 ## Reading and maintaining the sheets
 
