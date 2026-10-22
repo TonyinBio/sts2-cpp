@@ -281,8 +281,14 @@ Snapshot Snapshot::parse(const Json& value) {
             if (!card["deck_version"].is_null()) {
                 const auto ref = card["deck_version"].get<std::string>();
                 const auto prefix = card["owner"].is_string() ? card["owner"].get<std::string>() + "/deck/" : "";
-                if (prefix.empty() || !ref.starts_with(prefix) || !resolve(ref, "/combat/cards/deck_version").contains("id"))
-                    invalid("/combat/cards/deck_version", "expected owner's native deck card");
+                const auto& original = resolve(ref, "/combat/cards/deck_version");
+                const bool native = !prefix.empty() && ref.starts_with(prefix) && original.contains("id");
+                const bool detached = !prefix.empty() && ref.starts_with("/combat/cards/") &&
+                    original.contains("saved") && original.contains("owner") && original.contains("deck_version") &&
+                    original["owner"] == card["owner"] &&
+                    original["deck_version"].is_null() && !placed.contains(ref);
+                if (!native && !detached)
+                    invalid("/combat/cards/deck_version", "expected owner's native or detached deck card");
             }
             if (!card["clone_of"].is_null()) (void)target(card["clone_of"], "/combat/cards/", "/combat/cards/clone_of");
             if (!card["affliction"].is_null()) (void)target(card["affliction"], "/combat/afflictions/", "/combat/cards/affliction");

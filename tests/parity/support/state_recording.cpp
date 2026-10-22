@@ -6,8 +6,16 @@
 
 namespace sts2::parity {
 void validate_state_recording(const nlohmann::json& value, const ActionRecording& recording,
-                              const std::set<std::string>& supported_features) {
-    static const auto schema = nlohmann::json::parse(states_schema);
+                              const std::set<std::string>& supported_features,
+                              const std::function<void(const nlohmann::json&)>& validate_snapshot) {
+    // Validate the envelope here and each snapshot below. The original schema
+    // recursively checked all snapshots before Snapshot::parse checked them again.
+    static const auto schema = [] {
+        auto result = nlohmann::json::parse(states_schema);
+        result["properties"]["initial"] = true;
+        result["properties"]["transitions"]["items"]["properties"]["state"] = true;
+        return result;
+    }();
     detail::validate(value, schema, schema, "");
     (void)supported_features; // Features describe action/exporter coverage, not run state.
     const auto& actions = recording.json();
@@ -19,7 +27,10 @@ void validate_state_recording(const nlohmann::json& value, const ActionRecording
     // Table labels are document-local, so identity cannot be compared by label
     // across boundaries. Each state validates its own reference graph.
     auto check = [&](const nlohmann::json& state, const std::string& path) {
-        try { (void)Snapshot::parse(state); }
+        try {
+            if (validate_snapshot) validate_snapshot(state);
+            else (void)Snapshot::parse(state);
+        }
         catch (const std::invalid_argument& e) { detail::invalid(path, e.what()); }
     };
     check(value["initial"], "/initial");

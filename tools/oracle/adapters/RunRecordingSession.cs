@@ -63,6 +63,7 @@ public partial class RunSimulator
         public List<CardModel> Cards = new();
         public CardSelectorPrefs Prefs;
         public IReadOnlyList<CardRewardAlternative> Alternatives = Array.Empty<CardRewardAlternative>();
+        public bool CanSkip => Alternatives.Any(a => a.OptionId == "Skip");
         public TaskCompletionSource<IEnumerable<CardModel>> CardsDone = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<CardRewardSelection> RewardDone = new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
@@ -225,6 +226,7 @@ public partial class RunSimulator
                     RunManager.Instance.OnEnded(false); _runEndingFinalized = true;
                 }
                 ObserveRunRoom();
+                PrepareRecordingBoundary();
                 return;
             }
             Thread.Sleep(1);
@@ -286,7 +288,7 @@ public partial class RunSimulator
                 if (kind == "select_card_reward") { var i = Index("card_index"); Require(i >= 0 && i < pending.Cards.Count, "Invalid reward card index"); selection.card = pending.Cards[i]; }
                 if (kind == "reward_alternative") { var i = Index(); Require(i >= 0 && i < pending.Alternatives.Count, "Invalid reward alternative"); selection.alternative = pending.Alternatives[i]; }
                 if (kind == "skip_card_reward") {
-                    Require(pending.Alternatives.Any(a => a.OptionId == "Skip"), "This card reward cannot be skipped");
+                    Require(pending.CanSkip, "This card reward cannot be skipped");
                     selection.alternative = pending.Alternatives.First(a => a.OptionId == "Skip");
                 }
                 _runSelector.Clear(pending); pending.RewardDone.TrySetResult(selection);
@@ -351,7 +353,13 @@ public partial class RunSimulator
                     kind == "buy_relic" ? inv.RelicEntries.Cast<MerchantEntry>().ToList() :
                     kind == "buy_potion" ? inv.PotionEntries.Cast<MerchantEntry>().ToList() : new List<MerchantEntry> { inv.CardRemovalEntry! };
                 Require(i >= 0 && i < entries.Count && entries[i] != null && entries[i].IsStocked && entries[i].EnoughGold, "Invalid, unavailable, or unaffordable shop entry");
-                BeginRunOperation(kind, i, async () => { await entries[i].OnTryPurchaseWrapper(inv); }); break;
+                BeginRunOperation(kind, i, async () => {
+                    if (await entries[i].OnTryPurchaseWrapper(inv) && kind == "remove_card") {
+                        // The graphical merchant normally marks this entry used.
+                        // Headless purchases have no merchant inventory UI.
+                        inv.CardRemovalEntry!.SetUsed();
+                    }
+                }); break;
             }
             case "pick_treasure": {
                 Require(room is TreasureRoom && !_runTreasurePicked, "No unresolved treasure choice");
@@ -504,7 +512,7 @@ public partial class RunSimulator
         var state = Saved(RunManager.Instance.ToSave(null))!.AsObject();
         state["boundary_kind"] = _oracleRunEndingReason == null ? "awaiting_input" : "run_complete";
         state["run_ending_reason"] = _oracleRunEndingReason;
-        state["current_room"] = Saved(run.CurrentRoom?.ToSerializable());
+        state["current_room"] = Saved(RecordingRoom(run.CurrentRoom));
         state["native_model_state"] = new JsonObject(); state["combat"] = null; state["pending_choice"] = null;
         state["run_flow"] = _oracleRunEndingReason == null ? JsonSerializer.SerializeToNode(new {
             room = ExportRunRoom(), pending_choice = ExportRunChoice(), reward_sets = RewardFrames().Select(f => new {
@@ -533,7 +541,7 @@ public partial class RunSimulator
         if (pending == null) return null;
         if (pending.Kind == "card_reward") return new { kind = "card_reward", cards = SavedCards(pending.Cards),
             alternatives = pending.Alternatives.Select(a => a.GetType().Name).ToArray(),
-            can_skip = pending.Alternatives.Any(a => a.OptionId == "Skip") };
+            can_skip = pending.CanSkip };
         var deck = _runState!.Players[0].Deck.Cards.ToList();
         return new { kind = "card_select", cards = SavedCards(pending.Cards),
             deck_indices = pending.Cards.Select(c => { var i = deck.IndexOf(c); return i < 0 ? (int?)null : i; }).ToArray(),

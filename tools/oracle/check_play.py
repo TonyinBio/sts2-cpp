@@ -16,7 +16,8 @@ def check(game_dir, validator, logs):
         shutil.copy2(Path(__file__).parent / 'adapters/CombatExportAudit.cs', source)
         program = source / 'Program.cs'
         program.write_text(program.read_text().replace('case "start_run":',
-            'case "audit_freeze_clock": return sim.AuditFreezeClock();\ncase "start_run":', 1))
+            'case "audit_freeze_clock": return sim.AuditFreezeClock();\n'
+            'case "audit_procure_block_potion": return sim.AuditProcureBlockPotion(cmd);\ncase "start_run":', 1))
 
     reference.inject = inject
     try:
@@ -30,10 +31,27 @@ def check(game_dir, validator, logs):
                     host.send({'cmd': 'audit_freeze_clock'})
                     state = host.send(dict(cmd='oracle_run_start', request_id='start', setup=dict(
                         character='Ironclad', ascension=0, seed='ORACLECHECK01')))['state']
+                    response = host.send(dict(cmd='audit_procure_block_potion', request_id='potion'))
+                    reference.require(response['potion_vars'] == {'Block': 12}, 'Boundary did not initialize Block Potion')
+                    state = response['state']
                     commands = [('choose_option', dict(option_index=0)), ('proceed', {}),
                                 ('select_map_node', dict(col=0, row=1)),
+                                ('use_potion', dict(potion_index=0)),
                                 ('play_card', dict(card_index=0)), ('end_turn', {})]
                     for index in range(len(commands) + 1):
+                        if index == 3:
+                            # Also obtain a fresh potion after combat has started.
+                            response = host.send(dict(cmd='audit_procure_block_potion', request_id='combat-potion'))
+                            reference.require(response['potion_vars'] == {'Block': 12}, 'Combat boundary left potion variables lazy')
+                            state = response['state']
+                            for slot in (0, 1):
+                                reference.require(state['native_model_state'][f'/players/0/potions/{slot}']['dynamic_vars'] == {'Block': 12},
+                                                  'Snapshot omitted Block Potion amount')
+                        if index == 4:
+                            creature_id = state['combat']['players'][0]['creature'].rsplit('/', 1)[1]
+                            creature = state['combat']['creatures'][creature_id]
+                            reference.require(creature['block'] == 12, 'Block Potion did not grant 12 Block')
+                            reference.require(len(state['players'][0]['potions']) == 1, 'Block Potion was not consumed')
                         reference.validate(validator, 'snapshot', state)
                         trace.append(state)
                         room = (state.get('run_flow') or {}).get('room', {})

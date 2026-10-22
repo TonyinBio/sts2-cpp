@@ -68,6 +68,12 @@ schema example. It is not a live starter encounter capture. The live capture in
 
 `boundary_kind` distinguishes awaiting input from completion of the entire run.
 Combat completion can still be an `awaiting_input` boundary in an ongoing run.
+
+`current_room` is a comparison descriptor, not a resumable native save. Active event
+combats retain their actual parent event, pre-finished and resume flags, encounter
+state, reward proportion and extra rewards. Native `CombatRoom.ToSerializable()`
+rejects unfinished nested combats; the exporter projects those same fields directly
+without altering live flags. Native `pre_finished_room` remains unchanged.
 `run_ending_reason` is non-null only at `run_complete`. `combat` and `pending_choice`
 may be null under the schema's conditions.
 
@@ -83,8 +89,12 @@ fields. Tests check that the reused definitions stay in sync with the native sch
 and `retained_inventory_models` are object tables. Their keys are arbitrary local
 labels. Every reference is a JSON Pointer, for example `/combat/cards/c0` or
 `/players/0/deck/3`. Repeated references mean the same object, not equal copies. A
-combat card's `deck_version` references its actual permanent-deck entry; generated cards
-can have no deck version. `clone_of` is a separate native relationship. There is no root
+combat card's `deck_version` references its actual permanent-deck entry. If that original
+leaves the deck (for example, Hopper theft), retain it in `combat.cards` and reference
+that object instead. The detached original has the same owner, no deck version of its
+own, and no combat pile membership; preserve its actual removal flag and runtime fields.
+It may remain registered while awaiting a return reward. Generated cards can have no
+deck version. `clone_of` is a separate native relationship. There is no root
 instance registry or binding for every native object.
 
 ### Which objects to keep
@@ -136,6 +146,10 @@ generic derived passive/evoke previews.
 
 ### Fields specific to each model
 
+Inventory potion dynamic variables are materialized at the settled backend boundary
+before export, in both recording and replay. Display must not introduce additional
+variables; their captured values remain part of exact state comparison.
+
 `ModelFields` is a **closed set of typed, audited member names**, such as
 `Claw._extraDamageFromClawPlays`, `PanachePower.alreadyApplied`,
 `NightmarePower.selectedCard`, and `Pocketwatch._cardsPlayedLastTurn`. For nested power
@@ -162,7 +176,9 @@ Monster AI records the initial/current state, scheduled `next_move`, ordered log
 first-move flag and move-state runtime flags/follow-up IDs. State identifiers are local
 to that monster's state machine; preserve its effective runtime states, including
 dynamically created `STUNNED` states. Omit immutable graph definitions, delegates,
-derived intents and intent damage previews. Monster move randomness comes from native
+derived intents and intent damage previews. When removal destroys a monster's state
+machine, export `ai: null` on the creature retained by history; do not reconstruct AI
+or discard the retained creature. Monster move randomness comes from native
 run MonsterAi RNG; the inspected private monster RNG was cosmetic.
 
 ### Combat history

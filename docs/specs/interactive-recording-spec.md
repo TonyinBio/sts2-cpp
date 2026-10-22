@@ -72,12 +72,21 @@ recorded decisions, including `proceed`, `pick_treasure`, and `take_reward`. It 
 when the next player choice is pending. Inspecting the map, formatting state, saving
 and quitting do not create gameplay actions.
 
+Automatic collection attempts each reward once per reward set. A skipped card remains
+untaken in native state; the interface continues with other rewards and records
+`skip_rewards` to close the set, rather than offering the skipped card again.
+
 `oracle_display` provides native CLI presentation data at the settled boundary. It
 uses the upstream combat, shop, rest, player and card formatting helpers and a read-only
 version of event formatting. It does not invoke the UI decision detector that generates
 rewards or changes rooms. Display data stays outside the saved state schema. Optional
 live audits compare full snapshots before and after display generation with fixture
 clocks fixed; no state fields are excluded from comparison.
+
+At the shared settled boundary, recording and replay materialize inventory potions'
+lazy dynamic variables before snapshot capture. Inventory display therefore cannot
+introduce a potion amount that is absent from a replay without display. Export and
+comparison retain those values without filtering or normalization.
 
 ## Checkpoints and files
 
@@ -89,6 +98,14 @@ same action do not duplicate checkpoints.
 
 The exporter returns and validates a state after every action. Sampling controls which
 snapshots are retained, not which actions execute or which states are validated.
+
+The interactive recorder keeps one validator process per run. Successfully validated
+snapshot content is reused when publishing later checkpoints; changed content is
+validated again. Each publication still checks the envelope, provenance fields,
+action/checkpoint ordering and terminal boundaries. The cache retains saved checkpoints
+and the latest snapshot, rather than every unsampled boundary. Standalone verification
+starts with an empty cache and validates the complete pair independently. Publication
+still writes and atomically switches a complete action/state pair after every action.
 
 ```text
 build/recordings/my-session/current/actions.json

@@ -19,6 +19,7 @@
 - `oracle/upstream_play.py`: checked upstream interface hooks and gameplay-command recording transport.
 - `oracle/check_state_access.py`: probes access to game internals.
 - `oracle/check_event_choices.py`: live regressions for event effects and headless presentation dependencies.
+- `oracle/check_shop_removal.py`: verifies cancellation, one successful removal per shop, hidden purchased removal, duplicate rejection, and availability at a new shop.
 - `oracle/check_play.py`: checks full-state equivalence of seeded gameplay with native display enabled and disabled.
 - `oracle/check_combat_export.py`: validates shared combat export and fail-closed model storage against the pinned game.
 - `oracle/combat-field-contract.json`: checked classifications for concrete model storage.

@@ -11,6 +11,8 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.MonsterMoves.MonsterMoveStateMachine;
 using MegaCrit.Sts2.Core.Runs;
+using MegaCrit.Sts2.Core.Rooms;
+using MegaCrit.Sts2.Core.Saves.Runs;
 
 namespace Sts2Headless;
 
@@ -95,6 +97,15 @@ public partial class RunSimulator
             ["discard"] = pcs.DiscardPile, ["exhaust"] = pcs.ExhaustPile, ["playing"] = pcs.PlayPile };
     }
 
+    private void PrepareRecordingBoundary()
+    {
+        // The display reads this lazy getter. Materialize it at the same settled
+        // boundary in recording and replay, before either exports or renders it.
+        foreach (var player in _runState!.Players)
+            foreach (var potion in player.Potions)
+                if (potion != null) _ = potion.DynamicVars;
+    }
+
     private void AwaitBoundary()
     {
         var watch = Stopwatch.StartNew();
@@ -109,8 +120,10 @@ public partial class RunSimulator
             var pcs = _runState!.Players[0].PlayerCombatState!;
             if (!executor.IsRunning && executor.CurrentlyRunningAction == null &&
                 !_oracleEnemies.Any(e => e.Monster!.IsPerformingMove) &&
-                (!manager.IsInProgress || (pcs.Phase == PlayerTurnPhase.Play && combat.CurrentSide == CombatSide.Player)))
+                (!manager.IsInProgress || (pcs.Phase == PlayerTurnPhase.Play && combat.CurrentSide == CombatSide.Player))) {
+                PrepareRecordingBoundary();
                 return;
+            }
             Thread.Sleep(1);
         }
         throw new TimeoutException("Combat did not reach a supported settled boundary");
@@ -175,6 +188,23 @@ public partial class RunSimulator
             if (property != null) return property.GetValue(instance);
         }
         throw new InvalidOperationException($"Required member unavailable: {instance.GetType().Name}.{name}");
+    }
+
+    private static SerializableRoom? RecordingRoom(AbstractRoom? room)
+    {
+        if (room is not CombatRoom combat || combat.ParentEventId == null || combat.IsPreFinished)
+            return room?.ToSerializable();
+        // Native saves forbid active event combats. The comparison snapshot still
+        // needs their actual room fields, without marking the live room finished.
+        Require(combat.GetType() == typeof(CombatRoom), "Custom event combat room requires an explicit exporter");
+        return new SerializableRoom {
+            RoomType = combat.RoomType, EncounterId = combat.Encounter.Id,
+            IsPreFinished = combat.IsPreFinished, GoldProportion = combat.GoldProportion,
+            ParentEventId = combat.ParentEventId, ShouldResumeParentEvent = combat.ShouldResumeParentEventAfterCombat,
+            EncounterState = combat.Encounter.SaveCustomState(),
+            ExtraRewards = combat.ExtraRewards.ToDictionary(p => p.Key.NetId,
+                p => p.Value.Select(reward => reward.ToSerializable()).ToList())
+        };
     }
 
     private object ExportRun()
@@ -338,7 +368,7 @@ public partial class RunSimulator
                 candidates = pending?.Cards.Select(c => Ref(c)).ToArray() ?? Array.Empty<string>(),
                 bundles = _pendingBundles?.Select(b => b.Select(c => Ref(c)).ToArray()).ToArray() ?? Array.Empty<string[]>(),
                 alternatives = pending?.Alternatives.Select(a => a.GetType().Name).ToArray() ?? Array.Empty<string>(),
-                can_skip = pending?.Alternatives.Any(a => a.GetType().Name.Contains("Skip")) ?? false };
+                can_skip = pending?.CanSkip ?? false };
         }
         var allies = combat!.Allies.Select(c => Ref(c)).ToArray();
         var enemies = combat.Enemies.Select(c => Ref(c)).ToArray();
@@ -361,14 +391,15 @@ public partial class RunSimulator
                 {
                     var m = creature.Monster;
 
-                    var machine = m.MoveStateMachine ?? throw new InvalidOperationException($"Missing monster AI: {m.Id}");
-                    foreach (var entry in machine.States) if (entry.Value is MoveState) {
+                    // Removal destroys the AI, but history can still retain the creature.
+                    var machine = m.MoveStateMachine;
+                    foreach (var entry in machine?.States ?? new Dictionary<string, MonsterState>()) if (entry.Value is MoveState) {
                         Require(entry.Value.GetType() == typeof(MoveState), "Custom move-state storage requires an explicit AI handler");
                         refs.TryAdd(entry.Value, Ref(creature) + "/monster/ai/move_states/" + entry.Key.Replace("~", "~0").Replace("/", "~1"));
                     }
                     monster = new { id = m.Id.ToString(), current_hp = creature.CurrentHp, max_hp = creature.MaxHp,
                         spawned_this_turn = m.SpawnedThisTurn, is_performing_move = m.IsPerformingMove, rng = NativeRunRoundTrip.Capture(m.Rng.ToSerializable()),
-                        ai = new { current_state = Field<MonsterState>(machine, "_currentState").Id,
+                        ai = machine == null ? null : new { current_state = Field<MonsterState>(machine, "_currentState").Id,
                             initial_state = Field<MonsterState>(machine, "_initialState").Id, next_move = m.NextMove?.Id,
                             state_log = machine.StateLog.Select(s => s.Id).ToArray(),
                             performed_first_move = Field<bool>(machine, "_performedFirstMove"),
@@ -400,10 +431,11 @@ public partial class RunSimulator
             while (ai < cardQueue.Count)
             {
                 var card = cardQueue[ai++];
-                var deckIndex = card.DeckVersion == null ? -1 : player.Deck.Cards.ToList().IndexOf(card.DeckVersion);
-                Require(card.DeckVersion == null || deckIndex >= 0, "Unresolved deck version");
+                if (card.DeckVersion is { } deckVersion && !player.Deck.Cards.Contains(deckVersion))
+                    Require(ReferenceEquals(deckVersion.Owner, card.Owner) && deckVersion.DeckVersion == null && deckVersion.Pile == null,
+                        "Unsupported detached deck version");
                 cards.Add(Ref(card)!.Split('/').Last(), new { saved = NativeRunRoundTrip.Capture(card.ToSerializable()),
-                    owner = card.Owner == null ? null : PlayerRef(), deck_version = deckIndex < 0 ? null : $"/players/0/deck/{deckIndex}",
+                    owner = card.Owner == null ? null : PlayerRef(), deck_version = Ref(card.DeckVersion),
                     clone_of = Ref(card.CloneOf), is_dupe = card.IsDupe, base_replay_count = card.BaseReplayCount,
                     local_keywords = (Field<HashSet<CardKeyword>?>(card, "_keywords") ?? card.CanonicalKeywords.ToHashSet()).Select(k => k.ToString()).ToArray(),
                     exhaust_on_next_play = card.ExhaustOnNextPlay,
@@ -479,7 +511,7 @@ public partial class RunSimulator
         // Winning this encounter continues the run; the observed loss path ends it.
         native["boundary_kind"] = _oracleRunEndingReason == null ? "awaiting_input" : "run_complete";
         native["run_ending_reason"] = _oracleRunEndingReason;
-        native["current_room"] = NativeRunRoundTrip.Capture(run.CurrentRoom?.ToSerializable());
+        native["current_room"] = NativeRunRoundTrip.Capture(RecordingRoom(run.CurrentRoom));
         native["native_model_state"] = JsonSerializer.SerializeToNode(nativeModels);
         native["combat"] = JsonSerializer.SerializeToNode(runtime);
         native["pending_choice"] = JsonSerializer.SerializeToNode(pendingChoice);

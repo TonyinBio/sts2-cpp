@@ -13,6 +13,7 @@ using MegaCrit.Sts2.Core.Models.Afflictions;
 using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
+using MegaCrit.Sts2.Core.Models.Potions;
 
 namespace Sts2Headless {
 public partial class RunSimulator {
@@ -51,6 +52,61 @@ public partial class RunSimulator {
         catch (InvalidOperationException e) { overrideFailed = e.Message.Contains("Active test override"); }
         Require(overrideFailed, "Active test override was silently ignored");
         return new() { ["type"] = "audit_contract", ["members"] = count, ["unknown_field_rejected"] = unknownFailed };
+    }
+    public Dictionary<string, object?> AuditProcureBlockPotion(System.Text.Json.JsonElement command)
+    {
+        var potion = ModelDb.Potion<BlockPotion>().ToMutable();
+        var result = PotionCmd.TryToProcure(potion, _runState!.Players.Single()).GetAwaiter().GetResult();
+        Require(result.success, "Audit could not obtain Block Potion");
+        Require(CombatModelFields.DynamicValues(potion).Count == 0, "Expected uninitialized potion variables before boundary");
+        var response = OracleRunState(command);
+        response["potion_vars"] = CombatModelFields.DynamicValues(potion);
+        return response;
+    }
+    public Dictionary<string, object?> AuditRemovedMonster(System.Text.Json.JsonElement command)
+    {
+        var combat = CombatManager.Instance.DebugOnlyGetState()!;
+        var target = combat.Enemies.Single(c => c.Monster!.Id.Entry == "TWIG_SLIME_S");
+        Require(target.Monster!.MoveStateMachine != null, "Expected live monster AI before death");
+        CreatureCmd.Damage(new BlockingPlayerChoiceContext(), target, 100m,
+            MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered, _runState!.Players.Single().Creature)
+            .GetAwaiter().GetResult();
+        AwaitRunBoundary();
+        Require(target.IsDead && target.Monster.MoveStateMachine == null, "Monster removal did not clear AI");
+        return OracleRunState(command);
+    }
+    public Dictionary<string, object?> AuditKillHopper(System.Text.Json.JsonElement command)
+    {
+        var player = _runState!.Players.Single();
+        var hopper = CombatManager.Instance.DebugOnlyGetState()!.Enemies.Single();
+        var stolen = hopper.Powers.OfType<SwipePower>().Single().StolenCard!;
+        var original = stolen.DeckVersion!;
+        Require(original.HasBeenRemovedFromState, "Hopper did not remove the original card");
+        CreatureCmd.Damage(new BlockingPlayerChoiceContext(), hopper, 1000m,
+            MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered, player.Creature).GetAwaiter().GetResult();
+        Require(!original.HasBeenRemovedFromState, "Hopper death did not register the original for return");
+        CombatManager.Instance.CheckWinCondition().GetAwaiter().GetResult();
+        var response = OracleRunState(command);
+        response["returned_card"] = NativeRunRoundTrip.Capture(original.ToSerializable());
+        return response;
+    }
+    public Dictionary<string, object?> AuditEventCombat(System.Text.Json.JsonElement command)
+    {
+        var room = _runState!.CurrentRoom as MegaCrit.Sts2.Core.Rooms.CombatRoom
+            ?? throw new InvalidOperationException("Expected an event combat room");
+        Require(room.ParentEventId != null && !room.IsPreFinished, "Expected active nested event combat");
+        bool rejected = false;
+        try { room.ToSerializable(); }
+        catch (InvalidOperationException e) { rejected = e.Message.Contains("ParentEventId"); }
+        Require(rejected && !room.IsPreFinished, "Native save guard or live pre-finished flag changed");
+        if (command.TryGetProperty("win", out var win) && win.GetBoolean()) {
+            foreach (var enemy in room.CombatState.Enemies.ToArray())
+                CreatureCmd.Damage(new BlockingPlayerChoiceContext(), enemy, 10000m,
+                    MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered, _runState.Players.Single().Creature).GetAwaiter().GetResult();
+            CombatManager.Instance.CheckWinCondition().GetAwaiter().GetResult();
+            Require(!CombatManager.Instance.IsInProgress, "Audit did not complete event combat");
+        }
+        return OracleRunState(command);
     }
     public Dictionary<string, object?> AuditGenericGraph(System.Text.Json.JsonElement command)
     {

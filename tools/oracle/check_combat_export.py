@@ -17,6 +17,8 @@ def check(game_dir, validator, logs):
         program.write_text(program.read_text().replace('case "start_run":',
             'case "audit_freeze_clock": return sim.AuditFreezeClock();\n'
             'case "audit_generic_contract": return sim.AuditGenericContract();\n'
+            'case "audit_removed_monster": return sim.AuditRemovedMonster(cmd);\n'
+            'case "audit_kill_hopper": return sim.AuditKillHopper(cmd);\n'
             'case "audit_generic_graph": return sim.AuditGenericGraph(cmd);\ncase "start_run":', 1))
     reference.inject = inject
     try:
@@ -82,6 +84,84 @@ def check(game_dir, validator, logs):
                     print(f'{character}: generic combat snapshots validated')
                 finally:
                     host.close()
+            host = reference.JsonProcess(command, env, logs / 'removed-monster', 30)
+            try:
+                host.receive()
+                host.send(dict(cmd='oracle_run_start', request_id='initial', setup=dict(
+                    character='Ironclad', ascension=0, seed='GENERIC')))
+                host.send({'cmd': 'audit_freeze_clock'})
+                host.send(dict(cmd='enter_room', type='combat', encounter='SLIMES_WEAK'))
+                state = host.send(dict(cmd='audit_removed_monster', request_id='kill'))['state']
+                reference.validate(validator, 'snapshot', state)
+                dead = [('/combat/creatures/' + key, creature['monster'])
+                        for key, creature in state['combat']['creatures'].items()
+                        if creature['monster'] and creature['monster']['id'] == 'MONSTER.TWIG_SLIME_S']
+                reference.require(len(dead) == 1 and dead[0][1]['current_hp'] == 0 and
+                                  dead[0][1]['ai'] is None, 'Lost removed monster or exported fabricated AI')
+                reference.require(dead[0][0] not in state['combat']['enemies'], 'Dead monster remains active')
+                reference.require(any(entry.get('kind') == 'DamageReceivedEntry' and
+                                      entry['result']['receiver'] == dead[0][0] for entry in state['combat']['history']),
+                                  'Lost historical reference to removed monster')
+                reference.require(state == host.send(dict(cmd='oracle_run_state', request_id='repeat'))['state'],
+                                  'Export mutated removed monster state')
+                response = host.send(dict(cmd='oracle_run_action', request_id='end', action='end_turn', args={}))
+                reference.validate(validator, 'snapshot', response['state'])
+                total += 2
+                print('Removed Twig Slime: retained history, null AI, and continued combat validated')
+            finally:
+                host.close()
+            host = reference.JsonProcess(command, env, logs / 'hopper-theft', 30)
+            try:
+                host.receive()
+                host.send(dict(cmd='oracle_run_start', request_id='initial', setup=dict(
+                    character='Ironclad', ascension=0, seed='GENERIC')))
+                host.send({'cmd': 'audit_freeze_clock'})
+                host.send(dict(cmd='enter_room', type='combat', encounter='THIEVING_HOPPER_WEAK'))
+                before = host.send(dict(cmd='oracle_run_state', request_id='before'))['state']
+                deck_size = len(before['players'][0]['deck'])
+                state = host.send(dict(cmd='oracle_run_action', request_id='steal', action='end_turn', args={}))['state']
+                reference.validate(validator, 'snapshot', state)
+                reference.require(len(state['players'][0]['deck']) == deck_size - 1, 'Hopper did not steal a deck card')
+                swipe = next(p for p in state['combat']['powers'].values() if p['id'] == 'POWER.SWIPE_POWER')
+                stolen = resolve(state, swipe['model_fields']['SwipePower._stolenCard'])
+                original_ref = stolen['deck_version']
+                original_card = resolve(state, original_ref)
+                reference.require(original_ref.startswith('/combat/cards/') and original_card['deck_version'] is None,
+                                  'Removed original deck card was not retained separately')
+                reference.require(original_card['has_been_removed_from_state'] and
+                                  original_card['owner'] == stolen['owner'], 'Removed original lost its runtime state')
+                reference.require(original_ref not in [ref for player in state['combat']['players']
+                    for pile in player['piles'].values() for ref in pile], 'Removed deck original is in a combat pile')
+                host.send({'cmd': 'oracle_display'})
+                reference.require(state == host.send(dict(cmd='oracle_run_state', request_id='repeat'))['state'],
+                                  'Display/export mutated the stolen card graph')
+                response = host.send(dict(cmd='audit_kill_hopper', request_id='kill'))
+                returned = response['returned_card']
+                state = response['state']
+                reference.validate(validator, 'snapshot', state)
+                state = host.send(dict(cmd='oracle_run_action', request_id='rewards', action='proceed', args={}))['state']
+                for index in range(30):
+                    reference.validate(validator, 'snapshot', state)
+                    flow = state['run_flow']
+                    if flow['pending_choice']:
+                        action, args = 'select_card_reward', {'card_index': 0}
+                    elif flow['reward_sets']:
+                        remaining = [i for i, reward in enumerate(flow['reward_sets'][-1]['rewards']) if not reward['taken']]
+                        action, args = ('take_reward', {'index': remaining[0]}) if remaining else ('skip_rewards', {})
+                    elif flow['room']['kind'] == 'map':
+                        break
+                    else:
+                        action, args = 'proceed', {}
+                    state = host.send(dict(cmd='oracle_run_action', request_id=f'collect-{index}', action=action, args=args))['state']
+                else:
+                    raise RuntimeError('Hopper rewards did not settle')
+                reference.require(returned in state['players'][0]['deck'], 'Returned original card is missing from the permanent deck')
+                reference.require(len(state['players'][0]['deck']) == deck_size + 1,
+                                  'Expected original deck, returned stolen card, and one normal card reward')
+                total += 2
+                print('Hopper: theft, retained deck original, display purity, and return reward validated')
+            finally:
+                host.close()
             print(f'Validated {total} combat snapshots and the declared-field contract')
     finally:
         reference.inject = original

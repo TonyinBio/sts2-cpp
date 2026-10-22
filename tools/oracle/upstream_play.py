@@ -75,6 +75,7 @@ class RecordingTransport:
         self.session = session
         self.closed = False
         self.language = "en"
+        self._reward_attempts = []
 
     def _action(self, kind, args=None):
         from play import resolve
@@ -109,18 +110,28 @@ class RecordingTransport:
         # Keep them in gameplay processing, and record each decision explicitly.
         for _ in range(100):
             state = self.session.state
+            flow = state.get('run_flow')
+            frames = (flow or {}).get('reward_sets', [])
+            # Native Skip leaves SuccessfullySelected false. Keep track of offers
+            # across prompts so auto-collection does not immediately reopen them.
+            del self._reward_attempts[len(frames):]
+            while len(self._reward_attempts) < len(frames):
+                self._reward_attempts.append(set())
             if self.session.finished() or state.get('pending_choice') is not None:
                 return
-            flow = state.get('run_flow')
             if not flow or flow['pending_choice'] is not None:
                 return
             if flow['reward_sets']:
                 rewards = flow['reward_sets'][-1]['rewards']
-                remaining = [i for i, reward in enumerate(rewards) if not reward['taken']]
+                attempted = self._reward_attempts[-1]
+                remaining = [i for i, reward in enumerate(rewards)
+                             if not reward['taken'] and i not in attempted]
                 if remaining:
+                    attempted.add(remaining[0])
                     self._action('take_reward', {'index': remaining[0]})
                 else:
                     self._action('skip_rewards')
+                    self._reward_attempts.pop()
                 continue
             room = flow['room']
             kind = room['kind']

@@ -15,7 +15,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools/oracle'))
 from play import PlaySession, RecordingWriter, new_actions, positive_int
 from upstream_play import RecordingTransport, load_interface
-from reference_runtime import JsonProcess, strict_json, validate
+from reference_runtime import JsonProcess, ValidationSession, strict_json, validate
 
 VALIDATOR = Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 else None
 REPO = Path(__file__).resolve().parents[2]
@@ -150,6 +150,63 @@ class CommandTests(unittest.TestCase):
                 self.assertEqual(getattr(module, code.co_name).__code__.co_code,
                                  code.co_code, code.co_name)
 
+    def test_skipped_rewards_are_offered_once_and_other_rewards_remain_available(self):
+        from types import SimpleNamespace
+        for kinds in (['CardReward', 'CardReward'], ['PotionReward', 'CardReward']):
+            with self.subTest(kinds=kinds):
+                actions = []
+                flow = {'room': {'kind': 'combat_end'}, 'pending_choice': None,
+                        'reward_sets': [{'rewards': [{'kind': kind, 'taken': False} for kind in kinds]}]}
+                session = SimpleNamespace(state={'run_flow': flow}, finished=lambda: False)
+                def step(action):
+                    actions.append(action)
+                    if action['kind'] == 'take_reward':
+                        if flow['reward_sets'][-1]['rewards'][action['index']]['kind'] == 'CardReward':
+                            flow['pending_choice'] = {'kind': 'card_reward'}
+                    elif action['kind'] == 'skip_card_reward':
+                        flow['pending_choice'] = None
+                    elif action['kind'] == 'skip_rewards':
+                        flow['reward_sets'] = []
+                        flow['room'] = {'kind': 'map'}
+                session.step = step
+                session.host = SimpleNamespace(send=lambda _: {'decision':
+                    'card_reward' if flow['pending_choice'] else 'map_select'})
+                bridge = RecordingTransport(session)
+                bridge._settle_interface()
+                if kinds[0] == 'CardReward':
+                    self.assertEqual(bridge({'cmd': 'action', 'action': 'skip_card_reward'})['decision'],
+                                     'card_reward')
+                result = bridge({'cmd': 'action', 'action': 'skip_card_reward'})
+                self.assertEqual(result['decision'], 'map_select')
+                self.assertEqual([action['index'] for action in actions if action['kind'] == 'take_reward'],
+                                 [0, 1])
+                self.assertEqual(actions[-1], {'kind': 'skip_rewards'})
+                # A later reward set must get fresh offers even at the same depth.
+                flow['reward_sets'] = [{'rewards': [{'kind': 'CardReward', 'taken': False}]}]
+                flow['room'] = {'kind': 'combat_end'}
+                bridge._settle_interface()
+                self.assertEqual(actions[-1], {'kind': 'take_reward', 'index': 0})
+                self.assertIsNotNone(flow['pending_choice'])
+
+    def test_card_reward_accepts_skip_when_display_allows_it(self):
+        interface = load_interface()
+        interface.LANG = 'en'
+        commands = []
+        def send(command):
+            commands.append(command)
+            if command['cmd'] == 'start_run':
+                return {'type': 'decision', 'decision': 'card_reward', 'can_skip': True,
+                        'cards': [{'index': 0, 'name': 'Strike'}]}
+            if command['cmd'] == 'quit':
+                return {'type': 'quit_result'}
+            return None
+        output = io.StringIO()
+        with patch('builtins.input', return_value='s') as read, contextlib.redirect_stdout(output):
+            interface.play(seed='REWARD', log=False, command_sender=send)
+        self.assertEqual(read.call_count, 1)
+        self.assertIn({'cmd': 'action', 'action': 'skip_card_reward'}, commands)
+        self.assertNotIn('Invalid. Options:', output.getvalue())
+
 
 @unittest.skipUnless(VALIDATOR, 'Pass parity_validate executable')
 class InteractiveRecorderTests(unittest.TestCase):
@@ -158,11 +215,14 @@ class InteractiveRecorderTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.directory = Path(self.temporary.name)
         self.host = FakeHost()
-        self.writer = RecordingWriter(self.directory, VALIDATOR)
+        self.validation = ValidationSession(VALIDATOR, self.directory / 'validator')
+        self.validation.__enter__()
+        self.addCleanup(self.validation.__exit__, None, None, None)
+        self.writer = RecordingWriter(self.directory, self.validation)
         provenance = {key: FIXTURE['reference'][key]
                       for key in ('revision', 'game_dll_sha256', 'adapter_sha256')}
         self.session = PlaySession(self.host, new_actions('ORACLECHECK01', 'interactive-test', run=True),
-                                   provenance, VALIDATOR, self.writer, 5)
+                                   provenance, self.validation, self.writer, 5)
 
     def saved(self):
         directory = (self.directory / 'current').resolve()
@@ -304,6 +364,57 @@ class InteractiveRecorderTests(unittest.TestCase):
         self.assertEqual((self.directory / 'current').resolve(), before)
         self.assertEqual(self.saved()[0]['actions'], [])
         self.assertEqual(len(list(self.directory.glob('.pending-*'))), 1)
+
+    def test_actions_share_one_validator_process_with_publication(self):
+        pid = self.validation.host.process.pid
+        with patch('reference_runtime.subprocess.run', side_effect=AssertionError('Unexpected validator subprocess')):
+            self.session.start()
+            self.session.step({'kind': 'end_turn'})
+            self.session.publish(final=True)
+        self.assertEqual(self.validation.host.process.pid, pid)
+        self.assertIsNone(self.validation.host.process.poll())
+        self.saved()  # Independently validate the published pair in a fresh process.
+
+    def test_validator_exit_keeps_the_previous_pair_and_action_prefix(self):
+        self.session.start()
+        previous = (self.directory / 'current').resolve()
+        self.validation.host.close()
+        with self.assertRaises(RuntimeError):
+            self.session.step({'kind': 'end_turn'})
+        self.assertEqual((self.directory / 'current').resolve(), previous)
+        self.assertEqual(self.session.actions['actions'], [])
+        self.assertEqual(self.host.count, 0)
+        self.saved()
+
+    def test_cached_snapshots_do_not_hide_mutations_or_invalid_metadata(self):
+        self.session.start()
+        for _ in range(2):
+            self.session.step({'kind': 'end_turn'})
+            self.session.publish(final=True)
+        previous = (self.directory / 'current').resolve()
+        good = copy.deepcopy(self.session.sequence)
+        for mutate in (
+                lambda sequence: sequence['initial'].pop('native_model_state'),
+                lambda sequence: sequence['transitions'][-1]['state'].pop('native_model_state'),
+                lambda sequence: sequence['transitions'].reverse(),
+                lambda sequence: sequence['transitions'][0].update(action_id='unknown')):
+            sequence = copy.deepcopy(good)
+            mutate(sequence)
+            with self.assertRaises(RuntimeError):
+                self.writer.publish(self.session.actions, sequence,
+                                    dict(self.session.provenance, **self.session.identity))
+            self.assertEqual((self.directory / 'current').resolve(), previous)
+        bad_reference = dict(self.session.provenance, **self.session.identity, adapter_sha256='invalid')
+        with self.assertRaises(RuntimeError):
+            self.writer.publish(self.session.actions, good, bad_reference)
+        bad_actions = copy.deepcopy(self.session.actions)
+        bad_actions['actions'][-1]['action']['kind'] = 'unknown'
+        with self.assertRaises(RuntimeError):
+            self.writer.publish(bad_actions, good, dict(self.session.provenance, **self.session.identity))
+        self.assertEqual((self.directory / 'current').resolve(), previous)
+        # Failed requests neither poison the cache nor kill the validator.
+        self.session.publish(final=True)
+        self.saved()
 
 
 @unittest.skipUnless(VALIDATOR, 'Pass parity_validate executable')

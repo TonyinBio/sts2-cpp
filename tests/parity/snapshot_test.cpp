@@ -11,6 +11,43 @@ TEST(RunParityFormat, AcceptsExampleAndMatchesIdenticalState) {
     const auto value = parse(example());
     EXPECT_TRUE(compare(value, value).empty());
 }
+TEST(RunParityFormat, PreservesRemovedMonsterWithNullAIThroughHistory) {
+    auto value = example();
+    value["combat"]["creatures"]["dead_slime"] = {
+        {"player", nullptr}, {"side", "Enemy"}, {"block", 0}, {"hp_is_infinite", false},
+        {"slot_name", nullptr}, {"pet_owner", nullptr}, {"powers", Json::array()},
+        {"monster", {{"id", "MONSTER.TWIG_SLIME_S"}, {"current_hp", 0}, {"max_hp", 10},
+            {"spawned_this_turn", false}, {"is_performing_move", false}, {"ai", nullptr},
+            {"rng", value["rng"]["rngs"]["monster_ai"]}, {"model_fields", Json::object()}}}};
+    value["combat"]["history"][0]["actor"] = "/combat/creatures/dead_slime";
+    EXPECT_NO_THROW(parse(value));
+    EXPECT_TRUE(compare(parse(value), parse(value)).empty());
+    value["combat"]["creatures"]["dead_slime"]["monster"]["ai"] = Json::object();
+    EXPECT_THROW(parse(value), std::invalid_argument);
+}
+TEST(RunParityFormat, RetainsDetachedDeckOriginalAndRejectsInvalidDeckAliases) {
+    auto value = example();
+    auto original = value["combat"]["cards"]["discard_candidate"];
+    original["deck_version"] = nullptr;
+    original["has_been_removed_from_state"] = true;
+    value["combat"]["cards"]["stolen_original"] = original;
+    value["combat"]["cards"]["discard_candidate"]["deck_version"] = "/combat/cards/stolen_original";
+    value["players"][0]["deck"].erase(0);
+    EXPECT_NO_THROW(parse(value));
+    // Returned originals may be registered again before their reward is collected.
+    auto returned = value;
+    returned["combat"]["cards"]["stolen_original"]["has_been_removed_from_state"] = false;
+    EXPECT_NO_THROW(parse(returned));
+    EXPECT_FALSE(compare(parse(value), parse(returned)).empty());
+    for (const auto& field : {"owner", "deck_version"}) {
+        auto invalid = value;
+        invalid["combat"]["cards"]["stolen_original"][field] =
+            field == std::string("owner") ? Json(nullptr) : Json("/combat/cards/discard_candidate");
+        EXPECT_THROW(parse(invalid), std::invalid_argument);
+    }
+    value["combat"]["players"][0]["piles"]["Hand"].push_back("/combat/cards/stolen_original");
+    EXPECT_THROW(parse(value), std::invalid_argument);
+}
 TEST(RunParityFormat, ComparesEntireStateWithoutFieldExclusions) {
     const auto expected = example();
     for (const auto& pointer : {
@@ -76,6 +113,21 @@ TEST(RunParityFormat, CombatCompletionIsNotRunCompletion) {
     value["pending_choice"] = nullptr;
     value["combat"]["turn_control"]["is_in_progress"] = false;
     EXPECT_NO_THROW(parse(value));
+}
+TEST(RunParityFormat, PreservesActiveEventCombatRoomFlagsAndParent) {
+    auto value = example();
+    auto& room = value["current_room"];
+    room["encounter_id"] = "ENCOUNTER.MYSTERIOUS_KNIGHT_EVENT_ENCOUNTER";
+    room["parent_event_id"] = "EVENT.THE_LANTERN_KEY";
+    room["is_pre_finished"] = false;
+    room["should_resume_parent_event"] = false;
+    EXPECT_NO_THROW(parse(value));
+    auto changed = value;
+    changed["current_room"]["is_pre_finished"] = true;
+    EXPECT_FALSE(compare(parse(value), parse(changed)).empty());
+    changed = value;
+    changed["current_room"]["parent_event_id"] = nullptr;
+    EXPECT_FALSE(compare(parse(value), parse(changed)).empty());
 }
 TEST(RunParityFormat, PreservesNativeDefaultsAndMissingModelState) {
     auto value = example();

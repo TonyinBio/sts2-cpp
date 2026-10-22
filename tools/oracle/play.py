@@ -11,7 +11,7 @@ import sys
 import tempfile
 import uuid
 
-from reference_runtime import (FEATURES, REPO, JsonProcess, atomic_write, check_scope,
+from reference_runtime import (FEATURES, REPO, JsonProcess, ValidationSession, atomic_write, check_scope,
                     reference_build, require, validate, wire_json, strict_json, start_request, action_request)
 
 def positive_int(text):
@@ -203,10 +203,11 @@ def main():
         interface.SAVE_DIR = str(directory / 'saves')
         actions = new_actions(args.seed, directory.name, run=True,
                               character=args.character, ascension=args.ascension)
-        with reference_build(args.game_dir, logs) as (command, env, provenance):
+        with reference_build(args.game_dir, logs) as (command, env, provenance), \
+                ValidationSession(validator, logs / 'validator', args.timeout) as validation:
             host = JsonProcess(command, env, logs / 'reference', args.timeout, log_protocol=args.protocol_log)
-            session = PlaySession(host, actions, provenance, validator,
-                                  RecordingWriter(directory, validator), args.checkpoint_every)
+            session = PlaySession(host, actions, provenance, validation,
+                                  RecordingWriter(directory, validation), args.checkpoint_every)
             transport = RecordingTransport(session)
             try:
                 restart = interface.play(character=args.character, seed=args.seed,

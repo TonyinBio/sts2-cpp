@@ -39,10 +39,13 @@ def validate(validator, kind, value, actions=None):
     request = {'kind': kind, 'value': wire_json(value) if kind == 'snapshot' else value}
     if actions is not None:
         request['actions'] = actions
-    result = subprocess.run([str(validator)], input=wire_json(request) + '\n',
-                            capture_output=True, text=True, timeout=30)
-    require(result.returncode == 0, f'Validator failed: {result.stderr}')
-    response = strict_json(result.stdout)
+    if isinstance(validator, ValidationSession):
+        response = validator.host.send(request)
+    else:
+        result = subprocess.run([str(validator)], input=wire_json(request) + '\n',
+                                capture_output=True, text=True, timeout=30)
+        require(result.returncode == 0, f'Validator failed: {result.stderr}')
+        response = strict_json(result.stdout)
     require(response.get('valid') is True, f'Invalid {kind}: {response.get("error")}')
 
 
@@ -129,6 +132,21 @@ class JsonProcess:
         for stream in (self.process.stdin, self.process.stdout, self.process.stderr,
                        self.stdout_log, self.stderr_log):
             stream.close()
+
+
+class ValidationSession:
+    """One validator process and its content cache, scoped to one recording."""
+    def __init__(self, executable, log_prefix, timeout=30):
+        self.executable, self.log_prefix, self.timeout = executable, log_prefix, timeout
+        self.host = None
+
+    def __enter__(self):
+        self.host = JsonProcess([str(self.executable)], os.environ, self.log_prefix,
+                                self.timeout, log_protocol=False)
+        return self
+
+    def __exit__(self, *exc):
+        self.host.close()
 
 
 def inject(source):

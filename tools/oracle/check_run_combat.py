@@ -5,6 +5,7 @@ from pathlib import Path
 from play import PlaySession, RecordingWriter, new_actions, resolve
 from reference_runtime import REPO, JsonProcess, reference_build, require, wire_json
 from replay import load_pair, replay
+from upstream_play import RecordingTransport
 
 
 def check(game_dir, output, validator):
@@ -12,7 +13,7 @@ def check(game_dir, output, validator):
     logs = output / 'logs'
     logs.mkdir()
     with reference_build(game_dir, logs) as (command, env, provenance):
-        for scenario in ('run-shrinker-victory', 'run-shrinker-death'):
+        for scenario in ('run-shrinker-victory', 'run-shrinker-death', 'run-shrinker-interface-skip'):
             directory = output / scenario
             directory.mkdir()
             host = JsonProcess(command, env, logs / scenario, 30, log_protocol=False)
@@ -31,7 +32,7 @@ def check(game_dir, output, validator):
                     if combat is None or not combat['turn_control']['is_in_progress']:
                         break
                     action = {'kind': 'end_turn'}
-                    if scenario.endswith('victory'):
+                    if not scenario.endswith('death'):
                         player = combat['players'][0]
                         for ref in player['piles']['Hand']:
                             card = resolve(session.state, ref)
@@ -40,7 +41,7 @@ def check(game_dir, output, validator):
                                 break
                     session.step(action)
                 require(session.state['combat'] is None, 'Combat did not end naturally')
-                if scenario.endswith('victory'):
+                if not scenario.endswith('death'):
                     require(session.state['run_ending_reason'] is None, 'Combat victory unexpectedly ended run')
                     # Retain the first reward-offer boundary as the next feature's
                     # reference input, without using the transport's auto-collection.
@@ -51,20 +52,20 @@ def check(game_dir, output, validator):
                             'Reference silently selected rewards instead of offering them')
                     require(session.state['players'][0]['gold'] == before_gold and not session.state['players'][0]['potions'],
                             'Reference collected gold or potions before an explicit action')
-                    session.step({'kind': 'take_reward', 'index': 0})
-                    session.step({'kind': 'take_reward', 'index': 1})
-                    session.step({'kind': 'take_reward', 'index': 2})
-                    require(session.state['run_flow']['pending_choice']['can_skip'], 'Native Skip alternative was lost')
-                    session.step({'kind': 'skip_card_reward'})
-                    session.step({'kind': 'take_reward', 'index': 2})
-                    session.step({'kind': 'reward_alternative', 'index': 0})
-                    require(session.state['run_flow']['pending_choice'] is None and len(session.state['run_flow']['reward_sets']) == 1,
-                            'Skipping the card must leave the reward set available')
-                    session.step({'kind': 'take_reward', 'index': 2})
-                    session.step({'kind': 'select_card_reward', 'card_index': 0})
-                    session.step({'kind': 'discard_potion', 'potion_index': 0})
-                    session.step({'kind': 'proceed'})
-                    require(session.state['run_flow']['room']['kind'] == 'map', 'Combat rewards did not return to map')
+                    if scenario.endswith('interface-skip'):
+                        deck = session.state['players'][0]['deck']
+                        bridge = RecordingTransport(session)
+                        bridge._settle_interface()
+                        require(session.state['run_flow']['pending_choice']['kind'] == 'card_reward',
+                                'Interactive transport did not offer the card reward')
+                        display = bridge({'cmd': 'action', 'action': 'skip_card_reward'})
+                        require(display['decision'] == 'map_select', 'Skipped card reward was offered again')
+                        require(session.state['players'][0]['deck'] == deck, 'Skipping added a reward card')
+                        require(not session.state['run_flow']['reward_sets'], 'Skipped reward set remained active')
+                        require(any(e['action']['kind'] == 'skip_rewards' for e in session.actions['actions']),
+                                'Closing the skipped reward set was not recorded')
+                    else:
+                        _check_explicit_rewards(session, host)
                 else:
                     require(session.state['run_ending_reason'] == 'death', 'Run did not end in death')
                 session.publish(final=True)
@@ -78,6 +79,28 @@ def check(game_dir, output, validator):
             finally:
                 host.close()
             print(f'{scenario}: {count} actions, {checkpoints} full checkpoints; reference self-replay passed')
+
+
+def _check_explicit_rewards(session, host):
+    session.step({'kind': 'take_reward', 'index': 0})
+    session.step({'kind': 'take_reward', 'index': 1})
+    session.step({'kind': 'take_reward', 'index': 2})
+    require(session.state['run_flow']['pending_choice']['can_skip'], 'Native Skip alternative was lost')
+    display = host.send({'cmd': 'oracle_display'})
+    require(display['decision'] == 'card_reward' and display['can_skip'],
+            'Interactive reward display rejected the native Skip alternative')
+    after_display = host.send({'cmd': 'oracle_run_state', 'request_id': 'reward-display'})['state']
+    require(after_display == session.state, 'Reward display mutated the pending reward')
+    session.step({'kind': 'skip_card_reward'})
+    session.step({'kind': 'take_reward', 'index': 2})
+    session.step({'kind': 'reward_alternative', 'index': 0})
+    require(session.state['run_flow']['pending_choice'] is None and len(session.state['run_flow']['reward_sets']) == 1,
+            'Skipping the card must leave the reward set available')
+    session.step({'kind': 'take_reward', 'index': 2})
+    session.step({'kind': 'select_card_reward', 'card_index': 0})
+    session.step({'kind': 'discard_potion', 'potion_index': 0})
+    session.step({'kind': 'proceed'})
+    require(session.state['run_flow']['room']['kind'] == 'map', 'Combat rewards did not return to map')
 
 
 if __name__ == '__main__':

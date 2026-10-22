@@ -401,6 +401,7 @@
           ]
         },
         "deck_version": {
+          "description": "Reference to the owner's permanent deck entry, or its detached original retained in combat.cards when no longer in the deck.",
           "anyOf": [
             {
               "$ref": "#/$defs/Ref"
@@ -691,7 +692,14 @@
           "type": "boolean"
         },
         "ai": {
-          "$ref": "#/$defs/MonsterAI"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MonsterAI"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "model_fields": {
           "$ref": "#/$defs/ModelFields"
