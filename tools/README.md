@@ -23,6 +23,7 @@
 - `oracle/check_reattach.py`: verifies Pact's End defeats the final Decimillipede segments and permits reward collection in the headless oracle.
 - `oracle/check_egg_ai.py`: verifies live Tough Egg AI aliases remain recorded, obsolete aliases are omitted after removal, and combat continues.
 - `oracle/check_play.py`: checks full-state equivalence of seeded gameplay with native display enabled and disabled.
+- `oracle/check_ancient_rewards.py`: verifies acts 2 and 3 require entering the Ancient, grant its reward, and then unlock the first fights.
 - `oracle/check_combat_export.py`: validates shared combat export and fail-closed model storage against the pinned game.
 - `oracle/combat-field-contract.json`: checked classifications for concrete model storage.
 - `oracle/check_combat_fields.py`: audits combat fields in the reference game.

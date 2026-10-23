@@ -36,7 +36,7 @@ def wire_json(value):
 
 
 def validate(validator, kind, value, actions=None):
-    request = {'kind': kind, 'value': wire_json(value) if kind == 'snapshot' else value}
+    request = {'kind': kind, 'value': wire_json(value) if kind in ('snapshot', 'snapshot_once') else value}
     if actions is not None:
         request['actions'] = actions
     if isinstance(validator, ValidationSession):

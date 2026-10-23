@@ -72,10 +72,13 @@ if(BUILD_TESTING)
     "${CMAKE_CURRENT_SOURCE_DIR}/docs/specs/schemas/serializable-run-v20.schema.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/schema/actions-v1.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/schema/states-v1.json")
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/schema/journal-v1.json")
   file(READ docs/specs/schemas/run-parity-v1.schema.json RUN_PARITY_SCHEMA)
   file(READ docs/specs/schemas/serializable-run-v20.schema.json NATIVE_RUN_SCHEMA)
   file(READ tests/parity/schema/actions-v1.json ACTIONS_SCHEMA)
   file(READ tests/parity/schema/states-v1.json STATES_SCHEMA)
+  file(READ tests/parity/schema/journal-v1.json JOURNAL_SCHEMA)
   configure_file(tests/parity/support/schema.hpp.in generated/parity/schema.hpp @ONLY)
   add_library(combat_state STATIC tests/parity/support/snapshot.cpp
     tests/parity/support/schema_validation.cpp tests/parity/support/recording.cpp tests/parity/support/state_recording.cpp)

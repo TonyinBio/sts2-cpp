@@ -328,9 +328,7 @@ public partial class RunSimulator
                 Require(room == null || room is MapRoom, "Map selection outside the map");
                 var col = Index("col"); var row = Index("row");
                 Require(col >= 0 && col <= 255 && row >= 0 && row <= 255, "Map coordinate out of range");
-                var map = run.Map!;
-                var point = run.CurrentMapCoord.HasValue ? map.GetPoint(run.CurrentMapCoord.Value) : map.StartingMapPoint;
-                Require(point != null && point.Children.Any(p => p.coord.col == col && p.coord.row == row), "Map node is not reachable");
+                Require(RunMapChoices().Any(p => p.coord.col == col && p.coord.row == row), "Map node is not reachable");
                 BeginRunOperation(kind, null, () => RunManager.Instance.EnterMapCoord(new MapCoord((byte)col, (byte)row))); break;
             }
             case "choose_option": {
@@ -548,12 +546,23 @@ public partial class RunSimulator
             min_select = pending.Prefs.MinSelect, max_select = pending.Prefs.MaxSelect,
             require_manual_confirmation = pending.Prefs.RequireManualConfirmation, cancelable = pending.Prefs.Cancelable };
     }
+    private IEnumerable<MapPoint> RunMapChoices()
+    {
+        var run = _runState!;
+        var map = run.Map!;
+        // Later acts begin on the map before the Ancient has been visited.
+        // Enter the starting node first; its children unlock after the event.
+        if (!run.CurrentMapCoord.HasValue) return new[] { map.StartingMapPoint };
+        var point = map.GetPoint(run.CurrentMapCoord.Value);
+        Require(point != null, "Current map coordinate is not on the map");
+        return point!.Children;
+    }
+
     private object ExportRunRoom()
     {
         var run = _runState!; var room = run.CurrentRoom;
         if (room == null || room is MapRoom) {
-            var point = run.CurrentMapCoord.HasValue ? run.Map!.GetPoint(run.CurrentMapCoord.Value) : run.Map!.StartingMapPoint;
-            return new { kind = "map", current_coord = Saved(run.CurrentMapCoord), choices = point!.Children.Select(p => new {
+            return new { kind = "map", current_coord = Saved(run.CurrentMapCoord), choices = RunMapChoices().Select(p => new {
                 col = (int)p.coord.col, row = (int)p.coord.row, point_type = p.PointType.ToString() }).ToArray() };
         }
         if (room is EventRoom) {

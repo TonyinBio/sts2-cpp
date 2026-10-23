@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sts2-simulator.local/schema/journal-v1.json",
+  "description": "Separate JSONL streams: actions starts with setup then action records; states starts with initial then checkpoint records. commit.json selects their committed byte prefixes.",
+  "oneOf": [
+    {"$ref": "#/$defs/setup_record"},
+    {"$ref": "#/$defs/initial_record"},
+    {"$ref": "#/$defs/action_record"},
+    {"$ref": "#/$defs/checkpoint_record"},
+    {"$ref": "#/$defs/commit"}
+  ],
+  "$defs": {
+    "setup_record": {
+      "type": "object",
+      "properties": {
+        "kind": {"const": "setup"},
+        "actions": {
+          "allOf": [
+            {"$ref": "actions-v1.json"},
+            {"properties": {"actions": {"maxItems": 0}}}
+          ]
+        }
+      },
+      "required": ["kind", "actions"],
+      "additionalProperties": false
+    },
+    "initial_record": {
+      "type": "object",
+      "properties": {
+        "kind": {"const": "initial"},
+        "reference": {"$ref": "states-v1.json#/properties/reference"},
+        "state": {"$ref": "../../../docs/specs/schemas/run-parity-v1.schema.json"}
+      },
+      "required": ["kind", "reference", "state"],
+      "additionalProperties": false
+    },
+    "action_record": {"$ref": "actions-v1.json#/properties/actions/items"},
+    "checkpoint_record": {"$ref": "states-v1.json#/properties/transitions/items"},
+    "commit": {
+      "type": "object",
+      "properties": {
+        "schema_version": {"type": "integer", "const": 1},
+        "profile": {"const": "journal-v1"},
+        "recording_id": {"type": "string", "minLength": 1},
+        "actions_bytes": {"type": "integer", "minimum": 1},
+        "states_bytes": {"type": "integer", "minimum": 1},
+        "action_count": {"type": "integer", "minimum": 0},
+        "checkpoint_count": {"type": "integer", "minimum": 0}
+      },
+      "required": ["schema_version", "profile", "recording_id", "actions_bytes", "states_bytes", "action_count", "checkpoint_count"],
+      "additionalProperties": false
+    }
+  }
+}

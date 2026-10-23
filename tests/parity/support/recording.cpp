@@ -3,6 +3,11 @@
 #include "schema_validation.hpp"
 
 namespace sts2::parity {
+void ActionRecording::validate_entry(const nlohmann::json& value) {
+    static const auto schema = nlohmann::json::parse(actions_schema);
+    detail::validate(value, schema["properties"]["actions"]["items"], schema, "");
+}
+
 ActionRecording ActionRecording::parse(const nlohmann::json& value,
                                       const std::set<std::string>& supported_features) {
     static const auto schema = nlohmann::json::parse(actions_schema);

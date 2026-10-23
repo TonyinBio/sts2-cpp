@@ -4,6 +4,7 @@
 #include <functional>
 
 namespace sts2::parity {
+void validate_journal_record(const nlohmann::json& value);
 // Validates the envelope, every run-parity snapshot, and correspondence with action input.
 // Checkpoints may cover any strictly ordered subset of action IDs.
 // The caller must also verify actions_sha256 against the exact source file bytes.

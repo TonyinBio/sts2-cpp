@@ -6,6 +6,7 @@ import contextlib
 import io
 import hashlib
 import os
+import subprocess
 from pathlib import Path
 import sys
 import tempfile
@@ -16,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools/oracle'))
 from play import PlaySession, RecordingWriter, new_actions, positive_int
 from upstream_play import RecordingTransport, load_interface
 from reference_runtime import JsonProcess, ValidationSession, strict_json, validate
+from recording_journal import export_recording
 
 VALIDATOR = Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 else None
 REPO = Path(__file__).resolve().parents[2]
@@ -225,6 +227,7 @@ class InteractiveRecorderTests(unittest.TestCase):
                                    provenance, self.validation, self.writer, 5)
 
     def saved(self):
+        export_recording(self.directory, VALIDATOR)
         directory = (self.directory / 'current').resolve()
         raw = (directory / 'actions.json').read_bytes()
         actions = strict_json(raw)
@@ -254,6 +257,188 @@ class InteractiveRecorderTests(unittest.TestCase):
                            checkpoint=lambda: self.session.publish(final=True))
         return output.getvalue().splitlines()
 
+    def test_actions_append_committed_journals_without_materializing_history(self):
+        self.session.start()
+        initial_actions = (self.directory / 'actions.jsonl').read_bytes()
+        initial_states = (self.directory / 'states.jsonl').read_bytes()
+        for _ in range(6):
+            self.session.step({'kind': 'end_turn'})
+        action_bytes = (self.directory / 'actions.jsonl').read_bytes()
+        state_bytes = (self.directory / 'states.jsonl').read_bytes()
+        self.assertTrue(action_bytes.startswith(initial_actions))
+        self.assertTrue(state_bytes.startswith(initial_states))
+        self.assertEqual(len(action_bytes.splitlines()), 7)
+        self.assertEqual(len(state_bytes.splitlines()), 2)
+        marker = strict_json((self.directory / 'commit.json').read_bytes())
+        self.assertEqual(marker['actions_bytes'], len(action_bytes))
+        self.assertEqual(marker['states_bytes'], len(state_bytes))
+        self.assertFalse((self.directory / 'current').exists())
+
+    def test_export_command_recovers_only_committed_records_without_game(self):
+        self.session.start()
+        self.session.step({'kind': 'end_turn'})
+        before = strict_json((self.directory / 'commit.json').read_bytes())
+        for name in ('actions', 'states'):
+            with (self.directory / (name + '.jsonl')).open('ab') as stream:
+                stream.write(b'{"unfinished":')
+        result = subprocess.run([sys.executable, str(REPO / 'tools/oracle/play.py'),
+                                 '--export', str(self.directory), '--validator', str(VALIDATOR)],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        actions, states = self.saved()
+        self.assertEqual(len(actions['actions']), 1)
+        self.assertEqual(states['transitions'], [])
+        for name in ('actions', 'states'):
+            self.assertEqual((self.directory / (name + '.jsonl')).stat().st_size,
+                             before[name + '_bytes'])
+
+    def test_single_action_validation_reuses_existing_schema(self):
+        good = {'id': 'action-000001', 'action': {'kind': 'end_turn'}}
+        validate(self.validation, 'action', good)
+
+        for bad in (
+                {'id': '', 'action': {'kind': 'end_turn'}},
+                {'id': 'action-000001', 'action': {'kind': 'unknown'}},
+                {'id': 'action-000001', 'action': {'kind': 'end_turn', 'extra': True}}):
+            with self.subTest(bad=bad), self.assertRaises(RuntimeError):
+                validate(self.validation, 'action', bad)
+        validate(self.validation, 'action', good)
+
+    def test_journal_records_reuse_existing_action_and_state_schemas(self):
+        self.session.start()
+        for name in ('actions.jsonl', 'states.jsonl'):
+            for raw in (self.directory / name).read_bytes().splitlines():
+                validate(self.validation, 'journal_record', strict_json(raw))
+        marker = strict_json((self.directory / 'commit.json').read_bytes())
+        validate(self.validation, 'journal_record', marker)
+        marker['actions_bytes'] = -1
+        with self.assertRaises(RuntimeError):
+            validate(self.validation, 'journal_record', marker)
+
+    def test_invalid_action_never_reaches_backend_or_committed_history(self):
+        self.session.start()
+        before = (self.directory / 'commit.json').read_bytes()
+        with self.assertRaises(RuntimeError):
+            self.session.step({'kind': 'unknown'})
+        self.assertEqual(self.host.count, 0)
+        self.assertEqual((self.directory / 'commit.json').read_bytes(), before)
+
+    def test_repeated_exports_retire_previous_export_without_touching_journals(self):
+        self.session.start()
+        self.session.step({'kind': 'end_turn'})
+        before = {name: (self.directory / name).read_bytes()
+                  for name in ('actions.jsonl', 'states.jsonl', 'commit.json')}
+        self.saved()
+        old = (self.directory / 'current').resolve()
+        self.saved()
+        self.assertFalse(old.exists())
+        for name, raw in before.items():
+            self.assertEqual((self.directory / name).read_bytes(), raw)
+
+    def test_sync_failures_preserve_a_matched_committed_prefix(self):
+        for fail_at in (1, 2, 3, 4):
+            with self.subTest(fail_at=fail_at):
+                self.setUp()
+                self.session.start()
+                for _ in range(4):
+                    self.session.step({'kind': 'end_turn'})
+                sync = os.fsync
+                calls = 0
+                def fail_sync(descriptor):
+                    nonlocal calls
+                    calls += 1
+                    if calls == fail_at:
+                        raise OSError('simulated sync failure')
+                    return sync(descriptor)
+                with patch('recording_journal.os.fsync', side_effect=fail_sync), self.assertRaises(OSError):
+                    self.session.step({'kind': 'end_turn'})
+                actions, states = self.saved()
+                count = len(actions['actions'])
+                self.assertEqual(count, 5 if fail_at == 4 else 4)
+                self.assertEqual([entry['action_id'] for entry in states['transitions']],
+                                 ['action-000005'] if count == 5 else [])
+
+    def test_export_rejects_truncated_committed_history_preserving_previous_export(self):
+        self.session.start()
+        self.session.step({'kind': 'end_turn'})
+        self.saved()
+        previous = (self.directory / 'current').resolve()
+        with (self.directory / 'actions.jsonl').open('r+b') as stream:
+            stream.truncate(1)
+        with self.assertRaisesRegex(RuntimeError, 'Truncated committed'):
+            export_recording(self.directory, VALIDATOR, recover=True)
+        self.assertEqual((self.directory / 'current').resolve(), previous)
+
+    def test_export_failure_or_interrupt_keeps_a_complete_current_pair(self):
+        for after_switch in (False, True):
+            with self.subTest(after_switch=after_switch):
+                self.setUp()
+                self.session.start()
+                self.session.step({'kind': 'end_turn'})
+                self.saved()
+                previous = (self.directory / 'current').resolve()
+                self.session.step({'kind': 'end_turn'})
+                replace = os.replace
+                def interrupt_export(source, target):
+                    if Path(target).name == 'current':
+                        if after_switch:
+                            replace(source, target)
+                        raise KeyboardInterrupt()
+                    return replace(source, target)
+                with patch('recording_journal.os.replace', side_effect=interrupt_export), self.assertRaises(KeyboardInterrupt):
+                    export_recording(self.directory, VALIDATOR)
+                current = self.directory / 'current'
+                actions = strict_json((current / 'actions.json').read_bytes())
+                states = strict_json((current / 'states.json').read_bytes())
+                validate(VALIDATOR, 'states', states, actions)
+                self.assertEqual(len(actions['actions']), 2 if after_switch else 1)
+                self.assertEqual(current.resolve() == previous, not after_switch)
+
+    def test_interrupt_after_action_commit_never_checkpoints_the_previous_state(self):
+        class InterruptedActions(list):
+            def append(self, entry):
+                super().append(entry)
+                raise KeyboardInterrupt()
+        self.session.start()
+        self.session.actions['actions'] = InterruptedActions()
+        with self.assertRaises(KeyboardInterrupt):
+            self.session.step({'kind': 'end_turn'})
+        self.session.publish(final=True)
+        actions, states = self.saved()
+        self.assertEqual(len(actions['actions']), 1)
+        self.assertEqual(states['transitions'], [])
+
+    def test_checkpoint_failure_stops_further_backend_dispatch(self):
+        self.session.start()
+        self.session.step({'kind': 'end_turn'})
+        replace = os.replace
+        def fail_marker(source, target):
+            if Path(target).name == 'commit.json':
+                raise OSError('checkpoint commit failed')
+            return replace(source, target)
+        with patch('recording_journal.os.replace', side_effect=fail_marker), self.assertRaises(OSError):
+            self.session.publish(final=True)
+        count = self.host.count
+        with self.assertRaises(RuntimeError):
+            self.session.step({'kind': 'end_turn'})
+        self.assertEqual(self.host.count, count)
+
+    def test_export_keeps_previous_generation_if_directory_sync_fails(self):
+        import recording_journal
+        self.session.start()
+        self.saved()
+        previous = (self.directory / 'current').resolve()
+        self.session.step({'kind': 'end_turn'})
+        sync = recording_journal.sync_directory
+        def fail_directory(directory):
+            if Path(directory) == self.directory:
+                raise OSError('directory sync failed')
+            return sync(directory)
+        with patch('recording_journal.sync_directory', side_effect=fail_directory), self.assertRaises(OSError):
+            export_recording(self.directory, VALIDATOR)
+        self.assertTrue(previous.is_dir())
+        self.assertTrue((self.directory / 'current/actions.json').is_file())
+
     def test_every_action_autosaves_but_only_periodic_states_accumulate(self):
         self.session.start()
         for _ in range(6):
@@ -267,7 +452,7 @@ class InteractiveRecorderTests(unittest.TestCase):
         self.assertEqual([step['action_id'] for step in states['transitions']],
                          ['action-000005', 'action-000006'])
         self.assertEqual(states['transitions'][-1]['state']['run_time'], 6)
-        self.assertEqual(len(list(self.directory.glob('.pending-*'))), 1)
+        self.assertTrue((self.directory / 'commit.json').is_file())
 
     def test_manual_save_and_quit_do_not_become_game_actions(self):
         self.run_commands(['e', 'save', 'save', 'e', 'quit', 'n'])
@@ -336,34 +521,37 @@ class InteractiveRecorderTests(unittest.TestCase):
         self.assertEqual(states['transitions'], [])
         self.assertEqual(states['initial']['run_time'], 0)
 
-    def test_interrupt_immediately_after_publish_cannot_break_current(self):
+    def test_interrupt_immediately_after_commit_preserves_committed_action(self):
         self.session.start()
         replace = os.replace
         def interrupt_after_link(source, target):
             result = replace(source, target)
-            if Path(target).name == 'current':
+            if Path(target).name == 'commit.json':
                 raise KeyboardInterrupt()
             return result
-        with patch('play.os.replace', side_effect=interrupt_after_link), self.assertRaises(KeyboardInterrupt):
+        with patch('recording_journal.os.replace', side_effect=interrupt_after_link), self.assertRaises(KeyboardInterrupt):
             self.session.step({'kind': 'end_turn'})
         actions, states = self.saved()
         self.assertEqual(len(actions['actions']), 1)
-        self.assertEqual(self.writer.generation, (self.directory / 'current').resolve())
-        self.assertEqual(len(list(self.directory.glob('.pending-*'))), 1)
+        self.assertEqual(strict_json((self.directory / 'commit.json').read_bytes())['action_count'], 1)
 
     def test_publication_failure_preserves_previous_matched_pair(self):
         self.session.start()
-        before = (self.directory / 'current').resolve()
+        before = (self.directory / 'commit.json').read_bytes()
         replace = os.replace
         def fail_link(source, target):
-            if Path(target).name == 'current':
+            if Path(target).name == 'commit.json':
                 raise OSError('simulated publication failure')
             return replace(source, target)
-        with patch('play.os.replace', side_effect=fail_link), self.assertRaisesRegex(OSError, 'publication failure'):
+        with patch('recording_journal.os.replace', side_effect=fail_link), self.assertRaisesRegex(OSError, 'publication failure'):
             self.session.step({'kind': 'end_turn'})
-        self.assertEqual((self.directory / 'current').resolve(), before)
+        self.assertEqual((self.directory / 'commit.json').read_bytes(), before)
         self.assertEqual(self.saved()[0]['actions'], [])
-        self.assertEqual(len(list(self.directory.glob('.pending-*'))), 1)
+        self.assertEqual(self.session.actions['actions'], [])
+        count = self.host.count
+        with self.assertRaises(RuntimeError):
+            self.session.step({'kind': 'end_turn'})
+        self.assertEqual(self.host.count, count)
 
     def test_actions_share_one_validator_process_with_publication(self):
         pid = self.validation.host.process.pid
@@ -401,16 +589,20 @@ class InteractiveRecorderTests(unittest.TestCase):
             sequence = copy.deepcopy(good)
             mutate(sequence)
             with self.assertRaises(RuntimeError):
-                self.writer.publish(self.session.actions, sequence,
-                                    dict(self.session.provenance, **self.session.identity))
+                validate(self.validation, 'states', dict(
+                    schema_version=1, profile='states-v1', recording_id='interactive-test',
+                    actions_sha256='0' * 64, initial=sequence['initial'], transitions=sequence['transitions'],
+                    reference=dict(self.session.provenance, **self.session.identity)), self.session.actions)
             self.assertEqual((self.directory / 'current').resolve(), previous)
         bad_reference = dict(self.session.provenance, **self.session.identity, adapter_sha256='invalid')
         with self.assertRaises(RuntimeError):
-            self.writer.publish(self.session.actions, good, bad_reference)
+            validate(self.validation, 'states', dict(
+                schema_version=1, profile='states-v1', recording_id='interactive-test',
+                actions_sha256='0' * 64, reference=bad_reference, **good), self.session.actions)
         bad_actions = copy.deepcopy(self.session.actions)
         bad_actions['actions'][-1]['action']['kind'] = 'unknown'
         with self.assertRaises(RuntimeError):
-            self.writer.publish(bad_actions, good, dict(self.session.provenance, **self.session.identity))
+            validate(self.validation, 'actions', bad_actions)
         self.assertEqual((self.directory / 'current').resolve(), previous)
         # Failed requests neither poison the cache nor kill the validator.
         self.session.publish(final=True)
@@ -497,6 +689,7 @@ class CanonicalReplayTests(unittest.TestCase):
         del actions['setup']['clock']
         self.session.actions = actions
         self.session.start()
+        self.session.publish(final=True)
         current = self.directory / 'current'
         with self.assertRaisesRegex(RuntimeError, 'no reproducible clock'):
             load_pair(current / 'actions.json', current / 'states.json', VALIDATOR)

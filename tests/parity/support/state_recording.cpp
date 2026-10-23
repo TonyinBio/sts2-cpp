@@ -5,6 +5,11 @@
 #include <stdexcept>
 
 namespace sts2::parity {
+void validate_journal_record(const nlohmann::json& value) {
+    static const auto schema = nlohmann::json::parse(journal_schema);
+    detail::validate(value, schema, schema, "");
+}
+
 void validate_state_recording(const nlohmann::json& value, const ActionRecording& recording,
                               const std::set<std::string>& supported_features,
                               const std::function<void(const nlohmann::json&)>& validate_snapshot) {

@@ -10,6 +10,7 @@ class ActionRecording {
 public:
     static ActionRecording parse(const nlohmann::json& value,
                                  const std::set<std::string>& supported_features);
+    static void validate_entry(const nlohmann::json& value);
     const nlohmann::json& json() const noexcept { return value_; }
 private:
     explicit ActionRecording(nlohmann::json value) : value_(std::move(value)) {}

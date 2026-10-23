@@ -1,18 +1,13 @@
 #!/usr/bin/env python3
 """Play through sts2-cli's interface while recording validated actions and full states."""
 import argparse
-import contextlib
-import hashlib
-import os
 from pathlib import Path
-import shutil
 import subprocess
 import sys
-import tempfile
-import uuid
 
-from reference_runtime import (FEATURES, REPO, JsonProcess, ValidationSession, atomic_write, check_scope,
-                    reference_build, require, validate, wire_json, strict_json, start_request, action_request)
+from reference_runtime import (FEATURES, REPO, JsonProcess, ValidationSession, check_scope,
+                    reference_build, require, validate, strict_json, start_request, action_request)
+from recording_journal import RecordingWriter, export_recording
 
 def positive_int(text):
     try:
@@ -52,58 +47,6 @@ def combat_finished(state):
             not state['combat']['turn_control']['is_in_progress'])
 
 
-class RecordingWriter:
-    """Publish a matched action/state pair by atomically switching one directory link.
-
-    Every successful action is autosaved; only sampled snapshots grow the sequence.
-    A previous pair remains readable if writing or validation fails.
-    """
-    def __init__(self, directory, validator):
-        self.directory = Path(directory)
-        self.validator = validator
-        self.generation = None
-
-    def publish(self, actions, sequence, reference):
-        raw = (wire_json(actions) + '\n').encode('utf-8')
-        states = {'schema_version': 1, 'profile': 'states-v1',
-                  'recording_id': actions['recording_id'],
-                  'actions_sha256': hashlib.sha256(raw).hexdigest(),
-                  'reference': reference, **sequence}
-        validate(self.validator, 'actions', actions)
-        validate(self.validator, 'states', states, actions)
-        temporary = Path(tempfile.mkdtemp(prefix='.pending-', dir=self.directory))
-        link = self.directory / ('.current-' + uuid.uuid4().hex)
-        previous = self.generation
-        try:
-            with (temporary / 'actions.json').open('wb') as stream:
-                stream.write(raw)
-                stream.flush()
-                os.fsync(stream.fileno())
-            atomic_write(temporary / 'states.json', states)
-            # Independently obtained backend identity is also available to the
-            # simulator runner without reading it from expected checkpoints.
-            atomic_write(temporary / 'reference.json', reference)
-            os.symlink(temporary.name, link, target_is_directory=True)
-            os.replace(link, self.directory / 'current')
-        finally:
-            if link.is_symlink():
-                link.unlink()
-            # SIGINT can arrive immediately after os.replace. Detect publication
-            # from the link itself so cleanup never removes its target.
-            published = ((self.directory / 'current').is_symlink() and
-                         os.readlink(self.directory / 'current') == temporary.name)
-            if published:
-                self.generation = temporary
-                # Only retire directories created by this writer, after the new
-                # pair is published. Unrelated files are never removed.
-                if previous is not None:
-                    with contextlib.suppress(OSError):
-                        shutil.rmtree(previous)
-            else:
-                shutil.rmtree(temporary)
-        return self.directory / 'current'
-
-
 class PlaySession:
     def __init__(self, host, actions, provenance, validator, writer, checkpoint_every):
         require(isinstance(checkpoint_every, int) and not isinstance(checkpoint_every, bool) and checkpoint_every > 0,
@@ -114,8 +57,9 @@ class PlaySession:
         self.identity = None
         self.state = None
         self.sequence = None
+        self.failed = False
 
-    def response_state(self, response, request_id):
+    def response_state(self, response, request_id, validate_state=True):
         require(response.get('type') == 'oracle_state' and response.get('request_id') == request_id,
                 f'Mismatched response for {request_id}')
         require('state' in response, 'Reference response is missing state')
@@ -123,7 +67,8 @@ class PlaySession:
         require(all(isinstance(value, str) and value for value in identity.values()),
                 'Reference response is missing runtime identity')
         require(self.identity is None or identity == self.identity, 'Reference identity changed')
-        validate(self.validator, 'snapshot', response['state'])
+        if validate_state:
+            validate(self.validator, 'snapshot_once', response['state'])
         return response['state'], identity
 
     def start(self):
@@ -131,45 +76,62 @@ class PlaySession:
         check_scope(self.actions)
         require(self.host.receive().get('type') == 'ready', 'Missing reference ready message')
         response = self.host.send(start_request(self.actions))
-        self.state, self.identity = self.response_state(response, 'initial')
+        state, identity = self.response_state(response, 'initial', validate_state=False)
+        self.writer.start(self.actions, state, dict(self.provenance, **identity))
+        self.state, self.identity = state, identity
         self.sequence = {'initial': self.state, 'transitions': []}
-        self.publish()
 
     def checkpoint(self):
         if self.actions['actions']:
             action_id = self.actions['actions'][-1]['id']
             if not self.sequence['transitions'] or self.sequence['transitions'][-1]['action_id'] != action_id:
-                self.sequence['transitions'].append({'action_id': action_id, 'state': self.state})
+                try:
+                    self.writer.checkpoint(action_id, self.state)
+                    self.sequence['transitions'].append({'action_id': action_id, 'state': self.state})
+                except BaseException:
+                    self.failed = True
+                    raise
 
     def publish(self, final=False):
         if final:
-            self.checkpoint()
-        return self.writer.publish(self.actions, self.sequence, dict(self.provenance, **self.identity))
+            if not self.failed:
+                self.checkpoint()
+            return export_recording(self.writer.directory, self.validator)
+        return self.writer.directory
 
-    def finished(self):
-        return (self.state['boundary_kind'] == 'run_complete' if self.actions['setup']['kind'] == 'seeded_run'
-                else combat_finished(self.state))
+    def finished(self, state=None):
+        state = self.state if state is None else state
+        return (state['boundary_kind'] == 'run_complete' if self.actions['setup']['kind'] == 'seeded_run'
+                else combat_finished(state))
 
     def step(self, action):
+        require(not self.failed, 'Recording stopped after a publication failure')
         require(not self.finished(), 'Action after combat end')
         index = len(self.actions['actions']) + 1
         entry = {'id': f'action-{index:06d}', 'action': action}
-        candidate = dict(self.actions, actions=[*self.actions['actions'], entry])
-        validate(self.validator, 'actions', candidate)
-        check_scope(candidate)
+        validate(self.validator, 'action', entry)
+        check_scope(dict(self.actions, actions=[entry]))
         response = self.host.send(action_request(self.actions, action, self.state, entry['id']))
         state, _ = self.response_state(response, entry['id'])
-        self.actions, self.state = candidate, state
-        if index % self.checkpoint_every == 0 or self.finished():
-            self.checkpoint()
-        self.publish()
+        retain = index % self.checkpoint_every == 0 or self.finished(state)
+        try:
+            self.writer.append(entry, state if retain else None)
+            self.actions['actions'].append(entry)
+            self.state = state
+            if retain:
+                self.sequence['transitions'].append({'action_id': entry['id'], 'state': state})
+        except BaseException:
+            self.failed = True
+            raise
 
 
 def main():
     from upstream_play import RecordingTransport, load_interface
     parser = argparse.ArgumentParser(description='Play sts2-cli with validated action and state recording.')
-    parser.add_argument('--game-dir', type=Path, required=True)
-    parser.add_argument('--output-dir', type=Path, required=True, help='New directory for this recording')
+    parser.add_argument('--game-dir', type=Path)
+    parser.add_argument('--output-dir', type=Path, help='New directory for this recording')
+    parser.add_argument('--export', type=Path, metavar='RECORDING_DIR',
+                        help='Export an offline journal and discard uncommitted tails; no game required')
     parser.add_argument('--run', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--character', choices=['Ironclad', 'Silent', 'Defect', 'Regent', 'Necrobinder'], default='Ironclad')
     parser.add_argument('--ascension', type=int, choices=range(11), default=0)
@@ -186,6 +148,15 @@ def main():
     require(bool(args.seed), 'Seed must not be empty')
     validator = args.validator.resolve()
     require(validator.is_file(), 'Build parity_validate first, or pass --validator')
+    if args.export:
+        require(not any((args.game_dir, args.output_dir, args.load, args.auto)),
+                '--export cannot be combined with recording options')
+        directory = export_recording(args.export.resolve(), validator, recover=True)
+        print(f'Action file: {directory / "actions.json"}')
+        print(f'State file:  {directory / "states.json"}')
+        return
+    require(args.game_dir is not None and args.output_dir is not None,
+            'Recording requires --game-dir and --output-dir')
     interface = load_interface()
     interface.LANG = args.lang
     if args.load:
@@ -237,5 +208,5 @@ if __name__ == '__main__':
         sys.exit(130)
     except (RuntimeError, ValueError, OSError, subprocess.SubprocessError) as error:
         print(f'Interactive recording stopped: {error}', file=sys.stderr)
-        print('Any previously published current/ pair remains available.', file=sys.stderr)
+        print('Committed JSONL history and any previous current/ export remain available.', file=sys.stderr)
         sys.exit(1)

@@ -49,6 +49,10 @@ int main() {
                 continue;
             }
             if (kind == "actions") (void)parse_actions(request.at("value"));
+            else if (kind == "action") ActionRecording::validate_entry(request.at("value"));
+            else if (kind == "journal_record") validate_journal_record(request.at("value"));
+            else if (kind == "snapshot_once")
+                (void)Snapshot::parse_text(request.at("value").get<std::string>());
             else if (kind == "snapshot") {
                 const auto& input = request.at("value");
                 const auto value = input.is_string() ? Json::parse(input.get<std::string>()) : input;

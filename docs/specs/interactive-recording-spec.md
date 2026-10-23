@@ -52,11 +52,12 @@ Use the same controls as sts2-cli. Displayed indices are **zero-based**.
 The former `play N`, `end`, and raw `act` interface has been replaced by the upstream
 prompts. Choose the checkpoint interval at launch with `--checkpoint-every N`.
 
-EOF and Ctrl+C retain the last validated action prefix. If interruption happens during
-an unacknowledged action, that action is excluded; its engine outcome is unknown.
+EOF and Ctrl+C retain the committed action prefix. An action interrupted before
+its commit marker is published is excluded; an interruption after the marker
+switch may leave it committed even if the interface did not receive success.
 The reference process is isolated from terminal Ctrl+C and terminated when recording
 closes. A malformed response, invalid exported state or backend failure stops the
-session and leaves the previously published pair available.
+session and leaves the committed journal prefix and any earlier JSON export available.
 
 ## Gameplay and display boundaries
 
@@ -99,13 +100,48 @@ same action do not duplicate checkpoints.
 The exporter returns and validates a state after every action. Sampling controls which
 snapshots are retained, not which actions execute or which states are validated.
 
-The interactive recorder keeps one validator process per run. Successfully validated
-snapshot content is reused when publishing later checkpoints; changed content is
-validated again. Each publication still checks the envelope, provenance fields,
-action/checkpoint ordering and terminal boundaries. The cache retains saved checkpoints
-and the latest snapshot, rather than every unsampled boundary. Standalone verification
-starts with an empty cache and validates the complete pair independently. Publication
-still writes and atomically switches a complete action/state pair after every action.
+The interactive recorder keeps one validator process per run. Setup, supported
+features, provenance, and the initial snapshot are validated at initialization.
+Each new action uses the existing action-entry schema; each returned snapshot
+receives full snapshot and reference-graph validation once. The live path does
+not send earlier actions or snapshots to the validator. Sequential action IDs,
+the latest retained checkpoint, and terminal boundaries enforce the incremental
+recording relationships. Standalone export and verification still validate the
+complete pair independently.
+
+The durable recording consists of three files in one session directory:
+
+```text
+actions.jsonl
+states.jsonl
+commit.json
+```
+
+`actions.jsonl` begins with `{"kind":"setup","actions":<empty actions-v1 document>}`,
+followed by ordinary actions-v1 entries (`id` and `action`), one per line.
+`states.jsonl` begins with `{"kind":"initial","reference":<provenance>,"state":<snapshot>}`,
+followed by ordinary states-v1 transitions (`action_id` and `state`), one per line.
+Every line is a complete UTF-8 JSON object followed by a newline. Existing action
+and snapshot definitions are reused by [journal-v1](../../tests/parity/schema/journal-v1.json).
+
+The `journal-v1` commit marker contains `schema_version`, `profile`, `recording_id`,
+`actions_bytes`, `states_bytes`, `action_count`, and `checkpoint_count`. Byte
+lengths include the headers and newline delimiters; counts exclude the headers.
+For every action, including replayed actions during `--load`, the recorder appends
+and `fsync`s the new action and any retained snapshot, then writes and `fsync`s a
+temporary marker, atomically replaces `commit.json`, and `fsync`s the session
+directory before returning success. Initialization also persists the parent
+directory entry. A manual save can commit a snapshot for the latest action
+without appending another action; repeated saves do not duplicate it.
+
+The marker selects a matched committed prefix of both journals. Bytes beyond
+its offsets are uncommitted, even if they form complete lines. An interruption
+after the marker switch may leave the new action committed even though the
+caller did not receive success. A publication error stops further gameplay
+dispatch in that session. Durability assumes a filesystem that honors file and
+directory `fsync`; this does not protect against arbitrary storage corruption.
+
+Manual save and normal exit materialize a compatible complete JSON export:
 
 ```text
 build/recordings/my-session/current/actions.json
@@ -114,9 +150,26 @@ build/recordings/my-session/current/states.json
 
 The action file contains the complete validated prefix. Its exact bytes match
 `actions_sha256` in the states file. Each checkpoint identifies its preceding action.
-Both files are validated before publication. The writer creates a private generation,
-then atomically switches the `current` directory symlink and retires the previous
-generation. Consumers should read the pair after the session stops.
+Both files are validated before export publication. The writer creates a private
+generation under `.exports/`, atomically switches the `current` directory symlink,
+and retires the previous export generation. Ordinary gameplay does not create or
+refresh `current`; it may be absent or represent an earlier manual save.
+Consumers should read the pair after the session stops.
+
+After interruption, export an offline session without starting the game:
+
+```sh
+python3 tools/oracle/play.py --export build/recordings/my-session \
+  --validator build/debug/parity_validate
+```
+
+This reads only the committed byte prefixes, independently validates the complete
+recording, publishes the three JSON files, and truncates any uncommitted tails.
+Missing, truncated, malformed, or invalid committed data is an error, not a tail
+to discard; a failed validation preserves the previous export. The command must
+not run concurrently with an active recorder. It does not synthesize a final
+checkpoint for an unsampled state lost with the process, execute gameplay, or
+resume recording in the same directory.
 
 Build output and diagnostics are in `logs/`. Full protocol transcripts are disabled
 by default; enable `--protocol-log` for debugging. Backend provenance includes injected adapters, schemas, protocol/build helpers and
@@ -130,6 +183,8 @@ Upstream action-log saves created with `save` live under the recording directory
 the logged decisions from seeded setup and continue recording. The replayed prefix
 is recorded too. Saves created here retain ascension; for older upstream saves that
 omit it, pass the original `--ascension` value when loading. This is separate from `current/actions.json`, which uses actions-v1.
+JSONL journals are not accepted by `--load`. Existing action-log saves and existing
+complete JSON replay/validation inputs remain supported.
 Native `.save` continuation is not an accepted recording setup; `--continue` is not
 exposed. A native save written by the upstream quit prompt can be opened with sts2-cli.
 

@@ -91,8 +91,9 @@ stay unchanged. The shared `reference_runtime.py` module provides process commun
 validation and disposable builds for `play.py` and live audits; it has no batch recorder.
 Build and runtime diagnostics are stored in the session's `logs/` directory.
 Malformed responses, identity mismatches, invalid states, process failure and timeouts
-stop recording. The last published action/state pair remains available. Each successful
-action is validated before the interactive recorder publishes a new pair atomically.
+stop recording. The last committed action/state journal prefix remains available,
+along with any earlier complete JSON export. Each successful action is validated
+before the interactive recorder atomically advances the journals' commit marker.
 See [interactive recording](interactive-recording-spec.md#checkpoints-and-files).
 
 `starter.states.json` is a fresh live capture in the new contract, not a structural
