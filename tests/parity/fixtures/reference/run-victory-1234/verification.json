@@ -1,0 +1,26 @@
+{
+  "actions": 696,
+  "checkpoints": 697,
+  "original_checkpoints_compared": 8,
+  "original_provenance": {
+    "revision": "084d1aa3d8e118ca7ce8d8774ad16d6be9c92367",
+    "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+    "adapter_sha256": "fba4497f9a4fb6ad2d79eb8ae8383c87e9ee4fadbf7741f5fe0461a804b98a20",
+    "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e",
+    "runtime_version": "9.0.4"
+  },
+  "recapture_provenance": {
+    "revision": "084d1aa3d8e118ca7ce8d8774ad16d6be9c92367",
+    "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+    "adapter_sha256": "260879e5ff061fab41e52654b5032fa6ca523ef05cf740a1724e301a5870534c",
+    "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e",
+    "runtime_version": "9.0.4"
+  },
+  "original_actions_sha256": "a488c5496a83a55468fc44207c65ffd7270b6682eae250c7ca91d98f3501a766",
+  "dense_actions_sha256": "a488c5496a83a55468fc44207c65ffd7270b6682eae250c7ca91d98f3501a766",
+  "original_state_comparison": "all saved checkpoints equal",
+  "independent_dense_self_replay": "passed",
+  "capture_validator": "build/debug/parity_validate",
+  "export_and_self_replay_validator": "build/release/parity_validate",
+  "export_recovery": "Debug and Release one-shot full-document validation exceeded 30-second limit; committed journal exported using Release ValidationSession with a 600-second document deadline, without replaying actions or changing provenance."
+}
