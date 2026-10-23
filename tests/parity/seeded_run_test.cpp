@@ -2,7 +2,7 @@
 #include "sts2/integration/native_run.hpp"
 #include "sts2/integration/session.hpp"
 #include "sts2/persistence/checkpoint.hpp"
-#include "snapshot.hpp"
+#include "sts2/parity/snapshot.hpp"
 #include <gtest/gtest.h>
 #include <fstream>
 #include <filesystem>

@@ -37,8 +37,30 @@ def load_interface():
 
 ''' + source[end:]
     replace('                valid["s"] = None  # skip', '                if state.get("can_skip", True):\n                    valid["s"] = None  # skip')
+    replace('                    if card.get("target_type") == "AnyEnemy":\n',
+            '                    if card.get("target_type") == "AnyEnemy" and not enemies:\n'
+            '                        print(t("No enemy targets are available. Play another card or end the turn.", "当前没有敌方目标。请使用其他牌或结束回合。"))\n'
+            '                        continue\n'
+            '                    if card.get("target_type") == "AnyEnemy":\n')
+    replace('playable = [c for c in hand if c.get("can_play") and c.get("cost", 99) <= energy]',
+            'playable = [c for c in hand if c.get("can_play") and c.get("cost", 99) <= energy\n'
+            '                                and (c.get("target_type") != "AnyEnemy" or enemies)]')
+    replace('                    if pot_meta and pot_meta.get("target_type") == "AnyEnemy" and enemies:\n',
+            '                    if pot_meta and pot_meta.get("target_type") == "AnyEnemy" and not enemies:\n'
+            '                        print(t("No enemy targets are available. Play another card or end the turn.", "当前没有敌方目标。请使用其他牌或结束回合。"))\n'
+            '                        continue\n'
+            '                    if pot_meta and pot_meta.get("target_type") == "AnyEnemy" and enemies:\n')
     replace('                if min_sel == 0:\n                    valid["s"] = None',
             '                if min_sel == 0 or state.get("cancelable", False):\n                    valid["s"] = None')
+    replace('                elif choice == "rm":\n',
+            '                elif choice == "rm":\n'
+            '                    removal_cost = state.get("card_removal_cost")\n'
+            '                    if removal_cost is None:\n'
+            '                        print(t("Card removal is unavailable at this shop.", "此商店当前无法移除卡牌。"))\n'
+            '                        continue\n'
+            '                    if removal_cost > state.get("player", {}).get("gold", 0):\n'
+            '                        print(t("Not enough gold for card removal.", "金币不足，无法移除卡牌。"))\n'
+            '                        continue\n')
     replace('def _save_game(save_path, character, seed, action_log):',
             'def _save_game(save_path, character, seed, action_log, ascension=0):')
     replace('data = {"character": character, "seed": seed, "actions": action_log}',

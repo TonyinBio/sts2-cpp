@@ -30,8 +30,8 @@ they do not add support for other mechanics.
 
 An action recording is a JSON document describing how to initialize a run or combat and which
 player decisions to execute, in order. It contains no expected states. See
-`tests/parity/schema/actions-v1.json`, `ActionRecording` in
-`tests/parity/support/recording.hpp`, and `tests/parity/examples/starter.actions.json`.
+`data/schemas/actions-v1.json`, `ActionRecording` in
+`tools/parity/include/sts2/parity/recording.hpp`, and `tests/parity/examples/starter.actions.json`.
 
 Resulting states use the existing [run-parity-v1 format](run-parity-spec.md), validated by
 `Snapshot::parse`. This action schema does not change or duplicate it. The example is
@@ -169,7 +169,7 @@ engine RNG state; they are not player actions or alternate actions chosen by the
 ## Recording the results
 
 Keep action input and state output in separate files. The `states-v1` envelope is
-defined in `tests/parity/schema/states-v1.json` and validated with the existing C++
+defined in `data/schemas/states-v1.json` and validated with the existing C++
 run-state parser. The recorder produces:
 
 - A versioned result envelope containing the recording ID, SHA-256 of the exact action

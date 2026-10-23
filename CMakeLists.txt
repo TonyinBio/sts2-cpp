@@ -34,7 +34,8 @@ target_link_libraries(sts2_cli PRIVATE sts2_simulator)
 
 include(CTest)
 option(STS2_BUILD_INTEGRATION "Build native JSON export and seeded run CLI" ON)
-if(BUILD_TESTING OR STS2_BUILD_INTEGRATION)
+option(STS2_BUILD_PARITY_TOOLS "Build recording validator and simulator replay CLI" ON)
+if(BUILD_TESTING OR STS2_BUILD_INTEGRATION OR STS2_BUILD_PARITY_TOOLS)
   include(FetchContent)
   FetchContent_Declare(
     nlohmann_json
@@ -51,6 +52,46 @@ if(BUILD_TESTING OR STS2_BUILD_INTEGRATION)
   add_executable(sts2_run apps/run/main.cpp)
   target_link_libraries(sts2_run PRIVATE sts2_integration)
 endif()
+# Recording contracts are shared by tools and tests, independent of GoogleTest.
+if(BUILD_TESTING OR STS2_BUILD_PARITY_TOOLS)
+  set(PARITY_SCHEMA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/schemas")
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${PARITY_SCHEMA_DIR}/run-parity-v1.schema.json"
+    "${PARITY_SCHEMA_DIR}/serializable-run-v20.schema.json"
+    "${PARITY_SCHEMA_DIR}/actions-v1.json"
+    "${PARITY_SCHEMA_DIR}/states-v1.json"
+    "${PARITY_SCHEMA_DIR}/journal-v1.json")
+  file(READ "${PARITY_SCHEMA_DIR}/run-parity-v1.schema.json" RUN_PARITY_SCHEMA)
+  file(READ "${PARITY_SCHEMA_DIR}/serializable-run-v20.schema.json" NATIVE_RUN_SCHEMA)
+  file(READ "${PARITY_SCHEMA_DIR}/actions-v1.json" ACTIONS_SCHEMA)
+  file(READ "${PARITY_SCHEMA_DIR}/states-v1.json" STATES_SCHEMA)
+  file(READ "${PARITY_SCHEMA_DIR}/journal-v1.json" JOURNAL_SCHEMA)
+  configure_file(tools/parity/src/schema.hpp.in generated/parity/schema.hpp @ONLY)
+  add_library(sts2_parity STATIC tools/parity/src/snapshot.cpp
+    tools/parity/src/schema_validation.cpp tools/parity/src/recording.cpp tools/parity/src/state_recording.cpp)
+  target_compile_features(sts2_parity PUBLIC cxx_std_23)
+  target_include_directories(sts2_parity PUBLIC tools/parity/include
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated/parity")
+  target_link_libraries(sts2_parity PUBLIC nlohmann_json::nlohmann_json)
+
+  find_package(OpenSSL REQUIRED COMPONENTS Crypto)
+  add_library(sts2_parity_replay STATIC tools/parity/src/replay.cpp)
+  target_link_libraries(sts2_parity_replay PUBLIC sts2_parity PRIVATE OpenSSL::Crypto)
+  # The original simulator adapter stays separate from contract validation/replay.
+  add_library(sts2_parity_simulator STATIC tools/parity/src/simulator_snapshot.cpp)
+  target_link_libraries(sts2_parity_simulator PUBLIC sts2_parity sts2_simulator)
+  foreach(parity_target sts2_parity sts2_parity_replay sts2_parity_simulator)
+    set_target_properties(${parity_target} PROPERTIES CXX_EXTENSIONS OFF)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+      target_compile_options(${parity_target} PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+  endforeach()
+  add_executable(parity_validate tools/parity/validate_main.cpp)
+  target_link_libraries(parity_validate PRIVATE sts2_parity)
+  add_executable(sts2_replay tools/parity/replay_main.cpp)
+  target_link_libraries(sts2_replay PRIVATE sts2_parity_replay sts2_integration)
+endif()
+
 if(BUILD_TESTING)
   include(FetchContent)
   FetchContent_Declare(
@@ -67,30 +108,8 @@ if(BUILD_TESTING)
 
   add_executable(simulator_test tests/unit/simulator_test.cpp tests/unit/rng_test.cpp tests/unit/clock_test.cpp)
   target_link_libraries(simulator_test PRIVATE sts2_simulator GTest::gtest_main)
-  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/docs/specs/schemas/run-parity-v1.schema.json"
-    "${CMAKE_CURRENT_SOURCE_DIR}/docs/specs/schemas/serializable-run-v20.schema.json"
-    "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/schema/actions-v1.json"
-    "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/schema/states-v1.json")
-  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/schema/journal-v1.json")
-  file(READ docs/specs/schemas/run-parity-v1.schema.json RUN_PARITY_SCHEMA)
-  file(READ docs/specs/schemas/serializable-run-v20.schema.json NATIVE_RUN_SCHEMA)
-  file(READ tests/parity/schema/actions-v1.json ACTIONS_SCHEMA)
-  file(READ tests/parity/schema/states-v1.json STATES_SCHEMA)
-  file(READ tests/parity/schema/journal-v1.json JOURNAL_SCHEMA)
-  configure_file(tests/parity/support/schema.hpp.in generated/parity/schema.hpp @ONLY)
-  add_library(combat_state STATIC tests/parity/support/snapshot.cpp
-    tests/parity/support/schema_validation.cpp tests/parity/support/recording.cpp tests/parity/support/state_recording.cpp)
-  target_compile_features(combat_state PUBLIC cxx_std_20)
-  target_include_directories(combat_state PUBLIC tests/parity/support
-    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated/parity")
-  target_link_libraries(combat_state PUBLIC nlohmann_json::nlohmann_json)
-  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(combat_state PRIVATE -Wall -Wextra -Wpedantic)
-  endif()
   add_executable(engine_test tests/unit/engine_test.cpp tests/unit/map_test.cpp tests/unit/setup_test.cpp tests/unit/run_test.cpp tests/parity/seeded_run_test.cpp)
-  target_link_libraries(engine_test PRIVATE sts2_integration combat_state nlohmann_json::nlohmann_json GTest::gtest_main)
+  target_link_libraries(engine_test PRIVATE sts2_integration sts2_parity nlohmann_json::nlohmann_json GTest::gtest_main)
   target_compile_definitions(engine_test PRIVATE
     KERNEL_SEEDED_SETUP_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/seeded-setup-v1.json"
     KERNEL_RUN_PREFIX_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/fixtures/reference/neow-map/states.json"
@@ -101,29 +120,21 @@ if(BUILD_TESTING)
     KERNEL_COMBAT_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/fixtures/reference/combat-victory/states.json"
     KERNEL_COMBAT_ACTIONS="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/fixtures/reference/combat-victory/actions.json")
   add_executable(combat_state_test tests/parity/snapshot_test.cpp)
-  target_link_libraries(combat_state_test PRIVATE combat_state GTest::gtest_main)
+  target_link_libraries(combat_state_test PRIVATE sts2_parity GTest::gtest_main)
   target_compile_definitions(combat_state_test PRIVATE
     PARITY_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/examples/starter.json")
   add_executable(action_recording_test tests/parity/recording_test.cpp)
-  target_link_libraries(action_recording_test PRIVATE combat_state GTest::gtest_main)
+  target_link_libraries(action_recording_test PRIVATE sts2_parity GTest::gtest_main)
   target_compile_definitions(action_recording_test PRIVATE
     ACTION_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/examples/starter.actions.json")
-  add_executable(parity_validate tools/parity/validate_main.cpp)
-  target_link_libraries(parity_validate PRIVATE combat_state)
   add_executable(state_recording_test tests/parity/state_recording_test.cpp)
-  target_link_libraries(state_recording_test PRIVATE combat_state GTest::gtest_main)
+  target_link_libraries(state_recording_test PRIVATE sts2_parity GTest::gtest_main)
   target_compile_definitions(state_recording_test PRIVATE
     PARITY_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/examples/starter.json"
     ACTION_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/examples/starter.actions.json")
-  find_package(OpenSSL REQUIRED COMPONENTS Crypto)
-  add_library(parity_replay_support STATIC tests/parity/support/replay.cpp
-    tests/parity/support/simulator_snapshot.cpp)
-  target_link_libraries(parity_replay_support PUBLIC combat_state sts2_simulator PRIVATE OpenSSL::Crypto)
-  add_executable(sts2_replay tools/parity/replay_main.cpp)
-  target_link_libraries(sts2_replay PRIVATE parity_replay_support sts2_integration)
   add_executable(replay_parity_test tests/parity/replay_parity_test.cpp)
   target_link_libraries(replay_parity_test PRIVATE GTest::gtest_main
-    parity_replay_support sts2_simulator OpenSSL::Crypto)
+    sts2_parity_replay sts2_parity_simulator sts2_simulator OpenSSL::Crypto)
   target_compile_definitions(replay_parity_test PRIVATE
     ACTION_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/examples/starter.actions.json"
     STATE_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/fixtures/starter.states.json")
@@ -140,13 +151,16 @@ if(BUILD_TESTING)
       "${CMAKE_CURRENT_SOURCE_DIR}/tools/rules_compiler/setup.py" --check)
     set_tests_properties(setup_rules_generated PROPERTIES LABELS "engine")
     add_test(NAME run_parity_schema COMMAND "${Python3_EXECUTABLE}"
-      "${CMAKE_CURRENT_SOURCE_DIR}/tests/oracle/test_run_parity_schema.py")
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/test_run_parity_schema.py")
     add_test(NAME native_run_unit COMMAND "${Python3_EXECUTABLE}"
       "${CMAKE_CURRENT_SOURCE_DIR}/tests/oracle/test_native_run.py")
     set_tests_properties(native_run_unit PROPERTIES LABELS "native_run")
     add_test(NAME interactive_recorder_unit COMMAND "${Python3_EXECUTABLE}"
       "${CMAKE_CURRENT_SOURCE_DIR}/tests/oracle/test_play.py" "$<TARGET_FILE:parity_validate>")
     set_tests_properties(interactive_recorder_unit PROPERTIES LABELS "recorder")
+    add_test(NAME recorder_profiler_unit COMMAND "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/oracle/test_profile_play.py")
+    set_tests_properties(recorder_profiler_unit PROPERTIES LABELS "recorder")
   endif()
   include(GoogleTest)
   gtest_discover_tests(engine_test PROPERTIES LABELS "engine")

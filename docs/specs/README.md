@@ -46,10 +46,10 @@ right object. A file that passes schema validation is not proof that both engine
 
 | Sheet | Status and scope | Schema |
 | --- | --- | --- |
-| [Run parity state](run-parity-spec.md) | Native run and combat snapshot contract; bounded starter exporter | [run-parity-v1.schema.json](schemas/run-parity-v1.schema.json) |
-| [Action recording](action-recording-spec.md) | Implemented action format; selection actions have limited adapter support | `tests/parity/schema/actions-v1.json` |
-| [Oracle recording](oracle-recording-spec.md) | Implemented reference recorder for the audited Ironclad/Shrinker encounter | `tests/parity/schema/states-v1.json` |
-| [Real-game save JSON](real-game-save-json-spec.md) | Native v20 save structure, with separate saving/loading checks | [serializable-run-v20.schema.json](schemas/serializable-run-v20.schema.json) |
+| [Run parity state](run-parity-spec.md) | Native run and combat snapshot contract; bounded starter exporter | [run-parity-v1.schema.json](../../data/schemas/run-parity-v1.schema.json) |
+| [Action recording](action-recording-spec.md) | Implemented action format; selection actions have limited adapter support | `data/schemas/actions-v1.json` |
+| [Oracle recording](oracle-recording-spec.md) | Implemented reference recorder for the audited Ironclad/Shrinker encounter | `data/schemas/states-v1.json` |
+| [Real-game save JSON](real-game-save-json-spec.md) | Native v20 save structure, with separate saving/loading checks | [serializable-run-v20.schema.json](../../data/schemas/serializable-run-v20.schema.json) |
 
 The [full-game design](engine/full-game-simulator-design.md) describes the intended system.
 It does not describe the current implementation's coverage. The probe and audit sheets

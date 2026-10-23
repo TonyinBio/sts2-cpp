@@ -29,7 +29,7 @@
       "properties": {
         "kind": {"const": "initial"},
         "reference": {"$ref": "states-v1.json#/properties/reference"},
-        "state": {"$ref": "../../../docs/specs/schemas/run-parity-v1.schema.json"}
+        "state": {"$ref": "run-parity-v1.schema.json"}
       },
       "required": ["kind", "reference", "state"],
       "additionalProperties": false

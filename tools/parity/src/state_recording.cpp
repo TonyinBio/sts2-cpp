@@ -1,4 +1,4 @@
-#include "state_recording.hpp"
+#include "sts2/parity/state_recording.hpp"
 #include "schema.hpp"
 #include "schema_validation.hpp"
 #include <map>

@@ -1,6 +1,6 @@
-#include "recording.hpp"
-#include "snapshot.hpp"
-#include "state_recording.hpp"
+#include "sts2/parity/recording.hpp"
+#include "sts2/parity/snapshot.hpp"
+#include "sts2/parity/state_recording.hpp"
 #include <iostream>
 #include <stdexcept>
 #include <optional>

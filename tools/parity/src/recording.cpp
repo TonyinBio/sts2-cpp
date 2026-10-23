@@ -1,4 +1,4 @@
-#include "recording.hpp"
+#include "sts2/parity/recording.hpp"
 #include "schema.hpp"
 #include "schema_validation.hpp"
 

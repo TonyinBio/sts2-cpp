@@ -1,6 +1,6 @@
 #pragma once
-#include "recording.hpp"
-#include "snapshot.hpp"
+#include "sts2/parity/recording.hpp"
+#include "sts2/parity/snapshot.hpp"
 #include <functional>
 
 namespace sts2::parity {

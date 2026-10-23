@@ -228,6 +228,13 @@ def inject(source):
         '    public float VolumeLinear { get; set; }\n'
         '    public float PitchScale { get; set; }\n'
         '    public StringName Bus { get; set; } = "";', 1)
+    # Test Subject's phase-three color callback resolves this method even when
+    # there is no creature node and the graphical branch will be skipped.
+    require(audio.count('public Color SelfModulate { get; set; } = Color.White;') == 1,
+            'Unexpected CanvasItem stub')
+    audio = audio.replace('public Color SelfModulate { get; set; } = Color.White;',
+        'public Color SelfModulate { get; set; } = Color.White;\n'
+        '    public void SetSelfModulate(Color color) => SelfModulate = color;', 1)
     audio_stub.write_text(audio)
     core_stub = source.parent / 'GodotStubs/Core.cs'
     core = core_stub.read_text()
@@ -259,7 +266,7 @@ def inject(source):
 
     contract = strict_json((Path(__file__).parent / 'combat-field-contract.json').read_bytes())
     require(contract['game_dll_sha256'] == GAME_SHA256, 'Combat field contract targets another DLL')
-    schema = strict_json((REPO / 'docs/specs/schemas/run-parity-v1.schema.json').read_bytes())
+    schema = strict_json((REPO / 'data/schemas/run-parity-v1.schema.json').read_bytes())
     # Embed the checked contract; no runtime dependency on the checkout or build audit output.
     (source / 'CombatModelContract.g.cs').write_text(
         'namespace Sts2Headless; internal static class CombatModelContract {\n'
@@ -298,9 +305,7 @@ def reference_build(game_dir, log_dir, extra_sources=()):
         inputs = [p for p in (root / 'src').rglob('*') if p.suffix in ('.cs', '.csproj')]
         for path in sorted(inputs):
             digest.update(path.relative_to(root).as_posix().encode() + b'\0' + path.read_bytes())
-        for path in [Path(__file__), *extra_sources, *sorted((REPO / 'tests/parity/schema').glob('*.json')),
-                     REPO / 'docs/specs/schemas/run-parity-v1.schema.json',
-                     REPO / 'docs/specs/schemas/serializable-run-v20.schema.json',
+        for path in [Path(__file__), *extra_sources, *sorted((REPO / 'data/schemas').glob('*.json')),
                      *sorted(lib.glob('*.dll'))]:
             digest.update(path.name.encode() + b'\0' + path.read_bytes())
         env = dict(os.environ, DOTNET_CLI_TELEMETRY_OPTOUT='1',

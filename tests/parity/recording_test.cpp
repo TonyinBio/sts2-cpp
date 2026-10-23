@@ -1,4 +1,4 @@
-#include "recording.hpp"
+#include "sts2/parity/recording.hpp"
 #include <gtest/gtest.h>
 #include <fstream>
 #include <stdexcept>

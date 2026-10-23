@@ -1,5 +1,5 @@
-#include "replay.hpp"
-#include "simulator_snapshot.hpp"
+#include "sts2/parity/replay.hpp"
+#include "sts2/parity/simulator_snapshot.hpp"
 #include <gtest/gtest.h>
 #include <openssl/evp.h>
 #include <fstream>

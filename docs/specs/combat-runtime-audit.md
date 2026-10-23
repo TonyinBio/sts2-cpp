@@ -27,7 +27,7 @@ references below are to a local ILSpy 9.1.0.7988 decompilation of that assembly 
 ignored `build/combat-state-audit/decompiled/`.
 
 This audit starts from the game rather than the earlier parity proposal. The [native v20
-schema](schemas/serializable-run-v20.schema.json) is unchanged. This document identifies
+schema](../../data/schemas/serializable-run-v20.schema.json) is unchanged. This document identifies
 source-backed additions and exclusions; it is not an implemented exporter or a
 declaration that full-game state completeness has been verified. The [model-member
 inventory](combat-model-field-audit.md) records the individual model fields examined,

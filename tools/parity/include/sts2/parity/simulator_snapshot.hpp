@@ -1,5 +1,5 @@
 #pragma once
-#include "replay.hpp"
+#include "sts2/parity/replay.hpp"
 #include "sts2/state.hpp"
 
 namespace sts2::parity {

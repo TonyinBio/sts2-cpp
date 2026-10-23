@@ -86,14 +86,40 @@ def survivor_fixture(native):
 class RunParitySchemaTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.native_schema = exact_json((REPO / 'docs/specs/schemas/serializable-run-v20.schema.json').read_text())
-        cls.schema = exact_json((REPO / 'docs/specs/schemas/run-parity-v1.schema.json').read_text())
+        cls.native_schema = exact_json((REPO / 'data/schemas/serializable-run-v20.schema.json').read_text())
+        cls.schema = exact_json((REPO / 'data/schemas/run-parity-v1.schema.json').read_text())
         cls.native = exact_json((REPO / 'tests/native/fixtures/serializable-run-v20.json').read_text())
         Draft202012Validator.check_schema(cls.schema)
         uri = urljoin(cls.schema['$id'], 'serializable-run-v20.schema.json')
         registry = Registry().with_resource(uri, Resource.from_contents(cls.native_schema))
         cls.validator = Draft202012Validator(cls.schema, registry=registry)
         cls.native_validator = Draft202012Validator(cls.native_schema)
+
+    def test_shared_schema_references_resolve_from_canonical_home(self):
+        schemas = []
+        registry = Registry()
+        base = 'https://sts2-simulator.local/schema/'
+        for path in sorted((REPO / 'data/schemas').glob('*.json')):
+            schema = exact_json(path.read_text())
+            Draft202012Validator.check_schema(schema)
+            resource = Resource.from_contents(schema)
+            registry = registry.with_resource(urljoin(base, path.name), resource)
+            registry = registry.with_resource(schema['$id'], resource)
+            schemas.append(schema)
+
+        def check_refs(value, resolver):
+            if isinstance(value, dict):
+                if '$ref' in value:
+                    resolver.lookup(value['$ref'])
+                for child in value.values():
+                    check_refs(child, resolver)
+            elif isinstance(value, list):
+                for child in value:
+                    check_refs(child, resolver)
+
+        for schema in schemas:
+            with self.subTest(schema=schema['$id']):
+                check_refs(schema, registry.resolver(schema['$id']))
 
     def test_model_storage_contract_matches_typed_schema(self):
         contract = exact_json((REPO / 'tools/oracle/combat-field-contract.json').read_text())
@@ -204,7 +230,7 @@ class RunParitySchemaTests(unittest.TestCase):
             self.assertEqual(actions['state_profile'], 'run-parity-v1')
 
     def test_checked_in_example(self):
-        path = REPO / 'docs/specs/schemas/examples/run-parity-survivor.json'
+        path = REPO / 'tests/parity/examples/run-parity-survivor.json'
         value = exact_json(path.read_text())
         self.validator.validate(value)
         self.assertEqual(value, survivor_fixture(self.native))

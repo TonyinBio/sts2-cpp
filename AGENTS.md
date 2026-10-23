@@ -4,7 +4,7 @@
 
 This is a headless C++23 Slay the Spire 2 simulator. Public headers live in `include/sts2/`; implementations live in `src/`, split into rules, state, kernel, observation, persistence, and integration layers. CLI entry points are in `apps/`; `src/main.cpp` runs the older demo. Keep that demo separate from the new engine.
 
-`tests/unit/` contains engine tests; `tests/parity/` holds replay tests, schemas, and recordings; `tests/oracle/` contains Python regressions. Audited definitions live in `data/builds/`; architecture and contracts live in `docs/specs/`. `tools/` contains rules generation and reference audits. `sts2-cli/` is the pinned reference submodule.
+`tests/unit/` contains engine tests; `tests/parity/` holds recording contract tests, replay tests, and recordings; `tests/oracle/` contains reference-tool Python regressions. Shared recording validation and replay code lives under `tools/parity/`, with canonical schemas in `data/schemas/`. Keep `src/` and `include/sts2/` for the C++ engine. Audited definitions live in `data/builds/`; architecture and contracts live in `docs/specs/`. `tools/` also contains rules generation and reference audits. `sts2-cli/` is the pinned reference submodule.
 
 ## Build, Test, and Development Commands
 

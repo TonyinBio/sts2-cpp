@@ -122,7 +122,7 @@ followed by ordinary actions-v1 entries (`id` and `action`), one per line.
 `states.jsonl` begins with `{"kind":"initial","reference":<provenance>,"state":<snapshot>}`,
 followed by ordinary states-v1 transitions (`action_id` and `state`), one per line.
 Every line is a complete UTF-8 JSON object followed by a newline. Existing action
-and snapshot definitions are reused by [journal-v1](../../tests/parity/schema/journal-v1.json).
+and snapshot definitions are reused by [journal-v1](../../data/schemas/journal-v1.json).
 
 The `journal-v1` commit marker contains `schema_version`, `profile`, `recording_id`,
 `actions_bytes`, `states_bytes`, `action_count`, and `checkpoint_count`. Byte

@@ -16,9 +16,9 @@ See the [shared terms](README.md#terms-used-in-these-sheets) for definitions of 
 - [Enemy decisions, history, and pending choices](#enemy-decisions-history-and-pending-choices)
 - [Capture timing and remaining gaps](#capture-timing-and-remaining-gaps)
 
-The [schema](schemas/run-parity-v1.schema.json) replaces the previous combat-only
+The [schema](../../data/schemas/run-parity-v1.schema.json) replaces the previous combat-only
 state contract. Consumers must migrate their fixtures. It extends
-[SerializableRun v20](schemas/serializable-run-v20.schema.json) for comparing held gameplay data in the real engine and simulator. The native schema and
+[SerializableRun v20](../../data/schemas/serializable-run-v20.schema.json) for comparing held gameplay data in the real engine and simulator. The native schema and
 nested native objects remain unchanged. This is one evolving representation; update both
 exporters and affected tests together. See [recorder scope](oracle-recording-spec.md)
 for the implemented reference subset.
@@ -37,7 +37,7 @@ Snapshot `schema_version` is the native version, **20**. The state has no
 information belongs to the states-v1 recording envelope. Its transitions may sample
 an ordered subset of action IDs; see [sparse checkpoints](action-recording-spec.md#sparse-checkpoints).
 
-`tests/parity/support/snapshot.*` validates the embedded schema and references, pile
+`tools/parity/src/snapshot.cpp` validates the embedded schema and references, pile
 membership, player/card ownership, and selection bounds. Its comparator follows
 bijective local table labels and preserves reference aliasing. Ordered piles and history
 remain ordered; local keyword sets, readiness sets, spawned definition sets and model
@@ -251,7 +251,7 @@ unique pile membership, exactly one owner, source-model field applicability, min
 <= max-select, or consistency between active plays and history. These are semantic
 checks for exporters/comparators. The schema tests include an illustrative Survivor
 selection fixture and verify its reference resolution; the fixture is [synthetic
-example](schemas/examples/run-parity-survivor.json), not a claimed full export from the real
+example](../../tests/parity/examples/run-parity-survivor.json), not a claimed full export from the real
 engine.
 
 ## Noncombat run flow

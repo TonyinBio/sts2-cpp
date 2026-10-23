@@ -108,6 +108,60 @@ class CommandTests(unittest.TestCase):
             self.assertEqual(actions['setup']['character'], character)
             self.assertEqual(actions['setup']['ascension'], 7)
 
+    def test_no_enemy_target_keeps_combat_open_for_self_cards_and_end_turn(self):
+        interface = load_interface()
+        interface.LANG = 'en'
+        commands = []
+        combat = {'type': 'decision', 'decision': 'combat_play', 'round': 1,
+                  'energy': 3, 'max_energy': 3, 'enemies': [],
+                  'player': {'name': 'Ironclad', 'hp': 50, 'max_hp': 80,
+                             'potions': [{'index': 0, 'name': 'Fire Potion',
+                                          'target_type': 'AnyEnemy'}]},
+                  'hand': [
+                      {'index': 0, 'name': 'Bolas', 'cost': 0, 'can_play': True,
+                       'target_type': 'AnyEnemy'},
+                      {'index': 1, 'name': 'True Grit', 'cost': 1, 'can_play': True,
+                       'target_type': 'Self'}]}
+
+        def send(command):
+            commands.append(command)
+            if command.get('action') == 'play_card':
+                self.assertEqual(command['args'], {'card_index': 1})
+            if command['cmd'] == 'quit':
+                return {'type': 'quit_result'}
+            if command.get('action') == 'end_turn':
+                return None
+            return combat
+
+        with patch('builtins.input', side_effect=['0', 'p0', '1', 'e']), \
+                contextlib.redirect_stdout(io.StringIO()) as output:
+            interface.play(seed='NO-TARGET', log=False, command_sender=send)
+        self.assertEqual([cmd.get('action') for cmd in commands if cmd['cmd'] == 'action'],
+                         ['play_card', 'end_turn'])
+        self.assertIn('No enemy targets', output.getvalue())
+
+    def test_auto_ends_turn_when_only_enemy_targeted_cards_have_no_targets(self):
+        interface = load_interface()
+        commands = []
+        combat = {'type': 'decision', 'decision': 'combat_play', 'round': 1,
+                  'energy': 3, 'max_energy': 3, 'enemies': [],
+                  'player': {'name': 'Ironclad', 'hp': 50, 'max_hp': 80},
+                  'hand': [{'index': 0, 'name': 'Bolas', 'cost': 0, 'can_play': True,
+                            'target_type': 'AnyEnemy'}]}
+
+        def send(command):
+            commands.append(command)
+            if command['cmd'] == 'start_run':
+                return combat
+            if command['cmd'] == 'quit':
+                return {'type': 'quit_result'}
+            self.assertEqual(command, {'cmd': 'action', 'action': 'end_turn'})
+            return None
+
+        with contextlib.redirect_stdout(io.StringIO()):
+            interface.play(seed='NO-TARGET', auto=True, log=False, command_sender=send)
+        self.assertIn({'cmd': 'action', 'action': 'end_turn'}, commands)
+
     def test_transport_preserves_combat_selection_identity_and_noncombat_indices(self):
         from types import SimpleNamespace
         state = copy.deepcopy(FIXTURE['initial'])
@@ -189,6 +243,85 @@ class CommandTests(unittest.TestCase):
                 bridge._settle_interface()
                 self.assertEqual(actions[-1], {'kind': 'take_reward', 'index': 0})
                 self.assertIsNotNone(flow['pending_choice'])
+
+    def test_second_shop_removal_keeps_interface_open_without_sending_action(self):
+        interface = load_interface()
+        interface.LANG = 'en'
+        commands = []
+        shop = {'type': 'decision', 'decision': 'shop', 'card_removal_cost': 75,
+                'player': {'gold': 200, 'deck': []}}
+
+        def send(command):
+            commands.append(command)
+            if command['cmd'] == 'start_run':
+                return shop
+            if command['cmd'] == 'quit':
+                return {'type': 'quit_result'}
+            if command['action'] == 'remove_card':
+                if shop['card_removal_cost'] is None:
+                    raise RuntimeError('Invalid, unavailable, or unaffordable shop entry')
+                return {'type': 'decision', 'decision': 'card_select',
+                        'cards': [{'index': 0, 'name': 'Strike'}], 'min_select': 1, 'max_select': 1}
+            if command['action'] == 'select_cards':
+                shop['card_removal_cost'] = None
+                shop['player']['gold'] -= 75
+                return shop
+            return None
+
+        with patch('builtins.input', side_effect=['rm', '0', 'rm', 'leave']), \
+                contextlib.redirect_stdout(io.StringIO()) as output:
+            interface.play(seed='SHOP', log=False, command_sender=send)
+        self.assertEqual(sum(cmd.get('action') == 'remove_card' for cmd in commands), 1)
+        self.assertIn({'cmd': 'action', 'action': 'leave_room'}, commands)
+        self.assertIn('Card removal is unavailable', output.getvalue())
+
+    def test_unaffordable_shop_removal_keeps_interface_open(self):
+        interface = load_interface()
+        interface.LANG = 'en'
+        commands = []
+
+        def send(command):
+            commands.append(command)
+            if command['cmd'] == 'start_run':
+                return {'type': 'decision', 'decision': 'shop', 'card_removal_cost': 75,
+                        'player': {'gold': 74}}
+            if command['cmd'] == 'quit':
+                return {'type': 'quit_result'}
+            if command.get('action') == 'remove_card':
+                self.fail('Unaffordable removal reached the backend')
+            return None
+
+        with patch('builtins.input', side_effect=['rm', 'leave']), \
+                contextlib.redirect_stdout(io.StringIO()) as output:
+            interface.play(seed='SHOP', log=False, command_sender=send)
+        self.assertIn('Not enough gold', output.getvalue())
+        self.assertIn({'cmd': 'action', 'action': 'leave_room'}, commands)
+
+    def test_cancelled_or_free_shop_removal_can_be_retried(self):
+        interface = load_interface()
+        interface.LANG = 'en'
+        commands = []
+        shop = {'type': 'decision', 'decision': 'shop', 'card_removal_cost': 0,
+                'player': {'gold': 0, 'deck': []}}
+
+        def send(command):
+            commands.append(command)
+            if command['cmd'] == 'start_run':
+                return shop
+            if command['cmd'] == 'quit':
+                return {'type': 'quit_result'}
+            if command.get('action') == 'remove_card':
+                return {'type': 'decision', 'decision': 'card_select', 'cancelable': True,
+                        'cards': [{'index': 0, 'name': 'Strike'}], 'min_select': 1, 'max_select': 1}
+            if command.get('action') == 'skip_select':
+                return shop
+            return None
+
+        with patch('builtins.input', side_effect=['rm', 's', 'rm', 's', 'leave']), \
+                contextlib.redirect_stdout(io.StringIO()):
+            interface.play(seed='SHOP', log=False, command_sender=send)
+        self.assertEqual(sum(cmd.get('action') == 'remove_card' for cmd in commands), 2)
+        self.assertIn({'cmd': 'action', 'action': 'leave_room'}, commands)
 
     def test_card_reward_accepts_skip_when_display_allows_it(self):
         interface = load_interface()

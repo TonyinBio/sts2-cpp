@@ -2,7 +2,7 @@
 
 The interactive recorder captures gameplay decisions through a disposable, pinned
 sts2-cli build and exports states-v1 envelopes whose snapshots conform to
-[run-parity-v1.schema.json](schemas/run-parity-v1.schema.json). See the
+[run-parity-v1.schema.json](../../data/schemas/run-parity-v1.schema.json). See the
 [run state contract](run-parity-spec.md) and [action contract](action-recording-spec.md).
 
 Build and run:
@@ -24,7 +24,7 @@ For interactive play and recording, use the [interactive recorder](interactive-r
 
 ## Envelope
 
-The `tests/parity/schema/states-v1.json` envelope retains schema_version 1 and profile
+The `data/schemas/states-v1.json` envelope retains schema_version 1 and profile
 states-v1. It contains recording_id, actions_sha256, reference source information,
 initial, and ordered `{action_id, state}` checkpoints for a subset of input actions.
 Both initial and state contain full run-parity snapshots; their native schema_version

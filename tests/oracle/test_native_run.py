@@ -65,7 +65,7 @@ class ExactComparisonTests(unittest.TestCase):
 class NativeSchemaTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.schema = exact_json((REPO / 'docs/specs/schemas/serializable-run-v20.schema.json').read_text())
+        cls.schema = exact_json((REPO / 'data/schemas/serializable-run-v20.schema.json').read_text())
         Draft202012Validator.check_schema(cls.schema)
         cls.validator = Draft202012Validator(cls.schema, format_checker=FormatChecker())
         cls.fixture = exact_json((REPO / 'tests/native/fixtures/serializable-run-v20.json').read_text())

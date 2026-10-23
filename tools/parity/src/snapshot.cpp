@@ -1,4 +1,4 @@
-#include "snapshot.hpp"
+#include "sts2/parity/snapshot.hpp"
 #include "exact_json.hpp"
 #include "schema.hpp"
 #include "schema_validation.hpp"

@@ -103,6 +103,27 @@ public partial class RunSimulator {
         response["card_index"] = player.PlayerCombatState.Hand.Cards.Count - 1;
         return response;
     }
+    public Dictionary<string, object?> AuditKnockOutTestSubject(System.Text.Json.JsonElement command)
+    {
+        var player = _runState!.Players.Single();
+        var target = CombatManager.Instance.DebugOnlyGetState()!.Enemies.Single();
+        Require(target.Monster is MegaCrit.Sts2.Core.Models.Monsters.TestSubject,
+            "Expected Test Subject");
+        CreatureCmd.Damage(new BlockingPlayerChoiceContext(), target, 10000m,
+            MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered, player.Creature).GetAwaiter().GetResult();
+        CombatManager.Instance.CheckWinCondition().GetAwaiter().GetResult();
+        AwaitRunBoundary();
+        return OracleRunState(command);
+    }
+    public Dictionary<string, object?> AuditOfferEmptyCombatRewards(System.Text.Json.JsonElement command)
+    {
+        var room = _runState!.CurrentRoom as MegaCrit.Sts2.Core.Rooms.CombatRoom
+            ?? throw new InvalidOperationException("Expected a combat room");
+        BeginRunOperation("audit_empty_rewards", null,
+            () => new MegaCrit.Sts2.Core.Rewards.RewardsSet(_runState.Players.Single()).EmptyForRoom(room).Offer());
+        AwaitRunBoundary();
+        return OracleRunState(command);
+    }
     public Dictionary<string, object?> AuditKillHopper(System.Text.Json.JsonElement command)
     {
         var player = _runState!.Players.Single();

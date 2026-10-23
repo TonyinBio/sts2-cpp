@@ -30,7 +30,7 @@ def main():
         from jsonschema import Draft202012Validator, FormatChecker
     except ImportError as error:
         raise RuntimeError('Install tools/oracle/requirements-test.txt to validate native schemas') from error
-    schema = exact_json((REPO / 'docs/specs/schemas/serializable-run-v20.schema.json').read_text())
+    schema = exact_json((REPO / 'data/schemas/serializable-run-v20.schema.json').read_text())
     Draft202012Validator.check_schema(schema)
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
     output = args.output.resolve()
@@ -138,7 +138,7 @@ def main():
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps({'status': 'passed', 'game_dll_sha256': GAME_SHA256,
         'reference_revision': REFERENCE_REVISION,
-        'schema_sha256': hashlib.sha256((REPO / 'docs/specs/schemas/serializable-run-v20.schema.json')
+        'schema_sha256': hashlib.sha256((REPO / 'data/schemas/serializable-run-v20.schema.json')
                                        .read_bytes()).hexdigest(),
         'cases': cases}, indent=2) + '\n')
     print(f'PASS: {sum(c["status"] == "unchanged" for c in cases)} unchanged round trips; '

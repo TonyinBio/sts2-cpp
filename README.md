@@ -1,4 +1,4 @@
-# sts2-simulator
+# sts2-cpp
 
 A headless C++23 Slay the Spire 2 simulator for high-throughput AI search and simulation.
 
@@ -107,7 +107,7 @@ output files, and coverage limits.
 states-v1 inputs. Run `ctest --preset debug -L replay_parity`. Tests require OpenSSL
 Crypto development headers for SHA-256 verification.
 
-`tests/parity/support/replay.hpp` provides a backend interface for restoring the initial
+`tools/parity/include/sts2/parity/replay.hpp` provides a backend interface for restoring the initial
 snapshot, action execution (including stable identity resolution), and settled-boundary
 snapshot export. The runner validates both recordings, verifies the exact action-file digest and
 independently supplied reference provenance, compares initialization and each recorded
@@ -137,3 +137,21 @@ Verify the canonical recordings independently against the reference with
 [reference self-replay](docs/specs/interactive-recording-spec.md#canonical-recording-verification).
 The [reference corpus](tests/parity/fixtures/reference/README.md) documents verified
 simulator paths and the remaining lifecycle scenarios.
+
+## Recording contracts and tool builds
+
+Shared recording validation and comparison code lives in `tools/parity/src/`, with
+public headers in `tools/parity/include/sts2/parity/`. The canonical native-save, run-state,
+action, state-recording, and journal schemas live together in `data/schemas/`.
+Oracle tools capture the installed game; parity tools validate recordings and
+compare simulator replay with recorded state.
+
+The validator and replay CLI can be built without GoogleTest:
+
+```sh
+cmake -S . -B build/tools -DBUILD_TESTING=OFF -DSTS2_BUILD_PARITY_TOOLS=ON
+cmake --build build/tools --target parity_validate sts2_replay
+```
+
+`STS2_BUILD_PARITY_TOOLS` defaults to `ON`. Tests also build these tools because
+recorder integration and replay tests execute them.

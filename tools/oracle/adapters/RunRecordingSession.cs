@@ -192,6 +192,9 @@ public partial class RunSimulator
     }
     private async Task OfferRunRewards(RewardsSet set)
     {
+        // BeginRewardsSet completes empty sets before invoking the test selector
+        // (notably after the final boss). They no longer exist on the native stack.
+        if (RunManager.Instance.RewardsSetSynchronizer.IsRewardsSetCompleted(set)) return;
         var frame = new RunRewards(set, RunOwnerContext.Value
             ?? throw new InvalidOperationException("Rewards outside a tracked run operation"));
         lock (_runGate) _runRewards.Add(frame);

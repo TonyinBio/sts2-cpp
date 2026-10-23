@@ -17,7 +17,7 @@ See the [shared terms](README.md#terms-used-in-these-sheets) for definitions of 
 
 | Attribute | Value |
 | --- | --- |
-| Schema | [serializable-run-v20.schema.json](schemas/serializable-run-v20.schema.json) |
+| Schema | [serializable-run-v20.schema.json](../../data/schemas/serializable-run-v20.schema.json) |
 | Native type | `MegaCrit.Sts2.Core.Saves.SerializableRun` |
 | Native save version | 20 |
 | Inspected game | v0.111.0, release commit `41cef1ea` |
@@ -112,7 +112,7 @@ from pathlib import Path
 from jsonschema import Draft202012Validator, FormatChecker
 
 schema = json.loads(
-    Path("docs/specs/schemas/serializable-run-v20.schema.json").read_text()
+    Path("data/schemas/serializable-run-v20.schema.json").read_text()
 )
 save = json.loads(Path("path/to/current_run.save").read_text())
 Draft202012Validator.check_schema(schema)

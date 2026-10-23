@@ -1,5 +1,5 @@
 #pragma once
-#include "state_recording.hpp"
+#include "sts2/parity/state_recording.hpp"
 #include <functional>
 
 namespace sts2::parity {

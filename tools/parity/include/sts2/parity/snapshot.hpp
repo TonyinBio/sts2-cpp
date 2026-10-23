@@ -8,7 +8,7 @@
 #include <utility>
 
 namespace sts2::parity {
-// Test-only canonical state. Construction requires schema and semantic validation.
+// Canonical comparison state. Construction requires schema and semantic validation.
 class Snapshot {
 public:
     static Snapshot parse(const nlohmann::json& value);

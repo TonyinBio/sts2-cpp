@@ -1,4 +1,4 @@
-#include "snapshot.hpp"
+#include "sts2/parity/snapshot.hpp"
 #include <gtest/gtest.h>
 #include <fstream>
 

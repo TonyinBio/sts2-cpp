@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sts2-simulator.local/schema/run-parity-v1.schema.json",
   "title": "Native SerializableRun v20 with combat parity state",
-  "description": "One evolving comparison-only representation for single-player awaiting_input and run_complete boundaries. Native payload stays unchanged. Known suspended-operation coverage gaps are documented in ../run-parity-spec.md; this is not a restorable save or agent observation interface.",
+  "description": "One evolving comparison-only representation for single-player awaiting_input and run_complete boundaries. Native payload stays unchanged. Known suspended-operation coverage gaps are documented in docs/specs/run-parity-spec.md; this is not a restorable save or agent observation interface.",
   "type": "object",
   "allOf": [
     {

@@ -1,4 +1,4 @@
-#include "simulator_snapshot.hpp"
+#include "sts2/parity/simulator_snapshot.hpp"
 #include "exact_json.hpp"
 #include "sts2/simulator.hpp"
 #include <algorithm>
@@ -94,7 +94,9 @@ Snapshot SimulatorSnapshot::snapshot() const {
     std::string message = "Full run-parity state export is unsupported; missing simulator state: ";
     bool first = true;
     for (const auto& field : unsupported_fields()) {
-        if (!first) message += ", "; first = false; message += field;
+        if (!first) message += ", ";
+        first = false;
+        message += field;
     }
     throw std::invalid_argument(message);
 }

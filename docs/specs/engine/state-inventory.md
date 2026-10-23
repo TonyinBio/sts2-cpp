@@ -49,7 +49,7 @@ and relevant native-property rows refine these families; excluded presentation f
 do not become requirements merely because they are writable.
 
 Native field spellings/types are defined by the existing
-[native v20 schema](../schemas/serializable-run-v20.schema.json). In particular preserve
+[native v20 schema](../../../data/schemas/serializable-run-v20.schema.json). In particular preserve
 acts, modifiers, current act index, events seen, pre-finished room, odds, shared relic bag,
 players, RNG, visited coordinates, map-point history, ascension, extra fields and mode.
 Do not import platform IDs, map drawings or save timestamps into gameplay simply because
