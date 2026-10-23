@@ -1,0 +1,342 @@
+{
+  "room_type_counts": {
+    "event": 10,
+    "monster": 14,
+    "treasure": 5,
+    "elite": 5,
+    "rest_site": 8,
+    "boss": 3,
+    "shop": 3
+  },
+  "map_point_type_counts": {
+    "ancient": 3,
+    "monster": 13,
+    "unknown": 10,
+    "elite": 5,
+    "rest_site": 8,
+    "treasure": 3,
+    "boss": 3,
+    "shop": 3
+  },
+  "monsters": {
+    "MONSTER.NIBBIT": {
+      "ai_states": [
+        "BUTT_MOVE",
+        "HISS_MOVE",
+        "SLICE_MOVE"
+      ],
+      "model_fields": [
+        "Nibbit._isAlone",
+        "Nibbit._isFront"
+      ]
+    },
+    "MONSTER.SHRINKER_BEETLE": {
+      "ai_states": [
+        "CHOMP_MOVE",
+        "SHRINKER_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.LEAF_SLIME_S": {
+      "ai_states": [
+        "GOOP_MOVE",
+        "TACKLE_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.LEAF_SLIME_M": {
+      "ai_states": [
+        "CLUMP_SHOT",
+        "STICKY_SHOT"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.TWIG_SLIME_S": {
+      "ai_states": [
+        "TACKLE_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.PHROG_PARASITE": {
+      "ai_states": [
+        "INFECT_MOVE",
+        "LASH_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.WRIGGLER": {
+      "ai_states": [
+        "NASTY_BITE_MOVE",
+        "SPAWNED_MOVE",
+        "WRIGGLE_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.FOGMOG": {
+      "ai_states": [
+        "ILLUSION_MOVE",
+        "SWIPE_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.EYE_WITH_TEETH": {
+      "ai_states": [
+        "DISTRACT_MOVE",
+        "REVIVE_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.TWIG_SLIME_M": {
+      "ai_states": [
+        "STICKY_SHOT_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.BYRDONIS": {
+      "ai_states": [
+        "PECK_MOVE",
+        "SWOOP_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.CEREMONIAL_BEAST": {
+      "ai_states": [
+        "BEAST_CRY_MOVE",
+        "CRUSH_MOVE",
+        "PLOW_MOVE",
+        "STAMP_MOVE",
+        "STOMP_MOVE",
+        "STUNNED"
+      ],
+      "model_fields": [
+        "CeremonialBeast._beastCryState"
+      ]
+    },
+    "MONSTER.THIEVING_HOPPER": {
+      "ai_states": [
+        "FLUTTER_MOVE",
+        "HAT_TRICK_MOVE",
+        "STUNNED",
+        "THIEVERY_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.BOWLBUG_ROCK": {
+      "ai_states": [
+        "HEADBUTT_MOVE",
+        "STUNNED"
+      ],
+      "model_fields": [
+        "BowlbugRock._isOffBalance"
+      ]
+    },
+    "MONSTER.BOWLBUG_EGG": {
+      "ai_states": [
+        "BITE_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.EXOSKELETON": {
+      "ai_states": [
+        "ENRAGE_MOVE",
+        "MANDIBLES_MOVE",
+        "SKITTER_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.DECIMILLIPEDE_SEGMENT_FRONT": {
+      "ai_states": [
+        "BULK_MOVE",
+        "CONSTRICT_MOVE",
+        "WRITHE_MOVE"
+      ],
+      "model_fields": [
+        "DecimillipedeSegment._deadState"
+      ]
+    },
+    "MONSTER.DECIMILLIPEDE_SEGMENT_MIDDLE": {
+      "ai_states": [
+        "BULK_MOVE",
+        "CONSTRICT_MOVE",
+        "DEAD_MOVE",
+        "REATTACH_MOVE",
+        "WRITHE_MOVE"
+      ],
+      "model_fields": [
+        "DecimillipedeSegment._deadState"
+      ]
+    },
+    "MONSTER.DECIMILLIPEDE_SEGMENT_BACK": {
+      "ai_states": [
+        "BULK_MOVE",
+        "CONSTRICT_MOVE",
+        "DEAD_MOVE",
+        "REATTACH_MOVE",
+        "WRITHE_MOVE"
+      ],
+      "model_fields": [
+        "DecimillipedeSegment._deadState"
+      ]
+    },
+    "MONSTER.OVICOPTER": {
+      "ai_states": [
+        "LAY_EGGS_MOVE",
+        "SMASH_MOVE",
+        "TENDERIZER_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.TOUGH_EGG": {
+      "ai_states": [
+        "HATCH_MOVE",
+        "NIBBLE_MOVE"
+      ],
+      "model_fields": [
+        "ToughEgg._afterHatchedState",
+        "ToughEgg._isHatched"
+      ]
+    },
+    "MONSTER.INFESTED_PRISM": {
+      "ai_states": [
+        "JAB_MOVE",
+        "RADIATE_MOVE",
+        "WHIRLWIND_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.THE_INSATIABLE": {
+      "ai_states": [
+        "LIQUIFY_GROUND_MOVE",
+        "LUNGING_BITE_MOVE",
+        "SALIVATE_MOVE",
+        "THRASH_MOVE",
+        "THRASH_MOVE_2"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.DEVOTED_SCULPTOR": {
+      "ai_states": [
+        "FORBIDDEN_INCANTATION_MOVE",
+        "SAVAGE_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.SCROLL_OF_BITING": {
+      "ai_states": [
+        "CHEW",
+        "CHOMP",
+        "MORE_TEETH"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.SLIMED_BERSERKER": {
+      "ai_states": [
+        "FURIOUS_PUMMELING_MOVE",
+        "LEECHING_HUG_MOVE",
+        "SMOTHER_MOVE",
+        "VOMIT_ICHOR_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.MECHA_KNIGHT": {
+      "ai_states": [
+        "CHARGE_MOVE",
+        "FLAMETHROWER_MOVE",
+        "HEAVY_CLEAVE_MOVE",
+        "WINDUP_MOVE"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.THE_LOST": {
+      "ai_states": [
+        "DEBILITATING_SMOG",
+        "EYE_LASERS"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.THE_FORGOTTEN": {
+      "ai_states": [
+        "DREAD",
+        "MIASMA"
+      ],
+      "model_fields": []
+    },
+    "MONSTER.TEST_SUBJECT": {
+      "ai_states": [
+        "BIG_POUNCE",
+        "BITE_MOVE",
+        "BURNING_GROWL_MOVE",
+        "MULTI_CLAW_MOVE",
+        "PHASE3_LACERATE_MOVE",
+        "RESPAWN_MOVE",
+        "SKULL_BASH_MOVE"
+      ],
+      "model_fields": [
+        "TestSubject._deadState",
+        "TestSubject._extraMultiClawCount",
+        "TestSubject._respawns"
+      ]
+    }
+  },
+  "max_enemies": 4,
+  "max_cards": 44,
+  "max_creatures": 6,
+  "pending_constraints": [
+    {
+      "cancelable": false,
+      "kind": "card_select",
+      "max_select": 1,
+      "min_select": 1,
+      "require_manual_confirmation": false
+    },
+    {
+      "cancelable": false,
+      "kind": null,
+      "max_select": 1,
+      "min_select": 0,
+      "require_manual_confirmation": true
+    },
+    {
+      "cancelable": false,
+      "kind": null,
+      "max_select": 1,
+      "min_select": 1,
+      "require_manual_confirmation": false
+    },
+    {
+      "cancelable": false,
+      "kind": null,
+      "max_select": 2,
+      "min_select": 0,
+      "require_manual_confirmation": true
+    },
+    {
+      "cancelable": false,
+      "kind": null,
+      "max_select": 3,
+      "min_select": 0,
+      "require_manual_confirmation": true
+    },
+    {
+      "cancelable": null,
+      "kind": "card_reward",
+      "max_select": null,
+      "min_select": null,
+      "require_manual_confirmation": null
+    },
+    {
+      "cancelable": true,
+      "kind": "card_select",
+      "max_select": 1,
+      "min_select": 1,
+      "require_manual_confirmation": true
+    },
+    {
+      "cancelable": true,
+      "kind": null,
+      "max_select": 1,
+      "min_select": 0,
+      "require_manual_confirmation": false
+    }
+  ]
+}

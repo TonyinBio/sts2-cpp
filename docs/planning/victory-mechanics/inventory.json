@@ -1,0 +1,2295 @@
+{
+  "source": "dense/actions.json.gz + dense/states.json.gz",
+  "action_count": 696,
+  "state_count": 697,
+  "action_counts": {
+    "choose_option": 22,
+    "proceed": 70,
+    "select_map_node": 47,
+    "play_card": 314,
+    "end_turn": 85,
+    "take_reward": 60,
+    "select_card_reward": 17,
+    "pick_treasure": 5,
+    "select_cards": 46,
+    "skip_card_reward": 5,
+    "skip_rewards": 5,
+    "use_potion": 8,
+    "buy_card": 5,
+    "remove_card": 3,
+    "buy_potion": 1,
+    "buy_relic": 3
+  },
+  "observed": {
+    "owned_cards": [
+      "CARD.APPARITION",
+      "CARD.AUTOMATION",
+      "CARD.BASH",
+      "CARD.BLOOD_WALL",
+      "CARD.BREAK",
+      "CARD.BURNING_PACT",
+      "CARD.CINDER",
+      "CARD.CLUMSY",
+      "CARD.COLOSSUS",
+      "CARD.CONFLAGRATION",
+      "CARD.CRIMSON_MANTLE",
+      "CARD.DEBT",
+      "CARD.DEFEND_IRONCLAD",
+      "CARD.DOMINATE",
+      "CARD.FEEL_NO_PAIN",
+      "CARD.HEADBUTT",
+      "CARD.MAD_SCIENCE",
+      "CARD.MOLTEN_FIST",
+      "CARD.PACTS_END",
+      "CARD.PURITY",
+      "CARD.SHOCKWAVE",
+      "CARD.SHRUG_IT_OFF",
+      "CARD.SPOILS_MAP",
+      "CARD.STRIKE_IRONCLAD",
+      "CARD.TREMBLE",
+      "CARD.TRUE_GRIT"
+    ],
+    "owned_relics": [
+      "RELIC.ARCHAIC_TOOTH",
+      "RELIC.BAG_OF_MARBLES",
+      "RELIC.BAG_OF_PREPARATION",
+      "RELIC.BLOOD_VIAL",
+      "RELIC.BURNING_BLOOD",
+      "RELIC.CENTENNIAL_PUZZLE",
+      "RELIC.CHOSEN_CHEESE",
+      "RELIC.DISTINGUISHED_CAPE",
+      "RELIC.HORN_CLEAT",
+      "RELIC.JOSS_PAPER",
+      "RELIC.LETTER_OPENER",
+      "RELIC.LUCKY_FYSH",
+      "RELIC.MUMMIFIED_HAND",
+      "RELIC.NUNCHAKU",
+      "RELIC.PENDULUM",
+      "RELIC.PERMAFROST",
+      "RELIC.RAINBOW_RING",
+      "RELIC.SILKEN_TRESS",
+      "RELIC.VEXING_PUZZLEBOX"
+    ],
+    "offered_relics": [
+      "RELIC.ALCHEMICAL_COFFER",
+      "RELIC.ARCHAIC_TOOTH",
+      "RELIC.BAG_OF_MARBLES",
+      "RELIC.BAG_OF_PREPARATION",
+      "RELIC.BLOOD_VIAL",
+      "RELIC.BURNING_STICKS",
+      "RELIC.CENTENNIAL_PUZZLE",
+      "RELIC.DISTINGUISHED_CAPE",
+      "RELIC.GOLDEN_PEARL",
+      "RELIC.GORGET",
+      "RELIC.HORN_CLEAT",
+      "RELIC.JOSS_PAPER",
+      "RELIC.LEAD_PAPERWEIGHT",
+      "RELIC.LETTER_OPENER",
+      "RELIC.LORDS_PARASOL",
+      "RELIC.LUCKY_FYSH",
+      "RELIC.MINIATURE_TENT",
+      "RELIC.NUNCHAKU",
+      "RELIC.PENDULUM",
+      "RELIC.PERMAFROST",
+      "RELIC.PUNCH_DAGGER",
+      "RELIC.RAINBOW_RING",
+      "RELIC.RED_SKULL",
+      "RELIC.SEA_GLASS",
+      "RELIC.SILKEN_TRESS",
+      "RELIC.SPARKLING_ROUGE",
+      "RELIC.VEXING_PUZZLEBOX",
+      "RELIC.WHISPERING_EARRING"
+    ],
+    "entered_events": [
+      "EVENT.BRAIN_LEECH",
+      "EVENT.FIELD_OF_MAN_SIZED_HOLES",
+      "EVENT.NEOW",
+      "EVENT.OROBAS",
+      "EVENT.RELIC_TRADER",
+      "EVENT.ROOM_FULL_OF_CHEESE",
+      "EVENT.SELF_HELP_BOOK",
+      "EVENT.THE_ARCHITECT",
+      "EVENT.THE_LEGENDS_WERE_TRUE",
+      "EVENT.TINKER_TIME",
+      "EVENT.VAKUU"
+    ],
+    "combat_cards": [
+      "CARD.APPARITION",
+      "CARD.AUTOMATION",
+      "CARD.BASH",
+      "CARD.BLOODLETTING",
+      "CARD.BLOOD_WALL",
+      "CARD.BOLAS",
+      "CARD.BREAK",
+      "CARD.BURN",
+      "CARD.BURNING_PACT",
+      "CARD.CINDER",
+      "CARD.CLUMSY",
+      "CARD.COLOSSUS",
+      "CARD.CONFLAGRATION",
+      "CARD.CRIMSON_MANTLE",
+      "CARD.DEBT",
+      "CARD.DEFEND_IRONCLAD",
+      "CARD.DOMINATE",
+      "CARD.DRUM_OF_BATTLE",
+      "CARD.FEEL_NO_PAIN",
+      "CARD.FLAME_BARRIER",
+      "CARD.FRANTIC_ESCAPE",
+      "CARD.GOLD_AXE",
+      "CARD.HEADBUTT",
+      "CARD.INFECTION",
+      "CARD.JACK_OF_ALL_TRADES",
+      "CARD.MAD_SCIENCE",
+      "CARD.MOLTEN_FIST",
+      "CARD.OFFERING",
+      "CARD.PACTS_END",
+      "CARD.PURITY",
+      "CARD.SECOND_WIND",
+      "CARD.SHOCKWAVE",
+      "CARD.SHRUG_IT_OFF",
+      "CARD.SLIMED",
+      "CARD.SPOILS_MAP",
+      "CARD.STRIKE_IRONCLAD",
+      "CARD.TAUNT",
+      "CARD.TEAR_ASUNDER",
+      "CARD.THRASH",
+      "CARD.TREMBLE",
+      "CARD.TRUE_GRIT"
+    ],
+    "monsters": [
+      "MONSTER.BOWLBUG_EGG",
+      "MONSTER.BOWLBUG_ROCK",
+      "MONSTER.BYRDONIS",
+      "MONSTER.CEREMONIAL_BEAST",
+      "MONSTER.DECIMILLIPEDE_SEGMENT_BACK",
+      "MONSTER.DECIMILLIPEDE_SEGMENT_FRONT",
+      "MONSTER.DECIMILLIPEDE_SEGMENT_MIDDLE",
+      "MONSTER.DEVOTED_SCULPTOR",
+      "MONSTER.EXOSKELETON",
+      "MONSTER.EYE_WITH_TEETH",
+      "MONSTER.FOGMOG",
+      "MONSTER.INFESTED_PRISM",
+      "MONSTER.LEAF_SLIME_M",
+      "MONSTER.LEAF_SLIME_S",
+      "MONSTER.MECHA_KNIGHT",
+      "MONSTER.NIBBIT",
+      "MONSTER.OVICOPTER",
+      "MONSTER.PHROG_PARASITE",
+      "MONSTER.SCROLL_OF_BITING",
+      "MONSTER.SHRINKER_BEETLE",
+      "MONSTER.SLIMED_BERSERKER",
+      "MONSTER.TEST_SUBJECT",
+      "MONSTER.THE_FORGOTTEN",
+      "MONSTER.THE_INSATIABLE",
+      "MONSTER.THE_LOST",
+      "MONSTER.THIEVING_HOPPER",
+      "MONSTER.TOUGH_EGG",
+      "MONSTER.TWIG_SLIME_M",
+      "MONSTER.TWIG_SLIME_S",
+      "MONSTER.WRIGGLER"
+    ],
+    "entered_encounters": [
+      "ENCOUNTER.BOWLBUGS_WEAK",
+      "ENCOUNTER.BYRDONIS_ELITE",
+      "ENCOUNTER.CEREMONIAL_BEAST_BOSS",
+      "ENCOUNTER.DECIMILLIPEDE_ELITE",
+      "ENCOUNTER.DEVOTED_SCULPTOR_WEAK",
+      "ENCOUNTER.EXOSKELETONS_NORMAL",
+      "ENCOUNTER.FOGMOG_NORMAL",
+      "ENCOUNTER.INFESTED_PRISMS_ELITE",
+      "ENCOUNTER.MECHA_KNIGHT_ELITE",
+      "ENCOUNTER.NIBBITS_NORMAL",
+      "ENCOUNTER.NIBBITS_WEAK",
+      "ENCOUNTER.OVICOPTER_NORMAL",
+      "ENCOUNTER.PHROG_PARASITE_ELITE",
+      "ENCOUNTER.SCROLLS_OF_BITING_WEAK",
+      "ENCOUNTER.SHRINKER_BEETLE_WEAK",
+      "ENCOUNTER.SLIMED_BERSERKER_NORMAL",
+      "ENCOUNTER.SLIMES_NORMAL",
+      "ENCOUNTER.SLIMES_WEAK",
+      "ENCOUNTER.TEST_SUBJECT_BOSS",
+      "ENCOUNTER.THE_INSATIABLE_BOSS",
+      "ENCOUNTER.THE_LOST_AND_FORGOTTEN_NORMAL",
+      "ENCOUNTER.THIEVING_HOPPER_WEAK"
+    ],
+    "powers": [
+      "POWER.ADAPTABLE_POWER",
+      "POWER.ARTIFACT_POWER",
+      "POWER.AUTOMATION_POWER",
+      "POWER.COLOSSUS_POWER",
+      "POWER.CRIMSON_MANTLE_POWER",
+      "POWER.DEXTERITY_POWER",
+      "POWER.DUPLICATION_POWER",
+      "POWER.ENRAGE_POWER",
+      "POWER.ESCAPE_ARTIST_POWER",
+      "POWER.FEEL_NO_PAIN_POWER",
+      "POWER.FLAME_BARRIER_POWER",
+      "POWER.FLUTTER_POWER",
+      "POWER.HARD_TO_KILL_POWER",
+      "POWER.HATCH_POWER",
+      "POWER.ILLUSION_POWER",
+      "POWER.IMBALANCED_POWER",
+      "POWER.INFESTED_POWER",
+      "POWER.INTANGIBLE_POWER",
+      "POWER.MINION_POWER",
+      "POWER.NEMESIS_POWER",
+      "POWER.PAINFUL_STABS_POWER",
+      "POWER.PAPER_CUTS_POWER",
+      "POWER.PLATING_POWER",
+      "POWER.PLOW_POWER",
+      "POWER.POSSESS_SPEED_POWER",
+      "POWER.POSSESS_STRENGTH_POWER",
+      "POWER.REATTACH_POWER",
+      "POWER.RINGING_POWER",
+      "POWER.RITUAL_POWER",
+      "POWER.SANDPIT_POWER",
+      "POWER.SHRINK_POWER",
+      "POWER.STRENGTH_POWER",
+      "POWER.SWIPE_POWER",
+      "POWER.TAINTED_POWER",
+      "POWER.TERRITORIAL_POWER",
+      "POWER.THORNS_POWER",
+      "POWER.VITAL_SPARK_POWER",
+      "POWER.VULNERABLE_POWER",
+      "POWER.WEAK_POWER"
+    ],
+    "offered_cards": [
+      "CARD.APPARITION",
+      "CARD.ARMAMENTS",
+      "CARD.AUTOMATION",
+      "CARD.BASH",
+      "CARD.BLOOD_WALL",
+      "CARD.BLUDGEON",
+      "CARD.BODY_SLAM",
+      "CARD.BRAND",
+      "CARD.BREAK",
+      "CARD.BREAKTHROUGH",
+      "CARD.BURNING_PACT",
+      "CARD.CATASTROPHE",
+      "CARD.CINDER",
+      "CARD.CLUMSY",
+      "CARD.COLOSSUS",
+      "CARD.CONFLAGRATION",
+      "CARD.CRIMSON_MANTLE",
+      "CARD.DEBT",
+      "CARD.DEFEND_IRONCLAD",
+      "CARD.DISMANTLE",
+      "CARD.DOMINATE",
+      "CARD.ENTROPY",
+      "CARD.FEEL_NO_PAIN",
+      "CARD.FLAME_BARRIER",
+      "CARD.HAVOC",
+      "CARD.HEADBUTT",
+      "CARD.HOWL_FROM_BEYOND",
+      "CARD.IMPERVIOUS",
+      "CARD.INFLAME",
+      "CARD.IRON_WAVE",
+      "CARD.JUGGLING",
+      "CARD.MAD_SCIENCE",
+      "CARD.MANGLE",
+      "CARD.MOLTEN_FIST",
+      "CARD.ONE_TWO_PUNCH",
+      "CARD.PACTS_END",
+      "CARD.PERFECTED_STRIKE",
+      "CARD.PILLAGE",
+      "CARD.POMMEL_STRIKE",
+      "CARD.PURITY",
+      "CARD.SETUP_STRIKE",
+      "CARD.SHOCKWAVE",
+      "CARD.SHRUG_IT_OFF",
+      "CARD.SPLASH",
+      "CARD.SPOILS_MAP",
+      "CARD.STAMPEDE",
+      "CARD.STRIKE_IRONCLAD",
+      "CARD.SWORD_BOOMERANG",
+      "CARD.TEAR_ASUNDER",
+      "CARD.THE_GAMBIT",
+      "CARD.THUNDERCLAP",
+      "CARD.TREMBLE",
+      "CARD.TRUE_GRIT",
+      "CARD.TWIN_STRIKE",
+      "CARD.ULTIMATE_STRIKE",
+      "CARD.UNRELENTING",
+      "CARD.UPPERCUT",
+      "CARD.VICIOUS"
+    ],
+    "offered_potions": [
+      "POTION.BLOCK_POTION",
+      "POTION.COLORLESS_POTION",
+      "POTION.CURE_ALL",
+      "POTION.DEXTERITY_POTION",
+      "POTION.DUPLICATOR",
+      "POTION.EXPLOSIVE_AMPOULE",
+      "POTION.GAMBLERS_BREW",
+      "POTION.HEART_OF_IRON",
+      "POTION.LIQUID_BRONZE",
+      "POTION.POTION_OF_BINDING",
+      "POTION.SKILL_POTION",
+      "POTION.STABLE_SERUM",
+      "POTION.STRENGTH_POTION",
+      "POTION.SWIFT_POTION",
+      "POTION.WEAK_POTION"
+    ],
+    "offered_enchantments": [
+      "ENCHANTMENT.GLAM",
+      "ENCHANTMENT.PERFECT_FIT",
+      "ENCHANTMENT.SHARP"
+    ],
+    "owned_potions": [
+      "POTION.BLOCK_POTION",
+      "POTION.COLORLESS_POTION",
+      "POTION.DUPLICATOR",
+      "POTION.HEART_OF_IRON",
+      "POTION.LIQUID_BRONZE",
+      "POTION.POTION_OF_BINDING",
+      "POTION.SKILL_POTION"
+    ],
+    "owned_enchantments": [
+      "ENCHANTMENT.GLAM",
+      "ENCHANTMENT.PERFECT_FIT",
+      "ENCHANTMENT.SHARP"
+    ],
+    "combat_enchantments": [
+      "ENCHANTMENT.GLAM",
+      "ENCHANTMENT.PERFECT_FIT",
+      "ENCHANTMENT.SHARP"
+    ],
+    "afflictions": [
+      "AFFLICTION.RINGING",
+      "AFFLICTION.TAINTED"
+    ]
+  },
+  "actual_reward_shop_event_treasure_offers": {
+    "cards": [
+      "CARD.ARMAMENTS",
+      "CARD.AUTOMATION",
+      "CARD.BASH",
+      "CARD.BLOOD_WALL",
+      "CARD.BLUDGEON",
+      "CARD.BODY_SLAM",
+      "CARD.BRAND",
+      "CARD.BREAK",
+      "CARD.BREAKTHROUGH",
+      "CARD.BURNING_PACT",
+      "CARD.CATASTROPHE",
+      "CARD.CINDER",
+      "CARD.COLOSSUS",
+      "CARD.CONFLAGRATION",
+      "CARD.CRIMSON_MANTLE",
+      "CARD.DISMANTLE",
+      "CARD.DOMINATE",
+      "CARD.ENTROPY",
+      "CARD.FEEL_NO_PAIN",
+      "CARD.FLAME_BARRIER",
+      "CARD.HAVOC",
+      "CARD.HEADBUTT",
+      "CARD.HOWL_FROM_BEYOND",
+      "CARD.IMPERVIOUS",
+      "CARD.INFLAME",
+      "CARD.IRON_WAVE",
+      "CARD.JUGGLING",
+      "CARD.MANGLE",
+      "CARD.MOLTEN_FIST",
+      "CARD.ONE_TWO_PUNCH",
+      "CARD.PACTS_END",
+      "CARD.PERFECTED_STRIKE",
+      "CARD.PILLAGE",
+      "CARD.POMMEL_STRIKE",
+      "CARD.PURITY",
+      "CARD.SETUP_STRIKE",
+      "CARD.SHOCKWAVE",
+      "CARD.SHRUG_IT_OFF",
+      "CARD.SPLASH",
+      "CARD.STAMPEDE",
+      "CARD.SWORD_BOOMERANG",
+      "CARD.TEAR_ASUNDER",
+      "CARD.THE_GAMBIT",
+      "CARD.THUNDERCLAP",
+      "CARD.TREMBLE",
+      "CARD.TRUE_GRIT",
+      "CARD.TWIN_STRIKE",
+      "CARD.ULTIMATE_STRIKE",
+      "CARD.UNRELENTING",
+      "CARD.UPPERCUT",
+      "CARD.VICIOUS"
+    ],
+    "relics": [
+      "RELIC.ALCHEMICAL_COFFER",
+      "RELIC.ARCHAIC_TOOTH",
+      "RELIC.BAG_OF_MARBLES",
+      "RELIC.BAG_OF_PREPARATION",
+      "RELIC.BLOOD_VIAL",
+      "RELIC.BURNING_STICKS",
+      "RELIC.CENTENNIAL_PUZZLE",
+      "RELIC.DISTINGUISHED_CAPE",
+      "RELIC.GOLDEN_PEARL",
+      "RELIC.GORGET",
+      "RELIC.HORN_CLEAT",
+      "RELIC.JOSS_PAPER",
+      "RELIC.LEAD_PAPERWEIGHT",
+      "RELIC.LETTER_OPENER",
+      "RELIC.LORDS_PARASOL",
+      "RELIC.LUCKY_FYSH",
+      "RELIC.MINIATURE_TENT",
+      "RELIC.NUNCHAKU",
+      "RELIC.PENDULUM",
+      "RELIC.PERMAFROST",
+      "RELIC.PUNCH_DAGGER",
+      "RELIC.RAINBOW_RING",
+      "RELIC.RED_SKULL",
+      "RELIC.SEA_GLASS",
+      "RELIC.SILKEN_TRESS",
+      "RELIC.SPARKLING_ROUGE",
+      "RELIC.VEXING_PUZZLEBOX",
+      "RELIC.WHISPERING_EARRING"
+    ],
+    "potions": [
+      "POTION.BLOCK_POTION",
+      "POTION.COLORLESS_POTION",
+      "POTION.CURE_ALL",
+      "POTION.DEXTERITY_POTION",
+      "POTION.DUPLICATOR",
+      "POTION.EXPLOSIVE_AMPOULE",
+      "POTION.GAMBLERS_BREW",
+      "POTION.HEART_OF_IRON",
+      "POTION.LIQUID_BRONZE",
+      "POTION.POTION_OF_BINDING",
+      "POTION.SKILL_POTION",
+      "POTION.STABLE_SERUM",
+      "POTION.STRENGTH_POTION",
+      "POTION.SWIFT_POTION",
+      "POTION.WEAK_POTION"
+    ]
+  },
+  "used_potion_models": [
+    "POTION.BLOCK_POTION",
+    "POTION.COLORLESS_POTION",
+    "POTION.DUPLICATOR",
+    "POTION.HEART_OF_IRON",
+    "POTION.LIQUID_BRONZE",
+    "POTION.POTION_OF_BINDING",
+    "POTION.SKILL_POTION"
+  ],
+  "first_evidence": {
+    "owned_cards": {
+      "CARD.STRIKE_IRONCLAD": {
+        "boundary": "initial",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.DEFEND_IRONCLAD": {
+        "boundary": "initial",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.BASH": {
+        "boundary": "initial",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.CINDER": {
+        "boundary": "action-000022",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.SPOILS_MAP": {
+        "boundary": "action-000025",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.HEADBUTT": {
+        "boundary": "action-000034",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.CONFLAGRATION": {
+        "boundary": "action-000057",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.BURNING_PACT": {
+        "boundary": "action-000090",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.TRUE_GRIT": {
+        "boundary": "action-000121",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.TREMBLE": {
+        "boundary": "action-000137",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.PACTS_END": {
+        "boundary": "action-000210",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.BREAK": {
+        "boundary": "action-000213",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.BLOOD_WALL": {
+        "boundary": "action-000232",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.SHRUG_IT_OFF": {
+        "boundary": "action-000255",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.COLOSSUS": {
+        "boundary": "action-000290",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.SHOCKWAVE": {
+        "boundary": "action-000291",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.PURITY": {
+        "boundary": "action-000303",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.DOMINATE": {
+        "boundary": "action-000327",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.FEEL_NO_PAIN": {
+        "boundary": "action-000343",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.MOLTEN_FIST": {
+        "boundary": "action-000370",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.CRIMSON_MANTLE": {
+        "boundary": "action-000412",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.CLUMSY": {
+        "boundary": "action-000415",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.DEBT": {
+        "boundary": "action-000415",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.APPARITION": {
+        "boundary": "action-000415",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.AUTOMATION": {
+        "boundary": "action-000498",
+        "pointer": "/players/0/deck"
+      },
+      "CARD.MAD_SCIENCE": {
+        "boundary": "action-000521",
+        "pointer": "/players/0/deck"
+      }
+    },
+    "owned_relics": {
+      "RELIC.BURNING_BLOOD": {
+        "boundary": "initial",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.SILKEN_TRESS": {
+        "boundary": "action-000001",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.CHOSEN_CHEESE": {
+        "boundary": "action-000037",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.RAINBOW_RING": {
+        "boundary": "action-000040",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.HORN_CLEAT": {
+        "boundary": "action-000088",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.BLOOD_VIAL": {
+        "boundary": "action-000097",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.NUNCHAKU": {
+        "boundary": "action-000173",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.ARCHAIC_TOOTH": {
+        "boundary": "action-000213",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.PERMAFROST": {
+        "boundary": "action-000306",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.LUCKY_FYSH": {
+        "boundary": "action-000325",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.LETTER_OPENER": {
+        "boundary": "action-000350",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.BAG_OF_MARBLES": {
+        "boundary": "action-000368",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.DISTINGUISHED_CAPE": {
+        "boundary": "action-000415",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.MUMMIFIED_HAND": {
+        "boundary": "action-000471",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.JOSS_PAPER": {
+        "boundary": "action-000501",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.CENTENNIAL_PUZZLE": {
+        "boundary": "action-000504",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.PENDULUM": {
+        "boundary": "action-000511",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.BAG_OF_PREPARATION": {
+        "boundary": "action-000516",
+        "pointer": "/players/0/relics"
+      },
+      "RELIC.VEXING_PUZZLEBOX": {
+        "boundary": "action-000560",
+        "pointer": "/players/0/relics"
+      }
+    },
+    "offered_relics": {
+      "RELIC.GOLDEN_PEARL": {
+        "boundary": "initial",
+        "pointer": "/run_flow"
+      },
+      "RELIC.LEAD_PAPERWEIGHT": {
+        "boundary": "initial",
+        "pointer": "/run_flow"
+      },
+      "RELIC.SILKEN_TRESS": {
+        "boundary": "initial",
+        "pointer": "/run_flow"
+      },
+      "RELIC.RAINBOW_RING": {
+        "boundary": "action-000039",
+        "pointer": "/run_flow"
+      },
+      "RELIC.HORN_CLEAT": {
+        "boundary": "action-000085",
+        "pointer": "/run_flow"
+      },
+      "RELIC.BLOOD_VIAL": {
+        "boundary": "action-000096",
+        "pointer": "/run_flow"
+      },
+      "RELIC.NUNCHAKU": {
+        "boundary": "action-000170",
+        "pointer": "/run_flow"
+      },
+      "RELIC.SEA_GLASS": {
+        "boundary": "action-000212",
+        "pointer": "/run_flow"
+      },
+      "RELIC.ALCHEMICAL_COFFER": {
+        "boundary": "action-000212",
+        "pointer": "/run_flow"
+      },
+      "RELIC.ARCHAIC_TOOTH": {
+        "boundary": "action-000212",
+        "pointer": "/run_flow"
+      },
+      "RELIC.RED_SKULL": {
+        "boundary": "action-000289",
+        "pointer": "/run_flow"
+      },
+      "RELIC.GORGET": {
+        "boundary": "action-000289",
+        "pointer": "/run_flow"
+      },
+      "RELIC.BURNING_STICKS": {
+        "boundary": "action-000289",
+        "pointer": "/run_flow"
+      },
+      "RELIC.PERMAFROST": {
+        "boundary": "action-000305",
+        "pointer": "/run_flow"
+      },
+      "RELIC.LUCKY_FYSH": {
+        "boundary": "action-000322",
+        "pointer": "/run_flow"
+      },
+      "RELIC.LETTER_OPENER": {
+        "boundary": "action-000349",
+        "pointer": "/run_flow"
+      },
+      "RELIC.BAG_OF_MARBLES": {
+        "boundary": "action-000365",
+        "pointer": "/run_flow"
+      },
+      "RELIC.WHISPERING_EARRING": {
+        "boundary": "action-000414",
+        "pointer": "/run_flow"
+      },
+      "RELIC.DISTINGUISHED_CAPE": {
+        "boundary": "action-000414",
+        "pointer": "/run_flow"
+      },
+      "RELIC.LORDS_PARASOL": {
+        "boundary": "action-000414",
+        "pointer": "/run_flow"
+      },
+      "RELIC.CENTENNIAL_PUZZLE": {
+        "boundary": "action-000497",
+        "pointer": "/run_flow"
+      },
+      "RELIC.JOSS_PAPER": {
+        "boundary": "action-000497",
+        "pointer": "/run_flow"
+      },
+      "RELIC.MINIATURE_TENT": {
+        "boundary": "action-000497",
+        "pointer": "/run_flow"
+      },
+      "RELIC.PENDULUM": {
+        "boundary": "action-000510",
+        "pointer": "/run_flow"
+      },
+      "RELIC.SPARKLING_ROUGE": {
+        "boundary": "action-000513",
+        "pointer": "/run_flow"
+      },
+      "RELIC.BAG_OF_PREPARATION": {
+        "boundary": "action-000513",
+        "pointer": "/run_flow"
+      },
+      "RELIC.PUNCH_DAGGER": {
+        "boundary": "action-000513",
+        "pointer": "/run_flow"
+      },
+      "RELIC.VEXING_PUZZLEBOX": {
+        "boundary": "action-000557",
+        "pointer": "/run_flow"
+      }
+    },
+    "entered_events": {
+      "EVENT.NEOW": {
+        "boundary": "initial",
+        "pointer": "/current_room/event_id"
+      },
+      "EVENT.THE_LEGENDS_WERE_TRUE": {
+        "boundary": "action-000024",
+        "pointer": "/current_room/event_id"
+      },
+      "EVENT.ROOM_FULL_OF_CHEESE": {
+        "boundary": "action-000036",
+        "pointer": "/current_room/event_id"
+      },
+      "EVENT.OROBAS": {
+        "boundary": "action-000212",
+        "pointer": "/current_room/event_id"
+      },
+      "EVENT.FIELD_OF_MAN_SIZED_HOLES": {
+        "boundary": "action-000234",
+        "pointer": "/current_room/event_id"
+      },
+      "EVENT.BRAIN_LEECH": {
+        "boundary": "action-000300",
+        "pointer": "/current_room/event_id"
+      },
+      "EVENT.VAKUU": {
+        "boundary": "action-000414",
+        "pointer": "/current_room/event_id"
+      },
+      "EVENT.RELIC_TRADER": {
+        "boundary": "action-000470",
+        "pointer": "/current_room/event_id"
+      },
+      "EVENT.SELF_HELP_BOOK": {
+        "boundary": "action-000506",
+        "pointer": "/current_room/event_id"
+      },
+      "EVENT.TINKER_TIME": {
+        "boundary": "action-000518",
+        "pointer": "/current_room/event_id"
+      },
+      "EVENT.THE_ARCHITECT": {
+        "boundary": "action-000694",
+        "pointer": "/current_room/event_id"
+      }
+    },
+    "combat_cards": {
+      "CARD.BASH": {
+        "boundary": "action-000003",
+        "pointer": "/combat/cards"
+      },
+      "CARD.STRIKE_IRONCLAD": {
+        "boundary": "action-000003",
+        "pointer": "/combat/cards"
+      },
+      "CARD.DEFEND_IRONCLAD": {
+        "boundary": "action-000003",
+        "pointer": "/combat/cards"
+      },
+      "CARD.SPOILS_MAP": {
+        "boundary": "action-000027",
+        "pointer": "/combat/cards"
+      },
+      "CARD.CINDER": {
+        "boundary": "action-000027",
+        "pointer": "/combat/cards"
+      },
+      "CARD.HEADBUTT": {
+        "boundary": "action-000042",
+        "pointer": "/combat/cards"
+      },
+      "CARD.SLIMED": {
+        "boundary": "action-000046",
+        "pointer": "/combat/cards"
+      },
+      "CARD.CONFLAGRATION": {
+        "boundary": "action-000059",
+        "pointer": "/combat/cards"
+      },
+      "CARD.INFECTION": {
+        "boundary": "action-000062",
+        "pointer": "/combat/cards"
+      },
+      "CARD.BURNING_PACT": {
+        "boundary": "action-000099",
+        "pointer": "/combat/cards"
+      },
+      "CARD.TRUE_GRIT": {
+        "boundary": "action-000127",
+        "pointer": "/combat/cards"
+      },
+      "CARD.TREMBLE": {
+        "boundary": "action-000139",
+        "pointer": "/combat/cards"
+      },
+      "CARD.PACTS_END": {
+        "boundary": "action-000215",
+        "pointer": "/combat/cards"
+      },
+      "CARD.BREAK": {
+        "boundary": "action-000215",
+        "pointer": "/combat/cards"
+      },
+      "CARD.BLOOD_WALL": {
+        "boundary": "action-000238",
+        "pointer": "/combat/cards"
+      },
+      "CARD.SHRUG_IT_OFF": {
+        "boundary": "action-000257",
+        "pointer": "/combat/cards"
+      },
+      "CARD.PURITY": {
+        "boundary": "action-000308",
+        "pointer": "/combat/cards"
+      },
+      "CARD.SHOCKWAVE": {
+        "boundary": "action-000308",
+        "pointer": "/combat/cards"
+      },
+      "CARD.COLOSSUS": {
+        "boundary": "action-000308",
+        "pointer": "/combat/cards"
+      },
+      "CARD.DOMINATE": {
+        "boundary": "action-000329",
+        "pointer": "/combat/cards"
+      },
+      "CARD.FEEL_NO_PAIN": {
+        "boundary": "action-000352",
+        "pointer": "/combat/cards"
+      },
+      "CARD.MOLTEN_FIST": {
+        "boundary": "action-000376",
+        "pointer": "/combat/cards"
+      },
+      "CARD.FRANTIC_ESCAPE": {
+        "boundary": "action-000379",
+        "pointer": "/combat/cards"
+      },
+      "CARD.SECOND_WIND": {
+        "boundary": "action-000384",
+        "pointer": "/combat/cards"
+      },
+      "CARD.OFFERING": {
+        "boundary": "action-000384",
+        "pointer": "/combat/cards"
+      },
+      "CARD.TAUNT": {
+        "boundary": "action-000384",
+        "pointer": "/combat/cards"
+      },
+      "CARD.CRIMSON_MANTLE": {
+        "boundary": "action-000417",
+        "pointer": "/combat/cards"
+      },
+      "CARD.APPARITION": {
+        "boundary": "action-000417",
+        "pointer": "/combat/cards"
+      },
+      "CARD.CLUMSY": {
+        "boundary": "action-000417",
+        "pointer": "/combat/cards"
+      },
+      "CARD.DEBT": {
+        "boundary": "action-000417",
+        "pointer": "/combat/cards"
+      },
+      "CARD.MAD_SCIENCE": {
+        "boundary": "action-000527",
+        "pointer": "/combat/cards"
+      },
+      "CARD.AUTOMATION": {
+        "boundary": "action-000527",
+        "pointer": "/combat/cards"
+      },
+      "CARD.BURN": {
+        "boundary": "action-000538",
+        "pointer": "/combat/cards"
+      },
+      "CARD.TEAR_ASUNDER": {
+        "boundary": "action-000565",
+        "pointer": "/combat/cards"
+      },
+      "CARD.THRASH": {
+        "boundary": "action-000598",
+        "pointer": "/combat/cards"
+      },
+      "CARD.JACK_OF_ALL_TRADES": {
+        "boundary": "action-000611",
+        "pointer": "/combat/cards"
+      },
+      "CARD.GOLD_AXE": {
+        "boundary": "action-000611",
+        "pointer": "/combat/cards"
+      },
+      "CARD.BOLAS": {
+        "boundary": "action-000611",
+        "pointer": "/combat/cards"
+      },
+      "CARD.DRUM_OF_BATTLE": {
+        "boundary": "action-000646",
+        "pointer": "/combat/cards"
+      },
+      "CARD.FLAME_BARRIER": {
+        "boundary": "action-000646",
+        "pointer": "/combat/cards"
+      },
+      "CARD.BLOODLETTING": {
+        "boundary": "action-000646",
+        "pointer": "/combat/cards"
+      }
+    },
+    "monsters": {
+      "MONSTER.NIBBIT": {
+        "boundary": "action-000003",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.SHRINKER_BEETLE": {
+        "boundary": "action-000027",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.LEAF_SLIME_S": {
+        "boundary": "action-000042",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.LEAF_SLIME_M": {
+        "boundary": "action-000042",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.TWIG_SLIME_S": {
+        "boundary": "action-000042",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.PHROG_PARASITE": {
+        "boundary": "action-000059",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.WRIGGLER": {
+        "boundary": "action-000068",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.FOGMOG": {
+        "boundary": "action-000127",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.EYE_WITH_TEETH": {
+        "boundary": "action-000130",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.TWIG_SLIME_M": {
+        "boundary": "action-000139",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.BYRDONIS": {
+        "boundary": "action-000159",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.CEREMONIAL_BEAST": {
+        "boundary": "action-000181",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.THIEVING_HOPPER": {
+        "boundary": "action-000215",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.BOWLBUG_ROCK": {
+        "boundary": "action-000238",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.BOWLBUG_EGG": {
+        "boundary": "action-000238",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.EXOSKELETON": {
+        "boundary": "action-000257",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.DECIMILLIPEDE_SEGMENT_FRONT": {
+        "boundary": "action-000308",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.DECIMILLIPEDE_SEGMENT_MIDDLE": {
+        "boundary": "action-000308",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.DECIMILLIPEDE_SEGMENT_BACK": {
+        "boundary": "action-000308",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.OVICOPTER": {
+        "boundary": "action-000329",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.TOUGH_EGG": {
+        "boundary": "action-000332",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.INFESTED_PRISM": {
+        "boundary": "action-000352",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.THE_INSATIABLE": {
+        "boundary": "action-000376",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.DEVOTED_SCULPTOR": {
+        "boundary": "action-000417",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.SCROLL_OF_BITING": {
+        "boundary": "action-000446",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.SLIMED_BERSERKER": {
+        "boundary": "action-000473",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.MECHA_KNIGHT": {
+        "boundary": "action-000527",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.THE_LOST": {
+        "boundary": "action-000565",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.THE_FORGOTTEN": {
+        "boundary": "action-000565",
+        "pointer": "/combat/creatures"
+      },
+      "MONSTER.TEST_SUBJECT": {
+        "boundary": "action-000598",
+        "pointer": "/combat/creatures"
+      }
+    },
+    "entered_encounters": {
+      "ENCOUNTER.NIBBITS_WEAK": {
+        "boundary": "action-000003",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.SHRINKER_BEETLE_WEAK": {
+        "boundary": "action-000027",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.SLIMES_WEAK": {
+        "boundary": "action-000042",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.PHROG_PARASITE_ELITE": {
+        "boundary": "action-000059",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.NIBBITS_NORMAL": {
+        "boundary": "action-000099",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.FOGMOG_NORMAL": {
+        "boundary": "action-000127",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.SLIMES_NORMAL": {
+        "boundary": "action-000139",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.BYRDONIS_ELITE": {
+        "boundary": "action-000159",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.CEREMONIAL_BEAST_BOSS": {
+        "boundary": "action-000181",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.THIEVING_HOPPER_WEAK": {
+        "boundary": "action-000215",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.BOWLBUGS_WEAK": {
+        "boundary": "action-000238",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.EXOSKELETONS_NORMAL": {
+        "boundary": "action-000257",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.DECIMILLIPEDE_ELITE": {
+        "boundary": "action-000308",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.OVICOPTER_NORMAL": {
+        "boundary": "action-000329",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.INFESTED_PRISMS_ELITE": {
+        "boundary": "action-000352",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.THE_INSATIABLE_BOSS": {
+        "boundary": "action-000376",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.DEVOTED_SCULPTOR_WEAK": {
+        "boundary": "action-000417",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.SCROLLS_OF_BITING_WEAK": {
+        "boundary": "action-000446",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.SLIMED_BERSERKER_NORMAL": {
+        "boundary": "action-000473",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.MECHA_KNIGHT_ELITE": {
+        "boundary": "action-000527",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.THE_LOST_AND_FORGOTTEN_NORMAL": {
+        "boundary": "action-000565",
+        "pointer": "/current_room/encounter_id"
+      },
+      "ENCOUNTER.TEST_SUBJECT_BOSS": {
+        "boundary": "action-000598",
+        "pointer": "/current_room/encounter_id"
+      }
+    },
+    "powers": {
+      "POWER.STRENGTH_POWER": {
+        "boundary": "action-000015",
+        "pointer": "/combat/powers"
+      },
+      "POWER.VULNERABLE_POWER": {
+        "boundary": "action-000016",
+        "pointer": "/combat/powers"
+      },
+      "POWER.SHRINK_POWER": {
+        "boundary": "action-000029",
+        "pointer": "/combat/powers"
+      },
+      "POWER.INFESTED_POWER": {
+        "boundary": "action-000059",
+        "pointer": "/combat/powers"
+      },
+      "POWER.ILLUSION_POWER": {
+        "boundary": "action-000130",
+        "pointer": "/combat/powers"
+      },
+      "POWER.MINION_POWER": {
+        "boundary": "action-000130",
+        "pointer": "/combat/powers"
+      },
+      "POWER.TERRITORIAL_POWER": {
+        "boundary": "action-000159",
+        "pointer": "/combat/powers"
+      },
+      "POWER.DUPLICATION_POWER": {
+        "boundary": "action-000166",
+        "pointer": "/combat/powers"
+      },
+      "POWER.PLOW_POWER": {
+        "boundary": "action-000185",
+        "pointer": "/combat/powers"
+      },
+      "POWER.RINGING_POWER": {
+        "boundary": "action-000193",
+        "pointer": "/combat/powers"
+      },
+      "POWER.ESCAPE_ARTIST_POWER": {
+        "boundary": "action-000215",
+        "pointer": "/combat/powers"
+      },
+      "POWER.SWIPE_POWER": {
+        "boundary": "action-000219",
+        "pointer": "/combat/powers"
+      },
+      "POWER.FLUTTER_POWER": {
+        "boundary": "action-000224",
+        "pointer": "/combat/powers"
+      },
+      "POWER.IMBALANCED_POWER": {
+        "boundary": "action-000238",
+        "pointer": "/combat/powers"
+      },
+      "POWER.HARD_TO_KILL_POWER": {
+        "boundary": "action-000257",
+        "pointer": "/combat/powers"
+      },
+      "POWER.REATTACH_POWER": {
+        "boundary": "action-000308",
+        "pointer": "/combat/powers"
+      },
+      "POWER.THORNS_POWER": {
+        "boundary": "action-000309",
+        "pointer": "/combat/powers"
+      },
+      "POWER.WEAK_POWER": {
+        "boundary": "action-000314",
+        "pointer": "/combat/powers"
+      },
+      "POWER.COLOSSUS_POWER": {
+        "boundary": "action-000317",
+        "pointer": "/combat/powers"
+      },
+      "POWER.HATCH_POWER": {
+        "boundary": "action-000332",
+        "pointer": "/combat/powers"
+      },
+      "POWER.VITAL_SPARK_POWER": {
+        "boundary": "action-000352",
+        "pointer": "/combat/powers"
+      },
+      "POWER.TAINTED_POWER": {
+        "boundary": "action-000353",
+        "pointer": "/combat/powers"
+      },
+      "POWER.SANDPIT_POWER": {
+        "boundary": "action-000379",
+        "pointer": "/combat/powers"
+      },
+      "POWER.FEEL_NO_PAIN_POWER": {
+        "boundary": "action-000380",
+        "pointer": "/combat/powers"
+      },
+      "POWER.DEXTERITY_POWER": {
+        "boundary": "action-000382",
+        "pointer": "/combat/powers"
+      },
+      "POWER.CRIMSON_MANTLE_POWER": {
+        "boundary": "action-000421",
+        "pointer": "/combat/powers"
+      },
+      "POWER.RITUAL_POWER": {
+        "boundary": "action-000422",
+        "pointer": "/combat/powers"
+      },
+      "POWER.INTANGIBLE_POWER": {
+        "boundary": "action-000424",
+        "pointer": "/combat/powers"
+      },
+      "POWER.PAPER_CUTS_POWER": {
+        "boundary": "action-000446",
+        "pointer": "/combat/powers"
+      },
+      "POWER.ARTIFACT_POWER": {
+        "boundary": "action-000527",
+        "pointer": "/combat/powers"
+      },
+      "POWER.AUTOMATION_POWER": {
+        "boundary": "action-000549",
+        "pointer": "/combat/powers"
+      },
+      "POWER.POSSESS_STRENGTH_POWER": {
+        "boundary": "action-000565",
+        "pointer": "/combat/powers"
+      },
+      "POWER.POSSESS_SPEED_POWER": {
+        "boundary": "action-000565",
+        "pointer": "/combat/powers"
+      },
+      "POWER.ADAPTABLE_POWER": {
+        "boundary": "action-000598",
+        "pointer": "/combat/powers"
+      },
+      "POWER.ENRAGE_POWER": {
+        "boundary": "action-000598",
+        "pointer": "/combat/powers"
+      },
+      "POWER.PAINFUL_STABS_POWER": {
+        "boundary": "action-000623",
+        "pointer": "/combat/powers"
+      },
+      "POWER.NEMESIS_POWER": {
+        "boundary": "action-000641",
+        "pointer": "/combat/powers"
+      },
+      "POWER.FLAME_BARRIER_POWER": {
+        "boundary": "action-000648",
+        "pointer": "/combat/powers"
+      },
+      "POWER.PLATING_POWER": {
+        "boundary": "action-000650",
+        "pointer": "/combat/powers"
+      }
+    },
+    "offered_cards": {
+      "CARD.HAVOC": {
+        "boundary": "action-000018",
+        "pointer": "/run_flow"
+      },
+      "CARD.CINDER": {
+        "boundary": "action-000018",
+        "pointer": "/run_flow"
+      },
+      "CARD.VICIOUS": {
+        "boundary": "action-000018",
+        "pointer": "/run_flow"
+      },
+      "CARD.BLOOD_WALL": {
+        "boundary": "action-000031",
+        "pointer": "/run_flow"
+      },
+      "CARD.HEADBUTT": {
+        "boundary": "action-000031",
+        "pointer": "/run_flow"
+      },
+      "CARD.BREAKTHROUGH": {
+        "boundary": "action-000031",
+        "pointer": "/run_flow"
+      },
+      "CARD.CONFLAGRATION": {
+        "boundary": "action-000054",
+        "pointer": "/run_flow"
+      },
+      "CARD.PERFECTED_STRIKE": {
+        "boundary": "action-000054",
+        "pointer": "/run_flow"
+      },
+      "CARD.BURNING_PACT": {
+        "boundary": "action-000085",
+        "pointer": "/run_flow"
+      },
+      "CARD.BLUDGEON": {
+        "boundary": "action-000085",
+        "pointer": "/run_flow"
+      },
+      "CARD.STRIKE_IRONCLAD": {
+        "boundary": "action-000093",
+        "pointer": "/run_flow"
+      },
+      "CARD.DEFEND_IRONCLAD": {
+        "boundary": "action-000093",
+        "pointer": "/run_flow"
+      },
+      "CARD.BASH": {
+        "boundary": "action-000093",
+        "pointer": "/run_flow"
+      },
+      "CARD.TRUE_GRIT": {
+        "boundary": "action-000118",
+        "pointer": "/run_flow"
+      },
+      "CARD.TWIN_STRIKE": {
+        "boundary": "action-000118",
+        "pointer": "/run_flow"
+      },
+      "CARD.TREMBLE": {
+        "boundary": "action-000133",
+        "pointer": "/run_flow"
+      },
+      "CARD.SETUP_STRIKE": {
+        "boundary": "action-000133",
+        "pointer": "/run_flow"
+      },
+      "CARD.THUNDERCLAP": {
+        "boundary": "action-000153",
+        "pointer": "/run_flow"
+      },
+      "CARD.SWORD_BOOMERANG": {
+        "boundary": "action-000170",
+        "pointer": "/run_flow"
+      },
+      "CARD.PACTS_END": {
+        "boundary": "action-000207",
+        "pointer": "/run_flow"
+      },
+      "CARD.MANGLE": {
+        "boundary": "action-000207",
+        "pointer": "/run_flow"
+      },
+      "CARD.ONE_TWO_PUNCH": {
+        "boundary": "action-000207",
+        "pointer": "/run_flow"
+      },
+      "CARD.BREAK": {
+        "boundary": "action-000212",
+        "pointer": "/run_flow"
+      },
+      "CARD.IRON_WAVE": {
+        "boundary": "action-000228",
+        "pointer": "/run_flow"
+      },
+      "CARD.UNRELENTING": {
+        "boundary": "action-000251",
+        "pointer": "/run_flow"
+      },
+      "CARD.SHRUG_IT_OFF": {
+        "boundary": "action-000251",
+        "pointer": "/run_flow"
+      },
+      "CARD.MOLTEN_FIST": {
+        "boundary": "action-000282",
+        "pointer": "/run_flow"
+      },
+      "CARD.DISMANTLE": {
+        "boundary": "action-000282",
+        "pointer": "/run_flow"
+      },
+      "CARD.COLOSSUS": {
+        "boundary": "action-000289",
+        "pointer": "/run_flow"
+      },
+      "CARD.STAMPEDE": {
+        "boundary": "action-000289",
+        "pointer": "/run_flow"
+      },
+      "CARD.SHOCKWAVE": {
+        "boundary": "action-000289",
+        "pointer": "/run_flow"
+      },
+      "CARD.SPLASH": {
+        "boundary": "action-000289",
+        "pointer": "/run_flow"
+      },
+      "CARD.SPOILS_MAP": {
+        "boundary": "action-000292",
+        "pointer": "/run_flow"
+      },
+      "CARD.PURITY": {
+        "boundary": "action-000301",
+        "pointer": "/run_flow"
+      },
+      "CARD.CATASTROPHE": {
+        "boundary": "action-000301",
+        "pointer": "/run_flow"
+      },
+      "CARD.ULTIMATE_STRIKE": {
+        "boundary": "action-000301",
+        "pointer": "/run_flow"
+      },
+      "CARD.HOWL_FROM_BEYOND": {
+        "boundary": "action-000322",
+        "pointer": "/run_flow"
+      },
+      "CARD.DOMINATE": {
+        "boundary": "action-000322",
+        "pointer": "/run_flow"
+      },
+      "CARD.PILLAGE": {
+        "boundary": "action-000322",
+        "pointer": "/run_flow"
+      },
+      "CARD.FEEL_NO_PAIN": {
+        "boundary": "action-000340",
+        "pointer": "/run_flow"
+      },
+      "CARD.JUGGLING": {
+        "boundary": "action-000340",
+        "pointer": "/run_flow"
+      },
+      "CARD.CRIMSON_MANTLE": {
+        "boundary": "action-000409",
+        "pointer": "/run_flow"
+      },
+      "CARD.BRAND": {
+        "boundary": "action-000409",
+        "pointer": "/run_flow"
+      },
+      "CARD.IMPERVIOUS": {
+        "boundary": "action-000409",
+        "pointer": "/run_flow"
+      },
+      "CARD.UPPERCUT": {
+        "boundary": "action-000463",
+        "pointer": "/run_flow"
+      },
+      "CARD.POMMEL_STRIKE": {
+        "boundary": "action-000463",
+        "pointer": "/run_flow"
+      },
+      "CARD.BODY_SLAM": {
+        "boundary": "action-000492",
+        "pointer": "/run_flow"
+      },
+      "CARD.TEAR_ASUNDER": {
+        "boundary": "action-000497",
+        "pointer": "/run_flow"
+      },
+      "CARD.FLAME_BARRIER": {
+        "boundary": "action-000497",
+        "pointer": "/run_flow"
+      },
+      "CARD.INFLAME": {
+        "boundary": "action-000497",
+        "pointer": "/run_flow"
+      },
+      "CARD.AUTOMATION": {
+        "boundary": "action-000497",
+        "pointer": "/run_flow"
+      },
+      "CARD.THE_GAMBIT": {
+        "boundary": "action-000497",
+        "pointer": "/run_flow"
+      },
+      "CARD.CLUMSY": {
+        "boundary": "action-000499",
+        "pointer": "/run_flow"
+      },
+      "CARD.DEBT": {
+        "boundary": "action-000499",
+        "pointer": "/run_flow"
+      },
+      "CARD.APPARITION": {
+        "boundary": "action-000499",
+        "pointer": "/run_flow"
+      },
+      "CARD.ENTROPY": {
+        "boundary": "action-000513",
+        "pointer": "/run_flow"
+      },
+      "CARD.MAD_SCIENCE": {
+        "boundary": "action-000524",
+        "pointer": "/run_flow"
+      },
+      "CARD.ARMAMENTS": {
+        "boundary": "action-000557",
+        "pointer": "/run_flow"
+      }
+    },
+    "offered_potions": {
+      "POTION.DUPLICATOR": {
+        "boundary": "action-000018",
+        "pointer": "/run_flow"
+      },
+      "POTION.BLOCK_POTION": {
+        "boundary": "action-000085",
+        "pointer": "/run_flow"
+      },
+      "POTION.LIQUID_BRONZE": {
+        "boundary": "action-000133",
+        "pointer": "/run_flow"
+      },
+      "POTION.SKILL_POTION": {
+        "boundary": "action-000170",
+        "pointer": "/run_flow"
+      },
+      "POTION.COLORLESS_POTION": {
+        "boundary": "action-000251",
+        "pointer": "/run_flow"
+      },
+      "POTION.EXPLOSIVE_AMPOULE": {
+        "boundary": "action-000282",
+        "pointer": "/run_flow"
+      },
+      "POTION.STRENGTH_POTION": {
+        "boundary": "action-000289",
+        "pointer": "/run_flow"
+      },
+      "POTION.GAMBLERS_BREW": {
+        "boundary": "action-000289",
+        "pointer": "/run_flow"
+      },
+      "POTION.CURE_ALL": {
+        "boundary": "action-000289",
+        "pointer": "/run_flow"
+      },
+      "POTION.POTION_OF_BINDING": {
+        "boundary": "action-000322",
+        "pointer": "/run_flow"
+      },
+      "POTION.HEART_OF_IRON": {
+        "boundary": "action-000439",
+        "pointer": "/run_flow"
+      },
+      "POTION.DEXTERITY_POTION": {
+        "boundary": "action-000497",
+        "pointer": "/run_flow"
+      },
+      "POTION.STABLE_SERUM": {
+        "boundary": "action-000497",
+        "pointer": "/run_flow"
+      },
+      "POTION.WEAK_POTION": {
+        "boundary": "action-000513",
+        "pointer": "/run_flow"
+      },
+      "POTION.SWIFT_POTION": {
+        "boundary": "action-000513",
+        "pointer": "/run_flow"
+      }
+    },
+    "offered_enchantments": {
+      "ENCHANTMENT.GLAM": {
+        "boundary": "action-000018",
+        "pointer": "/run_flow"
+      },
+      "ENCHANTMENT.PERFECT_FIT": {
+        "boundary": "action-000292",
+        "pointer": "/run_flow"
+      },
+      "ENCHANTMENT.SHARP": {
+        "boundary": "action-000514",
+        "pointer": "/run_flow"
+      }
+    },
+    "owned_potions": {
+      "POTION.DUPLICATOR": {
+        "boundary": "action-000020",
+        "pointer": "/players/0/potions"
+      },
+      "POTION.BLOCK_POTION": {
+        "boundary": "action-000087",
+        "pointer": "/players/0/potions"
+      },
+      "POTION.LIQUID_BRONZE": {
+        "boundary": "action-000135",
+        "pointer": "/players/0/potions"
+      },
+      "POTION.SKILL_POTION": {
+        "boundary": "action-000172",
+        "pointer": "/players/0/potions"
+      },
+      "POTION.COLORLESS_POTION": {
+        "boundary": "action-000253",
+        "pointer": "/players/0/potions"
+      },
+      "POTION.POTION_OF_BINDING": {
+        "boundary": "action-000324",
+        "pointer": "/players/0/potions"
+      },
+      "POTION.HEART_OF_IRON": {
+        "boundary": "action-000441",
+        "pointer": "/players/0/potions"
+      }
+    },
+    "owned_enchantments": {
+      "ENCHANTMENT.GLAM": {
+        "boundary": "action-000022",
+        "pointer": "/players/0/deck"
+      },
+      "ENCHANTMENT.PERFECT_FIT": {
+        "boundary": "action-000236",
+        "pointer": "/players/0/deck"
+      },
+      "ENCHANTMENT.SHARP": {
+        "boundary": "action-000508",
+        "pointer": "/players/0/deck"
+      }
+    },
+    "combat_enchantments": {
+      "ENCHANTMENT.GLAM": {
+        "boundary": "action-000027",
+        "pointer": "/combat/cards"
+      },
+      "ENCHANTMENT.PERFECT_FIT": {
+        "boundary": "action-000238",
+        "pointer": "/combat/cards"
+      },
+      "ENCHANTMENT.SHARP": {
+        "boundary": "action-000527",
+        "pointer": "/combat/cards"
+      }
+    },
+    "afflictions": {
+      "AFFLICTION.RINGING": {
+        "boundary": "action-000193",
+        "pointer": "/combat/afflictions"
+      },
+      "AFFLICTION.TAINTED": {
+        "boundary": "action-000352",
+        "pointer": "/combat/afflictions"
+      }
+    }
+  },
+  "card_plays_by_model": {
+    "CARD.DEFEND_IRONCLAD": 36,
+    "CARD.STRIKE_IRONCLAD": 51,
+    "CARD.BASH": 4,
+    "CARD.CINDER": 17,
+    "CARD.HEADBUTT": 20,
+    "CARD.CONFLAGRATION": 26,
+    "CARD.BURNING_PACT": 11,
+    "CARD.TRUE_GRIT": 6,
+    "CARD.TREMBLE": 18,
+    "CARD.PACTS_END": 26,
+    "CARD.BREAK": 14,
+    "CARD.BLOOD_WALL": 2,
+    "CARD.SHRUG_IT_OFF": 7,
+    "CARD.SHOCKWAVE": 9,
+    "CARD.COLOSSUS": 9,
+    "CARD.PURITY": 7,
+    "CARD.DOMINATE": 7,
+    "CARD.FEEL_NO_PAIN": 5,
+    "CARD.OFFERING": 1,
+    "CARD.FRANTIC_ESCAPE": 3,
+    "CARD.CRIMSON_MANTLE": 4,
+    "CARD.APPARITION": 8,
+    "CARD.MOLTEN_FIST": 4,
+    "CARD.AUTOMATION": 3,
+    "CARD.TEAR_ASUNDER": 1,
+    "CARD.MAD_SCIENCE": 4,
+    "CARD.THRASH": 2,
+    "CARD.BOLAS": 8,
+    "CARD.FLAME_BARRIER": 1
+  },
+  "card_play_variants": [
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 1,
+        "id": "CARD.DEFEND_IRONCLAD",
+        "props": null
+      },
+      "plays": 36
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 1,
+        "id": "CARD.STRIKE_IRONCLAD",
+        "props": null
+      },
+      "plays": 51
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 1,
+        "id": "CARD.BASH",
+        "props": null
+      },
+      "plays": 4
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": {
+          "amount": 1,
+          "id": "ENCHANTMENT.GLAM",
+          "props": null
+        },
+        "floor_added_to_deck": 2,
+        "id": "CARD.CINDER",
+        "props": null
+      },
+      "plays": 4
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 4,
+        "id": "CARD.HEADBUTT",
+        "props": null
+      },
+      "plays": 17
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 7,
+        "id": "CARD.CONFLAGRATION",
+        "props": null
+      },
+      "plays": 4
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 8,
+        "id": "CARD.BURNING_PACT",
+        "props": null
+      },
+      "plays": 3
+    },
+    {
+      "card": {
+        "current_upgrade_level": 1,
+        "enchantment": {
+          "amount": 1,
+          "id": "ENCHANTMENT.GLAM",
+          "props": null
+        },
+        "floor_added_to_deck": 2,
+        "id": "CARD.CINDER",
+        "props": null
+      },
+      "plays": 13
+    },
+    {
+      "card": {
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 7,
+        "id": "CARD.CONFLAGRATION",
+        "props": null
+      },
+      "plays": 17
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 11,
+        "id": "CARD.TRUE_GRIT",
+        "props": null
+      },
+      "plays": 6
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 13,
+        "id": "CARD.TREMBLE",
+        "props": null
+      },
+      "plays": 8
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 15,
+        "id": "CARD.TREMBLE",
+        "props": null
+      },
+      "plays": 10
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 17,
+        "id": "CARD.PACTS_END",
+        "props": null
+      },
+      "plays": 1
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 18,
+        "id": "CARD.BREAK",
+        "props": null
+      },
+      "plays": 14
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": {
+          "amount": 1,
+          "id": "ENCHANTMENT.PERFECT_FIT",
+          "props": null
+        },
+        "floor_added_to_deck": 17,
+        "id": "CARD.PACTS_END",
+        "props": null
+      },
+      "plays": 3
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 19,
+        "id": "CARD.BLOOD_WALL",
+        "props": null
+      },
+      "plays": 2
+    },
+    {
+      "card": {
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 19,
+        "id": "CARD.BURNING_PACT",
+        "props": null
+      },
+      "plays": 6
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 21,
+        "id": "CARD.SHRUG_IT_OFF",
+        "props": null
+      },
+      "plays": 7
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 23,
+        "id": "CARD.SHOCKWAVE",
+        "props": null
+      },
+      "plays": 2
+    },
+    {
+      "card": {
+        "current_upgrade_level": 1,
+        "enchantment": {
+          "amount": 1,
+          "id": "ENCHANTMENT.PERFECT_FIT",
+          "props": null
+        },
+        "floor_added_to_deck": 17,
+        "id": "CARD.PACTS_END",
+        "props": null
+      },
+      "plays": 15
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 23,
+        "id": "CARD.COLOSSUS",
+        "props": null
+      },
+      "plays": 5
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 25,
+        "id": "CARD.PURITY",
+        "props": null
+      },
+      "plays": 7
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 27,
+        "id": "CARD.DOMINATE",
+        "props": null
+      },
+      "plays": 7
+    },
+    {
+      "card": {
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 28,
+        "id": "CARD.FEEL_NO_PAIN",
+        "props": null
+      },
+      "plays": 5
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "id": "CARD.OFFERING",
+        "props": null
+      },
+      "plays": 1
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "id": "CARD.FRANTIC_ESCAPE",
+        "props": null
+      },
+      "plays": 3
+    },
+    {
+      "card": {
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 23,
+        "id": "CARD.SHOCKWAVE",
+        "props": null
+      },
+      "plays": 7
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 33,
+        "id": "CARD.CRIMSON_MANTLE",
+        "props": null
+      },
+      "plays": 4
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 34,
+        "id": "CARD.APPARITION",
+        "props": null
+      },
+      "plays": 6
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 31,
+        "id": "CARD.MOLTEN_FIST",
+        "props": null
+      },
+      "plays": 4
+    },
+    {
+      "card": {
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 34,
+        "id": "CARD.APPARITION",
+        "props": null
+      },
+      "plays": 2
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 39,
+        "id": "CARD.PACTS_END",
+        "props": null
+      },
+      "plays": 7
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 39,
+        "id": "CARD.AUTOMATION",
+        "props": null
+      },
+      "plays": 3
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 39,
+        "id": "CARD.COLOSSUS",
+        "props": null
+      },
+      "plays": 4
+    },
+    {
+      "card": {
+        "current_upgrade_level": 1,
+        "enchantment": {
+          "amount": 2,
+          "id": "ENCHANTMENT.SHARP",
+          "props": null
+        },
+        "floor_added_to_deck": 7,
+        "id": "CARD.CONFLAGRATION",
+        "props": null
+      },
+      "plays": 5
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "id": "CARD.TEAR_ASUNDER",
+        "props": null
+      },
+      "plays": 1
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 43,
+        "id": "CARD.MAD_SCIENCE",
+        "props": {
+          "bools": null,
+          "card_arrays": null,
+          "cards": null,
+          "int_arrays": null,
+          "ints": [
+            {
+              "name": "TinkerTimeType",
+              "value": 2
+            },
+            {
+              "name": "TinkerTimeRider",
+              "value": 5
+            }
+          ],
+          "model_ids": null,
+          "strings": null
+        }
+      },
+      "plays": 4
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "id": "CARD.THRASH",
+        "props": null
+      },
+      "plays": 2
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "id": "CARD.BOLAS",
+        "props": null
+      },
+      "plays": 8
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 38,
+        "id": "CARD.BURNING_PACT",
+        "props": null
+      },
+      "plays": 2
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 46,
+        "id": "CARD.HEADBUTT",
+        "props": null
+      },
+      "plays": 3
+    },
+    {
+      "card": {
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "id": "CARD.FLAME_BARRIER",
+        "props": null
+      },
+      "plays": 1
+    }
+  ],
+  "unresolved_actions": [],
+  "terminal": {
+    "boundary_kind": "run_complete",
+    "run_ending_reason": "victory",
+    "current_act_index": 2
+  },
+  "limits": [
+    "All states scanned; labels for card plays resolved only through matching pre-action combat/cards map and checked membership of pre-action Hand.",
+    "Owned/observed/offered IDs are not proof their effects ran; powers are observed stored effects, relic passive triggers need source audit.",
+    "Deck descriptor deltas include upgrades, enchantments, removals, transformations and acquisition; do not count all additions as acquisition.",
+    "Static setup queues, unlock lists and grab bags deliberately excluded from observed effect inventory.",
+    "This is an observed inventory, not audited transitive mechanic dependency closure."
+  ],
+  "anomalies": [
+    {
+      "action_id": "action-000294",
+      "kind": "capacity_failed_shop_purchase",
+      "target": "POTION.CURE_ALL",
+      "evidence": {
+        "gold_before": 175,
+        "gold_after": 175,
+        "potions_before_and_after": [
+          {
+            "id": "POTION.SKILL_POTION",
+            "slot_index": 0
+          },
+          {
+            "id": "POTION.COLORLESS_POTION",
+            "slot_index": 1
+          },
+          {
+            "id": "POTION.LIQUID_BRONZE",
+            "slot_index": 2
+          }
+        ],
+        "shop_entry_stocked_before_and_after": true,
+        "history_bought_potions_before_and_after": [],
+        "history_gold_spent_before_and_after": 229
+      },
+      "scope": "Shop capacity-failure/no-op path exercised; CureAll OnUse effect not exercised by this attempt. Clock still advances."
+    }
+  ],
+  "retained_removed_inventory_choice_sources": [
+    {
+      "action_id": "action-000385",
+      "reference": "/combat/retained_inventory_models/39",
+      "model": "POTION.SKILL_POTION",
+      "has_been_removed_from_state": true
+    },
+    {
+      "action_id": "action-000612",
+      "reference": "/combat/retained_inventory_models/55",
+      "model": "POTION.COLORLESS_POTION",
+      "has_been_removed_from_state": true
+    },
+    {
+      "action_id": "action-000647",
+      "reference": "/combat/retained_inventory_models/54",
+      "model": "POTION.SKILL_POTION",
+      "has_been_removed_from_state": true
+    }
+  ],
+  "candidate_shared_mechanics": [
+    "General room lifecycle/history and act continuation to natural victory",
+    "Multi-entity encounter lifetimes including segments, hatching/spawning, revivals and dynamic targetability",
+    "Ordered card/relic/power/enchantment/affliction hooks with nested effects and dead/removed source lifetimes",
+    "General player/combat card selection continuations and explicit confirmation/cancel constraints",
+    "Persistent deck transformations, upgrades, enchantments and parameterized generated card saved props",
+    "Random card generation from broader pools through exercised relic/potion/card effects; RNG call order and eligibility definitions",
+    "Shop/reward generation, exact prices, full potion capacity failed attempts, removal and per-shop usage",
+    "Independent complete state, runtime model export, RNG/history/clock and clone/restore requirements"
+  ]
+}

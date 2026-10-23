@@ -1,0 +1,61 @@
+{
+  "anomalies": [
+    {
+      "action_id": "action-000294",
+      "kind": "capacity_failed_shop_purchase",
+      "target": "POTION.CURE_ALL",
+      "evidence": {
+        "gold_before": 175,
+        "gold_after": 175,
+        "potions_before_and_after": [
+          {
+            "id": "POTION.SKILL_POTION",
+            "slot_index": 0
+          },
+          {
+            "id": "POTION.COLORLESS_POTION",
+            "slot_index": 1
+          },
+          {
+            "id": "POTION.LIQUID_BRONZE",
+            "slot_index": 2
+          }
+        ],
+        "shop_entry_stocked_before_and_after": true,
+        "history_bought_potions_before_and_after": [],
+        "history_gold_spent_before_and_after": 229
+      },
+      "scope": "Shop capacity-failure/no-op path exercised; CureAll OnUse effect not exercised by this attempt. Clock still advances."
+    }
+  ],
+  "retained_removed_inventory_choice_sources": [
+    {
+      "action_id": "action-000385",
+      "reference": "/combat/retained_inventory_models/39",
+      "model": "POTION.SKILL_POTION",
+      "has_been_removed_from_state": true
+    },
+    {
+      "action_id": "action-000612",
+      "reference": "/combat/retained_inventory_models/55",
+      "model": "POTION.COLORLESS_POTION",
+      "has_been_removed_from_state": true
+    },
+    {
+      "action_id": "action-000647",
+      "reference": "/combat/retained_inventory_models/54",
+      "model": "POTION.SKILL_POTION",
+      "has_been_removed_from_state": true
+    }
+  ],
+  "candidate_shared_mechanics": [
+    "General room lifecycle/history and act continuation to natural victory",
+    "Multi-entity encounter lifetimes including segments, hatching/spawning, revivals and dynamic targetability",
+    "Ordered card/relic/power/enchantment/affliction hooks with nested effects and dead/removed source lifetimes",
+    "General player/combat card selection continuations and explicit confirmation/cancel constraints",
+    "Persistent deck transformations, upgrades, enchantments and parameterized generated card saved props",
+    "Random card generation from broader pools through exercised relic/potion/card effects; RNG call order and eligibility definitions",
+    "Shop/reward generation, exact prices, full potion capacity failed attempts, removal and per-shop usage",
+    "Independent complete state, runtime model export, RNG/history/clock and clone/restore requirements"
+  ]
+}

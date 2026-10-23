@@ -1,0 +1,13 @@
+{
+  "README.md": "bf959172be29f777fdd315695e2a8a1069705313efe155a400422cc07979999d",
+  "actions-resolved.json.gz": "2ddc274630216744e59072331edd83cde24c204688f050d68a40d9f3ff1d90f3",
+  "audit-annotations.json": "7f875adcd72c6a6092cd737265d48411db8736f376af71b67e5ca503e69dcfb6",
+  "card-variants.json": "3deb6169038b7d117faec7d2c57b6c04cb67241adc8dcf0f289bb7ae3ef05b3a",
+  "inventory.json": "5de026b59a3e96b1441c50e5468dcb94dc4c67894043882f6fb4233b3e441559",
+  "noncombat-and-choice-actions.json.gz": "7dd551c90739342be137e4561135e39fdf87a5f0d772d80467acf0b5b0204dab",
+  "room-boundaries.json.gz": "8923045956f7c3183e1f5a3b689df586bfc079908c8cbd623c39012ecbc6753c",
+  "room-history.json.gz": "31db5bbcf7a14c97b9295bbf61336752e8816cdbf5b46948b4897fb35c32a2c4",
+  "runtime-shapes.json": "d0cbb2fa44a990d948332a5c929cc2520465a06b199a50c0ccea580b8510e288",
+  "scan.py": "4d5c7f83783fee5a17c197cf7051dc570c817dbbd137fab5f912a42a8708845a",
+  "scope-roots.json": "cce7e3da97cfd14e914c1cc3562610628b6945c1c34f98eb9daa82a1c4bb6f69"
+}

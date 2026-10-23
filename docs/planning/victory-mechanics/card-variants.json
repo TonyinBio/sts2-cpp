@@ -1,0 +1,1066 @@
+{
+  "owned_card_variants": [
+    {
+      "card": {
+        "id": "CARD.STRIKE_IRONCLAD",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 1,
+        "props": null
+      },
+      "boundary": "initial"
+    },
+    {
+      "card": {
+        "id": "CARD.DEFEND_IRONCLAD",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 1,
+        "props": null
+      },
+      "boundary": "initial"
+    },
+    {
+      "card": {
+        "id": "CARD.BASH",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 1,
+        "props": null
+      },
+      "boundary": "initial"
+    },
+    {
+      "card": {
+        "id": "CARD.CINDER",
+        "current_upgrade_level": 0,
+        "enchantment": {
+          "amount": 1,
+          "id": "ENCHANTMENT.GLAM",
+          "props": null
+        },
+        "floor_added_to_deck": 2,
+        "props": null
+      },
+      "boundary": "action-000022"
+    },
+    {
+      "card": {
+        "id": "CARD.SPOILS_MAP",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 3,
+        "props": {
+          "bools": null,
+          "card_arrays": null,
+          "cards": null,
+          "int_arrays": null,
+          "ints": [
+            {
+              "name": "SpoilsActIndex",
+              "value": 1
+            }
+          ],
+          "model_ids": null,
+          "strings": null
+        }
+      },
+      "boundary": "action-000025"
+    },
+    {
+      "card": {
+        "id": "CARD.HEADBUTT",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 4,
+        "props": null
+      },
+      "boundary": "action-000034"
+    },
+    {
+      "card": {
+        "id": "CARD.CONFLAGRATION",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 7,
+        "props": null
+      },
+      "boundary": "action-000057"
+    },
+    {
+      "card": {
+        "id": "CARD.BURNING_PACT",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 8,
+        "props": null
+      },
+      "boundary": "action-000090"
+    },
+    {
+      "card": {
+        "id": "CARD.CINDER",
+        "current_upgrade_level": 1,
+        "enchantment": {
+          "amount": 1,
+          "id": "ENCHANTMENT.GLAM",
+          "props": null
+        },
+        "floor_added_to_deck": 2,
+        "props": null
+      },
+      "boundary": "action-000094"
+    },
+    {
+      "card": {
+        "id": "CARD.TRUE_GRIT",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 11,
+        "props": null
+      },
+      "boundary": "action-000121"
+    },
+    {
+      "card": {
+        "id": "CARD.CONFLAGRATION",
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 7,
+        "props": null
+      },
+      "boundary": "action-000125"
+    },
+    {
+      "card": {
+        "id": "CARD.TREMBLE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 13,
+        "props": null
+      },
+      "boundary": "action-000137"
+    },
+    {
+      "card": {
+        "id": "CARD.TREMBLE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 15,
+        "props": null
+      },
+      "boundary": "action-000175"
+    },
+    {
+      "card": {
+        "id": "CARD.BURNING_PACT",
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 8,
+        "props": null
+      },
+      "boundary": "action-000179"
+    },
+    {
+      "card": {
+        "id": "CARD.PACTS_END",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 17,
+        "props": null
+      },
+      "boundary": "action-000210"
+    },
+    {
+      "card": {
+        "id": "CARD.BREAK",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 18,
+        "props": null
+      },
+      "boundary": "action-000213"
+    },
+    {
+      "card": {
+        "id": "CARD.BURNING_PACT",
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 19,
+        "props": null
+      },
+      "boundary": "action-000230"
+    },
+    {
+      "card": {
+        "id": "CARD.BLOOD_WALL",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 19,
+        "props": null
+      },
+      "boundary": "action-000232"
+    },
+    {
+      "card": {
+        "id": "CARD.PACTS_END",
+        "current_upgrade_level": 0,
+        "enchantment": {
+          "amount": 1,
+          "id": "ENCHANTMENT.PERFECT_FIT",
+          "props": null
+        },
+        "floor_added_to_deck": 17,
+        "props": null
+      },
+      "boundary": "action-000236"
+    },
+    {
+      "card": {
+        "id": "CARD.SHRUG_IT_OFF",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 21,
+        "props": null
+      },
+      "boundary": "action-000255"
+    },
+    {
+      "card": {
+        "id": "CARD.COLOSSUS",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 23,
+        "props": null
+      },
+      "boundary": "action-000290"
+    },
+    {
+      "card": {
+        "id": "CARD.SHOCKWAVE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 23,
+        "props": null
+      },
+      "boundary": "action-000291"
+    },
+    {
+      "card": {
+        "id": "CARD.PACTS_END",
+        "current_upgrade_level": 1,
+        "enchantment": {
+          "amount": 1,
+          "id": "ENCHANTMENT.PERFECT_FIT",
+          "props": null
+        },
+        "floor_added_to_deck": 17,
+        "props": null
+      },
+      "boundary": "action-000298"
+    },
+    {
+      "card": {
+        "id": "CARD.PURITY",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 25,
+        "props": null
+      },
+      "boundary": "action-000303"
+    },
+    {
+      "card": {
+        "id": "CARD.DOMINATE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 27,
+        "props": null
+      },
+      "boundary": "action-000327"
+    },
+    {
+      "card": {
+        "id": "CARD.FEEL_NO_PAIN",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 28,
+        "props": null
+      },
+      "boundary": "action-000343"
+    },
+    {
+      "card": {
+        "id": "CARD.FEEL_NO_PAIN",
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 28,
+        "props": null
+      },
+      "boundary": "action-000347"
+    },
+    {
+      "card": {
+        "id": "CARD.MOLTEN_FIST",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 31,
+        "props": null
+      },
+      "boundary": "action-000370"
+    },
+    {
+      "card": {
+        "id": "CARD.SHOCKWAVE",
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 23,
+        "props": null
+      },
+      "boundary": "action-000374"
+    },
+    {
+      "card": {
+        "id": "CARD.CRIMSON_MANTLE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 33,
+        "props": null
+      },
+      "boundary": "action-000412"
+    },
+    {
+      "card": {
+        "id": "CARD.CLUMSY",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 34,
+        "props": null
+      },
+      "boundary": "action-000415"
+    },
+    {
+      "card": {
+        "id": "CARD.DEBT",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 34,
+        "props": null
+      },
+      "boundary": "action-000415"
+    },
+    {
+      "card": {
+        "id": "CARD.APPARITION",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 34,
+        "props": null
+      },
+      "boundary": "action-000415"
+    },
+    {
+      "card": {
+        "id": "CARD.BURNING_PACT",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 38,
+        "props": null
+      },
+      "boundary": "action-000495"
+    },
+    {
+      "card": {
+        "id": "CARD.AUTOMATION",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 39,
+        "props": null
+      },
+      "boundary": "action-000498"
+    },
+    {
+      "card": {
+        "id": "CARD.PACTS_END",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 39,
+        "props": null
+      },
+      "boundary": "action-000502"
+    },
+    {
+      "card": {
+        "id": "CARD.COLOSSUS",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 39,
+        "props": null
+      },
+      "boundary": "action-000503"
+    },
+    {
+      "card": {
+        "id": "CARD.CONFLAGRATION",
+        "current_upgrade_level": 1,
+        "enchantment": {
+          "amount": 2,
+          "id": "ENCHANTMENT.SHARP",
+          "props": null
+        },
+        "floor_added_to_deck": 7,
+        "props": null
+      },
+      "boundary": "action-000508"
+    },
+    {
+      "card": {
+        "id": "CARD.MAD_SCIENCE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 43,
+        "props": {
+          "bools": null,
+          "card_arrays": null,
+          "cards": null,
+          "int_arrays": null,
+          "ints": [
+            {
+              "name": "TinkerTimeType",
+              "value": 2
+            },
+            {
+              "name": "TinkerTimeRider",
+              "value": 5
+            }
+          ],
+          "model_ids": null,
+          "strings": null
+        }
+      },
+      "boundary": "action-000521"
+    },
+    {
+      "card": {
+        "id": "CARD.APPARITION",
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 34,
+        "props": null
+      },
+      "boundary": "action-000525"
+    },
+    {
+      "card": {
+        "id": "CARD.HEADBUTT",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 46,
+        "props": null
+      },
+      "boundary": "action-000592"
+    }
+  ],
+  "combat_card_variants": [
+    {
+      "card": {
+        "id": "CARD.BASH",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 1,
+        "props": null
+      },
+      "boundary": "action-000003"
+    },
+    {
+      "card": {
+        "id": "CARD.STRIKE_IRONCLAD",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 1,
+        "props": null
+      },
+      "boundary": "action-000003"
+    },
+    {
+      "card": {
+        "id": "CARD.DEFEND_IRONCLAD",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 1,
+        "props": null
+      },
+      "boundary": "action-000003"
+    },
+    {
+      "card": {
+        "id": "CARD.SPOILS_MAP",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 3,
+        "props": {
+          "bools": null,
+          "card_arrays": null,
+          "cards": null,
+          "int_arrays": null,
+          "ints": [
+            {
+              "name": "SpoilsActIndex",
+              "value": 1
+            }
+          ],
+          "model_ids": null,
+          "strings": null
+        }
+      },
+      "boundary": "action-000027"
+    },
+    {
+      "card": {
+        "id": "CARD.CINDER",
+        "current_upgrade_level": 0,
+        "enchantment": {
+          "amount": 1,
+          "id": "ENCHANTMENT.GLAM",
+          "props": null
+        },
+        "floor_added_to_deck": 2,
+        "props": null
+      },
+      "boundary": "action-000027"
+    },
+    {
+      "card": {
+        "id": "CARD.HEADBUTT",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 4,
+        "props": null
+      },
+      "boundary": "action-000042"
+    },
+    {
+      "card": {
+        "id": "CARD.SLIMED",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000046"
+    },
+    {
+      "card": {
+        "id": "CARD.CONFLAGRATION",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 7,
+        "props": null
+      },
+      "boundary": "action-000059"
+    },
+    {
+      "card": {
+        "id": "CARD.INFECTION",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000062"
+    },
+    {
+      "card": {
+        "id": "CARD.BURNING_PACT",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 8,
+        "props": null
+      },
+      "boundary": "action-000099"
+    },
+    {
+      "card": {
+        "id": "CARD.CINDER",
+        "current_upgrade_level": 1,
+        "enchantment": {
+          "amount": 1,
+          "id": "ENCHANTMENT.GLAM",
+          "props": null
+        },
+        "floor_added_to_deck": 2,
+        "props": null
+      },
+      "boundary": "action-000099"
+    },
+    {
+      "card": {
+        "id": "CARD.CONFLAGRATION",
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 7,
+        "props": null
+      },
+      "boundary": "action-000127"
+    },
+    {
+      "card": {
+        "id": "CARD.TRUE_GRIT",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 11,
+        "props": null
+      },
+      "boundary": "action-000127"
+    },
+    {
+      "card": {
+        "id": "CARD.TREMBLE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 13,
+        "props": null
+      },
+      "boundary": "action-000139"
+    },
+    {
+      "card": {
+        "id": "CARD.TREMBLE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 15,
+        "props": null
+      },
+      "boundary": "action-000181"
+    },
+    {
+      "card": {
+        "id": "CARD.BURNING_PACT",
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 8,
+        "props": null
+      },
+      "boundary": "action-000181"
+    },
+    {
+      "card": {
+        "id": "CARD.PACTS_END",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 17,
+        "props": null
+      },
+      "boundary": "action-000215"
+    },
+    {
+      "card": {
+        "id": "CARD.BREAK",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 18,
+        "props": null
+      },
+      "boundary": "action-000215"
+    },
+    {
+      "card": {
+        "id": "CARD.PACTS_END",
+        "current_upgrade_level": 0,
+        "enchantment": {
+          "amount": 1,
+          "id": "ENCHANTMENT.PERFECT_FIT",
+          "props": null
+        },
+        "floor_added_to_deck": 17,
+        "props": null
+      },
+      "boundary": "action-000238"
+    },
+    {
+      "card": {
+        "id": "CARD.BURNING_PACT",
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 19,
+        "props": null
+      },
+      "boundary": "action-000238"
+    },
+    {
+      "card": {
+        "id": "CARD.BLOOD_WALL",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 19,
+        "props": null
+      },
+      "boundary": "action-000238"
+    },
+    {
+      "card": {
+        "id": "CARD.SHRUG_IT_OFF",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 21,
+        "props": null
+      },
+      "boundary": "action-000257"
+    },
+    {
+      "card": {
+        "id": "CARD.PURITY",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 25,
+        "props": null
+      },
+      "boundary": "action-000308"
+    },
+    {
+      "card": {
+        "id": "CARD.SHOCKWAVE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 23,
+        "props": null
+      },
+      "boundary": "action-000308"
+    },
+    {
+      "card": {
+        "id": "CARD.PACTS_END",
+        "current_upgrade_level": 1,
+        "enchantment": {
+          "amount": 1,
+          "id": "ENCHANTMENT.PERFECT_FIT",
+          "props": null
+        },
+        "floor_added_to_deck": 17,
+        "props": null
+      },
+      "boundary": "action-000308"
+    },
+    {
+      "card": {
+        "id": "CARD.COLOSSUS",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 23,
+        "props": null
+      },
+      "boundary": "action-000308"
+    },
+    {
+      "card": {
+        "id": "CARD.DOMINATE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 27,
+        "props": null
+      },
+      "boundary": "action-000329"
+    },
+    {
+      "card": {
+        "id": "CARD.FEEL_NO_PAIN",
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 28,
+        "props": null
+      },
+      "boundary": "action-000352"
+    },
+    {
+      "card": {
+        "id": "CARD.SHOCKWAVE",
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 23,
+        "props": null
+      },
+      "boundary": "action-000376"
+    },
+    {
+      "card": {
+        "id": "CARD.MOLTEN_FIST",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 31,
+        "props": null
+      },
+      "boundary": "action-000376"
+    },
+    {
+      "card": {
+        "id": "CARD.FRANTIC_ESCAPE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000379"
+    },
+    {
+      "card": {
+        "id": "CARD.SECOND_WIND",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000384"
+    },
+    {
+      "card": {
+        "id": "CARD.OFFERING",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000384"
+    },
+    {
+      "card": {
+        "id": "CARD.TAUNT",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000384"
+    },
+    {
+      "card": {
+        "id": "CARD.CRIMSON_MANTLE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 33,
+        "props": null
+      },
+      "boundary": "action-000417"
+    },
+    {
+      "card": {
+        "id": "CARD.APPARITION",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 34,
+        "props": null
+      },
+      "boundary": "action-000417"
+    },
+    {
+      "card": {
+        "id": "CARD.CLUMSY",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 34,
+        "props": null
+      },
+      "boundary": "action-000417"
+    },
+    {
+      "card": {
+        "id": "CARD.DEBT",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 34,
+        "props": null
+      },
+      "boundary": "action-000417"
+    },
+    {
+      "card": {
+        "id": "CARD.BURNING_PACT",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 38,
+        "props": null
+      },
+      "boundary": "action-000527"
+    },
+    {
+      "card": {
+        "id": "CARD.APPARITION",
+        "current_upgrade_level": 1,
+        "enchantment": null,
+        "floor_added_to_deck": 34,
+        "props": null
+      },
+      "boundary": "action-000527"
+    },
+    {
+      "card": {
+        "id": "CARD.MAD_SCIENCE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 43,
+        "props": {
+          "bools": null,
+          "card_arrays": null,
+          "cards": null,
+          "int_arrays": null,
+          "ints": [
+            {
+              "name": "TinkerTimeType",
+              "value": 2
+            },
+            {
+              "name": "TinkerTimeRider",
+              "value": 5
+            }
+          ],
+          "model_ids": null,
+          "strings": null
+        }
+      },
+      "boundary": "action-000527"
+    },
+    {
+      "card": {
+        "id": "CARD.CONFLAGRATION",
+        "current_upgrade_level": 1,
+        "enchantment": {
+          "amount": 2,
+          "id": "ENCHANTMENT.SHARP",
+          "props": null
+        },
+        "floor_added_to_deck": 7,
+        "props": null
+      },
+      "boundary": "action-000527"
+    },
+    {
+      "card": {
+        "id": "CARD.PACTS_END",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 39,
+        "props": null
+      },
+      "boundary": "action-000527"
+    },
+    {
+      "card": {
+        "id": "CARD.AUTOMATION",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 39,
+        "props": null
+      },
+      "boundary": "action-000527"
+    },
+    {
+      "card": {
+        "id": "CARD.COLOSSUS",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 39,
+        "props": null
+      },
+      "boundary": "action-000527"
+    },
+    {
+      "card": {
+        "id": "CARD.BURN",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000538"
+    },
+    {
+      "card": {
+        "id": "CARD.TEAR_ASUNDER",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000565"
+    },
+    {
+      "card": {
+        "id": "CARD.THRASH",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000598"
+    },
+    {
+      "card": {
+        "id": "CARD.HEADBUTT",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": 46,
+        "props": null
+      },
+      "boundary": "action-000598"
+    },
+    {
+      "card": {
+        "id": "CARD.JACK_OF_ALL_TRADES",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000611"
+    },
+    {
+      "card": {
+        "id": "CARD.GOLD_AXE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000611"
+    },
+    {
+      "card": {
+        "id": "CARD.BOLAS",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000611"
+    },
+    {
+      "card": {
+        "id": "CARD.DRUM_OF_BATTLE",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000646"
+    },
+    {
+      "card": {
+        "id": "CARD.FLAME_BARRIER",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000646"
+    },
+    {
+      "card": {
+        "id": "CARD.BLOODLETTING",
+        "current_upgrade_level": 0,
+        "enchantment": null,
+        "floor_added_to_deck": null,
+        "props": null
+      },
+      "boundary": "action-000646"
+    }
+  ]
+}
