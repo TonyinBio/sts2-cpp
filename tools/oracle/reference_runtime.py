@@ -231,6 +231,13 @@ def inject(source):
     audio_stub.write_text(audio)
     core_stub = source.parent / 'GodotStubs/Core.cs'
     core = core_stub.read_text()
+    # ReattachPower's final-segment death effect references this signature even
+    # when no graphical creature nodes exist. The runtime resolves the whole
+    # method before it can take the headless early return.
+    require(core.count('public Node? GetParent() => _parent;') == 1, 'Unexpected Node stub')
+    core = core.replace('public Node? GetParent() => _parent;',
+        'public Node? GetParent() => _parent;\n'
+        '    public int GetIndex(bool includeInternal = false) => _parent?._children.IndexOf(this) ?? 0;', 1)
     require(core.count('public class GodotObject\n{') == 1, 'Unexpected Godot object stub')
     core_stub.write_text(core.replace('public class GodotObject\n{',
         'public class GodotObject\n{\n'

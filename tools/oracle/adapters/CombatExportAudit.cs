@@ -75,6 +75,34 @@ public partial class RunSimulator {
         Require(target.IsDead && target.Monster.MoveStateMachine == null, "Monster removal did not clear AI");
         return OracleRunState(command);
     }
+    public Dictionary<string, object?> AuditPrepareReattach(System.Text.Json.JsonElement command)
+    {
+        var player = _runState!.Players.Single();
+        var combat = CombatManager.Instance.DebugOnlyGetState()!;
+        Require(combat.Enemies.All(c => c.HasPower<ReattachPower>()), "Expected Decimillipede segments");
+        foreach (var enemy in combat.Enemies) SetAuditField(enemy, "_currentHp", 1);
+        for (var i = 0; i < 3; ++i)
+            player.PlayerCombatState!.ExhaustPile.AddInternal(combat.CreateCard<StrikeIronclad>(player));
+        var card = combat.CreateCard<PactsEnd>(player);
+        player.PlayerCombatState!.Hand.AddInternal(card);
+        var response = OracleRunState(command);
+        response["card_index"] = player.PlayerCombatState.Hand.Cards.Count - 1;
+        return response;
+    }
+    public Dictionary<string, object?> AuditPrepareEggKill(System.Text.Json.JsonElement command)
+    {
+        var player = _runState!.Players.Single();
+        var combat = CombatManager.Instance.DebugOnlyGetState()!;
+        var eggs = combat.Enemies.Where(c => c.Monster is MegaCrit.Sts2.Core.Models.Monsters.ToughEgg).ToArray();
+        Require(eggs.Length > 0, "Expected Tough Eggs");
+        foreach (var egg in eggs) SetAuditField(egg, "_currentHp", 1);
+        for (var i = 0; i < 3; ++i)
+            player.PlayerCombatState!.ExhaustPile.AddInternal(combat.CreateCard<StrikeIronclad>(player));
+        player.PlayerCombatState!.Hand.AddInternal(combat.CreateCard<PactsEnd>(player));
+        var response = OracleRunState(command);
+        response["card_index"] = player.PlayerCombatState.Hand.Cards.Count - 1;
+        return response;
+    }
     public Dictionary<string, object?> AuditKillHopper(System.Text.Json.JsonElement command)
     {
         var player = _runState!.Players.Single();

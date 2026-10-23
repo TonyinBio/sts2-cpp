@@ -114,6 +114,11 @@ independent: allies are not a third native combat side. Power order belongs to e
 creature's `powers` list. Detached, still-referenced powers additionally supply
 `detached_owner`; omit it when ownership is available from a creature's power list.
 
+Removed Tough Eggs can retain an obsolete `_afterHatchedState` reference after their
+AI machine is destroyed. Omit that field only when the egg is dead and its machine is
+null; rebuilding the AI recreates it. Live eggs still export the alias into their
+machine. Other unregistered AI storage requires an explicit handler.
+
 ### Ordering rules
 
 Preserve order in allies/enemies/escaped lists, piles, powers, orb queues, local cost

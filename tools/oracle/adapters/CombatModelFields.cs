@@ -89,6 +89,11 @@ internal static class CombatModelFields
                     !(testValue is int defaultOverride && defaultOverride == -1))
                     throw new InvalidOperationException($"Active test override cannot be exported: {key}");
                 if (classification is not ("additional_gameplay" or "ai_state_alias")) continue;
+                // Removed Tough Eggs retain an obsolete move object. Their AI
+                // regenerates this alias on creation; history cannot execute it.
+                if (key == "Monsters.ToughEgg._afterHatchedState" &&
+                    model is MegaCrit.Sts2.Core.Models.Monsters.ToughEgg egg &&
+                    egg.Creature.IsDead && egg.MoveStateMachine == null) continue;
                 var name = key[(key.IndexOf('.') + 1)..];
                 if (!Schema.TryGetProperty(name, out var shape))
                     throw new InvalidOperationException($"Combat field absent from schema: {name}");
