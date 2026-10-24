@@ -79,6 +79,9 @@ Selections expose minimum/maximum count, whether order matters, whether repetiti
 allowed, eligible objects, partial selection and whether the prompt submits immediately
 or needs confirmation. A zero-item selection, skip, cancellation and confirmation are
 separate semantics. Cost refund rules are not inferred from the existence of cancel.
+Selection order is preserved whenever it changes effect order or resulting state.
+Partial selections and their ordering remain simulator state and survive clone and
+checkpoint restoration; complete submissions do not remove that capability.
 
 Restriction categories include stale boundary, wrong phase/prompt, malformed payload,
 unknown/stale object, ineligible selection/target, selection count/order/duplication,
