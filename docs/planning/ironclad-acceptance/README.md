@@ -1,5 +1,11 @@
 # Ironclad victory acceptance case and capture-gap inventory
 
+> Acceptance update: [the milestone plan](../ironclad-milestones.md) retains partial
+> selection, permits equivalent objects to be interchangeable, makes forced event
+> pages/continues automatic, and pairs meaningful-choice tooling with implementation.
+> Its projection-test policy supersedes earlier blanket screen-capture requirements.
+> Source findings remain evidence; no meaningful reward/relic decision is omitted.
+
 Planning evidence for [Audit Ironclad victory acceptance cases and native capture gaps](https://github.com/TonyinBio/sts2-cpp/issues/13), under
 [Map the complete headless STS2 simulator build](https://github.com/TonyinBio/sts2-cpp/issues/1).
 The policy is the resolution of [Define parity acceptance beyond the recorded victory route](https://github.com/TonyinBio/sts2-cpp/issues/4).

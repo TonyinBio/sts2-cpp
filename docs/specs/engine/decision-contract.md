@@ -1,10 +1,37 @@
-# Observations, actions and input boundaries, revision 1
+# Observations, actions and input boundaries, revision 2
 
 This contract belongs to [the pinned matching target](matching-contract.md). It defines
 logical records for the new simulator, not screen layouts, existing JSON replay formats
 or an implemented API. Names below are normative semantic fields; wire encoding is
 separate. All sequences retain the order shown by gameplay. Missing, hidden, zero and
 empty are distinct states.
+
+## Headless gameplay scope
+
+Partial selection remains supported, including meaningful selection order and
+checkpoint restoration of pending choices. Reward decisions must remain explicit,
+including reclaiming a card stolen by Thieving Hopper and taking or declining a
+relic. Do not auto-choose these through an integration helper.
+
+Finished event pages and forced continue prompts with no distinct gameplay outcome
+resolve automatically, with underlying effects executed once in native order.
+Redundant opening/cancelling of an optional service need not be a separate public
+interaction when remaining at the original boundary preserves the same gameplay
+choices and future behavior. Retain cancellation where it has a distinct effect.
+
+Effectively identical objects may be interchangeable for matching, including their
+attachments and all gameplay-relevant properties. Keep object relationships wherever
+history, pending work or other state makes future behavior differ. Literal native
+and simulator identity labels are not an acceptance target; do not use equivalence
+to lose a reference that affects gameplay.
+
+Equivalent complete hidden gameplay state is the primary comparison surface. Test
+its public translation for correct meaningful values, choices, restrictions and
+reveals, hidden-information protection and no state/RNG mutation. Source-backed
+projection tests are sufficient for established mappings; add targeted native
+reference evidence for unresolved semantics and strategic choices. A separate
+rendered-screen corpus for every field is not required. Tooling extensions can
+arrive with the simulator feature they verify.
 
 ## Observation record
 
@@ -73,7 +100,7 @@ need. The action space describes choices and constraints lazily.
 | Select target/value | Prompt ID and eligible target or bounded numeric value when explicitly requested |
 | Confirm | Prompt ID; available only after valid partial selection when confirmation is exposed |
 | Cancel | Prompt ID; only when offered; effect and payment rollback follow that mechanic |
-| Continue | Offered continuation identity, including room exit/act/result acknowledgment |
+| Continue | Offered continuation identity only where it represents a distinct gameplay decision; forced progress resolves automatically |
 
 Selections expose minimum/maximum count, whether order matters, whether repetition is
 allowed, eligible objects, partial selection and whether the prompt submits immediately
@@ -106,11 +133,11 @@ The counter and prompt identity are complete state, preserved by clone and resto
 | Nested choice | Required selection, target, confirm/cancel where offered | Resume the owning effect, including further nested choices |
 | Rewards | Claim, alternative, skip or continue as offered | Resolve claim hooks, replacement, follow-up or room exit |
 | Shop | Purchase, potion action where offered, exit | Purchase hooks, service prompts, inventory changes |
-| Event/ancient | Visible branch or continue | Branch effects, child room or follow-up text/prompt |
+| Event/ancient | Visible branch or another distinct choice | Branch effects, child room or follow-up text/prompt |
 | Rest/service | Offered action, object selection or cancel | Service and hooks, then return/exit as the game does |
 | Treasure | Offered treasure action or continue | Acquisition/replacement and hooks |
-| Act transition | Explicit continuation only if required | Generate next act, enter starting context |
-| Terminal | No gameplay input; result acknowledgment only if exposed | No further gameplay transition |
+| Act transition | Explicit input only for a distinct gameplay choice | Generate next act, enter starting context |
+| Terminal | No gameplay input required | No further gameplay transition |
 
 Room kinds from `RoomType` are `Monster`, `Elite`, `Boss`, `Treasure`, `Shop`,
 `Event`, `RestSite`, `Map`; `Unassigned` is not a playable room. A map-point type is

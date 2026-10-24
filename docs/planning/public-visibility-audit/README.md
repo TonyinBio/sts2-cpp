@@ -1,5 +1,11 @@
 # Player visibility, actions and prompt evidence
 
+> Acceptance update: [the milestone plan](../ironclad-milestones.md) retains partial
+> selection, permits equivalent objects to be interchangeable, makes forced event
+> pages/continues automatic, and pairs meaningful-choice tooling with implementation.
+> Its projection-test policy supersedes earlier blanket screen-capture requirements.
+> Source findings remain evidence; no meaningful reward/relic decision is omitted.
+
 Source-backed planning evidence for
 [Audit player-visible fields, reveal rules and prompt semantics](https://github.com/TonyinBio/sts2-cpp/issues/11),
 within [Map the complete headless STS2 simulator build](https://github.com/TonyinBio/sts2-cpp/issues/1).

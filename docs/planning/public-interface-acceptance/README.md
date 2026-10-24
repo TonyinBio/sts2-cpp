@@ -1,5 +1,11 @@
 # Public interface and checkpoint acceptance
 
+> Acceptance update: [the milestone plan](../ironclad-milestones.md) retains partial
+> selection, permits equivalent objects to be interchangeable, makes forced event
+> pages/continues automatic, and pairs meaningful-choice tooling with implementation.
+> Its projection-test policy supersedes earlier blanket screen-capture requirements.
+> Source findings remain evidence; no meaningful reward/relic decision is omitted.
+
 Confirmed decisions for [Set public decision and checkpoint acceptance for the full simulator](https://github.com/TonyinBio/sts2-cpp/issues/5), within
 [the complete simulator map](https://github.com/TonyinBio/sts2-cpp/issues/1).
 These are acceptance requirements and planning decisions, not implemented coverage.

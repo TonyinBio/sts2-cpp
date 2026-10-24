@@ -1,8 +1,8 @@
 # Implementation milestones for Ironclad victory parity
 
 Resolution handoff for [Choose implementation milestones and dependency order for complete coverage](https://github.com/TonyinBio/sts2-cpp/issues/8).
-The user confirmed integrated slices and measurements during development, and then
-explicitly chose to retain partial selection in the simulator. This is a
+The plan uses integrated slices, measurements during development and partial
+selection support in the simulator. This is a
 planning handoff; no engine or probe implementation is claimed.
 
 ## Selection and action model
@@ -15,12 +15,7 @@ selection and resume the same prompt. Separate confirmation remains supported wh
 required by the mechanic. Complete ordered submissions may coexist where legal;
 they do not replace the partial-selection capability.
 
-This supersedes the abandoned proposal to remove intermediate selection support.
-The existing [decision contract](../specs/engine/decision-contract.md) and partial
-selection acceptance cases remain in force. There is no revision-2 atomic-only
-contract and no required removal of existing selector state or tests.
-
-The earlier distinction about redundant menu cancellation remains relevant: opening
+For redundant menu cancellation, opening
 optional removal and cancelling back is equivalent to not opening it when gameplay
 state and future behavior are unchanged. Do not infer from this equivalence that
 all cancellation effects are identical or that partial selections can be discarded.
@@ -32,6 +27,36 @@ corresponding completed decisions and capture partial states independently. Do n
 invent intermediate expected state by filtering the dense export. Declare clock
 inputs/mapping for intermediate actions and compare gameplay RNG/state exactly.
 
+## Gameplay choices and equivalent objects
+
+The user further narrowed acceptance to strategically distinct gameplay choices.
+Expose reward selection, including reclaiming the card stolen by Thieving Hopper,
+and taking versus declining a relic. Do not automatically claim, skip or substitute
+these choices in a convenience transport. Verify their effects and follow-up hooks.
+
+Finished event pages and forced continue prompts with no differing gameplay outcome
+are automatic transitions, not required public actions or independently captured
+screens. Execute the underlying effects once in native order; do not skip the
+transition itself. Preserve any actual reward, branch, target or selection choice.
+
+The user accepts interchangeability of effectively identical objects, including
+matching enchantments and other gameplay-relevant properties. Numeric identity or
+distinguishing two equivalent copies is not an acceptance goal. Preserve references
+or distinguish objects when their history, pending effects, attachments, location or
+other state makes their future behavior differ. Compare equivalent objects through
+a declared correspondence rather than requiring equal native/C++ labels. This does
+not authorize collapsing a permanent deck card with its distinct combat copy or
+losing a retained source when those relationships affect gameplay.
+
+Use equivalent complete hidden gameplay state as the main correctness evidence.
+The hidden-to-visible projection must preserve gameplay state/RNG and translate it
+correctly: expose meaningful offers, choices, restrictions and intentional reveals,
+while withholding hidden information. State equivalence and read purity alone do
+not prove projection correctness. Prefer focused projection tests and source-backed
+field mappings; do not require separate native screen captures merely to certify
+artwork, redundant pages or equivalent duplicate identities. Retain targeted native
+evidence where the mapping or a strategic choice is not established.
+
 ## Integrated milestones
 
 Each milestone includes its state ownership, deterministic transitions, public
@@ -42,11 +67,11 @@ through the slices that exercise them. No isolated foundation rewrite is require
 
 | Milestone | Working behavior | Dependencies and acceptance |
 | --- | --- | --- |
-| 1. Reusable run execution | Consecutive supported encounters with distinct deck/combat identities, retained history/inventory and stable public identities; one real ordered nested choice survives clone/restore. | Existing RNG/setup/maps/codecs; remove single-combat/Survivor-specific restrictions through general ownership and typed continuations. Compare consecutive-room lifecycle and same/alternate resumed choices. Establish the public/native action mapping and measurement driver on supported workloads. |
+| 1. Reusable run execution | Consecutive supported encounters with distinct deck/combat identities, retained history/inventory and gameplay-relevant object relationships; one real ordered nested choice survives clone/restore. | Existing RNG/setup/maps/codecs; remove single-combat/Survivor-specific restrictions through general ownership and typed continuations. Compare consecutive-room lifecycle and same/alternate resumed choices. Establish the public/native action mapping and measurement driver on supported workloads. |
 | 2. General combat and inventory | Multiple enemies/entities, ordered listeners and mutations, targeting, damage/powers, card movement/draw/exhaust, repeats/autoplay and consumed-potion child choices. | Milestone 1 ownership; integrate required cards/powers/relics/potions/attachments by shared capability dependencies from the semantic audit. Cover removal during dispatch, captured costs, sparse slots, revival and completion as each becomes supported. Never claim full mechanics from only the recorded branch. |
 | 3. Complete room loop | Rewards, shop/removal, rest, treasure and all audited event branches, with real child prompts and nested combat/reward return. | Shared lifecycle and relevant combat/content capabilities. Deliver vertical room slices in capability order; native public capture and regression work accompanies each. Preserve ordered offers, generation, stock/gold/hooks and the agreed service and selection semantics. Include fixed outputs and authored alternatives; unrelated broad-pool effects may remain explicitly unsupported. |
-| 4. Acts and natural victory | Repeated act transitions, audited bosses/revival, final Architect encounter/dialogue/continuation and natural run completion through public C++ inputs. | Required room/content closure from milestones 2–3; remove act-zero restriction without losing native queues, topology/history or clocks. Incrementally grow the replayed prefix; final success requires natural victory, not synthetic terminal assignment. |
-| 5. Ironclad acceptance | Complete observed/offered-plus-fixed mechanics and alternate branches, interactions, hidden-information protection, purity and checkpoint continuation for every supported logical stop. | All prior slices; exact gameplay replay on declared corresponding boundaries, independent public evidence for exercised screen/prompt types, native self-replay for new fixtures, complete case/status matrix. Finish remaining regression gaps; first correct victory may precede 2× performance. |
+| 4. Acts and natural victory | Repeated act transitions, audited bosses/revival, final Architect encounter and automatic nonbranching dialogue/continuation and natural run completion through public C++ inputs. | Required room/content closure from milestones 2–3; remove act-zero restriction without losing native queues, topology/history or clocks. Incrementally grow the replayed prefix; final success requires natural victory, not synthetic terminal assignment. |
+| 5. Ironclad acceptance | Complete observed/offered-plus-fixed mechanics and alternate branches, interactions, hidden-information protection, purity and checkpoint continuation for every supported logical stop. | All prior slices; exact gameplay replay on declared corresponding boundaries, evidence for meaningful public choices and correct pure projection, native self-replay for new fixtures, complete case/status matrix. Finish remaining regression gaps; first correct victory may precede 2× performance. |
 
 Milestones 2 and 3 contain interdependent vertical slices: implement a room's required
 mechanics and supporting models before accepting that room, while reusing shared
@@ -58,6 +83,19 @@ different character; this does not require another character's complete run yet.
 
 ## Reference work and performance placement
 
+Tooling timing is confirmed for the remaining gameplay surfaces as well: add reward
+lists and choices (including reclaiming Thieving Hopper's stolen card), relic
+take/decline, and required gameplay observations/projection checks alongside their
+simulator implementation. Each feature's acceptance includes the reference-tool
+extension and evidence needed to verify that feature. These are implementation
+dependencies, not a separate up-front tooling project or another broad audit.
+Redundant finished-page/continue controls and distinctions between interchangeable
+objects do not become required tool features.
+
+Extend the reference tool alongside simulator partial-selection implementation.
+Require the resulting evidence before declaring those selections verified; there
+is no separate early tool-only milestone.
+
 The current atomic reference selector cannot validate select/deselect/confirm steps.
 Extend reference tooling to capture the native partial-selection behavior that the
 simulator now retains. This is concrete implementation work, not another task to
@@ -68,10 +106,12 @@ on completing every probe first.
 
 Native public-screen value/order/reveal gaps also remain real. Add suitable probes
 or independently instrumented consumers with the room/mechanic slices they verify.
-Faithful execution in the stub runtime is unproven; validate the first required path
-as part of implementation. Filtered complete-state snapshots and approximate display
-helpers are insufficient public expectations. Graphical screenshots, artwork and
-animation parity are excluded.
+Use source-backed translation tests over equivalent hidden state for established
+fields, including query purity and hidden-information protection. Add targeted native
+evidence for unresolved semantics or choices. Do not require a parallel graphical
+observation corpus for every field. Faithful execution of new native probes in the
+stub runtime is unproven; validate each required new capability as it is implemented.
+Graphical screenshots, artwork and animation parity are excluded.
 
 Start the equivalent warm benchmark driver in milestone 1 using supported workloads;
 establish the native warm lifecycle, output profiles and explicit provenance. Add
