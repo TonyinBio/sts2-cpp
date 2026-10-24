@@ -345,7 +345,7 @@
     }
   },
   "artifact_sha256": {
-    "README.md": "c9382d6ebac5999770b5c7026b71b56ffbb46ff43cbfcf30763931078f6c357b",
+    "README.md": "9c5b31f9379ce2946347a0366cad05d129387c042d5709253172d01c796351f2",
     "adapter-sources.json": "92919d2effc10ab544a4a85dee78d963ce51bcb5fae3325a360e07480b7fa98e",
     "adapter.md": "a765170df7afe5541c312d24b8c99b9dc2ca7ca75c3c1ab5d334e4551f6f6708",
     "combat-sources.json": "9c9c8f2073bc92eb57387b51f393e21a07a8f2bda17e88c5a992d789f2604e36",
@@ -353,7 +353,7 @@
     "invariants-sources.json": "5017d11186fbdaa6eb74347d1d57cb202c77961f812af151674099f8b4ddf929",
     "invariants.md": "7e6b37fe6b4f016fb7eed272ca1fc848c037bfa804ff64d4b5fd243acf67ad99",
     "prompts-sources.json": "dbbb8b6f6a8d7190b2cdf4c93979c4f7d0f2d56950e4f55326ef490de0d923bc",
-    "prompts.md": "ae01275d089f119b9fb51763abfdcfe95fc91ff3e0d2791fa403756c9c805369",
+    "prompts.md": "befd7ab4461308e357c4315191a6865832fababd7eb1bfff67a1a1f5796d34b9",
     "verify.py": "c7cdb229f48389babda791c0f4232950084c6b5d8fb9a7cb00e9aaa44d3f91d5"
   }
 }

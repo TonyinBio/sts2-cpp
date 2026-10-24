@@ -1,0 +1,42 @@
+[
+  {
+    "source": "sts2-cli/scripts/extract_localization.py",
+    "sha256": "c4e463a7d02fe0853ac929b26d441b720a735e5d3db8ea5998693bd3d32622b4",
+    "inspected_ranges": [
+      [
+        1,
+        60
+      ]
+    ]
+  },
+  {
+    "source": "sts2-cli/setup.sh",
+    "sha256": "fb0a41562637bb0121ff047112599c5b75bc95b70b0e989187555ddf965a26fa",
+    "inspected_ranges": [
+      [
+        94,
+        110
+      ]
+    ]
+  },
+  {
+    "source": "docs/planning/victory-mechanics/scope-roots.json",
+    "sha256": "cce7e3da97cfd14e914c1cc3562610628b6945c1c34f98eb9daa82a1c4bb6f69",
+    "inspected_ranges": [
+      [
+        1,
+        244
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Monsters/DecimillipedeSegment.cs",
+    "sha256": "c5218cdeb9df32ccfbc1fcfc6e14209b319cfe654eec96dd6226cdb08f98b27c",
+    "inspected_ranges": [
+      [
+        45,
+        49
+      ]
+    ]
+  }
+]

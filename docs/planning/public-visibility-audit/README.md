@@ -66,7 +66,9 @@ remain the separate English-source audit's responsibility.
    UI labels. Definition IDs, current positions and combat-local recording labels
    do not establish them. Test identity relationships and visibility-history
    noninterference separately from native-to-C++ identity correspondence.
-7. A visible native failure may be sound/animation rather than an English sentence.
+7. A visible native failure may use sound/animation, English dialogue or both; the
+   [follow-up English audit](../english-rendering-audit/prompts-feedback.md) identifies
+   the merchant inventory dialogue path in addition to the slot-local feedback.
    Preserve native accepted failure, especially full-inventory potion purchase,
    separately from atomic simulator input rejection. Raw exceptions, hidden fields
    and internal restriction names are not public English reasons.

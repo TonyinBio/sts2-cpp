@@ -1,0 +1,520 @@
+[
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.CardSelection/CardSelectorPrefs.cs",
+    "sha256": "be907ced510772bbac02fd30e7553a360e426c4868c4436224d454d0f8177086",
+    "inspected_ranges": [
+      [
+        11,
+        78
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.CardSelection/NSimpleCardSelectScreen.cs",
+    "sha256": "3453ab0492dcd82e6c6800f3a1acbc0bb4e9e4b1870ba5bdd9c1e085947488f7",
+    "inspected_ranges": [
+      [
+        168,
+        186
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.CardSelection/NCombatPileCardSelectScreen.cs",
+    "sha256": "7b8c4fce144150393c040f5b6f74e0031ed32624e9c8e5e5c604f7b87a95016f",
+    "inspected_ranges": [
+      [
+        164,
+        184
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Combat/NPlayerHand.cs",
+    "sha256": "cf2a3ff616bfb7167cb3ca8fa4d643771d17465f437dc523ba1f19560deefb99",
+    "inspected_ranges": [
+      [
+        956,
+        989
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.CardSelection/NDeckCardSelectScreen.cs",
+    "sha256": "f096e9bdfeb9a9815349fd6a5ac6eb95f7512d278e9a93d318503244934d902c",
+    "inspected_ranges": [
+      [
+        193,
+        230
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.CardSelection/NDeckEnchantSelectScreen.cs",
+    "sha256": "32c290e75ec1339f13732df77c50e9ba59861b8a7f8811b6f007fcb35f09167a",
+    "inspected_ranges": [
+      [
+        255,
+        300
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.CardSelection/NCardRewardSelectionScreen.cs",
+    "sha256": "e134dfcec15fbacd1976ad9a46f7010cee5f399fa282ae859c8f0124c114318b",
+    "inspected_ranges": [
+      [
+        256,
+        264
+      ],
+      [
+        312,
+        324
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.CardSelection/NChooseABundleSelectionScreen.cs",
+    "sha256": "f89ddaa7b346c70f466a620db78326442c892b3375f7827f4b97189afbbd5f24",
+    "inspected_ranges": [
+      [
+        209,
+        222
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens/NChooseARelicSelection.cs",
+    "sha256": "6712b6e316817c5ef44ace8f7cd7cd989c62c2f13465befb0b6e22ece49ba752",
+    "inspected_ranges": [
+      [
+        198,
+        207
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.CommonUi/NProceedButton.cs",
+    "sha256": "90999374baa713a654de3a2c107a35b2d2dad175ea086d5fa6f494c3c2e72ca3",
+    "inspected_ranges": [
+      [
+        244,
+        246
+      ],
+      [
+        371,
+        375
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Rooms/NEventRoom.cs",
+    "sha256": "85cfcaabf280b7b56465cb79e44ccfac85e9825b71fce36116d1b4f06c8ae1e7",
+    "inspected_ranges": [
+      [
+        260,
+        288
+      ],
+      [
+        231,
+        249
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Events/NEventLayout.cs",
+    "sha256": "1e6b2070dd7e45a7db954f90065814c10dc43ce63d1ab868d0f1cf9f7c67ef53",
+    "inspected_ranges": [
+      [
+        324,
+        339
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Events/NEventOptionButton.cs",
+    "sha256": "c7905753d0f7e8e4a7b502bc539c8d9e8bdc9fde3bf1c3677ea558399acbcc50",
+    "inspected_ranges": [
+      [
+        284,
+        341
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Events/NAncientDialogueLine.cs",
+    "sha256": "b54fa0a28daee3e21a72bf502b319bf717766f53f7807d0d67fbf8c2c9774abe",
+    "inspected_ranges": [
+      [
+        136,
+        143
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Events/NAncientEventLayout.cs",
+    "sha256": "e987c084418e059f31e99eadf27f236cc2ad2b185e3af84343418ca6d42cfb0a",
+    "inspected_ranges": [
+      [
+        379,
+        391
+      ],
+      [
+        434,
+        493
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.RestSite/SmithRestSiteOption.cs",
+    "sha256": "975eb89ede38878bfd1a855f67c60f4c866662b0e880f9779b9c0c612d3000af",
+    "inspected_ranges": [
+      [
+        25,
+        49
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.RestSite/HealRestSiteOption.cs",
+    "sha256": "167debfa61b18e90a2db5912eb07b04577610af95427c5800cc2ed7e3b8fcbef",
+    "inspected_ranges": [
+      [
+        37,
+        69
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.RestSite/NRestSiteButton.cs",
+    "sha256": "f3f417d09c19619aeea90672397a86a71ec359298c3a6d765749089bbbd2db27",
+    "inspected_ranges": [
+      [
+        224,
+        243
+      ],
+      [
+        329,
+        344
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rewards/GoldReward.cs",
+    "sha256": "1dd118ee26d178cb72ec56dc449d37bf46930bab6a175fcdfe06ccca6bfd97bf",
+    "inspected_ranges": [
+      [
+        36,
+        51
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rewards/CardReward.cs",
+    "sha256": "f102e52cdd40891fe1a49419f8b7f714a1a83fc252b699d1bd7d9a67423ee007",
+    "inspected_ranges": [
+      [
+        83,
+        83
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rewards/PotionReward.cs",
+    "sha256": "0e10a1901cfac2046ac1750e593df89f5341e6a4fb76c17e4d847c8b36297819",
+    "inspected_ranges": [
+      [
+        34,
+        34
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rewards/RelicReward.cs",
+    "sha256": "10f2bdbe8533bc384e2f5b637a81b1efbeee6906a7829bef891586918a49f1bd",
+    "inspected_ranges": [
+      [
+        50,
+        50
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Rewards/NRewardButton.cs",
+    "sha256": "8d34c3c6226a2593562e6db7be5461b2d6681e480de5c2ed75d4053a6e3ba84e",
+    "inspected_ranges": [
+      [
+        232,
+        245
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantCard.cs",
+    "sha256": "d038641aa4141f733ca3038f8d85df60c90f604e1f7966d6f203dd63a582d8f9",
+    "inspected_ranges": [
+      [
+        148,
+        160
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantPotion.cs",
+    "sha256": "5f4ae606b7e5b7273ab6d531c933792813f31895afb16f24fb054a37a4cfa917",
+    "inspected_ranges": [
+      [
+        128,
+        139
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantRelic.cs",
+    "sha256": "2e3600700619c9eb4bc699eaa7e626ac789cbc9758707400b4db2fe6effc06cf",
+    "inspected_ranges": [
+      [
+        150,
+        161
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantCardRemoval.cs",
+    "sha256": "d7f22f316963a758f8f67f1eca60c105924fa4b2c7a5a7389eaed98e5784c2a2",
+    "inspected_ranges": [
+      [
+        129,
+        154
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantInventory.cs",
+    "sha256": "884fc69bd8f1bbaf1ee1de82fa3ce4201269315f286fcce28fe8fa4d47d4b10a",
+    "inspected_ranges": [
+      [
+        374,
+        394
+      ],
+      [
+        431,
+        435
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantDialogue.cs",
+    "sha256": "8938b616aba7416a3b5905102125fd388b049528c0112931ccda9d8e63e9f7e9",
+    "inspected_ranges": [
+      [
+        108,
+        146
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Merchant/MerchantDialogueSet.cs",
+    "sha256": "7a975bcf05315f201af90854226cbb02815f644852177b8fc88504315f2469ba",
+    "inspected_ranges": [
+      [
+        46,
+        82
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantSlot.cs",
+    "sha256": "58242bc381e330f3fa1f038d22d620751368b947a3bd55c90a689b07e8861549",
+    "inspected_ranges": [
+      [
+        391,
+        413
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/CardModel.cs",
+    "sha256": "aa464f969f3d28c271aee8ed1594ba3118ddc4d4c6c1802d5ded725b6b70fe0c",
+    "inspected_ranges": [
+      [
+        1725,
+        1755
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Cards/UnplayableReasonExtensions.cs",
+    "sha256": "be54cfae27e025fd11a9e0427d7274810df21ab853248bf8ee1ea7434a4d2836",
+    "inspected_ranges": [
+      [
+        19,
+        55
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Combat/NMouseCardPlay.cs",
+    "sha256": "6e7c557d0e2e568757d32880d960102e29ae299bba974618b5e2731d24e2380d",
+    "inspected_ranges": [
+      [
+        263,
+        285
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Combat/NControllerCardPlay.cs",
+    "sha256": "c27e4bfc60c1c197ccd4fa44a742ce2c3c9b21694ef08ad3d6d26ad6797818ba",
+    "inspected_ranges": [
+      [
+        177,
+        198
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/CardCmd.cs",
+    "sha256": "0ea75a4209aa6cf4aecc1246656e4a2e54930ab84f341ce830ff0cfcbdd1db87",
+    "inspected_ranges": [
+      [
+        51,
+        73
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Cards/NCard.cs",
+    "sha256": "8bae40781da943f91534efc01c469e2fe7e162a6cc4c5202c81ffb14838959a5",
+    "inspected_ranges": [
+      [
+        989,
+        1002
+      ],
+      [
+        1060,
+        1073
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/ThinkCmd.cs",
+    "sha256": "2d1fc2d99fd6383cf14dc2bba881cf6b096c2c2dc8a578dfba3be468e42281df",
+    "inspected_ranges": [
+      [
+        17,
+        33
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/TalkCmd.cs",
+    "sha256": "895e32e6364468a477aaf25d56193fb785022adb68281ee9b10db6f29fc98a4d",
+    "inspected_ranges": [
+      [
+        18,
+        47
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Vfx/NThoughtBubbleVfx.cs",
+    "sha256": "2ba59c630b37a88fb25403303fc8604adb593119d718d2186d86f39e77f8a902",
+    "inspected_ranges": [
+      [
+        150,
+        179
+      ],
+      [
+        195,
+        222
+      ],
+      [
+        256,
+        265
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Vfx/NSpeechBubbleVfx.cs",
+    "sha256": "666625ac04eb8b33e413ffe6861bff5bf1395cdac785f3e983b11ac17ec67e59",
+    "inspected_ranges": [
+      [
+        194,
+        224
+      ],
+      [
+        297,
+        308
+      ],
+      [
+        334,
+        342
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Vfx/NDamageNumVfx.cs",
+    "sha256": "e579500db202d9a49472f7e7ff5f22281f5deaae9a30ddccaae72b7c3fbea3f9",
+    "inspected_ranges": [
+      [
+        102,
+        163
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Vfx/NHealNumVfx.cs",
+    "sha256": "b098f4f454054f295402af4c7dc80d42b9d478a9b0e26904e11695b4497f7a7a",
+    "inspected_ranges": [
+      [
+        94,
+        119
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Combat/NCombatCardPile.cs",
+    "sha256": "5115fb882bb5a12d10f8b2e808c326fe719d0f415bb77ffbf57cf7cf617152fd",
+    "inspected_ranges": [
+      [
+        249,
+        268
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/WhisperingEarring.cs",
+    "sha256": "4d4a67823048a590d8d7984dd328fe44973da1c945277e262c6d722acc564bba",
+    "inspected_ranges": [
+      [
+        71,
+        90
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen/NGameOverScreen.cs",
+    "sha256": "f8c29c1115286b32b6b113703e7dd19b234615161681aad07352e4ed4c0fceae",
+    "inspected_ranges": [
+      [
+        433,
+        547
+      ],
+      [
+        647,
+        738
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Events/TheArchitect.cs",
+    "sha256": "3d3ea8889b71d0781a0d6bc06ed2db2c5c6786dfeefbfe9f7bfa4503af70149a",
+    "inspected_ranges": [
+      [
+        306,
+        346
+      ]
+    ]
+  }
+]

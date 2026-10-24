@@ -1,0 +1,403 @@
+{
+  "evidence_kind": "Source/resource integrity only; no native rendered goldens captured",
+  "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+  "pck_sha256": "c60f672ee7804e6aefa1e19a582fa1c80b126a7b0eef4d084d3abf110df2eab7",
+  "reference_wrapper_revision": "084d1aa3d8e118ca7ce8d8774ad16d6be9c92367",
+  "sources_checked": 94,
+  "indexed_citations_checked": 126,
+  "english_tables_checked": 46,
+  "english_keys_in_tables": 7028,
+  "sources": {
+    "/mnt/c/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2/data_sts2_windows_x86_64/sts2.deps.json": {
+      "sha256": "b4daebc073d305d38992016352e3f5ad0542891436c40d05733ca5dbc9a708b6",
+      "lines": 1043
+    },
+    "/tmp/sts2-english-formatting/SmartFormat.Extensions.ChooseFormatter.decompiled.cs": {
+      "sha256": "9ff7fe56ff92d0ef36ccceb18305c63d192efc6301845e4476e967e20323c71a",
+      "lines": 106
+    },
+    "/tmp/sts2-english-formatting/SmartFormat.Extensions.ConditionalFormatter.decompiled.cs": {
+      "sha256": "0689e1a72dacd3f5f501ace6d7ba2e5182ccacb15d10ad47e93d476c37de906c",
+      "lines": 252
+    },
+    "/tmp/sts2-english-formatting/SmartFormat.Extensions.DefaultFormatter.decompiled.cs": {
+      "sha256": "995c071848b2240a1ada3c88d2ebea9197507d222417aa47a98a72442bef3133",
+      "lines": 54
+    },
+    "/tmp/sts2-english-formatting/SmartFormat.Extensions.PluralLocalizationFormatter.decompiled.cs": {
+      "sha256": "8c90196bf0d7febd4d86b29e4708ba2259c9ebd6c1e612c52d1bc61da0c856af",
+      "lines": 153
+    },
+    "/tmp/sts2-english-formatting/SmartFormat.Utilities.PluralRules.decompiled.cs": {
+      "sha256": "e04a09d971cbea8358a3d954c00ed62c7f9d85d787b77c1c0ef87292f0c052ea",
+      "lines": 335
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.CardSelection/CardSelectorPrefs.cs": {
+      "sha256": "be907ced510772bbac02fd30e7553a360e426c4868c4436224d454d0f8177086",
+      "lines": 79
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/CardCmd.cs": {
+      "sha256": "0ea75a4209aa6cf4aecc1246656e4a2e54930ab84f341ce830ff0cfcbdd1db87",
+      "lines": 900
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/TalkCmd.cs": {
+      "sha256": "895e32e6364468a477aaf25d56193fb785022adb68281ee9b10db6f29fc98a4d",
+      "lines": 74
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/ThinkCmd.cs": {
+      "sha256": "2d1fc2d99fd6383cf14dc2bba881cf6b096c2c2dc8a578dfba3be468e42281df",
+      "lines": 34
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Cards/CardKeywordExtensions.cs": {
+      "sha256": "b6c0d085ecf4381f76e49f033648156a8fddc47448e35f4c98c87121324a1e8f",
+      "lines": 29
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Cards/CardKeywordOrder.cs": {
+      "sha256": "ecd4fd3b36aa727db0eee87318492c42ddfde1db3f7486b5ac65acba8f191682",
+      "lines": 27
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Cards/CardPreviewMode.cs": {
+      "sha256": "cc29229e25b8494e22858688efb0bfa96d1bdfc578bccc16d73a07f17b049256",
+      "lines": 29
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Cards/UnplayableReasonExtensions.cs": {
+      "sha256": "be54cfae27e025fd11a9e0427d7274810df21ab853248bf8ee1ea7434a4d2836",
+      "lines": 55
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Merchant/MerchantDialogueSet.cs": {
+      "sha256": "7a975bcf05315f201af90854226cbb02815f644852177b8fc88504315f2469ba",
+      "lines": 82
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.RestSite/HealRestSiteOption.cs": {
+      "sha256": "167debfa61b18e90a2db5912eb07b04577610af95427c5800cc2ed7e3b8fcbef",
+      "lines": 114
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.RestSite/SmithRestSiteOption.cs": {
+      "sha256": "975eb89ede38878bfd1a855f67c60f4c866662b0e880f9779b9c0c612d3000af",
+      "lines": 93
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Helpers/EnergyIconHelper.cs": {
+      "sha256": "97a9a51a532bf616cef3aca857834cc0f4abcf7128e6515d9e1dfdc094d23d64",
+      "lines": 124
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/BlockVar.cs": {
+      "sha256": "5bd31d86dc11e74ab8789590d2d3944d842befbddc40b1f529cd772def377f70",
+      "lines": 47
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/BoolVar.cs": {
+      "sha256": "82eae31dfadcb72e0ec0cbe94d45ba4932874e7474d4ee54e623618bcfbc6792",
+      "lines": 28
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/CalculatedVar.cs": {
+      "sha256": "871a069181106d274f9086b7535788beb9380ac66b1bb318172b455ebb7c6331",
+      "lines": 124
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/DamageVar.cs": {
+      "sha256": "807f35dcacb34a2881a40ed879a28643a46c9959383e2493aba664a6612d0912",
+      "lines": 47
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/DynamicVar.cs": {
+      "sha256": "216afde24c1858c30c391c2a0667342e271760ad2d0098ed08ee74e0077754e0",
+      "lines": 277
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/DynamicVarSet.cs": {
+      "sha256": "7b4306e17cf2b22c8e0b2b1cda405bbdc0bea3095c3cd3f0cd0fc7617c5ae920",
+      "lines": 159
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/IfUpgradedVar.cs": {
+      "sha256": "07cb11313aecee95f2c226549369310af10095923aade57e3daee7adb72053da",
+      "lines": 19
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/StringVar.cs": {
+      "sha256": "2263264e8d3f4a296bba491701b34d5023b045972f0348815be33526f1fbeb0a",
+      "lines": 17
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/AbsoluteValueFormatter.cs": {
+      "sha256": "cf4a2ce42757c1e11909c159d313ccb56a6a89a63ee264f4f0081c1c3b9c752c",
+      "lines": 37
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/EnergyIconsFormatter.cs": {
+      "sha256": "eabf8ac877d6a54270b22c30e0253f76728218281a5367ade2e2232c683e0734",
+      "lines": 91
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/HighlightDifferencesFormatter.cs": {
+      "sha256": "670a389f18b622f1c036a6c122eb5bc2a6018900ab4bc047cd16ffe24a59a257",
+      "lines": 32
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/HighlightDifferencesInverseFormatter.cs": {
+      "sha256": "c9af17c44df3c9eb660f7a51497290611d8ec89d417e3c18dd8c16ffcea172a1",
+      "lines": 32
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/LocaleNumberFormatter.cs": {
+      "sha256": "4a951c9ea4c3edcc240a7ea58fa663088a4f85db28db943264b45eb36f4e707f",
+      "lines": 41
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/PercentLessFormatter.cs": {
+      "sha256": "03ebf40beb9547bbbbf03ae348780697d2282b886a380893d1717feb60015813",
+      "lines": 50
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/PercentMoreFormatter.cs": {
+      "sha256": "014c7c1e18054316d5f240a4185b7671ff86ef9b99d9048a80a8c8483152f423",
+      "lines": 50
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/ShowIfUpgradedFormatter.cs": {
+      "sha256": "2639dcefbd5ef02a931cfb40d6a7c06d5fd63b7bbfe86764cede24aaa5b2efd7",
+      "lines": 60
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/StarIconsFormatter.cs": {
+      "sha256": "b7815582e3aa7e16cfe32b1d08103b1cf786f52ef3931d0f2af5624e16aaa7d6",
+      "lines": 56
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization/LocManager.cs": {
+      "sha256": "d2b5ab17ce576968b0c67ed6dce06ddad2539de6c8c178772111583aec67d679",
+      "lines": 616
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization/LocString.cs": {
+      "sha256": "0fa4a7264937562d14a388a5253cec7c46c72ed93e617011137c103aeb2c9358",
+      "lines": 209
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization/LocTable.cs": {
+      "sha256": "f6fe9e4dae5fccd0285c8d11ae256353860b2fed543ce9b6d8ca7842151eeb85",
+      "lines": 83
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/BodySlam.cs": {
+      "sha256": "6bf65e2ac088fc3d924889d04ca0ce99dfd72869663f9f86c5687f12ed101aaa",
+      "lines": 42
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Events/TheArchitect.cs": {
+      "sha256": "3d3ea8889b71d0781a0d6bc06ed2db2c5c6786dfeefbfe9f7bfa4503af70149a",
+      "lines": 527
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Monsters/DecimillipedeSegment.cs": {
+      "sha256": "c5218cdeb9df32ccfbc1fcfc6e14209b319cfe654eec96dd6226cdb08f98b27c",
+      "lines": 282
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/WhisperingEarring.cs": {
+      "sha256": "4d4a67823048a590d8d7984dd328fe44973da1c945277e262c6d722acc564bba",
+      "lines": 107
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/CardModel.cs": {
+      "sha256": "aa464f969f3d28c271aee8ed1594ba3118ddc4d4c6c1802d5ded725b6b70fe0c",
+      "lines": 2295
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/PotionModel.cs": {
+      "sha256": "7f84eddd89624d0bdf25b0e0082212d9ed60fce3ce239d4a1eca422ff9590836",
+      "lines": 401
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/PowerModel.cs": {
+      "sha256": "2cc44bddbdd6de6e1d3ded50110a0aace66bc37a942dbf1c5af2af08b9a80dbc",
+      "lines": 650
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/RelicModel.cs": {
+      "sha256": "82d29bc5857bbf1dadaf26a6d55dbb05c19af0067bf8a642dd6d225999303f7b",
+      "lines": 590
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Cards/NCard.cs": {
+      "sha256": "8bae40781da943f91534efc01c469e2fe7e162a6cc4c5202c81ffb14838959a5",
+      "lines": 2800
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Combat/NCombatCardPile.cs": {
+      "sha256": "5115fb882bb5a12d10f8b2e808c326fe719d0f415bb77ffbf57cf7cf617152fd",
+      "lines": 720
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Combat/NControllerCardPlay.cs": {
+      "sha256": "c27e4bfc60c1c197ccd4fa44a742ce2c3c9b21694ef08ad3d6d26ad6797818ba",
+      "lines": 587
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Combat/NMouseCardPlay.cs": {
+      "sha256": "6e7c557d0e2e568757d32880d960102e29ae299bba974618b5e2731d24e2380d",
+      "lines": 785
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Combat/NPlayerHand.cs": {
+      "sha256": "cf2a3ff616bfb7167cb3ca8fa4d643771d17465f437dc523ba1f19560deefb99",
+      "lines": 2402
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.CommonUi/NProceedButton.cs": {
+      "sha256": "90999374baa713a654de3a2c107a35b2d2dad175ea086d5fa6f494c3c2e72ca3",
+      "lines": 925
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Events/NAncientDialogueLine.cs": {
+      "sha256": "b54fa0a28daee3e21a72bf502b319bf717766f53f7807d0d67fbf8c2c9774abe",
+      "lines": 460
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Events/NAncientEventLayout.cs": {
+      "sha256": "e987c084418e059f31e99eadf27f236cc2ad2b185e3af84343418ca6d42cfb0a",
+      "lines": 1096
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Events/NEventLayout.cs": {
+      "sha256": "1e6b2070dd7e45a7db954f90065814c10dc43ce63d1ab868d0f1cf9f7c67ef53",
+      "lines": 930
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Events/NEventOptionButton.cs": {
+      "sha256": "c7905753d0f7e8e4a7b502bc539c8d9e8bdc9fde3bf1c3677ea558399acbcc50",
+      "lines": 1027
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.RestSite/NRestSiteButton.cs": {
+      "sha256": "f3f417d09c19619aeea90672397a86a71ec359298c3a6d765749089bbbd2db27",
+      "lines": 661
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Rewards/NRewardButton.cs": {
+      "sha256": "8d34c3c6226a2593562e6db7be5461b2d6681e480de5c2ed75d4053a6e3ba84e",
+      "lines": 689
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Rooms/NEventRoom.cs": {
+      "sha256": "85cfcaabf280b7b56465cb79e44ccfac85e9825b71fce36116d1b4f06c8ae1e7",
+      "lines": 591
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.CardSelection/NCardRewardSelectionScreen.cs": {
+      "sha256": "e134dfcec15fbacd1976ad9a46f7010cee5f399fa282ae859c8f0124c114318b",
+      "lines": 807
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.CardSelection/NChooseABundleSelectionScreen.cs": {
+      "sha256": "f89ddaa7b346c70f466a620db78326442c892b3375f7827f4b97189afbbd5f24",
+      "lines": 739
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.CardSelection/NCombatPileCardSelectScreen.cs": {
+      "sha256": "7b8c4fce144150393c040f5b6f74e0031ed32624e9c8e5e5c604f7b87a95016f",
+      "lines": 623
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.CardSelection/NDeckCardSelectScreen.cs": {
+      "sha256": "f096e9bdfeb9a9815349fd6a5ac6eb95f7512d278e9a93d318503244934d902c",
+      "lines": 663
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.CardSelection/NDeckEnchantSelectScreen.cs": {
+      "sha256": "32c290e75ec1339f13732df77c50e9ba59861b8a7f8811b6f007fcb35f09167a",
+      "lines": 889
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.CardSelection/NSimpleCardSelectScreen.cs": {
+      "sha256": "3453ab0492dcd82e6c6800f3a1acbc0bb4e9e4b1870ba5bdd9c1e085947488f7",
+      "lines": 487
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen/NGameOverScreen.cs": {
+      "sha256": "f8c29c1115286b32b6b113703e7dd19b234615161681aad07352e4ed4c0fceae",
+      "lines": 1933
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantCard.cs": {
+      "sha256": "d038641aa4141f733ca3038f8d85df60c90f604e1f7966d6f203dd63a582d8f9",
+      "lines": 436
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantCardRemoval.cs": {
+      "sha256": "d7f22f316963a758f8f67f1eca60c105924fa4b2c7a5a7389eaed98e5784c2a2",
+      "lines": 393
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantDialogue.cs": {
+      "sha256": "8938b616aba7416a3b5905102125fd388b049528c0112931ccda9d8e63e9f7e9",
+      "lines": 328
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantInventory.cs": {
+      "sha256": "884fc69bd8f1bbaf1ee1de82fa3ce4201269315f286fcce28fe8fa4d47d4b10a",
+      "lines": 1225
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantPotion.cs": {
+      "sha256": "5f4ae606b7e5b7273ab6d531c933792813f31895afb16f24fb054a37a4cfa917",
+      "lines": 342
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantRelic.cs": {
+      "sha256": "2e3600700619c9eb4bc699eaa7e626ac789cbc9758707400b4db2fe6effc06cf",
+      "lines": 404
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.Shops/NMerchantSlot.cs": {
+      "sha256": "58242bc381e330f3fa1f038d22d620751368b947a3bd55c90a689b07e8861549",
+      "lines": 922
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens/NChooseARelicSelection.cs": {
+      "sha256": "6712b6e316817c5ef44ace8f7cd7cd989c62c2f13465befb0b6e22ece49ba752",
+      "lines": 569
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Vfx/NDamageNumVfx.cs": {
+      "sha256": "e579500db202d9a49472f7e7ff5f22281f5deaae9a30ddccaae72b7c3fbea3f9",
+      "lines": 377
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Vfx/NHealNumVfx.cs": {
+      "sha256": "b098f4f454054f295402af4c7dc80d42b9d478a9b0e26904e11695b4497f7a7a",
+      "lines": 309
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Vfx/NSpeechBubbleVfx.cs": {
+      "sha256": "666625ac04eb8b33e413ffe6861bff5bf1395cdac785f3e983b11ac17ec67e59",
+      "lines": 761
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Vfx/NThoughtBubbleVfx.cs": {
+      "sha256": "2ba59c630b37a88fb25403303fc8604adb593119d718d2186d86f39e77f8a902",
+      "lines": 566
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rewards/CardReward.cs": {
+      "sha256": "f102e52cdd40891fe1a49419f8b7f714a1a83fc252b699d1bd7d9a67423ee007",
+      "lines": 361
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rewards/GoldReward.cs": {
+      "sha256": "1dd118ee26d178cb72ec56dc449d37bf46930bab6a175fcdfe06ccca6bfd97bf",
+      "lines": 95
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rewards/PotionReward.cs": {
+      "sha256": "0e10a1901cfac2046ac1750e593df89f5341e6a4fb76c17e4d847c8b36297819",
+      "lines": 107
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rewards/RelicReward.cs": {
+      "sha256": "10f2bdbe8533bc384e2f5b637a81b1efbeee6906a7829bef891586918a49f1bd",
+      "lines": 139
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.RichTextTags/RichTextGold.cs": {
+      "sha256": "c1fa97347bf45fba1214d71cc71efe4ad70efcb2bec30905d24e1c690d60c402",
+      "lines": 163
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.RichTextTags/RichTextGreen.cs": {
+      "sha256": "4361b2ac0758e2edcd074106b936ff061a9453f7d76caf75757bc0f4c7fa753a",
+      "lines": 159
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.TextEffects/StsTextUtilities.cs": {
+      "sha256": "1c0459e6aa10b90dbaa8fdf5ab599aa3a896112215dd6e0af3aaa0f7e89674cd",
+      "lines": 32
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.addons.mega_text/MegaLabelHelper.cs": {
+      "sha256": "d04dce858fe3f7bbd0b9077aafc4e464587e0d676284cb56364361ae64e9e2bb",
+      "lines": 290
+    },
+    "build/combat-state-audit/decompiled/MegaCrit.Sts2.addons.mega_text/MegaRichTextLabel.cs": {
+      "sha256": "42e924f16e703864a3b9a9d1953d8de37ac393df1e5db20f85302361c560297e",
+      "lines": 918
+    },
+    "docs/planning/victory-mechanics/scope-roots.json": {
+      "sha256": "cce7e3da97cfd14e914c1cc3562610628b6945c1c34f98eb9daa82a1c4bb6f69",
+      "lines": 244
+    },
+    "sts2-cli/python/play.py": {
+      "sha256": "afb65141ebdf6c0ed4cd3c8647b23f95ad711ad6f7c9e11a9f1a60b7942edbef",
+      "lines": 2133
+    },
+    "sts2-cli/scripts/extract_localization.py": {
+      "sha256": "c4e463a7d02fe0853ac929b26d441b720a735e5d3db8ea5998693bd3d32622b4",
+      "lines": 60
+    },
+    "sts2-cli/setup.sh": {
+      "sha256": "fb0a41562637bb0121ff047112599c5b75bc95b70b0e989187555ddf965a26fa",
+      "lines": 247
+    },
+    "sts2-cli/src/Sts2Headless/RunSimulator.cs": {
+      "sha256": "19176bfe655e1b27c79b3c6b9918114018568926d73b60dc8a90abf49085c2ab",
+      "lines": 3926
+    },
+    "tools/oracle/adapters/RecordingDisplay.cs": {
+      "sha256": "757ce47b0dda810bca8ead0436628ee6f038bd8a25c4f4f920864feb027464c5",
+      "lines": 66
+    },
+    "tools/oracle/reference_runtime.py": {
+      "sha256": "0fbe190c2f7154cf890c5415ff4eded97f49ae75ecbd9fb7b4eae8a9c8016f07",
+      "lines": 374
+    }
+  },
+  "artifact_sha256": {
+    "README.md": "e59a35093bfb3eb253b1a74788bf0957949e1b9bd017a684d4e544d4f85dc5bb",
+    "adapter-resource-comparison.json": "c749790dff3d3f261ca0bd7261f749c0330c825be649cc116ca6dd38e2cb4289",
+    "adapter-sources.json": "7c5a8747eab06e783df01af9ee7b9f3b1517f67738f3c2a4f6e7f25720cc7d46",
+    "adapter.md": "a7295acdb49f8fb98c2840a95d8f36d28e81b29be73c59dacd972d28abfffe9c",
+    "formatting-sources.json": "8d8749f7b44f8a9c1bfc82c661d3caf5563a4da2486506242500b792dc2e7659",
+    "formatting.md": "4c93ab8bf07d6093701936852b3d0a2ebe1139fca9dd983c434807e2caf3ee50",
+    "prompts-feedback-sources.json": "2726859ad90a57feb4fa25c5573f9f331a29347b158f0be0c8c680f270a77f4f",
+    "prompts-feedback.md": "7c27b75081e07ec4e7878b26ccbdd41e0f5ba110dfec9f31d3c049274fb62f24",
+    "resources-sources.json": "7392a32fa025d848146e1b3f2c3b16ab0844fd66803721a1833441a736482511",
+    "resources.json": "35542db017e981fc715d4a163648dc811138203e47cac13ad519ccb5405e9756",
+    "resources.md": "6466b1ec0bdeb144faf334b61aefd6becb21f8a5453875762bdcfcd6bde3ff46",
+    "resources.py": "b454a9219514f607a3eda604113f1470381912d0d58b609a3bd35b6fb5771913",
+    "verify.py": "40928ea7ea155bd40fda37045fff558a78773330d123b425bc73783f4e6f5caf"
+  }
+}

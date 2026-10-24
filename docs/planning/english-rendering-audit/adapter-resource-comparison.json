@@ -1,0 +1,334 @@
+{
+  "submodule_revision": "084d1aa3d8e118ca7ce8d8774ad16d6be9c92367",
+  "submodule_root": "sts2-cli/localization_eng",
+  "installed_extraction_root": "build/english-source-audit/extracted/localization_eng",
+  "submodule_only": [],
+  "installed_only": [],
+  "tables": [
+    {
+      "table": "achievements.json",
+      "entries": 71,
+      "submodule_sha256": "ac683e310e1ecb876d3d4a8c5d10086d8172678273939a96c93e7ad42738ee99",
+      "installed_sha256": "ac683e310e1ecb876d3d4a8c5d10086d8172678273939a96c93e7ad42738ee99",
+      "byte_equal": true
+    },
+    {
+      "table": "acts.json",
+      "entries": 5,
+      "submodule_sha256": "d55c4186f0f85a75f9e4c83e4af022306a14022f3e91e83030737b295d4ca0ca",
+      "installed_sha256": "d55c4186f0f85a75f9e4c83e4af022306a14022f3e91e83030737b295d4ca0ca",
+      "byte_equal": true
+    },
+    {
+      "table": "afflictions.json",
+      "entries": 25,
+      "submodule_sha256": "62e6b24bfa2ea7d01a843880b23bd626e1805db92ef9b6c6cd82e61e9989a6b8",
+      "installed_sha256": "62e6b24bfa2ea7d01a843880b23bd626e1805db92ef9b6c6cd82e61e9989a6b8",
+      "byte_equal": true
+    },
+    {
+      "table": "ancients.json",
+      "entries": 437,
+      "submodule_sha256": "cd0d1c321f5c42db844b22178abf88297ba3942d557402537bef7437c9c41593",
+      "installed_sha256": "cd0d1c321f5c42db844b22178abf88297ba3942d557402537bef7437c9c41593",
+      "byte_equal": true
+    },
+    {
+      "table": "ascension.json",
+      "entries": 25,
+      "submodule_sha256": "444dd4e2b9f5874fbb947010f68121fb4490d0f1c3e80926443c5c31616bd34f",
+      "installed_sha256": "444dd4e2b9f5874fbb947010f68121fb4490d0f1c3e80926443c5c31616bd34f",
+      "byte_equal": true
+    },
+    {
+      "table": "badges.json",
+      "entries": 82,
+      "submodule_sha256": "01d360470521c6c15ef288ee74524cc770e5be5680e0a15672a2691716db394d",
+      "installed_sha256": "01d360470521c6c15ef288ee74524cc770e5be5680e0a15672a2691716db394d",
+      "byte_equal": true
+    },
+    {
+      "table": "bestiary.json",
+      "entries": 17,
+      "submodule_sha256": "76d6ecd800fed18618f8c16bdd68e1ba2c9b81e9ba935e499a563816b166d653",
+      "installed_sha256": "76d6ecd800fed18618f8c16bdd68e1ba2c9b81e9ba935e499a563816b166d653",
+      "byte_equal": true
+    },
+    {
+      "table": "card_keywords.json",
+      "entries": 15,
+      "submodule_sha256": "4d84243b0540c06c90f2854d1f757aad2243300f0c6056e39a0cb39225c289cc",
+      "installed_sha256": "4d84243b0540c06c90f2854d1f757aad2243300f0c6056e39a0cb39225c289cc",
+      "byte_equal": true
+    },
+    {
+      "table": "card_library.json",
+      "entries": 31,
+      "submodule_sha256": "305afbdefcc38756dbb1db576c483b6843ca56770a9850dd48ac0c24ba3f795a",
+      "installed_sha256": "305afbdefcc38756dbb1db576c483b6843ca56770a9850dd48ac0c24ba3f795a",
+      "byte_equal": true
+    },
+    {
+      "table": "card_reward_ui.json",
+      "entries": 3,
+      "submodule_sha256": "7760bb95ab8adce90dffc1ee9be44e338913a1f1d157defa947e2188dba21414",
+      "installed_sha256": "7760bb95ab8adce90dffc1ee9be44e338913a1f1d157defa947e2188dba21414",
+      "byte_equal": true
+    },
+    {
+      "table": "card_selection.json",
+      "entries": 7,
+      "submodule_sha256": "7568f0915ed1887b947dd52d2c2715ac9a34328e61b5a945054b1fc0dcf48b55",
+      "installed_sha256": "7568f0915ed1887b947dd52d2c2715ac9a34328e61b5a945054b1fc0dcf48b55",
+      "byte_equal": true
+    },
+    {
+      "table": "cards.json",
+      "entries": 1273,
+      "submodule_sha256": "c469a0be87d57c1476b75a5d0d3031cebf47e65d380a4646aae0028a20c993c0",
+      "installed_sha256": "c469a0be87d57c1476b75a5d0d3031cebf47e65d380a4646aae0028a20c993c0",
+      "byte_equal": true
+    },
+    {
+      "table": "characters.json",
+      "entries": 95,
+      "submodule_sha256": "f7d59d78450fc987fc709406107ef5b0c2f527192e7c646c4a7dadcef17207a3",
+      "installed_sha256": "f7d59d78450fc987fc709406107ef5b0c2f527192e7c646c4a7dadcef17207a3",
+      "byte_equal": true
+    },
+    {
+      "table": "combat_messages.json",
+      "entries": 9,
+      "submodule_sha256": "9a62f5ebf042b1a94618508468a3e26504ebb8f6347586daf59fb8d09bb2482f",
+      "installed_sha256": "9a62f5ebf042b1a94618508468a3e26504ebb8f6347586daf59fb8d09bb2482f",
+      "byte_equal": true
+    },
+    {
+      "table": "credits.json",
+      "entries": 64,
+      "submodule_sha256": "3db3a3eb18b8893be2219f92cb8ee8280f1a1df1206dbf71a52907aa9d222270",
+      "installed_sha256": "3db3a3eb18b8893be2219f92cb8ee8280f1a1df1206dbf71a52907aa9d222270",
+      "byte_equal": true
+    },
+    {
+      "table": "enchantments.json",
+      "entries": 58,
+      "submodule_sha256": "9923b8bd89e3222ad811205768f19f223a4e7653bc90546bb3ef2e96467e5764",
+      "installed_sha256": "9923b8bd89e3222ad811205768f19f223a4e7653bc90546bb3ef2e96467e5764",
+      "byte_equal": true
+    },
+    {
+      "table": "encounters.json",
+      "entries": 188,
+      "submodule_sha256": "d4d8ce9e8e2ff984d6f6cfdd9575b11d7639cfa015cd0da030f040e2b722ed6a",
+      "installed_sha256": "d4d8ce9e8e2ff984d6f6cfdd9575b11d7639cfa015cd0da030f040e2b722ed6a",
+      "byte_equal": true
+    },
+    {
+      "table": "epochs.json",
+      "entries": 261,
+      "submodule_sha256": "6f21a6261abe86df8b728dbd918322c2dc55038e7ad6e9dd9b97b0ec533a5b8e",
+      "installed_sha256": "6f21a6261abe86df8b728dbd918322c2dc55038e7ad6e9dd9b97b0ec533a5b8e",
+      "byte_equal": true
+    },
+    {
+      "table": "eras.json",
+      "entries": 50,
+      "submodule_sha256": "97302738b2716ae406e75aa56d24457d4e95ca31fd9cfb752166f772890c26e3",
+      "installed_sha256": "97302738b2716ae406e75aa56d24457d4e95ca31fd9cfb752166f772890c26e3",
+      "byte_equal": true
+    },
+    {
+      "table": "events.json",
+      "entries": 776,
+      "submodule_sha256": "5500e566e6951ccfc57ac07dd0b6490264e12391a638c2117d62e74526c94467",
+      "installed_sha256": "5500e566e6951ccfc57ac07dd0b6490264e12391a638c2117d62e74526c94467",
+      "byte_equal": true
+    },
+    {
+      "table": "extensions.json",
+      "entries": 21,
+      "submodule_sha256": "490c6538175639b087ae801d71085a6d8f16c8d814328baeeb86b7a106586ef9",
+      "installed_sha256": "490c6538175639b087ae801d71085a6d8f16c8d814328baeeb86b7a106586ef9",
+      "byte_equal": true
+    },
+    {
+      "table": "ftues.json",
+      "entries": 39,
+      "submodule_sha256": "59285fac84c5d8748dc8f6e8f5d189ca4504cb478106c8d8f22c677c871e5b49",
+      "installed_sha256": "59285fac84c5d8748dc8f6e8f5d189ca4504cb478106c8d8f22c677c871e5b49",
+      "byte_equal": true
+    },
+    {
+      "table": "game_modes.json",
+      "entries": 6,
+      "submodule_sha256": "30b9859cef050a563036e86a2106f8f9724ef0ffc5ce02385b8dc927262d71e6",
+      "installed_sha256": "30b9859cef050a563036e86a2106f8f9724ef0ffc5ce02385b8dc927262d71e6",
+      "byte_equal": true
+    },
+    {
+      "table": "game_over_screen.json",
+      "entries": 55,
+      "submodule_sha256": "570640c8d00b6f345adcc94e8eb64d0ec689072732de1b6bd231cbdcfce3a36e",
+      "installed_sha256": "570640c8d00b6f345adcc94e8eb64d0ec689072732de1b6bd231cbdcfce3a36e",
+      "byte_equal": true
+    },
+    {
+      "table": "gameplay_ui.json",
+      "entries": 104,
+      "submodule_sha256": "8b420b7427b8ebfb15d888ff0ae876bdcaaeac7e57b0c45b41937ca2627b9a91",
+      "installed_sha256": "8b420b7427b8ebfb15d888ff0ae876bdcaaeac7e57b0c45b41937ca2627b9a91",
+      "byte_equal": true
+    },
+    {
+      "table": "inspect_relic_screen.json",
+      "entries": 4,
+      "submodule_sha256": "fa3e1744c413f254c63b2d0892abb73305f91df67f41026c9963c2e5f7ad1e74",
+      "installed_sha256": "fa3e1744c413f254c63b2d0892abb73305f91df67f41026c9963c2e5f7ad1e74",
+      "byte_equal": true
+    },
+    {
+      "table": "intents.json",
+      "entries": 32,
+      "submodule_sha256": "f75be763a9c001cd14e57e5d14d9e226a0a0ab7ed14148d49b347e4596691e0f",
+      "installed_sha256": "f75be763a9c001cd14e57e5d14d9e226a0a0ab7ed14148d49b347e4596691e0f",
+      "byte_equal": true
+    },
+    {
+      "table": "main_menu_ui.json",
+      "entries": 225,
+      "submodule_sha256": "c53d280e04a7c55eb7d964069a686e63b2db2a9d5abea6a0158c1768816da2cc",
+      "installed_sha256": "c53d280e04a7c55eb7d964069a686e63b2db2a9d5abea6a0158c1768816da2cc",
+      "byte_equal": true
+    },
+    {
+      "table": "map.json",
+      "entries": 46,
+      "submodule_sha256": "22e7bdc3a523879d76df24d190472650dccb6c9951dd426fa7da0e01509d3a4a",
+      "installed_sha256": "22e7bdc3a523879d76df24d190472650dccb6c9951dd426fa7da0e01509d3a4a",
+      "byte_equal": true
+    },
+    {
+      "table": "merchant_room.json",
+      "entries": 18,
+      "submodule_sha256": "449a479228ce14adf113bc65ae3f3b0ee014a21502c1327cdb44bcc0a068b8e3",
+      "installed_sha256": "449a479228ce14adf113bc65ae3f3b0ee014a21502c1327cdb44bcc0a068b8e3",
+      "byte_equal": true
+    },
+    {
+      "table": "modifiers.json",
+      "entries": 34,
+      "submodule_sha256": "b9c0594887e012526ef8e9b6a6e99f49d4f0bdf893dde4f704c1b676997b5f74",
+      "installed_sha256": "b9c0594887e012526ef8e9b6a6e99f49d4f0bdf893dde4f704c1b676997b5f74",
+      "byte_equal": true
+    },
+    {
+      "table": "monsters.json",
+      "entries": 503,
+      "submodule_sha256": "16c6e5b86d8070e59b46a6d1b1c590581b9a97ba196cd96ae8bd2a7f50b84d62",
+      "installed_sha256": "16c6e5b86d8070e59b46a6d1b1c590581b9a97ba196cd96ae8bd2a7f50b84d62",
+      "byte_equal": true
+    },
+    {
+      "table": "orbs.json",
+      "entries": 19,
+      "submodule_sha256": "70ac60d34b872c580409cafba57b149a334dad261c87e26b1801e54409ea5a12",
+      "installed_sha256": "70ac60d34b872c580409cafba57b149a334dad261c87e26b1801e54409ea5a12",
+      "byte_equal": true
+    },
+    {
+      "table": "potion_lab.json",
+      "entries": 4,
+      "submodule_sha256": "bedabb7a2392c658c6b9ed9e29eccff28f312c81b1937e636da45ddced2bbb87",
+      "installed_sha256": "bedabb7a2392c658c6b9ed9e29eccff28f312c81b1937e636da45ddced2bbb87",
+      "byte_equal": true
+    },
+    {
+      "table": "potions.json",
+      "entries": 137,
+      "submodule_sha256": "2b3c5e0f6b80741273f4060444d0b40e9db5115ac3252f8476340858a701f5ca",
+      "installed_sha256": "2b3c5e0f6b80741273f4060444d0b40e9db5115ac3252f8476340858a701f5ca",
+      "byte_equal": true
+    },
+    {
+      "table": "powers.json",
+      "entries": 859,
+      "submodule_sha256": "b1a28215670efc6d427f198a0ef4e58df248c37e9c2893fc3ed9cf3c15cc8f5b",
+      "installed_sha256": "b1a28215670efc6d427f198a0ef4e58df248c37e9c2893fc3ed9cf3c15cc8f5b",
+      "byte_equal": true
+    },
+    {
+      "table": "relic_collection.json",
+      "entries": 9,
+      "submodule_sha256": "b7099bbe2ea2ef57a5cb648e9fd38d979d4178992c811c530e444e8c1bb90bbc",
+      "installed_sha256": "b7099bbe2ea2ef57a5cb648e9fd38d979d4178992c811c530e444e8c1bb90bbc",
+      "byte_equal": true
+    },
+    {
+      "table": "relics.json",
+      "entries": 991,
+      "submodule_sha256": "7379d2f141bc507fad392fd38d6d718667c6f55df5d2f6ce50ed0f5649403183",
+      "installed_sha256": "7379d2f141bc507fad392fd38d6d718667c6f55df5d2f6ce50ed0f5649403183",
+      "byte_equal": true
+    },
+    {
+      "table": "rest_site_ui.json",
+      "entries": 21,
+      "submodule_sha256": "d6e612c05c4c856b8d084435aac56f56cd1aa6db0936bd92b61f347ac6cc3cf5",
+      "installed_sha256": "d6e612c05c4c856b8d084435aac56f56cd1aa6db0936bd92b61f347ac6cc3cf5",
+      "byte_equal": true
+    },
+    {
+      "table": "rich_presence.json",
+      "entries": 6,
+      "submodule_sha256": "bbb19069fc4d66733b669023936c8633be76e0056ba05dc2b138bae0bd27d9bd",
+      "installed_sha256": "bbb19069fc4d66733b669023936c8633be76e0056ba05dc2b138bae0bd27d9bd",
+      "byte_equal": true
+    },
+    {
+      "table": "run_history.json",
+      "entries": 52,
+      "submodule_sha256": "bd29c7cb9f695bc45af2570c9296a92d5fd5236891c3ef6840a1b6b8c544d2b8",
+      "installed_sha256": "bd29c7cb9f695bc45af2570c9296a92d5fd5236891c3ef6840a1b6b8c544d2b8",
+      "byte_equal": true
+    },
+    {
+      "table": "settings_ui.json",
+      "entries": 192,
+      "submodule_sha256": "0632247c5a368c956d535cd91f59ad5eae72acdc974bd1bc6ef6aa53c01bb8b1",
+      "installed_sha256": "0632247c5a368c956d535cd91f59ad5eae72acdc974bd1bc6ef6aa53c01bb8b1",
+      "byte_equal": true
+    },
+    {
+      "table": "static_hover_tips.json",
+      "entries": 96,
+      "submodule_sha256": "9e695ff2079f01bc4cc28286d70f70bb1d74b720f8bf8bf2fc75ba0185263676",
+      "installed_sha256": "9e695ff2079f01bc4cc28286d70f70bb1d74b720f8bf8bf2fc75ba0185263676",
+      "byte_equal": true
+    },
+    {
+      "table": "stats_screen.json",
+      "entries": 33,
+      "submodule_sha256": "51ccec306c97c1dcb357f46f760f49e72bd2e7dbfc46e3ea8567688353702229",
+      "installed_sha256": "51ccec306c97c1dcb357f46f760f49e72bd2e7dbfc46e3ea8567688353702229",
+      "byte_equal": true
+    },
+    {
+      "table": "timeline.json",
+      "entries": 21,
+      "submodule_sha256": "581a812b9cc2036cd99bd49886e5116be3dc0897074e54663e3cf2227ea561fd",
+      "installed_sha256": "581a812b9cc2036cd99bd49886e5116be3dc0897074e54663e3cf2227ea561fd",
+      "byte_equal": true
+    },
+    {
+      "table": "vfx.json",
+      "entries": 9,
+      "submodule_sha256": "a57bcdcb4bb18f3304288420293425101448ac0f826c985a84bb80ab5f96e6b8",
+      "installed_sha256": "a57bcdcb4bb18f3304288420293425101448ac0f826c985a84bb80ab5f96e6b8",
+      "byte_equal": true
+    }
+  ],
+  "table_count": 46,
+  "entry_count": 7028,
+  "all_equal": true
+}

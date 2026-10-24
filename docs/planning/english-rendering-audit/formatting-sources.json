@@ -1,0 +1,450 @@
+[
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization/LocManager.cs",
+    "sha256": "d2b5ab17ce576968b0c67ed6dce06ddad2539de6c8c178772111583aec67d679",
+    "inspected_ranges": [
+      [
+        101,
+        158
+      ],
+      [
+        213,
+        281
+      ],
+      [
+        334,
+        560
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization/LocString.cs",
+    "sha256": "0fa4a7264937562d14a388a5253cec7c46c72ed93e617011137c103aeb2c9358",
+    "inspected_ranges": [
+      [
+        1,
+        165
+      ],
+      [
+        186,
+        194
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/CardModel.cs",
+    "sha256": "aa464f969f3d28c271aee8ed1594ba3118ddc4d4c6c1802d5ded725b6b70fe0c",
+    "inspected_ranges": [
+      [
+        108,
+        141
+      ],
+      [
+        1362,
+        1482
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Cards/NCard.cs",
+    "sha256": "8bae40781da943f91534efc01c469e2fe7e162a6cc4c5202c81ffb14838959a5",
+    "inspected_ranges": [
+      [
+        850,
+        906
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/RelicModel.cs",
+    "sha256": "82d29bc5857bbf1dadaf26a6d55dbb05c19af0067bf8a642dd6d225999303f7b",
+    "inspected_ranges": [
+      [
+        79,
+        110
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/PotionModel.cs",
+    "sha256": "7f84eddd89624d0bdf25b0e0082212d9ed60fce3ce239d4a1eca422ff9590836",
+    "inspected_ranges": [
+      [
+        42,
+        65
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/PowerModel.cs",
+    "sha256": "2cc44bddbdd6de6e1d3ded50110a0aace66bc37a942dbf1c5af2af08b9a80dbc",
+    "inspected_ranges": [
+      [
+        350,
+        402
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.addons.mega_text/MegaRichTextLabel.cs",
+    "sha256": "42e924f16e703864a3b9a9d1953d8de37ac393df1e5db20f85302361c560297e",
+    "inspected_ranges": [
+      [
+        184,
+        200
+      ],
+      [
+        328,
+        370
+      ],
+      [
+        388,
+        396
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.addons.mega_text/MegaLabelHelper.cs",
+    "sha256": "d04dce858fe3f7bbd0b9077aafc4e464587e0d676284cb56364361ae64e9e2bb",
+    "inspected_ranges": [
+      [
+        59,
+        162
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.RichTextTags/RichTextGreen.cs",
+    "sha256": "4361b2ac0758e2edcd074106b936ff061a9453f7d76caf75757bc0f4c7fa753a",
+    "inspected_ranges": [
+      [
+        46,
+        58
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.RichTextTags/RichTextGold.cs",
+    "sha256": "c1fa97347bf45fba1214d71cc71efe4ad70efcb2bec30905d24e1c690d60c402",
+    "inspected_ranges": [
+      [
+        46,
+        62
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization/LocTable.cs",
+    "sha256": "f6fe9e4dae5fccd0285c8d11ae256353860b2fed543ce9b6d8ca7842151eeb85",
+    "inspected_ranges": [
+      [
+        1,
+        83
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/DynamicVar.cs",
+    "sha256": "216afde24c1858c30c391c2a0667342e271760ad2d0098ed08ee74e0077754e0",
+    "inspected_ranges": [
+      [
+        1,
+        277
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/DynamicVarSet.cs",
+    "sha256": "7b4306e17cf2b22c8e0b2b1cda405bbdc0bea3095c3cd3f0cd0fc7617c5ae920",
+    "inspected_ranges": [
+      [
+        1,
+        159
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/IfUpgradedVar.cs",
+    "sha256": "07cb11313aecee95f2c226549369310af10095923aade57e3daee7adb72053da",
+    "inspected_ranges": [
+      [
+        1,
+        19
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/StringVar.cs",
+    "sha256": "2263264e8d3f4a296bba491701b34d5023b045972f0348815be33526f1fbeb0a",
+    "inspected_ranges": [
+      [
+        1,
+        17
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/BoolVar.cs",
+    "sha256": "82eae31dfadcb72e0ec0cbe94d45ba4932874e7474d4ee54e623618bcfbc6792",
+    "inspected_ranges": [
+      [
+        1,
+        28
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/CalculatedVar.cs",
+    "sha256": "871a069181106d274f9086b7535788beb9380ac66b1bb318172b455ebb7c6331",
+    "inspected_ranges": [
+      [
+        1,
+        124
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/DamageVar.cs",
+    "sha256": "807f35dcacb34a2881a40ed879a28643a46c9959383e2493aba664a6612d0912",
+    "inspected_ranges": [
+      [
+        1,
+        47
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.DynamicVars/BlockVar.cs",
+    "sha256": "5bd31d86dc11e74ab8789590d2d3944d842befbddc40b1f529cd772def377f70",
+    "inspected_ranges": [
+      [
+        1,
+        47
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.TextEffects/StsTextUtilities.cs",
+    "sha256": "1c0459e6aa10b90dbaa8fdf5ab599aa3a896112215dd6e0af3aaa0f7e89674cd",
+    "inspected_ranges": [
+      [
+        1,
+        32
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Cards/CardKeywordOrder.cs",
+    "sha256": "ecd4fd3b36aa727db0eee87318492c42ddfde1db3f7486b5ac65acba8f191682",
+    "inspected_ranges": [
+      [
+        1,
+        27
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Cards/CardKeywordExtensions.cs",
+    "sha256": "b6c0d085ecf4381f76e49f033648156a8fddc47448e35f4c98c87121324a1e8f",
+    "inspected_ranges": [
+      [
+        1,
+        29
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Cards/CardPreviewMode.cs",
+    "sha256": "cc29229e25b8494e22858688efb0bfa96d1bdfc578bccc16d73a07f17b049256",
+    "inspected_ranges": [
+      [
+        1,
+        29
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Helpers/EnergyIconHelper.cs",
+    "sha256": "97a9a51a532bf616cef3aca857834cc0f4abcf7128e6515d9e1dfdc094d23d64",
+    "inspected_ranges": [
+      [
+        1,
+        124
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/BodySlam.cs",
+    "sha256": "6bf65e2ac088fc3d924889d04ca0ce99dfd72869663f9f86c5687f12ed101aaa",
+    "inspected_ranges": [
+      [
+        1,
+        42
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/AbsoluteValueFormatter.cs",
+    "sha256": "cf4a2ce42757c1e11909c159d313ccb56a6a89a63ee264f4f0081c1c3b9c752c",
+    "inspected_ranges": [
+      [
+        1,
+        37
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/EnergyIconsFormatter.cs",
+    "sha256": "eabf8ac877d6a54270b22c30e0253f76728218281a5367ade2e2232c683e0734",
+    "inspected_ranges": [
+      [
+        1,
+        91
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/HighlightDifferencesFormatter.cs",
+    "sha256": "670a389f18b622f1c036a6c122eb5bc2a6018900ab4bc047cd16ffe24a59a257",
+    "inspected_ranges": [
+      [
+        1,
+        32
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/HighlightDifferencesInverseFormatter.cs",
+    "sha256": "c9af17c44df3c9eb660f7a51497290611d8ec89d417e3c18dd8c16ffcea172a1",
+    "inspected_ranges": [
+      [
+        1,
+        32
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/LocaleNumberFormatter.cs",
+    "sha256": "4a951c9ea4c3edcc240a7ea58fa663088a4f85db28db943264b45eb36f4e707f",
+    "inspected_ranges": [
+      [
+        1,
+        41
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/PercentLessFormatter.cs",
+    "sha256": "03ebf40beb9547bbbbf03ae348780697d2282b886a380893d1717feb60015813",
+    "inspected_ranges": [
+      [
+        1,
+        50
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/PercentMoreFormatter.cs",
+    "sha256": "014c7c1e18054316d5f240a4185b7671ff86ef9b99d9048a80a8c8483152f423",
+    "inspected_ranges": [
+      [
+        1,
+        50
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/ShowIfUpgradedFormatter.cs",
+    "sha256": "2639dcefbd5ef02a931cfb40d6a7c06d5fd63b7bbfe86764cede24aaa5b2efd7",
+    "inspected_ranges": [
+      [
+        1,
+        60
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Localization.Formatters/StarIconsFormatter.cs",
+    "sha256": "b7815582e3aa7e16cfe32b1d08103b1cf786f52ef3931d0f2af5624e16aaa7d6",
+    "inspected_ranges": [
+      [
+        1,
+        56
+      ]
+    ]
+  },
+  {
+    "source": "/tmp/sts2-english-formatting/SmartFormat.Extensions.ChooseFormatter.decompiled.cs",
+    "sha256": "9ff7fe56ff92d0ef36ccceb18305c63d192efc6301845e4476e967e20323c71a",
+    "inspected_ranges": [
+      [
+        1,
+        106
+      ]
+    ]
+  },
+  {
+    "source": "/tmp/sts2-english-formatting/SmartFormat.Extensions.ConditionalFormatter.decompiled.cs",
+    "sha256": "0689e1a72dacd3f5f501ace6d7ba2e5182ccacb15d10ad47e93d476c37de906c",
+    "inspected_ranges": [
+      [
+        1,
+        225
+      ]
+    ]
+  },
+  {
+    "source": "/tmp/sts2-english-formatting/SmartFormat.Extensions.DefaultFormatter.decompiled.cs",
+    "sha256": "995c071848b2240a1ada3c88d2ebea9197507d222417aa47a98a72442bef3133",
+    "inspected_ranges": [
+      [
+        1,
+        54
+      ]
+    ]
+  },
+  {
+    "source": "/tmp/sts2-english-formatting/SmartFormat.Extensions.PluralLocalizationFormatter.decompiled.cs",
+    "sha256": "8c90196bf0d7febd4d86b29e4708ba2259c9ebd6c1e612c52d1bc61da0c856af",
+    "inspected_ranges": [
+      [
+        1,
+        153
+      ]
+    ]
+  },
+  {
+    "source": "/tmp/sts2-english-formatting/SmartFormat.Utilities.PluralRules.decompiled.cs",
+    "sha256": "e04a09d971cbea8358a3d954c00ed62c7f9d85d787b77c1c0ef87292f0c052ea",
+    "inspected_ranges": [
+      [
+        1,
+        65
+      ],
+      [
+        145,
+        173
+      ]
+    ]
+  },
+  {
+    "source": "/mnt/c/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2/data_sts2_windows_x86_64/sts2.deps.json",
+    "sha256": "b4daebc073d305d38992016352e3f5ad0542891436c40d05733ca5dbc9a708b6",
+    "inspected_ranges": [
+      [
+        819,
+        836
+      ]
+    ]
+  },
+  {
+    "source": "sts2-cli/src/Sts2Headless/RunSimulator.cs",
+    "sha256": "19176bfe655e1b27c79b3c6b9918114018568926d73b60dc8a90abf49085c2ab",
+    "inspected_ranges": [
+      [
+        3520,
+        3645
+      ]
+    ]
+  }
+]

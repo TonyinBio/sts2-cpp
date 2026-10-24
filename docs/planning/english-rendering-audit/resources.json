@@ -1,0 +1,2196 @@
+{
+  "evidence_kind": "Installed resource bytes; not rendered output certification",
+  "association": "Co-installed release metadata, DLL and PCK recorded as an explicit pair; not a vendor signature or proof that the DLL alone identifies content",
+  "release_info": {
+    "commit": "41cef1ea",
+    "version": "v0.111.0",
+    "date": "2026-08-13T17:39:18-07:00",
+    "branch": "v0.111.0",
+    "main_assembly_hash": 222455745
+  },
+  "release_info_sha256": "74f244b13e9c6849149bec3b37e1729777a7f21306c56383405c2949eea62e22",
+  "binaries_sha256": {
+    "sts2.dll": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+    "SmartFormat.dll": "6220cde1dafffde5c51a4e23db4bb16e8ec620ef52bac51c0ad5f48c4769f168",
+    "SmartFormat.ZString.dll": "723e9ffdb9cec9565d9bbbdb27b4d19a9b0ba4ff006e1ab8b94022ae5c426450",
+    "sts2.deps.json": "b4daebc073d305d38992016352e3f5ad0542891436c40d05733ca5dbc9a708b6"
+  },
+  "pck_sha256": "c60f672ee7804e6aefa1e19a582fa1c80b126a7b0eef4d084d3abf110df2eab7",
+  "pck_header": {
+    "magic": 1129333831,
+    "format": 3,
+    "engine_major": 4,
+    "engine_minor": 5,
+    "engine_patch": 1,
+    "flags": 2
+  },
+  "extractor_source": "sts2-cli/scripts/extract_localization.py",
+  "extractor_sha256": "c4e463a7d02fe0853ac929b26d441b720a735e5d3db8ea5998693bd3d32622b4",
+  "wrapper_revision": "084d1aa3d8e118ca7ce8d8774ad16d6be9c92367",
+  "extracted_eng_and_zhs_table_count": 92,
+  "english_table_count": 46,
+  "english_key_count": 7028,
+  "all_wrapper_english_tables_byte_identical": true,
+  "tables": [
+    {
+      "resource": "res://localization/eng/achievements.json",
+      "bytes": 4143,
+      "keys": 71,
+      "sha256": "ac683e310e1ecb876d3d4a8c5d10086d8172678273939a96c93e7ad42738ee99",
+      "wrapper_sha256": "ac683e310e1ecb876d3d4a8c5d10086d8172678273939a96c93e7ad42738ee99",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/acts.json",
+      "bytes": 169,
+      "keys": 5,
+      "sha256": "d55c4186f0f85a75f9e4c83e4af022306a14022f3e91e83030737b295d4ca0ca",
+      "wrapper_sha256": "d55c4186f0f85a75f9e4c83e4af022306a14022f3e91e83030737b295d4ca0ca",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/afflictions.json",
+      "bytes": 1437,
+      "keys": 25,
+      "sha256": "62e6b24bfa2ea7d01a843880b23bd626e1805db92ef9b6c6cd82e61e9989a6b8",
+      "wrapper_sha256": "62e6b24bfa2ea7d01a843880b23bd626e1805db92ef9b6c6cd82e61e9989a6b8",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/ancients.json",
+      "bytes": 34143,
+      "keys": 437,
+      "sha256": "cd0d1c321f5c42db844b22178abf88297ba3942d557402537bef7437c9c41593",
+      "wrapper_sha256": "cd0d1c321f5c42db844b22178abf88297ba3942d557402537bef7437c9c41593",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/ascension.json",
+      "bytes": 1369,
+      "keys": 25,
+      "sha256": "444dd4e2b9f5874fbb947010f68121fb4490d0f1c3e80926443c5c31616bd34f",
+      "wrapper_sha256": "444dd4e2b9f5874fbb947010f68121fb4490d0f1c3e80926443c5c31616bd34f",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/badges.json",
+      "bytes": 4886,
+      "keys": 82,
+      "sha256": "01d360470521c6c15ef288ee74524cc770e5be5680e0a15672a2691716db394d",
+      "wrapper_sha256": "01d360470521c6c15ef288ee74524cc770e5be5680e0a15672a2691716db394d",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/bestiary.json",
+      "bytes": 804,
+      "keys": 17,
+      "sha256": "76d6ecd800fed18618f8c16bdd68e1ba2c9b81e9ba935e499a563816b166d653",
+      "wrapper_sha256": "76d6ecd800fed18618f8c16bdd68e1ba2c9b81e9ba935e499a563816b166d653",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/card_keywords.json",
+      "bytes": 861,
+      "keys": 15,
+      "sha256": "4d84243b0540c06c90f2854d1f757aad2243300f0c6056e39a0cb39225c289cc",
+      "wrapper_sha256": "4d84243b0540c06c90f2854d1f757aad2243300f0c6056e39a0cb39225c289cc",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/card_library.json",
+      "bytes": 1523,
+      "keys": 31,
+      "sha256": "305afbdefcc38756dbb1db576c483b6843ca56770a9850dd48ac0c24ba3f795a",
+      "wrapper_sha256": "305afbdefcc38756dbb1db576c483b6843ca56770a9850dd48ac0c24ba3f795a",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/card_reward_ui.json",
+      "bytes": 107,
+      "keys": 3,
+      "sha256": "7760bb95ab8adce90dffc1ee9be44e338913a1f1d157defa947e2188dba21414",
+      "wrapper_sha256": "7760bb95ab8adce90dffc1ee9be44e338913a1f1d157defa947e2188dba21414",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/card_selection.json",
+      "bytes": 621,
+      "keys": 7,
+      "sha256": "7568f0915ed1887b947dd52d2c2715ac9a34328e61b5a945054b1fc0dcf48b55",
+      "wrapper_sha256": "7568f0915ed1887b947dd52d2c2715ac9a34328e61b5a945054b1fc0dcf48b55",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/cards.json",
+      "bytes": 99783,
+      "keys": 1273,
+      "sha256": "c469a0be87d57c1476b75a5d0d3031cebf47e65d380a4646aae0028a20c993c0",
+      "wrapper_sha256": "c469a0be87d57c1476b75a5d0d3031cebf47e65d380a4646aae0028a20c993c0",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/characters.json",
+      "bytes": 5740,
+      "keys": 95,
+      "sha256": "f7d59d78450fc987fc709406107ef5b0c2f527192e7c646c4a7dadcef17207a3",
+      "wrapper_sha256": "f7d59d78450fc987fc709406107ef5b0c2f527192e7c646c4a7dadcef17207a3",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/combat_messages.json",
+      "bytes": 510,
+      "keys": 9,
+      "sha256": "9a62f5ebf042b1a94618508468a3e26504ebb8f6347586daf59fb8d09bb2482f",
+      "wrapper_sha256": "9a62f5ebf042b1a94618508468a3e26504ebb8f6347586daf59fb8d09bb2482f",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/credits.json",
+      "bytes": 7220,
+      "keys": 64,
+      "sha256": "3db3a3eb18b8893be2219f92cb8ee8280f1a1df1206dbf71a52907aa9d222270",
+      "wrapper_sha256": "3db3a3eb18b8893be2219f92cb8ee8280f1a1df1206dbf71a52907aa9d222270",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/enchantments.json",
+      "bytes": 3824,
+      "keys": 58,
+      "sha256": "9923b8bd89e3222ad811205768f19f223a4e7653bc90546bb3ef2e96467e5764",
+      "wrapper_sha256": "9923b8bd89e3222ad811205768f19f223a4e7653bc90546bb3ef2e96467e5764",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/encounters.json",
+      "bytes": 13381,
+      "keys": 188,
+      "sha256": "d4d8ce9e8e2ff984d6f6cfdd9575b11d7639cfa015cd0da030f040e2b722ed6a",
+      "wrapper_sha256": "d4d8ce9e8e2ff984d6f6cfdd9575b11d7639cfa015cd0da030f040e2b722ed6a",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/epochs.json",
+      "bytes": 34491,
+      "keys": 261,
+      "sha256": "6f21a6261abe86df8b728dbd918322c2dc55038e7ad6e9dd9b97b0ec533a5b8e",
+      "wrapper_sha256": "6f21a6261abe86df8b728dbd918322c2dc55038e7ad6e9dd9b97b0ec533a5b8e",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/eras.json",
+      "bytes": 1270,
+      "keys": 50,
+      "sha256": "97302738b2716ae406e75aa56d24457d4e95ca31fd9cfb752166f772890c26e3",
+      "wrapper_sha256": "97302738b2716ae406e75aa56d24457d4e95ca31fd9cfb752166f772890c26e3",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/events.json",
+      "bytes": 114287,
+      "keys": 776,
+      "sha256": "5500e566e6951ccfc57ac07dd0b6490264e12391a638c2117d62e74526c94467",
+      "wrapper_sha256": "5500e566e6951ccfc57ac07dd0b6490264e12391a638c2117d62e74526c94467",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/extensions.json",
+      "bytes": 1561,
+      "keys": 21,
+      "sha256": "490c6538175639b087ae801d71085a6d8f16c8d814328baeeb86b7a106586ef9",
+      "wrapper_sha256": "490c6538175639b087ae801d71085a6d8f16c8d814328baeeb86b7a106586ef9",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/ftues.json",
+      "bytes": 4696,
+      "keys": 39,
+      "sha256": "59285fac84c5d8748dc8f6e8f5d189ca4504cb478106c8d8f22c677c871e5b49",
+      "wrapper_sha256": "59285fac84c5d8748dc8f6e8f5d189ca4504cb478106c8d8f22c677c871e5b49",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/game_modes.json",
+      "bytes": 463,
+      "keys": 6,
+      "sha256": "30b9859cef050a563036e86a2106f8f9724ef0ffc5ce02385b8dc927262d71e6",
+      "wrapper_sha256": "30b9859cef050a563036e86a2106f8f9724ef0ffc5ce02385b8dc927262d71e6",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/game_over_screen.json",
+      "bytes": 3171,
+      "keys": 55,
+      "sha256": "570640c8d00b6f345adcc94e8eb64d0ec689072732de1b6bd231cbdcfce3a36e",
+      "wrapper_sha256": "570640c8d00b6f345adcc94e8eb64d0ec689072732de1b6bd231cbdcfce3a36e",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/gameplay_ui.json",
+      "bytes": 4814,
+      "keys": 104,
+      "sha256": "8b420b7427b8ebfb15d888ff0ae876bdcaaeac7e57b0c45b41937ca2627b9a91",
+      "wrapper_sha256": "8b420b7427b8ebfb15d888ff0ae876bdcaaeac7e57b0c45b41937ca2627b9a91",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/inspect_relic_screen.json",
+      "bytes": 229,
+      "keys": 4,
+      "sha256": "fa3e1744c413f254c63b2d0892abb73305f91df67f41026c9963c2e5f7ad1e74",
+      "wrapper_sha256": "fa3e1744c413f254c63b2d0892abb73305f91df67f41026c9963c2e5f7ad1e74",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/intents.json",
+      "bytes": 1930,
+      "keys": 32,
+      "sha256": "f75be763a9c001cd14e57e5d14d9e226a0a0ab7ed14148d49b347e4596691e0f",
+      "wrapper_sha256": "f75be763a9c001cd14e57e5d14d9e226a0a0ab7ed14148d49b347e4596691e0f",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/main_menu_ui.json",
+      "bytes": 18310,
+      "keys": 225,
+      "sha256": "c53d280e04a7c55eb7d964069a686e63b2db2a9d5abea6a0158c1768816da2cc",
+      "wrapper_sha256": "c53d280e04a7c55eb7d964069a686e63b2db2a9d5abea6a0158c1768816da2cc",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/map.json",
+      "bytes": 2852,
+      "keys": 46,
+      "sha256": "22e7bdc3a523879d76df24d190472650dccb6c9951dd426fa7da0e01509d3a4a",
+      "wrapper_sha256": "22e7bdc3a523879d76df24d190472650dccb6c9951dd426fa7da0e01509d3a4a",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/merchant_room.json",
+      "bytes": 1482,
+      "keys": 18,
+      "sha256": "449a479228ce14adf113bc65ae3f3b0ee014a21502c1327cdb44bcc0a068b8e3",
+      "wrapper_sha256": "449a479228ce14adf113bc65ae3f3b0ee014a21502c1327cdb44bcc0a068b8e3",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/modifiers.json",
+      "bytes": 2498,
+      "keys": 34,
+      "sha256": "b9c0594887e012526ef8e9b6a6e99f49d4f0bdf893dde4f704c1b676997b5f74",
+      "wrapper_sha256": "b9c0594887e012526ef8e9b6a6e99f49d4f0bdf893dde4f704c1b676997b5f74",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/monsters.json",
+      "bytes": 24915,
+      "keys": 503,
+      "sha256": "16c6e5b86d8070e59b46a6d1b1c590581b9a97ba196cd96ae8bd2a7f50b84d62",
+      "wrapper_sha256": "16c6e5b86d8070e59b46a6d1b1c590581b9a97ba196cd96ae8bd2a7f50b84d62",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/orbs.json",
+      "bytes": 1858,
+      "keys": 19,
+      "sha256": "70ac60d34b872c580409cafba57b149a334dad261c87e26b1801e54409ea5a12",
+      "wrapper_sha256": "70ac60d34b872c580409cafba57b149a334dad261c87e26b1801e54409ea5a12",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/potion_lab.json",
+      "bytes": 506,
+      "keys": 4,
+      "sha256": "bedabb7a2392c658c6b9ed9e29eccff28f312c81b1937e636da45ddced2bbb87",
+      "wrapper_sha256": "bedabb7a2392c658c6b9ed9e29eccff28f312c81b1937e636da45ddced2bbb87",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/potions.json",
+      "bytes": 10802,
+      "keys": 137,
+      "sha256": "2b3c5e0f6b80741273f4060444d0b40e9db5115ac3252f8476340858a701f5ca",
+      "wrapper_sha256": "2b3c5e0f6b80741273f4060444d0b40e9db5115ac3252f8476340858a701f5ca",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/powers.json",
+      "bytes": 82230,
+      "keys": 859,
+      "sha256": "b1a28215670efc6d427f198a0ef4e58df248c37e9c2893fc3ed9cf3c15cc8f5b",
+      "wrapper_sha256": "b1a28215670efc6d427f198a0ef4e58df248c37e9c2893fc3ed9cf3c15cc8f5b",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/relic_collection.json",
+      "bytes": 923,
+      "keys": 9,
+      "sha256": "b7099bbe2ea2ef57a5cb648e9fd38d979d4178992c811c530e444e8c1bb90bbc",
+      "wrapper_sha256": "b7099bbe2ea2ef57a5cb648e9fd38d979d4178992c811c530e444e8c1bb90bbc",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/relics.json",
+      "bytes": 91491,
+      "keys": 991,
+      "sha256": "7379d2f141bc507fad392fd38d6d718667c6f55df5d2f6ce50ed0f5649403183",
+      "wrapper_sha256": "7379d2f141bc507fad392fd38d6d718667c6f55df5d2f6ce50ed0f5649403183",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/rest_site_ui.json",
+      "bytes": 1372,
+      "keys": 21,
+      "sha256": "d6e612c05c4c856b8d084435aac56f56cd1aa6db0936bd92b61f347ac6cc3cf5",
+      "wrapper_sha256": "d6e612c05c4c856b8d084435aac56f56cd1aa6db0936bd92b61f347ac6cc3cf5",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/rich_presence.json",
+      "bytes": 255,
+      "keys": 6,
+      "sha256": "bbb19069fc4d66733b669023936c8633be76e0056ba05dc2b138bae0bd27d9bd",
+      "wrapper_sha256": "bbb19069fc4d66733b669023936c8633be76e0056ba05dc2b138bae0bd27d9bd",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/run_history.json",
+      "bytes": 3657,
+      "keys": 52,
+      "sha256": "bd29c7cb9f695bc45af2570c9296a92d5fd5236891c3ef6840a1b6b8c544d2b8",
+      "wrapper_sha256": "bd29c7cb9f695bc45af2570c9296a92d5fd5236891c3ef6840a1b6b8c544d2b8",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/settings_ui.json",
+      "bytes": 11615,
+      "keys": 192,
+      "sha256": "0632247c5a368c956d535cd91f59ad5eae72acdc974bd1bc6ef6aa53c01bb8b1",
+      "wrapper_sha256": "0632247c5a368c956d535cd91f59ad5eae72acdc974bd1bc6ef6aa53c01bb8b1",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/static_hover_tips.json",
+      "bytes": 7301,
+      "keys": 96,
+      "sha256": "9e695ff2079f01bc4cc28286d70f70bb1d74b720f8bf8bf2fc75ba0185263676",
+      "wrapper_sha256": "9e695ff2079f01bc4cc28286d70f70bb1d74b720f8bf8bf2fc75ba0185263676",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/stats_screen.json",
+      "bytes": 2075,
+      "keys": 33,
+      "sha256": "51ccec306c97c1dcb357f46f760f49e72bd2e7dbfc46e3ea8567688353702229",
+      "wrapper_sha256": "51ccec306c97c1dcb357f46f760f49e72bd2e7dbfc46e3ea8567688353702229",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/timeline.json",
+      "bytes": 1324,
+      "keys": 21,
+      "sha256": "581a812b9cc2036cd99bd49886e5116be3dc0897074e54663e3cf2227ea561fd",
+      "wrapper_sha256": "581a812b9cc2036cd99bd49886e5116be3dc0897074e54663e3cf2227ea561fd",
+      "byte_identical": true
+    },
+    {
+      "resource": "res://localization/eng/vfx.json",
+      "bytes": 488,
+      "keys": 9,
+      "sha256": "a57bcdcb4bb18f3304288420293425101448ac0f826c985a84bb80ab5f96e6b8",
+      "wrapper_sha256": "a57bcdcb4bb18f3304288420293425101448ac0f826c985a84bb80ab5f96e6b8",
+      "byte_identical": true
+    }
+  ],
+  "root_inventory_scope": "Prefix lookup only for the 224 audited roots; not semantic closure, inherited/fixed dependency coverage or exact rendering validation",
+  "roots_source_sha256": "cce7e3da97cfd14e914c1cc3562610628b6945c1c34f98eb9daa82a1c4bb6f69",
+  "root_prefix_inventory": [
+    {
+      "group": "cards",
+      "model": "CARD.APPARITION",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "9d22cc2f4c0a92368f5381210e788e32df408aaee9be5a7e9058aa22958056e9"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.ARMAMENTS",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "cbcba78ecba89495b5f4d238e82a94d37e57fc507962f1df93972752fa81d621"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.AUTOMATION",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "e775b2e92df9bf8685c9d467fb172525a53a7fc56360f4fd3b533349f91682b1"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.BASH",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "d39766599e913b654fd9e69ad994152b46e5a15281ce2f947b81ef8de275aac3"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.BLOODLETTING",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "89566603d1e6506408d0a6108cdb3517f29e7c1887ad9b99c452d8bb800ac313"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.BLOOD_WALL",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "a0052dd06320e88a1eadf00814941464085f0b9db298cb6f0553ccbbf207ec82"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.BLUDGEON",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "8cdb9fb88d0b0544cd253950f66af01605aa26020ec3c57b05a34cc14e688c99"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.BODY_SLAM",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "0d4d22bc16d2d49103df4ca07733e3dda982ac752bbba38f6aef9bb045e64653"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.BOLAS",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "4ccb761b6c5819d5f17e4b5409c911410148143eb7de2c81e6a11725cbdb5d6e"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.BRAND",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "0f690c63a96fb911caa58993d02a7cad95271df4f095e00c9fc7f8c7da77dd55"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.BREAK",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "039babc5940e3f17d88202830e49d7cd1b3abe8d952d2eff354f26fb2ff60d57"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.BREAKTHROUGH",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "aeea58907d7d5e6cbcf2d4dd30b6ca632a85a2562ccea2ed73858d7bf5d80e60"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.BURN",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "f9a430be677ac2cb7c59ddfc4f881798f7a3d23e5f645a41d114eaf6b4ce9d03"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.BURNING_PACT",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "71cbae89ccd2aeee1a46245aea7110cab4488d85aea6b473b32ef70451ccd4e2"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.CATASTROPHE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "cf59ad26d022a2aaa901b8ae242ec434a5cc14a9eca058e560a80159d04ba67d"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.CINDER",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "7c7287aa70472c6f4d0c1a653cda04308eadae41448b923a81b5dd5bf7f26d4f"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.CLUMSY",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "00509bfd677f414eca2aa978af0b067b6c58836c29d02c4cb2f9551efd88fc05"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.COLOSSUS",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "e9196118e90fd9a9fdcae8afe8a5624bfc9b7122b08461fcc4ff53a3a9542002"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.CONFLAGRATION",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "bafc9868e049f830673b0036cdaf9fdd71f5aaef958c84f0a66d0a4bbdd893c9"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.CRIMSON_MANTLE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "29f6d5e618fe2c93bbda6134389a7563c48409600190253fd8ee4417171fa6e1"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.DEBT",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "3a30e814f07a4e67e20cc516dc5512477be53b879915151a92bcfa89f7b669bc"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.DEFEND_IRONCLAD",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "7af4565333587a61e00d02fb94bc99a8273cf0633700eec19f52d24ebb40b665"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.DISMANTLE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "a4479427a79c6ccf62de0540696d30fbae4b08ff83c7fd4cf7cfec36fc2beed8"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.DOMINATE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "574b392dd33ad09398b04eb2b59abc86803b65976843846bd4d8202a43ad04f5"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.DRUM_OF_BATTLE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "ee6604ab8df16d44ddd6b387e836b355219e4305263baf793a1f94933e3e93ff"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.ENTROPY",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "7ac98702f39f3e1da1ab6a8558687eb21cc345417e49f8c867cf0aa25fbed182"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.FEEL_NO_PAIN",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "4825b7b03e2945ea929c1723cd24e2dab073fb2201a167bc69e81cba8e9a7dc9"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.FLAME_BARRIER",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "d36b7b9bb1574e42f26511eec98b84c3bad7c8f360d676c624df4c55bb5e2557"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.FRANTIC_ESCAPE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "f47528366ff7a312fe0415ff00bf6ab2d8031cd5054dda87c99ef433dac1cc98"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.GOLD_AXE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "55860720b2aa73bf3d0abd792d405305e805ab1a92413f2a022d1d4f298bf00b"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.HAVOC",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "84d6715adbfc1952c8091004a2bd017143d8014b268e9bb0a7dac8e4510fe19a"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.HEADBUTT",
+      "matching_tables": {
+        "cards.json": 3
+      },
+      "key_names_sha256": "44f246d8f64f88867993ebaee2f79402354b72e0201e2c17fbf3c853efa614ff"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.HOWL_FROM_BEYOND",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "2841960c21d385b52d3a40531746b7980bbe7ca48058d3a514ac6075d48cfc71"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.IMPERVIOUS",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "f4bc082b7083a2ccdcbbee15ed4205e392b77b53c7ffe4f0e761c62a24f9dcae"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.INFECTION",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "e92b7775b75229bf7c84cadfe69fd36904915ca8babf3b4c886906c90967d00f"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.INFLAME",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "e45da73464d8d9c5331ab2a67a5017284430cfbd497049463fe9d2039a18f704"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.IRON_WAVE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "8e21bd3a724d1a7e33d7bd75813aefc82f17b0373f7fd42477ca9de75900c594"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.JACK_OF_ALL_TRADES",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "d02c652cb797fbaa5fe7d2c9d2ab0b54301397b53be27cf2f7a7d0d4cfd2880f"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.JUGGLING",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "8e61a8fa7da6e434eb99ea2b3a99b9c5beb36b4685423a46a2d7c70469621f7e"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.MAD_SCIENCE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "fb49c86f1184df21e46ce1f72d6238203e34dbf69d75724bb8c818d64d62f8be"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.MANGLE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "6ff6c771185fbe40200138e610c8f38620e285b7ca4008eae13aed522fc01be3"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.MOLTEN_FIST",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "b5db73cac80c7a69bb0ce70bf231788462d4421ee0108259e752848d45e43530"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.OFFERING",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "fa7d8f38a17549d8750669001dabdb0778a4e9bd0fadf87b11e4e079ece7542f"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.ONE_TWO_PUNCH",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "033fd3022efa2bdcc0a739e6559e9b8c41bbd3380a9d7e10b98ae26b91faa4ed"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.PACTS_END",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "8192933253a2b14122c61dc775321a22a5224ebafdf28d2aa32637cdcf534ff7"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.PERFECTED_STRIKE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "70ec716cb1588136ae1c8aba9d6e80aad234f792eff9c0c50f834e1175d0faa8"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.PILLAGE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "6e4fe8fd8d7ed9a5f067986f78b7d3b533401739810530db3ba12ad496c2adf4"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.POMMEL_STRIKE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "57b25d76ca38a22c821ef05f0b10baf2fd3e61b73929f9a8a879cc0578d42bb6"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.PURITY",
+      "matching_tables": {
+        "cards.json": 3
+      },
+      "key_names_sha256": "f5946f031209e91fbfa488391a764255e385bb85ef92e0f646b1a08e823bc316"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.SECOND_WIND",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "6a8968034145144e98154a4c0e9e84c7cf64bc653e85246692c2d0c285a6ae54"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.SETUP_STRIKE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "347b0ec3c3c9a69ba6f91b68927ae15030c075190d7f976e2724af6bd7976a55"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.SHOCKWAVE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "606cc54e1c4e48b12fb6d10007dd21a8e472dd3ce80eeb32d06cff9a0b3ad6b8"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.SHRUG_IT_OFF",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "ab59b57ef70bfcf81d4d91964bd88aad360ca39e977a79eefdf83365dd90eeeb"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.SLIMED",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "a2c267395b2fa08b421c44c17bec4a9af9d5157b2e7f53cec0daff678aa12bdb"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.SPLASH",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "b094c4484779660e1c6d8642447c67adf29a75ea7f863c1fd50d5cd548eb072f"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.SPOILS_MAP",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "f85b05bcf0e9c8ddbc799faf5a25fd38e12feafaa51d24620f9a2d755baeee06"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.STAMPEDE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "af59aea2c8adc3974d6fd8d9245b3e6816e2f44593edd5f4644e3b26a9718bde"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.STRIKE_IRONCLAD",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "658a20d5af62bf90d8dc9bc5c62f01ae69d714ec3a1cf103d02ce9ad67fb5cb0"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.SWORD_BOOMERANG",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "56ea198716fadcb84c78f0375074200856623c63b158e5f8a27a7c42b568ea04"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.TAUNT",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "f945d0260d8fc122d61d256755836c160a5fc2556495dc262321855b5d3d53de"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.TEAR_ASUNDER",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "3ded1cba4dca49ea676c9eee11e23726944d6440af6c1edfb6edf3015f59d27a"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.THE_GAMBIT",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "a5b0cebf915bad551373219d1fb8b77ca7f54c6ac9b88553342cbb839f687efb"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.THRASH",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "e81e8b5e6dfd2952c573ecef27fc9ce39f40a43f243b88cf7760fe0ad90ff21c"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.THUNDERCLAP",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "3335e8f981b248c9cc2523a179bf93437d08ccca4e56f502dee519ffeb8b173d"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.TREMBLE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "e10de9e836d74728a35aba98db2912353d1080d6e475e26420feba15fc208531"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.TRUE_GRIT",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "fc2274c007afed4d0ee162d7238aca050d304665ce39c6d8dfc5755793af4dba"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.TWIN_STRIKE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "378f931224a92b1334d8c7a346e5e99958bd396f9d2163ddd01b85edb1c0076e"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.ULTIMATE_STRIKE",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "4d88b0304ae3c79115e6a0301924e9f2a0d8f3279facd1f8c26b6804e9698fde"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.UNRELENTING",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "e5fcd95087ff9b28f940b3377962e032edf6c9cf4deadf9a39cccc671e1cc3fa"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.UPPERCUT",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "da17d3740c861e887f0350b9bb509a54dc2baafda9a1c9b2702398370c51bc4a"
+    },
+    {
+      "group": "cards",
+      "model": "CARD.VICIOUS",
+      "matching_tables": {
+        "cards.json": 2
+      },
+      "key_names_sha256": "c6ee9f25cab4991fb9c54f4fbb87f73fd3b7aeebe775e0fc16da740ae9113bfc"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.ALCHEMICAL_COFFER",
+      "matching_tables": {
+        "relics.json": 4
+      },
+      "key_names_sha256": "82f922cc97f4a598c758d984aa0046b72f11a2569eb18f41b7a5315b3d229bb4"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.ARCHAIC_TOOTH",
+      "matching_tables": {
+        "relics.json": 4
+      },
+      "key_names_sha256": "857acfd0f9caca31932109f76e7782aee275306be9dd9ea0ea0a8f99c1a5e703"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.BAG_OF_MARBLES",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "8f11ad2bec1820dc0b7247bbd9fc4a9f42cdffd0cb97cf6501d9a1b6f261e1b1"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.BAG_OF_PREPARATION",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "932de46e5cd4d66a5968ef8e04a048da2364d59b732ddcc9ad30a8aeb893b3ad"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.BLOOD_VIAL",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "b09d0ced65003b5c99c8e59f2706b8244be9020ed2988b71959077ce6aea005f"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.BURNING_BLOOD",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "72f0102a53fadfe0a84b9e41f1d1005b7ef3427d284a1719121caa5b20f9238a"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.BURNING_STICKS",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "0bdcd540a8b669dddb9a1de218b05889ce1e8c606ae1c81cca3e26655cf921b2"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.CENTENNIAL_PUZZLE",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "70bcb5a2d442d2cbc734d7412f7d748f1325fe645263332320b44faf6b48f65b"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.CHOSEN_CHEESE",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "615a18c634e7f432a8327e944cdb0518f04c82a10b61594e708ab0193686e378"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.DISTINGUISHED_CAPE",
+      "matching_tables": {
+        "relics.json": 4
+      },
+      "key_names_sha256": "994c68b46a7d9c960ce23d60c9aadea1487f57f613174ef2ce87a84f63f9be57"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.GOLDEN_PEARL",
+      "matching_tables": {
+        "powers.json": 1,
+        "relics.json": 3
+      },
+      "key_names_sha256": "e9844d28af872f7acd4607cf338490a3e90a8d9d803aa76f38dfa7946f67ac15"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.GORGET",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "a75c9176d6a399bd5bb93930889dd952c7a7931bc75942955865531960522b85"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.HORN_CLEAT",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "00f298d944e3439f3044f5cedcb33a340a556b302500cbdf2ab62d268dda0628"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.JOSS_PAPER",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "3f67fd02cd823e377a3bee3717ee7a9fd27e876c6d6f990e4f6b29a8abd9c944"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.LEAD_PAPERWEIGHT",
+      "matching_tables": {
+        "relics.json": 4
+      },
+      "key_names_sha256": "64a7407f24fd1b0e5c457f1ea7d8c081c1ce31fb75afafddd717835665aecdcf"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.LETTER_OPENER",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "868c1988678dde75bcee0cf1684b233f8b5a9b010c5405fc9d8fbb7691f952c5"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.LORDS_PARASOL",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "cb4bda8a713cbc926de724bbd670a0603498fb9b7fd05e8afedd106f4627ae2e"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.LUCKY_FYSH",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "5bf10edeecd62ac5952b05cd6f903d1e4b8994243b2540ee5042dbd5fca307c2"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.MINIATURE_TENT",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "432fd5a971cd2bb8d32a8fac9ee238dc2317604a25c0c5e0f80edc8489b3d07a"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.MUMMIFIED_HAND",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "43634f311b1c9c57a012fb0f1a9b54c8ba2da20132fe5c6d93f75c02eafed5b4"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.NUNCHAKU",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "2bb867d4df932106a0cb0a47d535b9ede789461c2d6a7c07f17760cd6e7e4a38"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.PENDULUM",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "61dfd5fb89cea209f6b7d56aa389e855115c708d86af875b57a72e2e512ac7a5"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.PERMAFROST",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "ffbe4d648ec6db9acd80cff3cd70cb4ba8e1c7063edb3429d8016c2b2f350225"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.PUNCH_DAGGER",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "e7568198f9313b46cec534b24c593e562998e2ace1d783d40e77075df1fa572a"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.RAINBOW_RING",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "681d487852e5119393c0dcef74c5c1610b335093813be34e0a2b0a22dab4d4c8"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.RED_SKULL",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "f9db7e9eae2867dcc999b68a86bfda0cb841bda1a10b84cec31e20a5a71c87f7"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.SEA_GLASS",
+      "matching_tables": {
+        "relics.json": 9
+      },
+      "key_names_sha256": "b4af7923d01d81288a8ac16170ee0e76a5cdf3ab1cf6d08a455110b0ea878e7c"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.SILKEN_TRESS",
+      "matching_tables": {
+        "relics.json": 4
+      },
+      "key_names_sha256": "4e4b9c803b7632c1b8bce83d45c1e9eb16070b6968d28a60c125737a28a382c4"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.SPARKLING_ROUGE",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "a208e93ebaddeeb137c5d8a873ab7e570c2737d0aafe44a7b462e5453c87b95b"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.VEXING_PUZZLEBOX",
+      "matching_tables": {
+        "relics.json": 3
+      },
+      "key_names_sha256": "84407de0a2365c1ebac8b3bf8fb66f6f570c90827f211b3b67713d986ed707f5"
+    },
+    {
+      "group": "relics",
+      "model": "RELIC.WHISPERING_EARRING",
+      "matching_tables": {
+        "relics.json": 5
+      },
+      "key_names_sha256": "9e0ecb5ffc299edbc96fc2148127f60cd58ab588c45b48d4dc681f59058042d8"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.BLOCK_POTION",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "a11779939334238f7d690349d2a855fe18af5a4f7648a770de825f97b5181b57"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.COLORLESS_POTION",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "de2abb6d5ae0b1b4c4634c1dff1a70674903147c7d4a76e85f4de27ac341da1e"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.CURE_ALL",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "1c483673ce33ddc14ff0187b8af6e6b6b42db260f2f0224d7bc4efcec77b2ac7"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.DEXTERITY_POTION",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "773de76079298ca8fc4ef3b1c8e75c9242c0e0f881457db6beeae7c9d84860c2"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.DUPLICATOR",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "e473dbe036e6bba0a5e32e7eca461cd7c41e6b5537200e071302d55671a39bf1"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.EXPLOSIVE_AMPOULE",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "4bef6cb9f9b71d9dc6cb54411a75310fddfbc71a0d02d8eb56992c21bf0f8d13"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.GAMBLERS_BREW",
+      "matching_tables": {
+        "potions.json": 3
+      },
+      "key_names_sha256": "4da102e7e6b5ce0b311f0de2ac23383c1e941740fc70be1ff0550c6213e06d45"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.HEART_OF_IRON",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "e5f3982dbf90d1d743f4e2a26ebdd43671c77f4f452714545685e17764658fa5"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.LIQUID_BRONZE",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "212f505f58b2aab8aea5fac148efbe9035d7825bfc76b7f5065597307c793017"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.POTION_OF_BINDING",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "2daabb8f6bf7226de055bc7e936f1dec9ea87b66cc0610415af193886fe9cf08"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.SKILL_POTION",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "991e43854e1866c28efb13b8a9b66bcb6d9b36de57c3db1d5bf9d3dba243ccfb"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.STABLE_SERUM",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "65d0200c7207c72e498ae38d5b427b69d89f818a1aa1dd3ca02d758d590786c2"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.STRENGTH_POTION",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "d14d6249cd593e828f10bef5b43fb3f3f954dc6cb15eaf5c432bf574cf6de5c4"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.SWIFT_POTION",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "e5c38ae13ef550c5fa491838cf8490c3e4bd039213154fb1e52e55d28236424a"
+    },
+    {
+      "group": "potions",
+      "model": "POTION.WEAK_POTION",
+      "matching_tables": {
+        "potions.json": 2
+      },
+      "key_names_sha256": "bbdf377cc84048a96b910bb36eebe06df4f9f5d06b7808f8e1f748bb0c0fc2fd"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.ADAPTABLE_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "b71de781fa30b770e77c346c4d823aad00f9116486023e7473b254aa201cdbbc"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.ARTIFACT_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "dcc29f8b0cf1f5cedb38cc3ef72350e69db1f30716035c7b0d1017cc7bf918ca"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.AUTOMATION_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "4d7b4a2ea3d484e667ddddea6dd27cfca74beb3eba8e5357b7030f24ed95bcaa"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.COLOSSUS_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "fabcf7f0c44da51141936b0658587f21fc00898b4dc307326ed4163cade02ece"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.CRIMSON_MANTLE_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "20a73eaceeaaa0da1de4d6d5fba71b4cd48b6b27fd8a600c00cae047f40413cb"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.DEXTERITY_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "93df37f98bb79809a36cefc96ea26aba75bd210a5ec03ec0b1e2421a1219bb3e"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.DUPLICATION_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "26844bb2705712bbc02b0d3cfeb316d964c4470b46e2a98e5ceb69594668858c"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.ENRAGE_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "123b836ecfb79f06f0baf6860b9c0bf74ab7bd6d85755fff0af9f11c2df4b1a3"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.ESCAPE_ARTIST_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "1822db355cb1acd604ac6e310a185b96860b26bd1b105eb2ea53cfea2154cbb0"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.FEEL_NO_PAIN_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "2785e42152e486f4d8fd0eff40ac8aa9214ae8ec221a3790221ae2ef7e7b00da"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.FLAME_BARRIER_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "f7863a8a734922a0c5033b04c73bd96bb806044863b4f1bb0c881b2c9b2c2698"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.FLUTTER_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "19a2dea74c7c443abe69196dd4424a9ab5f835ccabd38e871efc2a9d623d81cf"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.HARD_TO_KILL_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "ab8cda328fb3cbf579402f1dd6a0fbb41b780e4b0484dc3bc9e4cb0235f0cf8e"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.HATCH_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "bc01d0372b6e735e5c3e67995ae521046775a2aafa47c2b20009a7354c096006"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.ILLUSION_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "a6757577a4a2c378565c8167f9c41c4579595d2eb20af3ececd313fe475b8a9b"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.IMBALANCED_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "e062472030a26ca67104e460609acffce6ff074664a87632a47a730c850726bc"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.INFESTED_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "0e8618c488a657febdfebc47eabc79196fefb636161dbdb3d32db5d296738e30"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.INTANGIBLE_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "0b89a8d153dc5851dfe24353be8481fbf00a94c167f6eece6179675d897329fa"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.MINION_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "1d33e92eb2f46fd45ce140594260e6d7bd0b1f9c3ec376ff89dffa6876189b0e"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.NEMESIS_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "bb1365278a8b26d394f89a9c8a56b9e393acc7b3d6bd5477eebaf07c1ee3473f"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.PAINFUL_STABS_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "46d92ec40cc8af13f7b7aaece31e2103d7ec4dfeb5c26d2bd3533da6085e76ac"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.PAPER_CUTS_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "8e8031a4f9eb1450bac7db95fa5dfc36aa058386b6fdd7b595df2144f76152cd"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.PLATING_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "f39905c00da211273ce866db1e5d524fbf1feef35b691a085cb02048ba9c299e"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.PLOW_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "c4eae3e58309578ac89ad1772866edd6ce47c73c6cb012234e1f91129a6ee80e"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.POSSESS_SPEED_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "70b056245003b439099dd44dbdb9832d34847eb05f6940f93dfa0645b0d09ac6"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.POSSESS_STRENGTH_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "5fbcd2c1eb3f3e71afed93f0baf82214bbe3bef5c213289832c5edfd1c28d036"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.REATTACH_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "9b442a3cb231eb2cbfd582809fdb3b038180b0f99c788285dc1179a56b940ce0"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.RINGING_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "1b141a726fc1c28422a20aa081a31ada5664eca4db6a32a09f4eb8900cf2751c"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.RITUAL_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "0bd9ae631a0d5d592e1b16f0615b3a4d830dbf6742869519f03f1c25242d8137"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.SANDPIT_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "158e367952c249a8875e9153aa4b3b970afccd8a69f8fcf45a0dc080f9aed73e"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.SHRINK_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "d3c8f7e101026417081f26ca71aa70ef52b836abca45a2967abc35d3d19ea670"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.STRENGTH_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "6bb3a4151a50828d031f84e0754118cdd64c0598b6b5d063422556f8e07bc8d8"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.SWIPE_POWER",
+      "matching_tables": {
+        "powers.json": 2
+      },
+      "key_names_sha256": "88639831f0a319d8551f8c37308e632a862ff8487423b37c8795262d01a1e517"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.TAINTED_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "1b09d7ce183543df1e367846c8282dfaaf7198722183b02e840215e14ab4d7cf"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.TERRITORIAL_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "3c3b03562cc5029525075685c67b89ecff409314ae991337fb25ec98b02c802e"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.THORNS_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "5b5473c1252a9181e39243766451910faf957a9d202452b89929b58ac5c79350"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.VITAL_SPARK_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "f7ac1ddbf04c51af90d91922c4d54ec1f0c3231595cf74d2bbf0001974d1b4c6"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.VULNERABLE_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "07e5aa4fd8e1aa79c70ae5f6fcf186463e442b1c9b23f76d499fce1a43027c60"
+    },
+    {
+      "group": "powers",
+      "model": "POWER.WEAK_POWER",
+      "matching_tables": {
+        "powers.json": 3
+      },
+      "key_names_sha256": "d8617a03f38daa29d0ff5279c51c8a24718a4cc94f6239a1d834d693ea144fda"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.BOWLBUG_EGG",
+      "matching_tables": {
+        "monsters.json": 3
+      },
+      "key_names_sha256": "cb61c4a7e87d8c86f021c40e155b4a3be4680f8fe3c4cf6799a2970fffb2c86b"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.BOWLBUG_ROCK",
+      "matching_tables": {
+        "monsters.json": 3
+      },
+      "key_names_sha256": "f697f1911fda5c305a52a2df2fe6da31e456995d67bd998fbb2eef913730cd7f"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.BYRDONIS",
+      "matching_tables": {
+        "monsters.json": 4
+      },
+      "key_names_sha256": "d8c10a18e685aebae800ff48576e411952dfefc5512f11278db4c8c86b8acc0f"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.CEREMONIAL_BEAST",
+      "matching_tables": {
+        "monsters.json": 6
+      },
+      "key_names_sha256": "eff74cf8fcdbfc45610deac0144a955c17a6048f06b46034da877f53e767b86e"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.DECIMILLIPEDE_SEGMENT_BACK",
+      "matching_tables": {},
+      "key_names_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.DECIMILLIPEDE_SEGMENT_FRONT",
+      "matching_tables": {},
+      "key_names_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.DECIMILLIPEDE_SEGMENT_MIDDLE",
+      "matching_tables": {},
+      "key_names_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.DEVOTED_SCULPTOR",
+      "matching_tables": {
+        "monsters.json": 4
+      },
+      "key_names_sha256": "d6564b45faf7c8439c62cce70250484553e35445410416445158139d5a595c48"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.EXOSKELETON",
+      "matching_tables": {
+        "monsters.json": 4
+      },
+      "key_names_sha256": "fabfce898acd7b46edb331056b0dcad4d2e8b8d7fa1c83c3016c0bd170bd5399"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.EYE_WITH_TEETH",
+      "matching_tables": {
+        "monsters.json": 3
+      },
+      "key_names_sha256": "33775bfe921cc6110a76fcec3e61ef7f00ab3b7b5443259b4a1810a1dc2f9d17"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.FOGMOG",
+      "matching_tables": {
+        "monsters.json": 3
+      },
+      "key_names_sha256": "5edde5f8f303f2c49bd1fcf98aa2c1dc77523d17b66f6c3edf76ecba5dcfdcd1"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.INFESTED_PRISM",
+      "matching_tables": {
+        "monsters.json": 5
+      },
+      "key_names_sha256": "6fb8ec7dd9fb8929e9f8eae834f388e6e05688106b0d1820ce653329fd5cb14c"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.LEAF_SLIME_M",
+      "matching_tables": {
+        "monsters.json": 3
+      },
+      "key_names_sha256": "8fbadc43eb0f9cbe56f67bf81c368941def620633d178596abab23497a7641a9"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.LEAF_SLIME_S",
+      "matching_tables": {
+        "monsters.json": 3
+      },
+      "key_names_sha256": "cadd38527fe6160e6b917d727770e4e41f4aa286e8550007ac560dd5eda3014a"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.MECHA_KNIGHT",
+      "matching_tables": {
+        "monsters.json": 7
+      },
+      "key_names_sha256": "cfa445f87b318ffd640a2e6220125cd1f1f63abb22219e41b35b55fbb8dc882b"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.NIBBIT",
+      "matching_tables": {
+        "monsters.json": 4
+      },
+      "key_names_sha256": "fe5dfbf8072a2e57ebfd4a08e2e4f13e0bb06e25b24c0ea58dfcb05281fcd18e"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.OVICOPTER",
+      "matching_tables": {
+        "monsters.json": 5
+      },
+      "key_names_sha256": "356c50e77b5953f06ab8074f735a2cf7a9bc418c551c48d80348f5b640a2a241"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.PHROG_PARASITE",
+      "matching_tables": {
+        "monsters.json": 4
+      },
+      "key_names_sha256": "5b2227aa9c242e644007116a045ec85d647394ac074b3e72b4334818e93dd5d5"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.SCROLL_OF_BITING",
+      "matching_tables": {
+        "monsters.json": 4
+      },
+      "key_names_sha256": "2b0cc1e6e3aa8dae5d945e2f2808eb34f41cfebf10d84de1358aef9a2a3e0443"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.SHRINKER_BEETLE",
+      "matching_tables": {
+        "monsters.json": 4
+      },
+      "key_names_sha256": "8886bb62494f7cfacc5157d93da6c1a7a4dc43e0e9f0608328876517007b3331"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.SLIMED_BERSERKER",
+      "matching_tables": {
+        "monsters.json": 4
+      },
+      "key_names_sha256": "09cc308f9a8c452b0a02150678fae76ba6bfab609e48f65ff0dddc4d908db813"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.TEST_SUBJECT",
+      "matching_tables": {
+        "monsters.json": 9
+      },
+      "key_names_sha256": "c5f1b8f4d653cf59495aad9900b5dfa707456c9d2c63b52b8d6e31e48261f233"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.THE_FORGOTTEN",
+      "matching_tables": {
+        "monsters.json": 3
+      },
+      "key_names_sha256": "a14eef141af6140c5bc4090980da6ac58fe106ace740adf844bc0fd95f738048"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.THE_INSATIABLE",
+      "matching_tables": {
+        "monsters.json": 6
+      },
+      "key_names_sha256": "2b63cdef4284f0f86eb2aa74f196c9776f450f1bd9b95fbce990c53435d14ae4"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.THE_LOST",
+      "matching_tables": {
+        "monsters.json": 3
+      },
+      "key_names_sha256": "947073260a11f4ee63ff1a9c52f9d63c50599e10bfb4b05fbf74fda9b696dd95"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.THIEVING_HOPPER",
+      "matching_tables": {
+        "monsters.json": 6
+      },
+      "key_names_sha256": "e5a041621c8e78a36dd450b2f34b3faf7d24fa82f0308aadc09320dafb0ebaeb"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.TOUGH_EGG",
+      "matching_tables": {
+        "monsters.json": 3
+      },
+      "key_names_sha256": "7f0482cee73ab2608e4de06e9c9440eaf43a3058e6890493bc84d5b68ff17464"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.TWIG_SLIME_M",
+      "matching_tables": {
+        "monsters.json": 4
+      },
+      "key_names_sha256": "5960495efa1f0415848e24e2130a9b76a61ce4be906cccee5174c32f3bab4866"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.TWIG_SLIME_S",
+      "matching_tables": {
+        "monsters.json": 3
+      },
+      "key_names_sha256": "ef8a926f8a6adad0d0b9d03c6bfea2aa1dd2a4ec6eee64fe3b176a1ae8f61a76"
+    },
+    {
+      "group": "monsters",
+      "model": "MONSTER.WRIGGLER",
+      "matching_tables": {
+        "monsters.json": 4
+      },
+      "key_names_sha256": "2a61d917de3cf80468e70d896f37284b224306ba3a68fb1b2f631175c5372b0b"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.BOWLBUGS_WEAK",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "bae9dd164687e884d29666bd25e33b0f6407f45332899fa80fa3df59da3498a9"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.BYRDONIS_ELITE",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "16e01e7089bcdd50120dbd0d483fc2da8ca7bbcdfc4247e324ff29d80a9d2b47"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.CEREMONIAL_BEAST_BOSS",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "c07bddf762b62a255d3e76712e1c14256709575f2b521cb05853e12b0b9aecf8"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.DECIMILLIPEDE_ELITE",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "8286b923ced87de03636939454e58e49b5d852e3a95571176eee690f85d48c44"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.DEVOTED_SCULPTOR_WEAK",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "91288a62dc609deca04c8e8ddf3ab653e78ea8442a77492852232a41e6b3b894"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.EXOSKELETONS_NORMAL",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "b586cd6497dc34d50908bdf5d3341074384a3ed2e89b0b601a9143b7c5395f3c"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.FOGMOG_NORMAL",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "4137bc874dbd4bc4be267cad8f58daad891963abb5aaeb2d818081b94f68051d"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.INFESTED_PRISMS_ELITE",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "73efac01d6559aab6f120c6870d33977e8809ba12d019999d6db6b17a95ad7f8"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.MECHA_KNIGHT_ELITE",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "3900b128d0450e53195044bd4866f7bb2e871b194e94bd6336a7f7d86d604cdc"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.NIBBITS_NORMAL",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "dddda53a4a4b0408479e252969e556b485d36c8ad9413096db3ce677e4a89cab"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.NIBBITS_WEAK",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "783f9606956864220467a790aadc96cef177913ef8686fde866032c6a57f3a83"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.OVICOPTER_NORMAL",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "da36e807ff3a1e07cd909631e05ead493fad7570c7db188a34e30bc118f3768b"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.PHROG_PARASITE_ELITE",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "cd1ed67c3e59c6258f1a893bf22a2bfa46bfbe76033bf906be02bf04cfc2e028"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.SCROLLS_OF_BITING_WEAK",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "f4bdd923d7198c23ce6051a50f888b5104e819706166b0781687db6017850e10"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.SHRINKER_BEETLE_WEAK",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "5d96ca186a85870f84339dea8889aeb83fa5be6f688cfb98a2cd0a804bef397e"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.SLIMED_BERSERKER_NORMAL",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "d9be5bb5b79115976f97c94b0f1b35dcc94efcd77ed770c937ceea243c235900"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.SLIMES_NORMAL",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "4534e7729265c7afdc3a6a641bdeab20d52e959ddab458acf87977446d75c6aa"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.SLIMES_WEAK",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "6e41638824f7f6648b1a92c76244c8cf0b46d86e33fdc22b2cbcfc8dca52698d"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.TEST_SUBJECT_BOSS",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "1a317d0f9c747aca77399a84a165b51b2b234983a3bcd36503ad444725d6e47a"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.THE_INSATIABLE_BOSS",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "059f5f9a94ec6222f0c99c74a564e6958f373da4d795f0614d3cf224422fecf4"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.THE_LOST_AND_FORGOTTEN_NORMAL",
+      "matching_tables": {
+        "encounters.json": 2
+      },
+      "key_names_sha256": "7e5762793fc89bbd8af0fb48ccd43fbd62d7cf6723f70ffb090eaacbb02e5853"
+    },
+    {
+      "group": "encounters",
+      "model": "ENCOUNTER.THIEVING_HOPPER_WEAK",
+      "matching_tables": {
+        "encounters.json": 3
+      },
+      "key_names_sha256": "f95e46597e7d6d57a0dcb694ce8038ab90913d87c7511341a72acbbcd3c49f3d"
+    },
+    {
+      "group": "events",
+      "model": "EVENT.BRAIN_LEECH",
+      "matching_tables": {
+        "events.json": 10
+      },
+      "key_names_sha256": "def4205283a1377783f4f7f406f2cc0b02b88d5a659fc72c9fe0a682e04724e2"
+    },
+    {
+      "group": "events",
+      "model": "EVENT.FIELD_OF_MAN_SIZED_HOLES",
+      "matching_tables": {
+        "events.json": 8
+      },
+      "key_names_sha256": "10ad3b717b41a6111c156eda6f8b488e3d6564e9f2abd21c55952c8789fa8e68"
+    },
+    {
+      "group": "events",
+      "model": "EVENT.NEOW",
+      "matching_tables": {
+        "ancients.json": 47,
+        "encounters.json": 1
+      },
+      "key_names_sha256": "9bd00a85cf36206ba47309744e9284be8b0e1ed8c6c5aa14da679f5de22df4d7"
+    },
+    {
+      "group": "events",
+      "model": "EVENT.OROBAS",
+      "matching_tables": {
+        "ancients.json": 44
+      },
+      "key_names_sha256": "5962d760b26cece855a1eb21954e6293e3ea88bec7ef93a866c838cd244b5073"
+    },
+    {
+      "group": "events",
+      "model": "EVENT.RELIC_TRADER",
+      "matching_tables": {
+        "events.json": 9
+      },
+      "key_names_sha256": "5413faef6597e5c57e94dfeedb4450f4aba17b7adf5cd9284ba6ac4f0e816486"
+    },
+    {
+      "group": "events",
+      "model": "EVENT.ROOM_FULL_OF_CHEESE",
+      "matching_tables": {
+        "events.json": 10
+      },
+      "key_names_sha256": "e82374866a1662675dc4736c8e650f82c056a59f9f7be813bfda8840c9996df2"
+    },
+    {
+      "group": "events",
+      "model": "EVENT.SELF_HELP_BOOK",
+      "matching_tables": {
+        "events.json": 20
+      },
+      "key_names_sha256": "32de79ffd14a6aa44e9010c72a7f56bcbc627c4d114c77e8188d4c6f36f5cd04"
+    },
+    {
+      "group": "events",
+      "model": "EVENT.THE_ARCHITECT",
+      "matching_tables": {
+        "ancients.json": 66
+      },
+      "key_names_sha256": "3020d9f22367b37a34193620fa086517e7e187746d17d7f003e6e490d1fdbc59"
+    },
+    {
+      "group": "events",
+      "model": "EVENT.THE_LEGENDS_WERE_TRUE",
+      "matching_tables": {
+        "events.json": 9
+      },
+      "key_names_sha256": "9202d56b4fd8a861ec8c4e151672a1c1ba3aa8fd2c31e71c446f78fc9952911f"
+    },
+    {
+      "group": "events",
+      "model": "EVENT.TINKER_TIME",
+      "matching_tables": {
+        "events.json": 31
+      },
+      "key_names_sha256": "e98c18adc4b955ab164522b35a6eab848cf352e005cfb32ea69815dcb38dfab2"
+    },
+    {
+      "group": "events",
+      "model": "EVENT.VAKUU",
+      "matching_tables": {
+        "ancients.json": 56
+      },
+      "key_names_sha256": "3d991b77ee64848d5ae5fb5a78f2e4025e53c557bdd9695519479a20713d2beb"
+    },
+    {
+      "group": "enchantments",
+      "model": "ENCHANTMENT.GLAM",
+      "matching_tables": {
+        "enchantments.json": 2
+      },
+      "key_names_sha256": "031f5d9fd3202f5ab7aca248fb307da0290dde4452d9f99a3b461435a2ab6936"
+    },
+    {
+      "group": "enchantments",
+      "model": "ENCHANTMENT.PERFECT_FIT",
+      "matching_tables": {
+        "enchantments.json": 3
+      },
+      "key_names_sha256": "127eadedba5606f2b6cb5e1e15bcf768839c47549e891db42fe793992c74a381"
+    },
+    {
+      "group": "enchantments",
+      "model": "ENCHANTMENT.SHARP",
+      "matching_tables": {
+        "enchantments.json": 2
+      },
+      "key_names_sha256": "e3cc1ecde49454df8373d462aee6d4467b1f6cd509fa2dfd211f016588a266ab"
+    },
+    {
+      "group": "afflictions",
+      "model": "AFFLICTION.RINGING",
+      "matching_tables": {
+        "afflictions.json": 3
+      },
+      "key_names_sha256": "8070a61d04a147ace7eef42c3d927beb7135ffaa102c5e35896e4d6f3c361ce8"
+    },
+    {
+      "group": "afflictions",
+      "model": "AFFLICTION.TAINTED",
+      "matching_tables": {
+        "afflictions.json": 3
+      },
+      "key_names_sha256": "b99e3dc1ec9375c5276ff12fdbca00af0f478e708b850751349626908d63444b"
+    }
+  ]
+}
