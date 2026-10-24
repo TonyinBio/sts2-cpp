@@ -1,0 +1,4073 @@
+{
+  "evidence": "Static pinned-source audit; no runtime or C++ support certification. Summaries reviewed against every root file. Shared-command semantics and transitive closure are separate audit artifacts.",
+  "root_count": 76,
+  "records": [
+    {
+      "id": "CARD.APPARITION",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Apparition.cs",
+      "source_sha256": "108391d46dcacf68b0c0bce425f40dc3119901ba739240585dea800c8370ea63",
+      "source_lines": [
+        1,
+        39
+      ],
+      "members": [
+        {
+          "line": 14,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlyArray<CardKeyword>(new CardKeyword[2]"
+        },
+        {
+          "line": 22,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new PowerVar<IntangiblePower>(1m));"
+        },
+        {
+          "line": 24,
+          "member": "public Apparition()"
+        },
+        {
+          "line": 29,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 35,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Apply IntangiblePower 1 to owner. Ethereal and Exhaust.",
+      "upgrade": "Remove Ethereal; Exhaust remains.",
+      "legal_branches": "Any legal owner state; keyword and power-duration semantics apply.",
+      "regression_scenarios": "Base vs upgraded hand at turn end; played vs ethereal-exhausted; stacked Intangible interactions.",
+      "fixed_model_dependencies": [
+        "IntangiblePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "108391d46dcacf68b0c0bce425f40dc3119901ba739240585dea800c8370ea63",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Ancient, TargetType.Self",
+      "constructor_line": 25,
+      "variant_members": [
+        {
+          "line": 35,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.ARMAMENTS",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Armaments.cs",
+      "source_sha256": "8a61b0d23dfc9f6f41fc167ab8c002af1ad7bbd27e4892439c000e86ab929ce1",
+      "source_lines": [
+        1,
+        40
+      ],
+      "members": [
+        {
+          "line": 14,
+          "member": "public override bool GainsBlock => true;"
+        },
+        {
+          "line": 16,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new BlockVar(5m, ValueProp.Move));"
+        },
+        {
+          "line": 18,
+          "member": "public Armaments()"
+        },
+        {
+          "line": 23,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        }
+      ],
+      "effect_order": "Gain block5, then base selects one upgradable hand card and upgrades if non-null; upgraded upgrades all currently upgradable cards in hand.",
+      "upgrade": "Branch to upgrading all eligible hand cards.",
+      "legal_branches": "Empty/no-upgradable hand, one/many eligible, base selection; no selected card still preserves block.",
+      "regression_scenarios": "Suspend after block before choice; clone/restore/resume; all-target eligibility/order and zero-candidate path.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "8a61b0d23dfc9f6f41fc167ab8c002af1ad7bbd27e4892439c000e86ab929ce1",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Common, TargetType.Self",
+      "constructor_line": 19,
+      "variant_members": []
+    },
+    {
+      "id": "CARD.AUTOMATION",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Automation.cs",
+      "source_sha256": "50902e2382f164d0281814559054545d1b9061a8e308ea98bd64d55776bdda08",
+      "source_lines": [
+        1,
+        32
+      ],
+      "members": [
+        {
+          "line": 14,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new EnergyVar(1));"
+        },
+        {
+          "line": 18,
+          "member": "public Automation()"
+        },
+        {
+          "line": 23,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 28,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Apply AutomationPower equal to EnergyVar1.",
+      "upgrade": "Energy cost -1 (1 to0).",
+      "legal_branches": "AutomationPower is instanced: each owned card drawn decrements its internal cardsLeft counter from10; reaching0 grants Amount energy and resets counter10. fromHandDraw is not used as a filter; generated entry alone is not a draw.",
+      "regression_scenarios": "Ordinary hand draw and effect draw both count;9th/10th/11th draw; separate power instances/counters; clone/restore mid-counter; generated entry without draw does not count.",
+      "fixed_model_dependencies": [
+        "AutomationPower"
+      ],
+      "mutable_state": "Base card state; applied AutomationPower has per-instance internal Data.cardsLeft independent of its energy Amount.",
+      "random_outcomes": "none",
+      "sha256": "50902e2382f164d0281814559054545d1b9061a8e308ea98bd64d55776bdda08",
+      "constructor_parameters": "1, CardType.Power, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 19,
+      "variant_members": [
+        {
+          "line": 28,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "reviewed_dependency_sources": [
+        {
+          "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/AutomationPower.cs",
+          "sha256": "568fac0e930bd76b3887f9a6a82f81421a8daba902ea988d396d21ecbd931505",
+          "source_lines": [
+            1,
+            52
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CARD.BASH",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bash.cs",
+      "source_sha256": "ccd5cd825109781b14607f89329ff59213d4a9ceb4c44f70954d62e4465bc738",
+      "source_lines": [
+        1,
+        43
+      ],
+      "members": [
+        {
+          "line": 18,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 24,
+          "member": "public Bash()"
+        },
+        {
+          "line": 29,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 38,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack selected target8, then apply Vulnerable2 to same target without card-local alive guard.",
+      "upgrade": "Damage+2; Vulnerable+1.",
+      "legal_branches": "Lethal hit still reaches PowerCmd application; shared command determines resulting applicability.",
+      "regression_scenarios": "Nonlethal/lethal, Artifact, application hooks after attack.",
+      "fixed_model_dependencies": [
+        "VulnerablePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "ccd5cd825109781b14607f89329ff59213d4a9ceb4c44f70954d62e4465bc738",
+      "constructor_parameters": "2, CardType.Attack, CardRarity.Basic, TargetType.AnyEnemy",
+      "constructor_line": 25,
+      "variant_members": [
+        {
+          "line": 38,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.BLOODLETTING",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bloodletting.cs",
+      "source_sha256": "c9d841d7773e1e4007d48c94571c991c7a5c7b67faf63734b4a7ac4bc2f7ba77",
+      "source_lines": [
+        1,
+        39
+      ],
+      "members": [
+        {
+          "line": 14,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 22,
+          "member": "public Bloodletting()"
+        },
+        {
+          "line": 27,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 35,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Deal self HP-loss3 with Unblockable|Unpowered|Move, then gain energy2.",
+      "upgrade": "Energy+1.",
+      "legal_branches": "Zero/low HP, damage prevention/modification, death and shared command interruption semantics.",
+      "regression_scenarios": "Block is bypassed; unpowered differs from attack; self-damage hooks; low-HP path.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "c9d841d7773e1e4007d48c94571c991c7a5c7b67faf63734b4a7ac4bc2f7ba77",
+      "constructor_parameters": "0, CardType.Skill, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 23,
+      "variant_members": [
+        {
+          "line": 35,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.BLOOD_WALL",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/BloodWall.cs",
+      "source_sha256": "6698d3bfbe4219ec635dd06a036162b64b196ec1e42198449bb7ce5db485011c",
+      "source_lines": [
+        1,
+        47
+      ],
+      "members": [
+        {
+          "line": 20,
+          "member": "public override bool GainsBlock => true;"
+        },
+        {
+          "line": 22,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 28,
+          "member": "public BloodWall()"
+        },
+        {
+          "line": 33,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 43,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Deal self HP-loss2 with Unblockable|Unpowered|Move, then gain block16.",
+      "upgrade": "Block+4.",
+      "legal_branches": "Self-damage hooks precede block; low HP/ending shared command behavior.",
+      "regression_scenarios": "Self-damage-triggered effects and block order; base/upgraded.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "6698d3bfbe4219ec635dd06a036162b64b196ec1e42198449bb7ce5db485011c",
+      "constructor_parameters": "2, CardType.Skill, CardRarity.Common, TargetType.Self",
+      "constructor_line": 29,
+      "variant_members": [
+        {
+          "line": 43,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.BLUDGEON",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bludgeon.cs",
+      "source_sha256": "614c3e3b03f6067888534ff9329af874179a53c5e460c1b02ecd4094cc29b6b9",
+      "source_lines": [
+        1,
+        36
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(32m, ValueProp.Move));"
+        },
+        {
+          "line": 17,
+          "member": "public Bludgeon()"
+        },
+        {
+          "line": 22,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 32,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack selected target32.",
+      "upgrade": "Damage+10.",
+      "legal_branches": "Any legal target; shared attack pipeline.",
+      "regression_scenarios": "Block/Strength/Vulnerable/Weak/Intangible; lethal target.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "614c3e3b03f6067888534ff9329af874179a53c5e460c1b02ecd4094cc29b6b9",
+      "constructor_parameters": "3, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy",
+      "constructor_line": 18,
+      "variant_members": [
+        {
+          "line": 32,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.BODY_SLAM",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/BodySlam.cs",
+      "source_sha256": "6bf65e2ac088fc3d924889d04ca0ce99dfd72869663f9f86c5687f12ed101aaa",
+      "source_lines": [
+        1,
+        42
+      ],
+      "members": [
+        {
+          "line": 16,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[3]"
+        },
+        {
+          "line": 25,
+          "member": "public BodySlam()"
+        },
+        {
+          "line": 30,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 38,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack for CalculatedDamage with base0 plus extra1 times owner current Block.",
+      "upgrade": "Energy cost -1 (1 to0).",
+      "legal_branches": "Zero and changing block; calculated damage/ordinary damage modifiers remain distinct.",
+      "regression_scenarios": "Block sampled at calculation; Strength and Weak; no accidental block consumption.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "6bf65e2ac088fc3d924889d04ca0ce99dfd72869663f9f86c5687f12ed101aaa",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy",
+      "constructor_line": 26,
+      "variant_members": [
+        {
+          "line": 38,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.BOLAS",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bolas.cs",
+      "source_sha256": "9c4a908541dc18cbfd51425d47443ce7b573c6935dd7850259f7911c930b26b8",
+      "source_lines": [
+        1,
+        55
+      ],
+      "members": [
+        {
+          "line": 21,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(3m, ValueProp.Move));"
+        },
+        {
+          "line": 25,
+          "member": "public Bolas()"
+        },
+        {
+          "line": 30,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 39,
+          "member": "public override async Task BeforeHandDraw(Player player, PlayerChoiceContext choiceContext, ICombatState combatState)"
+        },
+        {
+          "line": 51,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack selected target3; BeforeHandDraw returns this instance to Hand if its finished play happened last player turn and it is not already in Hand.",
+      "upgrade": "Damage+1.",
+      "legal_branches": "Owner-specific hook, last-player-turn history, any current pile/null vs already Hand.",
+      "regression_scenarios": "Multiple turns and instances; hand capacity/movement; play history identity rather than Model ID.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "Base card state plus historical finished-play reference; pile membership may be changed before draw.",
+      "random_outcomes": "none",
+      "sha256": "9c4a908541dc18cbfd51425d47443ce7b573c6935dd7850259f7911c930b26b8",
+      "constructor_parameters": "0, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy",
+      "constructor_line": 26,
+      "variant_members": [
+        {
+          "line": 51,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.BRAND",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Brand.cs",
+      "source_sha256": "2ba534e9dff9b5803700141f1c56bb6d3735a7e85e427969a5e3f731174fa820",
+      "source_lines": [
+        1,
+        56
+      ],
+      "members": [
+        {
+          "line": 26,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 32,
+          "member": "public Brand()"
+        },
+        {
+          "line": 37,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 52,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Self HP-loss1 unblocked/unpowered Move; select one hand card; exhaust if non-null; apply Strength1.",
+      "upgrade": "Strength+1.",
+      "legal_branches": "Empty hand still reaches Strength; exhaust triggers may suspend or change state before Strength.",
+      "regression_scenarios": "Nested exhaust triggers; restore before selection; HP loss then exhaust then Strength.",
+      "fixed_model_dependencies": [
+        "StrengthPower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "2ba534e9dff9b5803700141f1c56bb6d3735a7e85e427969a5e3f731174fa820",
+      "constructor_parameters": "0, CardType.Skill, CardRarity.Rare, TargetType.Self",
+      "constructor_line": 33,
+      "variant_members": [
+        {
+          "line": 52,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.BREAK",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Break.cs",
+      "source_sha256": "b9cdb9260afcc476b828d6ef2dcff048c0ce72cf2de4eeddc979451af02495a0",
+      "source_lines": [
+        1,
+        46
+      ],
+      "members": [
+        {
+          "line": 19,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 25,
+          "member": "public Break()"
+        },
+        {
+          "line": 30,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 41,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack selected target20, then Vulnerable5.",
+      "upgrade": "Damage+10; Vulnerable+2.",
+      "legal_branches": "Shared target/application semantics after lethal hit.",
+      "regression_scenarios": "Lethal/nonlethal; Artifact; base/upgraded.",
+      "fixed_model_dependencies": [
+        "VulnerablePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "b9cdb9260afcc476b828d6ef2dcff048c0ce72cf2de4eeddc979451af02495a0",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Ancient, TargetType.AnyEnemy",
+      "constructor_line": 26,
+      "variant_members": [
+        {
+          "line": 41,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.BREAKTHROUGH",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Breakthrough.cs",
+      "source_sha256": "fc857c4effcb64fb83cc68b583d647f7e51400c1c1bc6da5362e5bcb2e1a0a0f",
+      "source_lines": [
+        1,
+        37
+      ],
+      "members": [
+        {
+          "line": 13,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 19,
+          "member": "public Breakthrough()"
+        },
+        {
+          "line": 24,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 33,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Self HP-loss1 with Unblockable|Unpowered|Move, then attack all opponents9.",
+      "upgrade": "Damage+4.",
+      "legal_branches": "Hittable enemy set/shared attack pipeline; self-damage may trigger effects before attack.",
+      "regression_scenarios": "Self-damage before AoE; multiple deaths/revival; no targets.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "fc857c4effcb64fb83cc68b583d647f7e51400c1c1bc6da5362e5bcb2e1a0a0f",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Common, TargetType.AllEnemies",
+      "constructor_line": 20,
+      "variant_members": [
+        {
+          "line": 33,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.BURN",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Burn.cs",
+      "source_sha256": "4793b73fd68b92958152f4bf2eddbf2785fc1d7b86979201ec8e61828d914de6",
+      "source_lines": [
+        1,
+        37
+      ],
+      "members": [
+        {
+          "line": 16,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        },
+        {
+          "line": 18,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(2m, ValueProp.Unpowered | ValueProp.Move));"
+        },
+        {
+          "line": 20,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlySingleElementList<CardKeyword>(CardKeyword.Unplayable);"
+        },
+        {
+          "line": 22,
+          "member": "public override bool HasTurnEndInHandEffect => true;"
+        },
+        {
+          "line": 26,
+          "member": "public Burn()"
+        },
+        {
+          "line": 31,
+          "member": "protected override async Task OnTurnEndInHand(PlayerChoiceContext choiceContext)"
+        }
+      ],
+      "effect_order": "Unplayable non-upgradable Status; end-in-hand deals owner damage2 with Unpowered|Move, not Unblockable.",
+      "upgrade": "MaxUpgradeLevel0.",
+      "legal_branches": "End-in-hand effect only; block can absorb damage.",
+      "regression_scenarios": "Retained Burn vs exhaust/discard; block and damage hooks; multiple copies.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "4793b73fd68b92958152f4bf2eddbf2785fc1d7b86979201ec8e61828d914de6",
+      "constructor_parameters": "-1, CardType.Status, CardRarity.Status, TargetType.None",
+      "constructor_line": 27,
+      "variant_members": [
+        {
+          "line": 16,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        }
+      ]
+    },
+    {
+      "id": "CARD.BURNING_PACT",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/BurningPact.cs",
+      "source_sha256": "08eba57f671fbf9766976dc5b3badd504687d0ccb69b6c81ddcffdd2f9e05126",
+      "source_lines": [
+        1,
+        39
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new CardsVar(2));"
+        },
+        {
+          "line": 19,
+          "member": "public BurningPact()"
+        },
+        {
+          "line": 24,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 35,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Select one hand card, exhaust non-null selection, then draw2.",
+      "upgrade": "Draw+1.",
+      "legal_branches": "Empty hand continues to draw; exhaustion hooks happen before draws.",
+      "regression_scenarios": "Zero/one/many candidates; nested exhaustion; reshuffle/hand cap; resume after selection.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "08eba57f671fbf9766976dc5b3badd504687d0ccb69b6c81ddcffdd2f9e05126",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 20,
+      "variant_members": [
+        {
+          "line": 35,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.CATASTROPHE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Catastrophe.cs",
+      "source_sha256": "a6793468810144fb4ec1d1e52f5ff80c5d2baacb9aa65854614b583ef112ccf8",
+      "source_lines": [
+        1,
+        42
+      ],
+      "members": [
+        {
+          "line": 14,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new CardsVar(2));"
+        },
+        {
+          "line": 16,
+          "member": "public Catastrophe()"
+        },
+        {
+          "line": 21,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 38,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Repeat2: select first of a stable Shuffle-RNG shuffle of playable-keyword draw-pile cards; if none, shuffle all draw cards and select first; autoplay selected card if any.",
+      "upgrade": "Repeat+1.",
+      "legal_branches": "Empty draw pile; only Unplayable cards; draw-pile changes after each autoplay; random target and nested prompts.",
+      "regression_scenarios": "Preserve two-stage selection/RNG, per-iteration reevaluation, autoplay of fallback Unplayable, empty pile.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "Selects existing card instances; no new model pool expansion. Uses RunState.Rng.Shuffle.",
+      "sha256": "a6793468810144fb4ec1d1e52f5ff80c5d2baacb9aa65854614b583ef112ccf8",
+      "constructor_parameters": "2, CardType.Skill, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 17,
+      "variant_members": [
+        {
+          "line": 38,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.CINDER",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Cinder.cs",
+      "source_sha256": "88a67d880e14e913de4763b92533bdcf5c5d948e895fe16615e7a94975060a7b",
+      "source_lines": [
+        1,
+        46
+      ],
+      "members": [
+        {
+          "line": 18,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(18m, ValueProp.Move));"
+        },
+        {
+          "line": 22,
+          "member": "public Cinder()"
+        },
+        {
+          "line": 27,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 42,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack selected target18, then CombatCardSelection.NextItem over current Hand and exhaust selected card if any.",
+      "upgrade": "Damage+6.",
+      "legal_branches": "Empty Hand; lethal attack then subsequent random exhaust; shared ending behavior.",
+      "regression_scenarios": "Selection RNG and order, nested exhaust triggers, empty hand.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "Existing hand card instance only; CombatCardSelection RNG.",
+      "sha256": "88a67d880e14e913de4763b92533bdcf5c5d948e895fe16615e7a94975060a7b",
+      "constructor_parameters": "2, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy",
+      "constructor_line": 23,
+      "variant_members": [
+        {
+          "line": 42,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.CLUMSY",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Clumsy.cs",
+      "source_sha256": "dd7b6af48036835a8cb5ce2180272ab7f5f8ab576017eb9a45854c04a55cc805",
+      "source_lines": [
+        1,
+        20
+      ],
+      "members": [
+        {
+          "line": 8,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlyArray<CardKeyword>(new CardKeyword[2]"
+        },
+        {
+          "line": 14,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        },
+        {
+          "line": 16,
+          "member": "public Clumsy()"
+        }
+      ],
+      "effect_order": "Unplayable and Ethereal Curse.",
+      "upgrade": "MaxUpgradeLevel0.",
+      "legal_branches": "In-hand turn-end ethereal exhaustion; removal/exhaust before that.",
+      "regression_scenarios": "Correct keyword lifecycle and exhaustion hooks.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "dd7b6af48036835a8cb5ce2180272ab7f5f8ab576017eb9a45854c04a55cc805",
+      "constructor_parameters": "-1, CardType.Curse, CardRarity.Curse, TargetType.None",
+      "constructor_line": 17,
+      "variant_members": [
+        {
+          "line": 14,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        }
+      ]
+    },
+    {
+      "id": "CARD.COLOSSUS",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Colossus.cs",
+      "source_sha256": "21cef021e8fc843a10d1351678c12272721f3bbd7dee7a59c88b5f7c74fdbc30",
+      "source_lines": [
+        1,
+        43
+      ],
+      "members": [
+        {
+          "line": 19,
+          "member": "public override bool GainsBlock => true;"
+        },
+        {
+          "line": 21,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 27,
+          "member": "public Colossus()"
+        },
+        {
+          "line": 32,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 39,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Gain block4, then apply ColossusPower1.",
+      "upgrade": "Block+3.",
+      "legal_branches": "ColossusPower halves powered-attack damage to owner only when non-null dealer has Vulnerable; its Amount decrements at Enemy side end. Block is gained before power application.",
+      "regression_scenarios": "Vulnerable dealer vs non-Vulnerable, unpowered damage, null dealer, multiple duration stacks and Enemy-side decrement.",
+      "fixed_model_dependencies": [
+        "ColossusPower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "21cef021e8fc843a10d1351678c12272721f3bbd7dee7a59c88b5f7c74fdbc30",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 28,
+      "variant_members": [
+        {
+          "line": 39,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "reviewed_dependency_sources": [
+        {
+          "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/ColossusPower.cs",
+          "sha256": "8dcf3e5b406108634580430d63a861fc180d58f8513dcc958d8c88cd167fec0d",
+          "source_lines": [
+            1,
+            55
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CARD.CONFLAGRATION",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Conflagration.cs",
+      "source_sha256": "b48af48e46d06061dbccc7708bbbcfa6b2ffeec06ef686285a3c23244f1eec11",
+      "source_lines": [
+        1,
+        47
+      ],
+      "members": [
+        {
+          "line": 19,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 25,
+          "member": "public Conflagration()"
+        },
+        {
+          "line": 30,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 43,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack all opponents for damage2 with4 hits.",
+      "upgrade": "Hits+1.",
+      "legal_branches": "Shared command handles hit order and targetability changes after deaths/revivals.",
+      "regression_scenarios": "AoE multi-hit interleaving, shields/retaliation/kill hooks, empty target set.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "b48af48e46d06061dbccc7708bbbcfa6b2ffeec06ef686285a3c23244f1eec11",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Rare, TargetType.AllEnemies",
+      "constructor_line": 26,
+      "variant_members": [
+        {
+          "line": 43,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.CRIMSON_MANTLE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/CrimsonMantle.cs",
+      "source_sha256": "7abc08cadc94b7ecc060f2aa8ae1201181fa87b5ffe386729e71afc1535c9157",
+      "source_lines": [
+        1,
+        35
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new PowerVar<CrimsonMantlePower>(7m));"
+        },
+        {
+          "line": 19,
+          "member": "public CrimsonMantle()"
+        },
+        {
+          "line": 24,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 31,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Apply CrimsonMantlePower7; if returned instance is non-null, IncrementSelfDamage on it.",
+      "upgrade": "Power amount+3.",
+      "legal_branches": "Existing/new power and blocked/no instance; increment happens after apply.",
+      "regression_scenarios": "Repeated plays and stack amount vs self-damage counter; clone/restore.",
+      "fixed_model_dependencies": [
+        "CrimsonMantlePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "7abc08cadc94b7ecc060f2aa8ae1201181fa87b5ffe386729e71afc1535c9157",
+      "constructor_parameters": "1, CardType.Power, CardRarity.Rare, TargetType.Self",
+      "constructor_line": 20,
+      "variant_members": [
+        {
+          "line": 31,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.DEBT",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Debt.cs",
+      "source_sha256": "3d905c35b7731c658893b2bc0f06a46c20777298181962a08543e5c6ffb0c315",
+      "source_lines": [
+        1,
+        31
+      ],
+      "members": [
+        {
+          "line": 13,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        },
+        {
+          "line": 15,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlySingleElementList<CardKeyword>(CardKeyword.Unplayable);"
+        },
+        {
+          "line": 17,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new GoldVar(10));"
+        },
+        {
+          "line": 19,
+          "member": "public override bool HasTurnEndInHandEffect => true;"
+        },
+        {
+          "line": 21,
+          "member": "public Debt()"
+        },
+        {
+          "line": 26,
+          "member": "protected override async Task OnTurnEndInHand(PlayerChoiceContext choiceContext)"
+        }
+      ],
+      "effect_order": "Unplayable non-upgradable Curse; end-in-hand lose min(10,current gold).",
+      "upgrade": "MaxUpgradeLevel0.",
+      "legal_branches": "Gold0/<10/>=10; gold-loss hooks.",
+      "regression_scenarios": "Multiple copies/order; never charge more current gold.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "3d905c35b7731c658893b2bc0f06a46c20777298181962a08543e5c6ffb0c315",
+      "constructor_parameters": "-1, CardType.Curse, CardRarity.Curse, TargetType.None",
+      "constructor_line": 22,
+      "variant_members": [
+        {
+          "line": 13,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        }
+      ]
+    },
+    {
+      "id": "CARD.DEFEND_IRONCLAD",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/DefendIronclad.cs",
+      "source_sha256": "08ba8e1d038f6b2fed46217d974154f4d9deea82a235bedc0efb1c1459c509ef",
+      "source_lines": [
+        1,
+        33
+      ],
+      "members": [
+        {
+          "line": 13,
+          "member": "public override bool GainsBlock => true;"
+        },
+        {
+          "line": 15,
+          "member": "protected override HashSet<CardTag> CanonicalTags => new HashSet<CardTag> { CardTag.Defend };"
+        },
+        {
+          "line": 17,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new BlockVar(5m, ValueProp.Move));"
+        },
+        {
+          "line": 19,
+          "member": "public DefendIronclad()"
+        },
+        {
+          "line": 24,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 29,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Gain block5; Defend tag.",
+      "upgrade": "Block+3.",
+      "legal_branches": "Shared block modifiers.",
+      "regression_scenarios": "Dexterity, Block hooks, Defend-tag consumers.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "08ba8e1d038f6b2fed46217d974154f4d9deea82a235bedc0efb1c1459c509ef",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Basic, TargetType.Self",
+      "constructor_line": 20,
+      "variant_members": [
+        {
+          "line": 29,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.DISMANTLE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Dismantle.cs",
+      "source_sha256": "b80698380b1ee68a5757e4ba79f06d8adc659d3b37a485618e6b224eb3b76dd4",
+      "source_lines": [
+        1,
+        43
+      ],
+      "members": [
+        {
+          "line": 18,
+          "member": "protected override bool ShouldGlowGoldInternal => base.CombatState?.HittableEnemies.Any((Creature e) => e.HasPower<VulnerablePower>()) ?? false;"
+        },
+        {
+          "line": 20,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(8m, ValueProp.Move));"
+        },
+        {
+          "line": 24,
+          "member": "public Dismantle()"
+        },
+        {
+          "line": 29,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 39,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "At play inspect whether selected target currently has Vulnerable; attack8 with2 hits if yes else1.",
+      "upgrade": "Damage+2.",
+      "legal_branches": "Target power presence drives hit count once; glow queries any hittable vulnerable enemy.",
+      "regression_scenarios": "No/present Vulnerable including during hit chain, target death, observation purity.",
+      "fixed_model_dependencies": [
+        "VulnerablePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "b80698380b1ee68a5757e4ba79f06d8adc659d3b37a485618e6b224eb3b76dd4",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy",
+      "constructor_line": 25,
+      "variant_members": [
+        {
+          "line": 39,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.DOMINATE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Dominate.cs",
+      "source_sha256": "bccdb8bc8235402effc9fbd5994cd069aae69500da8e31d27cb1ce1f0531a81a",
+      "source_lines": [
+        1,
+        49
+      ],
+      "members": [
+        {
+          "line": 17,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlySingleElementList<CardKeyword>(CardKeyword.Exhaust);"
+        },
+        {
+          "line": 19,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 31,
+          "member": "public Dominate()"
+        },
+        {
+          "line": 36,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 45,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Apply Vulnerable1 to target; read resulting Vulnerable amount (or0); apply that much Strength to owner. Exhaust.",
+      "upgrade": "Vulnerable+1.",
+      "legal_branches": "Existing stacks, Artifact prevented application, modified application. StrengthPerVulnerable dynamic var exists but code uses actual amount directly.",
+      "regression_scenarios": "No/existing Vulnerable, Artifact, hooks triggered between application and read.",
+      "fixed_model_dependencies": [
+        "VulnerablePower",
+        "StrengthPower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "bccdb8bc8235402effc9fbd5994cd069aae69500da8e31d27cb1ce1f0531a81a",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Rare, TargetType.AnyEnemy",
+      "constructor_line": 32,
+      "variant_members": [
+        {
+          "line": 45,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.DRUM_OF_BATTLE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/DrumOfBattle.cs",
+      "source_sha256": "cacf678c75908500daab3407ac0f04777b38f7b5284f9cf6452667da281022d4",
+      "source_lines": [
+        1,
+        47
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 21,
+          "member": "public DrumOfBattle()"
+        },
+        {
+          "line": 26,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 31,
+          "member": "public override async Task AfterCardExhausted(PlayerChoiceContext choiceContext, CardModel card, bool causedByEthereal)"
+        },
+        {
+          "line": 43,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "On play draw2. When this exact card is exhausted with non-null CombatState, GeneratePlayCount(combat,null) then gain energy2 once per generated play.",
+      "upgrade": "Energy+1.",
+      "legal_branches": "Exhaust caused by Ethereal or other effects has no extra filter; play-count modifiers affect exhaust bonus.",
+      "regression_scenarios": "Exhaust from non-play source, Glam/duplication interaction, restored retained card references.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "Base card state and exhaustion event identity; GeneratePlayCount may consume modifier state.",
+      "random_outcomes": "none",
+      "sha256": "cacf678c75908500daab3407ac0f04777b38f7b5284f9cf6452667da281022d4",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 22,
+      "variant_members": [
+        {
+          "line": 43,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.ENTROPY",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Entropy.cs",
+      "source_sha256": "9cf9a30e2a65cfda0270b4f2f18a25ae15972c063adb916ca86a10432d9093d1",
+      "source_lines": [
+        1,
+        32
+      ],
+      "members": [
+        {
+          "line": 16,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new CardsVar(1));"
+        },
+        {
+          "line": 18,
+          "member": "public Entropy()"
+        },
+        {
+          "line": 23,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 28,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Apply EntropyPower1.",
+      "upgrade": "Add Innate.",
+      "legal_branches": "Power asks hand transformation choices at owner turn start.",
+      "regression_scenarios": "Turn-start choice and transform RNG, empty hand and replacement identity.",
+      "fixed_model_dependencies": [
+        "EntropyPower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "9cf9a30e2a65cfda0270b4f2f18a25ae15972c063adb916ca86a10432d9093d1",
+      "constructor_parameters": "1, CardType.Power, CardRarity.Rare, TargetType.Self",
+      "constructor_line": 19,
+      "variant_members": [
+        {
+          "line": 28,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.FEEL_NO_PAIN",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/FeelNoPain.cs",
+      "source_sha256": "4fd134b915fdfd2b54812a284b3e812c85b1929c23d2803b3115bad9a46b7dab",
+      "source_lines": [
+        1,
+        38
+      ],
+      "members": [
+        {
+          "line": 16,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DynamicVar(\"Power\", 3m));"
+        },
+        {
+          "line": 24,
+          "member": "public FeelNoPain()"
+        },
+        {
+          "line": 29,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 34,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Apply FeelNoPainPower3.",
+      "upgrade": "Amount+1.",
+      "legal_branches": "Exhaustion triggers handled by power.",
+      "regression_scenarios": "Self and other-card exhaustion, Ethereal, multiple stacks.",
+      "fixed_model_dependencies": [
+        "FeelNoPainPower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "4fd134b915fdfd2b54812a284b3e812c85b1929c23d2803b3115bad9a46b7dab",
+      "constructor_parameters": "1, CardType.Power, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 25,
+      "variant_members": [
+        {
+          "line": 34,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.FLAME_BARRIER",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/FlameBarrier.cs",
+      "source_sha256": "970b12d59d1daa57ae10ac48d4934786ca68ed0aae00cc2ae110738c9d82f22e",
+      "source_lines": [
+        1,
+        45
+      ],
+      "members": [
+        {
+          "line": 19,
+          "member": "public override bool GainsBlock => true;"
+        },
+        {
+          "line": 21,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 27,
+          "member": "public FlameBarrier()"
+        },
+        {
+          "line": 32,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 40,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Gain block12, then apply FlameBarrierPower4.",
+      "upgrade": "Block+4; retaliation+2.",
+      "legal_branches": "FlameBarrierPower retaliates against non-null dealer after owner receives powered-attack damage even when the damage result is fully blocked; removes after the side opposite its owner ends.",
+      "regression_scenarios": "Blocked and leaking multi-hit incoming attacks, no retaliation for unpowered damage, owner-relative expiry, stacked amounts.",
+      "fixed_model_dependencies": [
+        "FlameBarrierPower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "970b12d59d1daa57ae10ac48d4934786ca68ed0aae00cc2ae110738c9d82f22e",
+      "constructor_parameters": "2, CardType.Skill, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 28,
+      "variant_members": [
+        {
+          "line": 40,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "reviewed_dependency_sources": [
+        {
+          "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/FlameBarrierPower.cs",
+          "sha256": "7808c901f9b89b72060ef12abd938afeb23f6b1e39473298e68553f91682993d",
+          "source_lines": [
+            1,
+            33
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CARD.FRANTIC_ESCAPE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/FranticEscape.cs",
+      "source_sha256": "fbd36d62124e9fdcdeb59c4cdd02cd483a1f8973cb10fe09e529a0da9dbbffa4",
+      "source_lines": [
+        1,
+        52
+      ],
+      "members": [
+        {
+          "line": 28,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        },
+        {
+          "line": 30,
+          "member": "public override bool CanBeGeneratedInCombat => false;"
+        },
+        {
+          "line": 32,
+          "member": "public FranticEscape()"
+        },
+        {
+          "line": 37,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 48,
+          "member": "private Creature? GetSandpitEnemy()"
+        }
+      ],
+      "effect_order": "Find first enemy with SandpitPower; find its SandpitPower targeting owner; modify that amount+1 if found; then increase this instance cost+1 this combat.",
+      "upgrade": "MaxUpgradeLevel0.",
+      "legal_branches": "Missing enemy/power or power targets another entity still increases cost; cannot be generated in combat.",
+      "regression_scenarios": "Repeated use, cost persistence/reset, correct targeted sandpit identity.",
+      "fixed_model_dependencies": [
+        "SandpitPower"
+      ],
+      "mutable_state": "CardEnergyCost combat modifier grows on every play.",
+      "random_outcomes": "none",
+      "sha256": "fbd36d62124e9fdcdeb59c4cdd02cd483a1f8973cb10fe09e529a0da9dbbffa4",
+      "constructor_parameters": "1, CardType.Status, CardRarity.Status, TargetType.Self",
+      "constructor_line": 33,
+      "variant_members": [
+        {
+          "line": 28,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        }
+      ]
+    },
+    {
+      "id": "CARD.GOLD_AXE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/GoldAxe.cs",
+      "source_sha256": "c2b0cbd0ce6de8236c3c61e6e422f2e0e7ef100b6189ac7dc152532bca5f35f6",
+      "source_lines": [
+        1,
+        41
+      ],
+      "members": [
+        {
+          "line": 17,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[3]"
+        },
+        {
+          "line": 24,
+          "member": "public GoldAxe()"
+        },
+        {
+          "line": 29,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 37,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack using calculated damage base0 plus extra1 times count of all combat finished-card-play history entries.",
+      "upgrade": "Add Retain.",
+      "legal_branches": "History count is not restricted to owner/type/turn by this card.",
+      "regression_scenarios": "Autoplays/replays count, current play not yet finished, history retained references.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "c2b0cbd0ce6de8236c3c61e6e422f2e0e7ef100b6189ac7dc152532bca5f35f6",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy",
+      "constructor_line": 25,
+      "variant_members": [
+        {
+          "line": 37,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.HAVOC",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Havoc.cs",
+      "source_sha256": "2571cd74ec58e5c8e1e52dc7a04ca6ba43ec41bb96e4a622cbb3aea2a8668045",
+      "source_lines": [
+        1,
+        28
+      ],
+      "members": [
+        {
+          "line": 14,
+          "member": "public Havoc()"
+        },
+        {
+          "line": 19,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 24,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "AutoPlayFromDrawPile count1 Top with forceExhaust true.",
+      "upgrade": "Energy cost -1 (1 to0).",
+      "legal_branches": "Empty pile, draw-pile autoplay, automatic targeting, nested choice, forced exhaustion.",
+      "regression_scenarios": "No energy payment shortcut changes; stack resumed after nested selection; force-exhaust destination.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "2571cd74ec58e5c8e1e52dc7a04ca6ba43ec41bb96e4a622cbb3aea2a8668045",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Common, TargetType.Self",
+      "constructor_line": 15,
+      "variant_members": [
+        {
+          "line": 24,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.HEADBUTT",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Headbutt.cs",
+      "source_sha256": "b8400c89dace20e5d1a8161ee82ceb2e118590eca22ffcb67863cc7bfb256d15",
+      "source_lines": [
+        1,
+        40
+      ],
+      "members": [
+        {
+          "line": 16,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(9m, ValueProp.Move));"
+        },
+        {
+          "line": 18,
+          "member": "public Headbutt()"
+        },
+        {
+          "line": 23,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 36,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack selected target9; choose one discard-pile card; move non-null selection to top of Draw.",
+      "upgrade": "Damage+3.",
+      "legal_branches": "Empty discard, selection after attack-trigger mutations.",
+      "regression_scenarios": "Suspend after attack; stale choices; discard identity/order and top placement.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "b8400c89dace20e5d1a8161ee82ceb2e118590eca22ffcb67863cc7bfb256d15",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy",
+      "constructor_line": 19,
+      "variant_members": [
+        {
+          "line": 36,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.HOWL_FROM_BEYOND",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/HowlFromBeyond.cs",
+      "source_sha256": "fd83dd6d6534f05aa9a8a5a9aa575ac4f2f23b8507b0f309680cd245ad818e9a",
+      "source_lines": [
+        1,
+        45
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(18m, ValueProp.Move));"
+        },
+        {
+          "line": 19,
+          "member": "public HowlFromBeyond()"
+        },
+        {
+          "line": 24,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 32,
+          "member": "public override async Task AfterAutoPostPlayPhaseEntered(PlayerChoiceContext choiceContext, Player player)"
+        },
+        {
+          "line": 41,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "On play attack all opponents18; on owner AfterAutoPostPlayPhaseEntered, if this instance is in Exhaust, autoplay it.",
+      "upgrade": "Damage+6.",
+      "legal_branches": "Hook checks Exhaust membership, not printed keyword (card has no canonical Exhaust); can be exhausted by another effect.",
+      "regression_scenarios": "Owner vs other turn hook, repeated turn autoplay from Exhaust, changed destination/empty enemies.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "fd83dd6d6534f05aa9a8a5a9aa575ac4f2f23b8507b0f309680cd245ad818e9a",
+      "constructor_parameters": "3, CardType.Attack, CardRarity.Uncommon, TargetType.AllEnemies",
+      "constructor_line": 20,
+      "variant_members": [
+        {
+          "line": 41,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.IMPERVIOUS",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Impervious.cs",
+      "source_sha256": "f84b61f87a86e88152d2c6b35157a6d1f57c7cef2a7ab2a51a2e116caf47c88b",
+      "source_lines": [
+        1,
+        33
+      ],
+      "members": [
+        {
+          "line": 13,
+          "member": "public override bool GainsBlock => true;"
+        },
+        {
+          "line": 15,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new BlockVar(30m, ValueProp.Move));"
+        },
+        {
+          "line": 17,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlySingleElementList<CardKeyword>(CardKeyword.Exhaust);"
+        },
+        {
+          "line": 19,
+          "member": "public Impervious()"
+        },
+        {
+          "line": 24,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 29,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Gain block30. Exhaust.",
+      "upgrade": "Block+10.",
+      "legal_branches": "Shared block and exhaust pipeline.",
+      "regression_scenarios": "Block then exhaust hooks and multi-play interactions.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "f84b61f87a86e88152d2c6b35157a6d1f57c7cef2a7ab2a51a2e116caf47c88b",
+      "constructor_parameters": "2, CardType.Skill, CardRarity.Rare, TargetType.Self",
+      "constructor_line": 20,
+      "variant_members": [
+        {
+          "line": 29,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.INFECTION",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Infection.cs",
+      "source_sha256": "2c5b5cfe9eab2aaa7573fdd7fff5724cfb0f907d5c4ab73d058a7b2d3a95f270",
+      "source_lines": [
+        1,
+        41
+      ],
+      "members": [
+        {
+          "line": 16,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        },
+        {
+          "line": 18,
+          "member": "public override bool HasBuiltInOverlay => true;"
+        },
+        {
+          "line": 20,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(3m, ValueProp.Unpowered | ValueProp.Move));"
+        },
+        {
+          "line": 22,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlySingleElementList<CardKeyword>(CardKeyword.Unplayable);"
+        },
+        {
+          "line": 24,
+          "member": "public override bool HasTurnEndInHandEffect => true;"
+        },
+        {
+          "line": 26,
+          "member": "public Infection()"
+        },
+        {
+          "line": 31,
+          "member": "protected override async Task OnTurnEndInHand(PlayerChoiceContext choiceContext)"
+        }
+      ],
+      "effect_order": "Unplayable Status; end-in-hand deal owner damage3 with Unpowered|Move (not Unblockable).",
+      "upgrade": "MaxUpgradeLevel0.",
+      "legal_branches": "Hand-only turn-end effect.",
+      "regression_scenarios": "Block absorption and damage hooks; multiple statuses.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "2c5b5cfe9eab2aaa7573fdd7fff5724cfb0f907d5c4ab73d058a7b2d3a95f270",
+      "constructor_parameters": "-1, CardType.Status, CardRarity.Status, TargetType.None",
+      "constructor_line": 27,
+      "variant_members": [
+        {
+          "line": 16,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        }
+      ]
+    },
+    {
+      "id": "CARD.INFLAME",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Inflame.cs",
+      "source_sha256": "b77881751730c199219a516152ca5ee8d908d32c058d8393860090866dee1b0d",
+      "source_lines": [
+        1,
+        45
+      ],
+      "members": [
+        {
+          "line": 18,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new PowerVar<StrengthPower>(2m));"
+        },
+        {
+          "line": 24,
+          "member": "public Inflame()"
+        },
+        {
+          "line": 29,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 35,
+          "member": "public override async Task OnEnqueuePlayVfx(Creature? target)"
+        },
+        {
+          "line": 41,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Apply Strength2 to owner.",
+      "upgrade": "Strength+1.",
+      "legal_branches": "Shared power stacking/application.",
+      "regression_scenarios": "Negative/existing Strength and modifiers.",
+      "fixed_model_dependencies": [
+        "StrengthPower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "b77881751730c199219a516152ca5ee8d908d32c058d8393860090866dee1b0d",
+      "constructor_parameters": "1, CardType.Power, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 25,
+      "variant_members": [
+        {
+          "line": 41,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.IRON_WAVE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/IronWave.cs",
+      "source_sha256": "f8a7f22fac4f2b39b5ae4595df39a1dbe3f3329fa01292d58bf5586a8adae829",
+      "source_lines": [
+        1,
+        41
+      ],
+      "members": [
+        {
+          "line": 14,
+          "member": "public override bool GainsBlock => true;"
+        },
+        {
+          "line": 16,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 22,
+          "member": "public IronWave()"
+        },
+        {
+          "line": 27,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 36,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Gain block5 first, then attack target5.",
+      "upgrade": "Block+2 and Damage+2.",
+      "legal_branches": "Block hooks may affect subsequent attack.",
+      "regression_scenarios": "Block-before-attack ordering; retaliation and death.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "f8a7f22fac4f2b39b5ae4595df39a1dbe3f3329fa01292d58bf5586a8adae829",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy",
+      "constructor_line": 23,
+      "variant_members": [
+        {
+          "line": 36,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.JACK_OF_ALL_TRADES",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/JackOfAllTrades.cs",
+      "source_sha256": "6f90789fa7e239bf6ffbb798a0c01b6b31b3d83a60edc35ea6d56deb0c30ac80",
+      "source_lines": [
+        1,
+        39
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlySingleElementList<CardKeyword>(CardKeyword.Exhaust);"
+        },
+        {
+          "line": 17,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new CardsVar(1));"
+        },
+        {
+          "line": 19,
+          "member": "public JackOfAllTrades()"
+        },
+        {
+          "line": 24,
+          "member": "protected override void OnUpgrade()"
+        },
+        {
+          "line": 29,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        }
+      ],
+      "effect_order": "Generate distinct colorless cards count1 into Hand, excluding JackOfAllTrades; Exhaust.",
+      "upgrade": "Generated count+1.",
+      "legal_branches": "Unlocked/player-count/combat-generation filters; finite pool; Hand capacity.",
+      "regression_scenarios": "Exact pool/ordering/RNG; independent generated identities; hand overflow.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "Unlocked ColorlessCardPool minus JackOfAllTrades; CardFactory.GetDistinctForCombat; CombatCardGeneration RNG. Non-root outcomes keep native probability and may remain explicitly unsupported effects.",
+      "sha256": "6f90789fa7e239bf6ffbb798a0c01b6b31b3d83a60edc35ea6d56deb0c30ac80",
+      "constructor_parameters": "0, CardType.Skill, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 20,
+      "variant_members": [
+        {
+          "line": 24,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.JUGGLING",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Juggling.cs",
+      "source_sha256": "f80bc151ffc077d238aff0266f86f352f1d11a4fa85ed214b0ac1f1230002526",
+      "source_lines": [
+        1,
+        26
+      ],
+      "members": [
+        {
+          "line": 11,
+          "member": "public Juggling()"
+        },
+        {
+          "line": 16,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 22,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Apply JugglingPower1.",
+      "upgrade": "Add Innate.",
+      "legal_branches": "Power counts attacks and creates clones of third attack.",
+      "regression_scenarios": "Applied after attacks already played, third vs fourth attack, generated clone mutations.",
+      "fixed_model_dependencies": [
+        "JugglingPower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "f80bc151ffc077d238aff0266f86f352f1d11a4fa85ed214b0ac1f1230002526",
+      "constructor_parameters": "1, CardType.Power, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 12,
+      "variant_members": [
+        {
+          "line": 22,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.MAD_SCIENCE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/MadScience.cs",
+      "source_sha256": "264d8ab11121154a78846b9c2596b6d643637b00642672109462f94e212cfc7d",
+      "source_lines": [
+        1,
+        303
+      ],
+      "members": [
+        {
+          "line": 80,
+          "member": "public override CardType Type => TinkerTimeType;"
+        },
+        {
+          "line": 94,
+          "member": "public override bool GainsBlock => TinkerTimeType == CardType.Skill;"
+        },
+        {
+          "line": 96,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[11]"
+        },
+        {
+          "line": 167,
+          "member": "public MadScience()"
+        },
+        {
+          "line": 189,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 216,
+          "member": "private async Task ExecuteAttack(PlayerChoiceContext choiceContext, Creature target, CardPlay cardPlay)"
+        },
+        {
+          "line": 225,
+          "member": "private async Task ExecuteSkill(CardPlay cardPlay)"
+        },
+        {
+          "line": 230,
+          "member": "private async Task ExecutePower(PlayerChoiceContext choiceContext)"
+        },
+        {
+          "line": 248,
+          "member": "protected override void OnUpgrade()"
+        },
+        {
+          "line": 253,
+          "member": "protected override void AddExtraArgsToDescription(LocString description)"
+        },
+        {
+          "line": 265,
+          "member": "private async Task ExecuteRider(TinkerTime.RiderEffect rider, Creature? target, PlayerChoiceContext choiceContext)"
+        },
+        {
+          "line": 297,
+          "member": "public void MockChaosCard(CardModel card)"
+        }
+      ],
+      "effect_order": "Legal Attack: damage12 (3 hits for Violence); Skill: block8; Power: Expertise Strength2 then Dexterity2, Curious cost-reduction1 or Improvement1. After Attack/Skill base effect, riders run: Sapping Weak2 then Vulnerable2; Choking Strangle6; Energized energy2; Wisdom draw3; Chaos one generated own-pool card free this turn.",
+      "upgrade": "Add Innate.",
+      "legal_branches": "Event legal matrix: Attack=Sapping/Violence/Choking; Skill=Energized/Wisdom/Chaos; Power=Expertise/Curious/Improvement. Type/rider must persist; reject invalid restored combinations per supported input contract; source switch includes None interim event previews.",
+      "regression_scenarios": "All nine legal variants base/upgraded; nested Wisdom draw/generation hooks; Chaos RNG; type-dependent target/action observation; clone/restore type and rider.",
+      "fixed_model_dependencies": [
+        "WeakPower",
+        "VulnerablePower",
+        "StranglePower",
+        "StrengthPower",
+        "DexterityPower",
+        "CuriousPower",
+        "ImprovementPower"
+      ],
+      "mutable_state": "Saved TinkerTimeType, saved TinkerTimeRider; _mockedChaosCard is test-only injection, not native gameplay state.",
+      "random_outcomes": "Chaos: unlocked owner Character.CardPool, GetDistinctForCombat count1, CombatCardGeneration RNG; generated card SetToFreeThisTurn. Do not make mocked test card a gameplay dependency.",
+      "sha256": "264d8ab11121154a78846b9c2596b6d643637b00642672109462f94e212cfc7d",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Event, TargetType.AnyEnemy, shouldShowInCardLibrary: false",
+      "constructor_line": 168,
+      "variant_members": [
+        {
+          "line": 80,
+          "member": "public override CardType Type => TinkerTimeType;"
+        },
+        {
+          "line": 94,
+          "member": "public override bool GainsBlock => TinkerTimeType == CardType.Skill;"
+        },
+        {
+          "line": 248,
+          "member": "protected override void OnUpgrade()"
+        },
+        {
+          "line": 265,
+          "member": "private async Task ExecuteRider(TinkerTime.RiderEffect rider, Creature? target, PlayerChoiceContext choiceContext)"
+        }
+      ]
+    },
+    {
+      "id": "CARD.MANGLE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Mangle.cs",
+      "source_sha256": "ec860f4e2df9b833369b82a372bf4f8fa1ef6b2f624654b6126f14e83c6bc02b",
+      "source_lines": [
+        1,
+        48
+      ],
+      "members": [
+        {
+          "line": 19,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 27,
+          "member": "public Mangle()"
+        },
+        {
+          "line": 32,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 43,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack selected target20, then apply ManglePower10.",
+      "upgrade": "Damage+6; temporary Strength loss+5.",
+      "legal_branches": "TemporaryStrengthPower shared superclass controls negative Strength application and reversal.",
+      "regression_scenarios": "Artifact, temporary negative-strength stacking, end-side reversal after power removal.",
+      "fixed_model_dependencies": [
+        "ManglePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "ec860f4e2df9b833369b82a372bf4f8fa1ef6b2f624654b6126f14e83c6bc02b",
+      "constructor_parameters": "3, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy",
+      "constructor_line": 28,
+      "variant_members": [
+        {
+          "line": 43,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.MOLTEN_FIST",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/MoltenFist.cs",
+      "source_sha256": "c2ad51ea224d655492762ad9c91d852d33b2afdc366801f21dc1b19f2dcce35b",
+      "source_lines": [
+        1,
+        49
+      ],
+      "members": [
+        {
+          "line": 21,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlySingleElementList<CardKeyword>(CardKeyword.Exhaust);"
+        },
+        {
+          "line": 23,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(10m, ValueProp.Move));"
+        },
+        {
+          "line": 27,
+          "member": "public MoltenFist()"
+        },
+        {
+          "line": 32,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 45,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack target10; after hit if target IsAlive read Vulnerable, else use0; apply that amount again if positive. Exhaust.",
+      "upgrade": "Damage+4.",
+      "legal_branches": "Explicit alive guard unlike Bash; absent Vulnerable no application.",
+      "regression_scenarios": "Dead/reviving/live target; doubling existing stacks; Artifact on added amount.",
+      "fixed_model_dependencies": [
+        "VulnerablePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "c2ad51ea224d655492762ad9c91d852d33b2afdc366801f21dc1b19f2dcce35b",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy",
+      "constructor_line": 28,
+      "variant_members": [
+        {
+          "line": 45,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.OFFERING",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Offering.cs",
+      "source_sha256": "401902bb5f21d705f00c0ad600275801996b7c2dd9ed4efb69dc2351a8a93afe",
+      "source_lines": [
+        1,
+        41
+      ],
+      "members": [
+        {
+          "line": 14,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[3]"
+        },
+        {
+          "line": 21,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlySingleElementList<CardKeyword>(CardKeyword.Exhaust);"
+        },
+        {
+          "line": 25,
+          "member": "public Offering()"
+        },
+        {
+          "line": 30,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 37,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Self HP-loss6 Unblockable|Unpowered|Move, gain energy2, then draw3. Exhaust.",
+      "upgrade": "Draw+2.",
+      "legal_branches": "Self-damage hooks precede energy and draw; low-HP/ending shared behavior.",
+      "regression_scenarios": "HP/energy/draw/exhaust order; full Hand; death/revival.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "401902bb5f21d705f00c0ad600275801996b7c2dd9ed4efb69dc2351a8a93afe",
+      "constructor_parameters": "0, CardType.Skill, CardRarity.Rare, TargetType.Self",
+      "constructor_line": 26,
+      "variant_members": [
+        {
+          "line": 37,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.ONE_TWO_PUNCH",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/OneTwoPunch.cs",
+      "source_sha256": "68634744da6a56a6bc711c0b8b2e857a05307201be72fefa9dd248a436c0b5f1",
+      "source_lines": [
+        1,
+        31
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DynamicVar(\"Attacks\", 1m));"
+        },
+        {
+          "line": 17,
+          "member": "public OneTwoPunch()"
+        },
+        {
+          "line": 22,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 27,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Apply OneTwoPunchPower1.",
+      "upgrade": "Power amount+1.",
+      "legal_branches": "Power adds one extra attack play, decrements after modifying play count and removes at owner side end.",
+      "regression_scenarios": "Stack counts vs replay counts, Glam/duplication, expiration.",
+      "fixed_model_dependencies": [
+        "OneTwoPunchPower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "68634744da6a56a6bc711c0b8b2e857a05307201be72fefa9dd248a436c0b5f1",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Rare, TargetType.Self",
+      "constructor_line": 18,
+      "variant_members": [
+        {
+          "line": 27,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.PACTS_END",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/PactsEnd.cs",
+      "source_sha256": "184354546c0ed66df893730d72ecfc6975105f3bcdb3452d19b94a62b74caa7b",
+      "source_lines": [
+        1,
+        46
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 21,
+          "member": "protected override bool ShouldGlowGoldInternal => CanDealDamage;"
+        },
+        {
+          "line": 23,
+          "member": "private bool CanDealDamage => CardPile.GetCards(base.Owner, PileType.Exhaust).Count() >= base.DynamicVars.Cards.IntValue;"
+        },
+        {
+          "line": 25,
+          "member": "public PactsEnd()"
+        },
+        {
+          "line": 30,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 42,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack all opponents18 only when Exhaust-pile card count>=3 at play time.",
+      "upgrade": "Damage+6.",
+      "legal_branches": "Below threshold does no attack but is still a legal card play; threshold evaluated dynamically.",
+      "regression_scenarios": "2/3 cards, replay with changed exhaust count, all dead but revivable enemies.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "184354546c0ed66df893730d72ecfc6975105f3bcdb3452d19b94a62b74caa7b",
+      "constructor_parameters": "0, CardType.Attack, CardRarity.Rare, TargetType.AllEnemies",
+      "constructor_line": 26,
+      "variant_members": [
+        {
+          "line": 42,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.PERFECTED_STRIKE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/PerfectedStrike.cs",
+      "source_sha256": "87c619fad16500a02a4e832cbf2c17d3b392e9b564aa6bcc44856ff7d3173c16",
+      "source_lines": [
+        1,
+        51
+      ],
+      "members": [
+        {
+          "line": 19,
+          "member": "protected override HashSet<CardTag> CanonicalTags => new HashSet<CardTag> { CardTag.Strike };"
+        },
+        {
+          "line": 21,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[3]"
+        },
+        {
+          "line": 28,
+          "member": "public PerfectedStrike()"
+        },
+        {
+          "line": 33,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 47,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack for calculated base6 plus extra2 times number of Strike-tagged cards in PlayerCombatState.AllCards. This card has Strike tag.",
+      "upgrade": "ExtraDamage multiplier+1 (2 to3).",
+      "legal_branches": "Counts all combat cards, not just deck/hand; animation-only damage>12 branch is not gameplay.",
+      "regression_scenarios": "Generated/exhausted Strike-tagged instances, multiple tags, calculation modifiers.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "87c619fad16500a02a4e832cbf2c17d3b392e9b564aa6bcc44856ff7d3173c16",
+      "constructor_parameters": "2, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy",
+      "constructor_line": 29,
+      "variant_members": [
+        {
+          "line": 47,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.PILLAGE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Pillage.cs",
+      "source_sha256": "db0b6d42558db966d0c399928e3d804cb74bf2a993726381e040bcd9a5395e3d",
+      "source_lines": [
+        1,
+        40
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(6m, ValueProp.Move));"
+        },
+        {
+          "line": 17,
+          "member": "public Pillage()"
+        },
+        {
+          "line": 22,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 36,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack target6; do draw one at least once, continuing while returned card is Attack and Hand is below max.",
+      "upgrade": "Damage+3.",
+      "legal_branches": "Stop on null, non-Attack, or Hand cap; draw hooks/reshuffle apply each iteration.",
+      "regression_scenarios": "First non-Attack vs Attack chain, full Hand, empty piles, generated/draw hooks.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "db0b6d42558db966d0c399928e3d804cb74bf2a993726381e040bcd9a5395e3d",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy",
+      "constructor_line": 18,
+      "variant_members": [
+        {
+          "line": 36,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.POMMEL_STRIKE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/PommelStrike.cs",
+      "source_sha256": "a6e86802680579e0fe516b8680d1bd49b1e1e9edbccd6a6c4bad4ba07b5836ba",
+      "source_lines": [
+        1,
+        41
+      ],
+      "members": [
+        {
+          "line": 14,
+          "member": "protected override HashSet<CardTag> CanonicalTags => new HashSet<CardTag> { CardTag.Strike };"
+        },
+        {
+          "line": 16,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 22,
+          "member": "public PommelStrike()"
+        },
+        {
+          "line": 27,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 36,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack target9 then draw1. Strike tag.",
+      "upgrade": "Damage+1; draw+1.",
+      "legal_branches": "Draw occurs after attack triggers.",
+      "regression_scenarios": "Lethal/nonlethal draw ordering; max Hand and reshuffle; tag consumers.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "a6e86802680579e0fe516b8680d1bd49b1e1e9edbccd6a6c4bad4ba07b5836ba",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy",
+      "constructor_line": 23,
+      "variant_members": [
+        {
+          "line": 36,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.PURITY",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Purity.cs",
+      "source_sha256": "7944b2f8b652fd687fc4a63f9adaaf1bdbc3fd43ba238fc8fd27d2556d69cfaf",
+      "source_lines": [
+        1,
+        38
+      ],
+      "members": [
+        {
+          "line": 13,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlyArray<CardKeyword>(new CardKeyword[2]"
+        },
+        {
+          "line": 19,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new CardsVar(3));"
+        },
+        {
+          "line": 21,
+          "member": "public Purity()"
+        },
+        {
+          "line": 26,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 34,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Select 0..3 hand cards; sequentially exhaust selected cards. Retain and Exhaust.",
+      "upgrade": "Max selected+2.",
+      "legal_branches": "Zero selection is legal; ordered selected set; nested exhaust triggers; fewer candidates.",
+      "regression_scenarios": "Zero/partial/max selection, confirm semantics, parent/sibling checkpoint independence.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "7944b2f8b652fd687fc4a63f9adaaf1bdbc3fd43ba238fc8fd27d2556d69cfaf",
+      "constructor_parameters": "0, CardType.Skill, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 22,
+      "variant_members": [
+        {
+          "line": 34,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.SECOND_WIND",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/SecondWind.cs",
+      "source_sha256": "1f9d4bc3dfeccdfa762c2a79b67737161965b740582fc37e403f7928e4ca158f",
+      "source_lines": [
+        1,
+        46
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "public override bool GainsBlock => true;"
+        },
+        {
+          "line": 17,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new BlockVar(5m, ValueProp.Move));"
+        },
+        {
+          "line": 21,
+          "member": "public SecondWind()"
+        },
+        {
+          "line": 26,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 36,
+          "member": "protected override void OnUpgrade()"
+        },
+        {
+          "line": 41,
+          "member": "private IEnumerable<CardModel> GetCards()"
+        }
+      ],
+      "effect_order": "Snapshot list of non-Attack hand cards; for each exhaust it then gain block5.",
+      "upgrade": "Block+2.",
+      "legal_branches": "Snapshot excludes later generated cards; each exhaustion precedes its block award.",
+      "regression_scenarios": "0/1/many non-Attacks, exhaust-generated card, trigger ordering and death.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "1f9d4bc3dfeccdfa762c2a79b67737161965b740582fc37e403f7928e4ca158f",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 22,
+      "variant_members": [
+        {
+          "line": 36,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.SETUP_STRIKE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/SetupStrike.cs",
+      "source_sha256": "44d6350e3fb130af4a416f15ac14419f47549334d174766fc12a03edeb4cfa85",
+      "source_lines": [
+        1,
+        45
+      ],
+      "members": [
+        {
+          "line": 18,
+          "member": "protected override HashSet<CardTag> CanonicalTags => new HashSet<CardTag> { CardTag.Strike };"
+        },
+        {
+          "line": 20,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 26,
+          "member": "public SetupStrike()"
+        },
+        {
+          "line": 31,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 40,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack target7, then apply SetupStrikePower3. Strike tag.",
+      "upgrade": "Damage+2; temporary Strength+1.",
+      "legal_branches": "Temporary Strength apply/stack/reversal handled by superclass.",
+      "regression_scenarios": "Attack-before-Strength, multi-play, side-end reversal.",
+      "fixed_model_dependencies": [
+        "SetupStrikePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "44d6350e3fb130af4a416f15ac14419f47549334d174766fc12a03edeb4cfa85",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy",
+      "constructor_line": 27,
+      "variant_members": [
+        {
+          "line": 40,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.SHOCKWAVE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Shockwave.cs",
+      "source_sha256": "16f98ad1049df4ba06654f26f3f311559d5c4dda2cc44f6c65925c64dc705d57",
+      "source_lines": [
+        1,
+        48
+      ],
+      "members": [
+        {
+          "line": 17,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DynamicVar(\"Power\", 3m));"
+        },
+        {
+          "line": 19,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlySingleElementList<CardKeyword>(CardKeyword.Exhaust);"
+        },
+        {
+          "line": 27,
+          "member": "public Shockwave()"
+        },
+        {
+          "line": 32,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 44,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "For each current HittableEnemy in order apply Weak3 then Vulnerable3. Exhaust.",
+      "upgrade": "Amount+2 for both.",
+      "legal_branches": "Power hooks interleave by enemy; not two global passes.",
+      "regression_scenarios": "Artifact1/2, Vicious-trigger draw mid-loop, target disappearance.",
+      "fixed_model_dependencies": [
+        "WeakPower",
+        "VulnerablePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "16f98ad1049df4ba06654f26f3f311559d5c4dda2cc44f6c65925c64dc705d57",
+      "constructor_parameters": "2, CardType.Skill, CardRarity.Uncommon, TargetType.AllEnemies",
+      "constructor_line": 28,
+      "variant_members": [
+        {
+          "line": 44,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.SHRUG_IT_OFF",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/ShrugItOff.cs",
+      "source_sha256": "8ade3858ece71ae87bac9748a992e53011280705375326ac8325672467299b7f",
+      "source_lines": [
+        1,
+        36
+      ],
+      "members": [
+        {
+          "line": 13,
+          "member": "public override bool GainsBlock => true;"
+        },
+        {
+          "line": 15,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 21,
+          "member": "public ShrugItOff()"
+        },
+        {
+          "line": 26,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 32,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Gain block8 then draw1.",
+      "upgrade": "Block+3.",
+      "legal_branches": "Draw hooks after block.",
+      "regression_scenarios": "Block-trigger effects before draw; full Hand/empty piles.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "8ade3858ece71ae87bac9748a992e53011280705375326ac8325672467299b7f",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Common, TargetType.Self",
+      "constructor_line": 22,
+      "variant_members": [
+        {
+          "line": 32,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.SLIMED",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Slimed.cs",
+      "source_sha256": "b3a292d4813bb5eda5bdd41ae82656817563274bdae2fb988416834b414648e8",
+      "source_lines": [
+        1,
+        35
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        },
+        {
+          "line": 17,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new CardsVar(1));"
+        },
+        {
+          "line": 19,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlySingleElementList<CardKeyword>(CardKeyword.Exhaust);"
+        },
+        {
+          "line": 21,
+          "member": "public Slimed()"
+        },
+        {
+          "line": 26,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        }
+      ],
+      "effect_order": "Draw1. Exhaust; Status with TargetType.None.",
+      "upgrade": "MaxUpgradeLevel0.",
+      "legal_branches": "Playable status unlike Burn/Infection; no target.",
+      "regression_scenarios": "Action eligibility and cost1, draw then Exhaust hooks.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "b3a292d4813bb5eda5bdd41ae82656817563274bdae2fb988416834b414648e8",
+      "constructor_parameters": "1, CardType.Status, CardRarity.Status, TargetType.None",
+      "constructor_line": 22,
+      "variant_members": [
+        {
+          "line": 15,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        }
+      ]
+    },
+    {
+      "id": "CARD.SPLASH",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Splash.cs",
+      "source_sha256": "2e62caf5aa1cd3f31156f1d0126e63292c04095ba3ec7e5dda67bca2730d15f5",
+      "source_lines": [
+        1,
+        66
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "public Splash()"
+        },
+        {
+          "line": 20,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 61,
+          "member": "public void MockGeneratedCard(CardModel card)"
+        }
+      ],
+      "effect_order": "Generate3 distinct Attack offers from unlocked other-character pools (remove own only if >1 unlocked pools); if upgraded upgrade each offer before choose; optional choose/skip; chosen card becomes free this turn and enters Hand.",
+      "upgrade": "Upgrade all offers before choice.",
+      "legal_branches": "Single unlocked pool fallback; skip creates no chosen card; actual generated models may be outside roots.",
+      "regression_scenarios": "All pool filters/RNG, skip, upgrade before selection, hand overflow and free-cost lifetime.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "_mockGeneratedCard is test-only injection; pending generated offer identities must be retained by continuation.",
+      "random_outcomes": "Unlocked character card pools, Attack filter, GetDistinctForCombat count3, CombatCardGeneration RNG; additional non-root effects explicitly unsupported until implemented.",
+      "sha256": "2e62caf5aa1cd3f31156f1d0126e63292c04095ba3ec7e5dda67bca2730d15f5",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Rare, TargetType.Self",
+      "constructor_line": 16,
+      "variant_members": []
+    },
+    {
+      "id": "CARD.SPOILS_MAP",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/SpoilsMap.cs",
+      "source_sha256": "bb52465415aa2e7df7024e94b04013f8fca94b01d0af47d2f188619528ef99bc",
+      "source_lines": [
+        1,
+        125
+      ],
+      "members": [
+        {
+          "line": 17,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        },
+        {
+          "line": 19,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new GoldVar(600));"
+        },
+        {
+          "line": 21,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlySingleElementList<CardKeyword>(CardKeyword.Unplayable);"
+        },
+        {
+          "line": 37,
+          "member": "public MapCoord? SpoilsCoord { get; private set; }"
+        },
+        {
+          "line": 39,
+          "member": "public SpoilsMap()"
+        },
+        {
+          "line": 44,
+          "member": "public override void AfterCreated()"
+        },
+        {
+          "line": 49,
+          "member": "public override ActMap ModifyGeneratedMap(IRunState runState, ActMap map, int actIndex)"
+        },
+        {
+          "line": 63,
+          "member": "public override ActMap ModifyGeneratedMapLate(IRunState runState, ActMap map, int actIndex)"
+        },
+        {
+          "line": 82,
+          "member": "public override Task AfterMapGenerated(ActMap map, int actIndex)"
+        },
+        {
+          "line": 100,
+          "member": "public override Task BeforeCardRemoved(CardModel card)"
+        },
+        {
+          "line": 118,
+          "member": "public async Task<int> OnQuestComplete()"
+        }
+      ],
+      "effect_order": "Non-upgradable Unplayable Quest. AfterCreated sets act index1. While in Deck for matching act, replace map with SpoilsActMap; late map hook remembers first Treasure coord; after-map hook attaches quest. Removal hook removes quest only in current matching act with coord. Quest completion grants gold600, completes quest, removes card from Deck, returns gold value.",
+      "upgrade": "MaxUpgradeLevel0.",
+      "legal_branches": "Missing Deck membership, other act, missing treasure/coord/map point; removal before/after target act.",
+      "regression_scenarios": "Alternate map exact topology/RNG; attach/remove quest; complete once; no deck card left after reward.",
+      "fixed_model_dependencies": [
+        "SpoilsActMap"
+      ],
+      "mutable_state": "Saved SpoilsActIndex, runtime SpoilsCoord; map point quest reference/ownership.",
+      "random_outcomes": "none",
+      "sha256": "bb52465415aa2e7df7024e94b04013f8fca94b01d0af47d2f188619528ef99bc",
+      "constructor_parameters": "-1, CardType.Quest, CardRarity.Quest, TargetType.Self",
+      "constructor_line": 40,
+      "variant_members": [
+        {
+          "line": 17,
+          "member": "public override int MaxUpgradeLevel => 0;"
+        }
+      ]
+    },
+    {
+      "id": "CARD.STAMPEDE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Stampede.cs",
+      "source_sha256": "606bca7a8b137c47f2def409ed5f287f6f9817d6bf32ff1503b4eb19219d041f",
+      "source_lines": [
+        1,
+        31
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DynamicVar(\"Power\", 1m));"
+        },
+        {
+          "line": 17,
+          "member": "public Stampede()"
+        },
+        {
+          "line": 22,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 27,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Apply StampedePower1.",
+      "upgrade": "Energy cost -1 (2 to1).",
+      "legal_branches": "At owner auto-post-play phase chooses playable Attack in Hand per stack with Shuffle RNG and autoplays.",
+      "regression_scenarios": "Nested choices, shrinking/changed Hand, no eligible Attack, multi-stack.",
+      "fixed_model_dependencies": [
+        "StampedePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "606bca7a8b137c47f2def409ed5f287f6f9817d6bf32ff1503b4eb19219d041f",
+      "constructor_parameters": "2, CardType.Power, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 18,
+      "variant_members": [
+        {
+          "line": 27,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.STRIKE_IRONCLAD",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs",
+      "source_sha256": "c0e918b41b91b1d85ec20fe87d34d37b8a3dade11fbf301e8465a7d12be2bcdf",
+      "source_lines": [
+        1,
+        41
+      ],
+      "members": [
+        {
+          "line": 17,
+          "member": "protected override HashSet<CardTag> CanonicalTags => new HashSet<CardTag> { CardTag.Strike };"
+        },
+        {
+          "line": 19,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(6m, ValueProp.Move));"
+        },
+        {
+          "line": 24,
+          "member": "public StrikeIronclad()"
+        },
+        {
+          "line": 29,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 37,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack target6. Strike tag.",
+      "upgrade": "Damage+3.",
+      "legal_branches": "Shared attack pipeline.",
+      "regression_scenarios": "Tag consumers and general damage/target legality.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "c0e918b41b91b1d85ec20fe87d34d37b8a3dade11fbf301e8465a7d12be2bcdf",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Basic, TargetType.AnyEnemy",
+      "constructor_line": 25,
+      "variant_members": [
+        {
+          "line": 37,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.SWORD_BOOMERANG",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/SwordBoomerang.cs",
+      "source_sha256": "30396e5009159a29dc4bce78524619a185c476f745a3f9c476b9632f3e77e2a3",
+      "source_lines": [
+        1,
+        36
+      ],
+      "members": [
+        {
+          "line": 13,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 19,
+          "member": "public SwordBoomerang()"
+        },
+        {
+          "line": 24,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 32,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack random opponents damage3 with3 hits.",
+      "upgrade": "Hits+1.",
+      "legal_branches": "Random target policy delegated to AttackCommand; targets may change after each hit.",
+      "regression_scenarios": "Per-hit RNG, one/many/zero targets, death/revival target exclusion.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "30396e5009159a29dc4bce78524619a185c476f745a3f9c476b9632f3e77e2a3",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Common, TargetType.RandomEnemy",
+      "constructor_line": 20,
+      "variant_members": [
+        {
+          "line": 32,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.TAUNT",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Taunt.cs",
+      "source_sha256": "97c7bbafb741806bdeec226f6b7665a1314bff44d5494a4478630fd9d3bed323",
+      "source_lines": [
+        1,
+        44
+      ],
+      "members": [
+        {
+          "line": 16,
+          "member": "public override bool GainsBlock => true;"
+        },
+        {
+          "line": 18,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 26,
+          "member": "public Taunt()"
+        },
+        {
+          "line": 31,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 39,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Gain block6 then apply Vulnerable1 to target.",
+      "upgrade": "Block+1; Vulnerable+1.",
+      "legal_branches": "Targeted Skill still requires enemy; block before power hooks.",
+      "regression_scenarios": "Target legality; Artifact; block-before-Vicious draw.",
+      "fixed_model_dependencies": [
+        "VulnerablePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "97c7bbafb741806bdeec226f6b7665a1314bff44d5494a4478630fd9d3bed323",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Common, TargetType.AnyEnemy",
+      "constructor_line": 27,
+      "variant_members": [
+        {
+          "line": 39,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.TEAR_ASUNDER",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/TearAsunder.cs",
+      "source_sha256": "fcf49863bbf7aeedae7fc6106bbccd50d1beb0beb216896b3076bf520c4a36d6",
+      "source_lines": [
+        1,
+        47
+      ],
+      "members": [
+        {
+          "line": 20,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[5]"
+        },
+        {
+          "line": 29,
+          "member": "public TearAsunder()"
+        },
+        {
+          "line": 34,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 43,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack target5 with hit count 1 + number of DamageReceived history entries whose receiver is owner and UnblockedDamage>0.",
+      "upgrade": "Damage+2.",
+      "legal_branches": "History count is events, not HP amount, not restricted to current turn or attack damage.",
+      "regression_scenarios": "Self-damage/retaliation/multiple hits, blocked0 event excluded, history across turns.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "fcf49863bbf7aeedae7fc6106bbccd50d1beb0beb216896b3076bf520c4a36d6",
+      "constructor_parameters": "2, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy",
+      "constructor_line": 30,
+      "variant_members": [
+        {
+          "line": 43,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.THE_GAMBIT",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/TheGambit.cs",
+      "source_sha256": "7df85c6236fc0d0fd6cf0dfff1d5a596b6942bfa47d1e4995dd5ae7d11f86b38",
+      "source_lines": [
+        1,
+        33
+      ],
+      "members": [
+        {
+          "line": 14,
+          "member": "public override bool GainsBlock => true;"
+        },
+        {
+          "line": 16,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new BlockVar(50m, ValueProp.Move));"
+        },
+        {
+          "line": 18,
+          "member": "public TheGambit()"
+        },
+        {
+          "line": 23,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 29,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Gain block50 then apply TheGambitPower1.",
+      "upgrade": "Block+25.",
+      "legal_branches": "Power kills owner only after positive unblocked powered-attack damage; not arbitrary HP loss.",
+      "regression_scenarios": "Blocked attack, self-loss, unpowered damage, first leaked powered attack.",
+      "fixed_model_dependencies": [
+        "TheGambitPower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "7df85c6236fc0d0fd6cf0dfff1d5a596b6942bfa47d1e4995dd5ae7d11f86b38",
+      "constructor_parameters": "0, CardType.Skill, CardRarity.Rare, TargetType.Self",
+      "constructor_line": 19,
+      "variant_members": [
+        {
+          "line": 29,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.THRASH",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Thrash.cs",
+      "source_sha256": "62e6781c5d0b75d3a7633d6297aaa0d7f6aedf2bb652855c1b0a5863a8f0e7a5",
+      "source_lines": [
+        1,
+        87
+      ],
+      "members": [
+        {
+          "line": 22,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(4m, ValueProp.Move));"
+        },
+        {
+          "line": 37,
+          "member": "public Thrash()"
+        },
+        {
+          "line": 42,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 77,
+          "member": "protected override void AfterDowngraded()"
+        },
+        {
+          "line": 83,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack target for2 hits of damage4; randomly choose current Hand Attack using CombatCardSelection. If selected, get CalculatedDamage(null), else Damage base, else OstyDamage base, else0; apply Hook.ModifyDamage(All) to captured damage, add result to this Damage.BaseValue and ExtraDamage, then exhaust chosen card.",
+      "upgrade": "Damage+2; AfterDowngraded re-adds accumulated ExtraDamage to rebuilt DynamicVar.",
+      "legal_branches": "No eligible Attack; multiple damage-var shapes; targetless calculation; exhaustion hooks run after accumulation.",
+      "regression_scenarios": "Repeat plays and downgrade preserve growth; Strength modifier captured; wrong-use of expected damage; clone/restore accumulated damage.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "Private decimal _extraDamage plus mutable Damage.BaseValue; both are future-behavior state.",
+      "random_outcomes": "Existing Hand Attack selected by CombatCardSelection; no generated model expansion.",
+      "sha256": "62e6781c5d0b75d3a7633d6297aaa0d7f6aedf2bb652855c1b0a5863a8f0e7a5",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy",
+      "constructor_line": 38,
+      "variant_members": [
+        {
+          "line": 77,
+          "member": "protected override void AfterDowngraded()"
+        },
+        {
+          "line": 83,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.THUNDERCLAP",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Thunderclap.cs",
+      "source_sha256": "054a7b203b1dd111a5299463cfd3c7c3a44019d0052710d221a48ee2ea4fd0a2",
+      "source_lines": [
+        1,
+        40
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 23,
+          "member": "public Thunderclap()"
+        },
+        {
+          "line": 28,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 36,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack all opponents4, then apply Vulnerable1 to current HittableEnemies.",
+      "upgrade": "Damage+3.",
+      "legal_branches": "Post-attack hittable set may differ from attacked set.",
+      "regression_scenarios": "Lethal/nonlethal mixed targets, revival and Artifact.",
+      "fixed_model_dependencies": [
+        "VulnerablePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "054a7b203b1dd111a5299463cfd3c7c3a44019d0052710d221a48ee2ea4fd0a2",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Common, TargetType.AllEnemies",
+      "constructor_line": 24,
+      "variant_members": [
+        {
+          "line": 36,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.TREMBLE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Tremble.cs",
+      "source_sha256": "4aeff120553628b5ccd4449e9d033eda97903022719006b95b1902ffc4f88ea7",
+      "source_lines": [
+        1,
+        37
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "public override IEnumerable<CardKeyword> CanonicalKeywords => new global::_003C_003Ez__ReadOnlySingleElementList<CardKeyword>(CardKeyword.Exhaust);"
+        },
+        {
+          "line": 17,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new PowerVar<VulnerablePower>(3m));"
+        },
+        {
+          "line": 21,
+          "member": "public Tremble()"
+        },
+        {
+          "line": 26,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 33,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Apply Vulnerable3 to selected target. Exhaust.",
+      "upgrade": "Vulnerable+1.",
+      "legal_branches": "Shared power hooks then exhaust.",
+      "regression_scenarios": "Artifact and Vicious draw followed by Exhaust triggers.",
+      "fixed_model_dependencies": [
+        "VulnerablePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "4aeff120553628b5ccd4449e9d033eda97903022719006b95b1902ffc4f88ea7",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Common, TargetType.AnyEnemy",
+      "constructor_line": 22,
+      "variant_members": [
+        {
+          "line": 33,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.TRUE_GRIT",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/TrueGrit.cs",
+      "source_sha256": "05e1d60c99a232c327cf24767efee9c8e99ecd1a56a10315b7c8ed3f6ec15f1d",
+      "source_lines": [
+        1,
+        51
+      ],
+      "members": [
+        {
+          "line": 16,
+          "member": "public override bool GainsBlock => true;"
+        },
+        {
+          "line": 18,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new BlockVar(7m, ValueProp.Move));"
+        },
+        {
+          "line": 22,
+          "member": "public TrueGrit()"
+        },
+        {
+          "line": 27,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 47,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Gain block7; base chooses random Hand card with CombatCardSelection and exhausts if non-null; upgraded asks hand selection1 then exhausts non-null choice.",
+      "upgrade": "Block+2 and random-to-selected branch.",
+      "legal_branches": "Empty Hand, random vs selection; gain block before either branch.",
+      "regression_scenarios": "Base RNG; upgraded pending choice restore; exhaust-trigger interaction.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "Base only selects existing Hand instance using CombatCardSelection; upgraded uses choice.",
+      "sha256": "05e1d60c99a232c327cf24767efee9c8e99ecd1a56a10315b7c8ed3f6ec15f1d",
+      "constructor_parameters": "1, CardType.Skill, CardRarity.Common, TargetType.Self",
+      "constructor_line": 23,
+      "variant_members": [
+        {
+          "line": 47,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.TWIN_STRIKE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/TwinStrike.cs",
+      "source_sha256": "8e8a47fed7f942b061438bc32138c8d2e6d0badff6dd92fd91f0b305a4632270",
+      "source_lines": [
+        1,
+        36
+      ],
+      "members": [
+        {
+          "line": 14,
+          "member": "protected override HashSet<CardTag> CanonicalTags => new HashSet<CardTag> { CardTag.Strike };"
+        },
+        {
+          "line": 16,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(5m, ValueProp.Move));"
+        },
+        {
+          "line": 18,
+          "member": "public TwinStrike()"
+        },
+        {
+          "line": 23,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 32,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack target damage5 with2 hits. Strike tag.",
+      "upgrade": "Damage+2.",
+      "legal_branches": "Shared per-hit damage/target pipeline.",
+      "regression_scenarios": "Intermediate death/revival/retaliation; tag consumers.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "8e8a47fed7f942b061438bc32138c8d2e6d0badff6dd92fd91f0b305a4632270",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy",
+      "constructor_line": 19,
+      "variant_members": [
+        {
+          "line": 32,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.ULTIMATE_STRIKE",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/UltimateStrike.cs",
+      "source_sha256": "1600b4b140411babff561501603bbd3c0b21028ca2335fb5ccb1c1c192338053",
+      "source_lines": [
+        1,
+        35
+      ],
+      "members": [
+        {
+          "line": 14,
+          "member": "protected override HashSet<CardTag> CanonicalTags => new HashSet<CardTag> { CardTag.Strike };"
+        },
+        {
+          "line": 16,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(14m, ValueProp.Move));"
+        },
+        {
+          "line": 18,
+          "member": "public UltimateStrike()"
+        },
+        {
+          "line": 23,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 31,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack target14. Strike tag.",
+      "upgrade": "Damage+6.",
+      "legal_branches": "Shared attack pipeline.",
+      "regression_scenarios": "General damage hooks, Strike-tag counts.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "1600b4b140411babff561501603bbd3c0b21028ca2335fb5ccb1c1c192338053",
+      "constructor_parameters": "1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy",
+      "constructor_line": 19,
+      "variant_members": [
+        {
+          "line": 31,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.UNRELENTING",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Unrelenting.cs",
+      "source_sha256": "ccb41dc311d71e66240cc3f07248ad93bda52f9f1f361e1bed041f65b0bef5d4",
+      "source_lines": [
+        1,
+        38
+      ],
+      "members": [
+        {
+          "line": 16,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DamageVar(14m, ValueProp.Move));"
+        },
+        {
+          "line": 18,
+          "member": "public Unrelenting()"
+        },
+        {
+          "line": 23,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 34,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack target14 then apply FreeAttackPower1.",
+      "upgrade": "Damage+6.",
+      "legal_branches": "FreeAttack cost-late modification and use occur only for owner Attack in Hand/Play.",
+      "regression_scenarios": "Next Attack vs Skill, stacked free counts, out-of-Hand autoplay.",
+      "fixed_model_dependencies": [
+        "FreeAttackPower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "ccb41dc311d71e66240cc3f07248ad93bda52f9f1f361e1bed041f65b0bef5d4",
+      "constructor_parameters": "2, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy",
+      "constructor_line": 19,
+      "variant_members": [
+        {
+          "line": 34,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.UPPERCUT",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Uppercut.cs",
+      "source_sha256": "e8f44b4ad2c77716615912d5a962ced08deff1c42c2aec12413f451232fb56d8",
+      "source_lines": [
+        1,
+        53
+      ],
+      "members": [
+        {
+          "line": 19,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlyArray<DynamicVar>(new DynamicVar[2]"
+        },
+        {
+          "line": 31,
+          "member": "public Uppercut()"
+        },
+        {
+          "line": 36,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 49,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Attack target13, then Weak1, then Vulnerable1.",
+      "upgrade": "Both power amounts+1.",
+      "legal_branches": "Artifact consumption and power-change hooks obey this order.",
+      "regression_scenarios": "Artifact1/2, lethal hit application, Vicious-trigger draw after Weak.",
+      "fixed_model_dependencies": [
+        "WeakPower",
+        "VulnerablePower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "e8f44b4ad2c77716615912d5a962ced08deff1c42c2aec12413f451232fb56d8",
+      "constructor_parameters": "2, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy",
+      "constructor_line": 32,
+      "variant_members": [
+        {
+          "line": 49,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "CARD.VICIOUS",
+      "category": "cards",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Vicious.cs",
+      "source_sha256": "97742f63322d7a1556391e06bc9ed120c2881d1e47ea0ca8d9ca2fcc8c5ecf8e",
+      "source_lines": [
+        1,
+        33
+      ],
+      "members": [
+        {
+          "line": 16,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new CardsVar(1));"
+        },
+        {
+          "line": 18,
+          "member": "public Vicious()"
+        },
+        {
+          "line": 23,
+          "member": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 29,
+          "member": "protected override void OnUpgrade()"
+        }
+      ],
+      "effect_order": "Apply ViciousPower1.",
+      "upgrade": "Power draw amount+1.",
+      "legal_branches": "Power reacts to positive Vulnerable amount changes whose applier is owner.",
+      "regression_scenarios": "Applying vs stacking Vulnerable, Artifact prevented, other-applier changes.",
+      "fixed_model_dependencies": [
+        "ViciousPower"
+      ],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "97742f63322d7a1556391e06bc9ed120c2881d1e47ea0ca8d9ca2fcc8c5ecf8e",
+      "constructor_parameters": "1, CardType.Power, CardRarity.Uncommon, TargetType.Self",
+      "constructor_line": 19,
+      "variant_members": [
+        {
+          "line": 29,
+          "member": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "id": "ENCHANTMENT.GLAM",
+      "category": "enchantments",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Enchantments/Glam.cs",
+      "source_sha256": "ebaa7dbf63e737db9b23ce5c5f7b3a325d1d0c7abc86040b3b016275bb641618",
+      "source_lines": [
+        1,
+        57
+      ],
+      "members": [
+        {
+          "line": 17,
+          "member": "protected override IEnumerable<DynamicVar> CanonicalVars => new global::_003C_003Ez__ReadOnlySingleElementList<DynamicVar>(new DynamicVar(\"Times\", 1m));"
+        },
+        {
+          "line": 34,
+          "member": "public override int EnchantPlayCount(int originalPlayCount)"
+        },
+        {
+          "line": 43,
+          "member": "public override Task AfterCardPlayed(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        }
+      ],
+      "effect_order": "EnchantPlayCount returns original+Times1 while unused; AfterCardPlayed for exact enchanted card sets used and Disabled status.",
+      "upgrade": "Not a card upgrade.",
+      "legal_branches": "Ignore other cards; once used returns original play count. EnchantmentModel amount/dynamic-var initialization remains shared base contract.",
+      "regression_scenarios": "First vs subsequent play, replay chains, clone/restore used flag and combat-copy reset.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "Private bool _usedThisCombat; enchantment status; attached Card reference.",
+      "random_outcomes": "none",
+      "sha256": "ebaa7dbf63e737db9b23ce5c5f7b3a325d1d0c7abc86040b3b016275bb641618",
+      "variant_members": []
+    },
+    {
+      "id": "ENCHANTMENT.PERFECT_FIT",
+      "category": "enchantments",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Enchantments/PerfectFit.cs",
+      "source_sha256": "034bb8bd5daa7b987c0e4f1127f4d432cd029a10aef0fd7dab821b0a131f7a91",
+      "source_lines": [
+        1,
+        18
+      ],
+      "members": [
+        {
+          "line": 8,
+          "member": "public override bool HasExtraCardText => true;"
+        },
+        {
+          "line": 10,
+          "member": "public override void ModifyShuffleOrder(Player player, List<CardModel> cards, bool isInitialShuffle)"
+        }
+      ],
+      "effect_order": "During non-initial shuffle, if shuffled list contains enchanted Card, remove it and insert at index0.",
+      "upgrade": "Not a card upgrade.",
+      "legal_branches": "Initial shuffle unchanged; absent card unchanged; multiple PerfectFit modifiers require native hook order.",
+      "regression_scenarios": "Initial vs reshuffle, several enchanted cards, pile index orientation and shuffle RNG consumption.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "base card state only",
+      "random_outcomes": "none",
+      "sha256": "034bb8bd5daa7b987c0e4f1127f4d432cd029a10aef0fd7dab821b0a131f7a91",
+      "variant_members": []
+    },
+    {
+      "id": "ENCHANTMENT.SHARP",
+      "category": "enchantments",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Enchantments/Sharp.cs",
+      "source_sha256": "11ad3962e03491d6ef3bf2081d8213e6723c6a73219c4272ee5a4eebb9d89f2a",
+      "source_lines": [
+        1,
+        23
+      ],
+      "members": [
+        {
+          "line": 8,
+          "member": "public override bool ShowAmount => true;"
+        },
+        {
+          "line": 10,
+          "member": "public override bool CanEnchantCardType(CardType cardType)"
+        },
+        {
+          "line": 15,
+          "member": "public override decimal EnchantDamageAdditive(decimal originalDamage, ValueProp props)"
+        }
+      ],
+      "effect_order": "Can enchant Attack only; additive damage returns Amount only when ValueProp.IsPoweredAttack, else0.",
+      "upgrade": "Not a card upgrade.",
+      "legal_branches": "Non-powered damage and non-Attacks excluded; additive modifier uses source enchantment amount.",
+      "regression_scenarios": "Positive/negative/zero amount and multi-hit Attack, no self-damage bonus.",
+      "fixed_model_dependencies": [],
+      "mutable_state": "Enchantment Amount and attached Card reference.",
+      "random_outcomes": "none",
+      "sha256": "11ad3962e03491d6ef3bf2081d8213e6723c6a73219c4272ee5a4eebb9d89f2a",
+      "variant_members": []
+    },
+    {
+      "id": "AFFLICTION.RINGING",
+      "category": "afflictions",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Afflictions/Ringing.cs",
+      "source_sha256": "4be06937d6969ba919d562902d5c65c9f5ae9f198522636f921cb58f58b00e39",
+      "source_lines": [
+        1,
+        9
+      ],
+      "members": [
+        {
+          "line": 8,
+          "member": "public override bool HasExtraCardText => true;"
+        }
+      ],
+      "effect_order": "No local effect method; HasExtraCardText. Most behavior lives in RingingPower.",
+      "upgrade": "Not a card upgrade.",
+      "legal_branches": "RingingPower afflicts initially unafflicted owned combat cards and newly entering unafflicted cards; while affected, a Ringing-afflicted card passes ShouldPlay only if owner has no CardPlaysStarted this turn. Removal clears Ringing from owned combat cards; owner-side end removes power.",
+      "regression_scenarios": "First vs later play this turn, preexisting other affliction remains, generated card entry, automatic play predicate, removal clears only Ringing.",
+      "fixed_model_dependencies": [
+        "RingingPower"
+      ],
+      "mutable_state": "Affliction base Amount and attached Card reference.",
+      "random_outcomes": "none",
+      "sha256": "4be06937d6969ba919d562902d5c65c9f5ae9f198522636f921cb58f58b00e39",
+      "variant_members": [],
+      "reviewed_dependency_sources": [
+        {
+          "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/RingingPower.cs",
+          "sha256": "ac56cca21c934bbd7e51554b0294a21cef9a334fff47dd84f4aa9b4cd8d904d1",
+          "source_lines": [
+            1,
+            76
+          ]
+        }
+      ]
+    },
+    {
+      "id": "AFFLICTION.TAINTED",
+      "category": "afflictions",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Afflictions/Tainted.cs",
+      "source_sha256": "5174e931345568425ba072f474868281ba624aef7fe4a951f85805fdf83bf534",
+      "source_lines": [
+        1,
+        23
+      ],
+      "members": [
+        {
+          "line": 13,
+          "member": "public override bool IsStackable => true;"
+        },
+        {
+          "line": 15,
+          "member": "public override bool HasExtraCardText => true;"
+        },
+        {
+          "line": 19,
+          "member": "public override bool CanAfflictCardType(CardType cardType)"
+        }
+      ],
+      "effect_order": "Stackable, extra card text; CanAfflictCardType only Skill. Most behavior lives in TaintedPower.",
+      "upgrade": "Not a card upgrade.",
+      "legal_branches": "Attack/Power cannot be afflicted by this predicate. VitalSparkPower.AfterCardPlayed applies TaintedPower Amount to the owner of a Tainted-afflicted played card; the amount comes from VitalSparkPower, not the affliction. TaintedPower adds Amount to powered-attack damage received by its owner and removes at Enemy side end. The affliction itself has no OnPlay override.",
+      "regression_scenarios": "Repeated affliction stacks, source Skill eligibility, resulting power application via shared hook, powered/unpowered incoming damage and Enemy-side removal; clone/restore amounts.",
+      "fixed_model_dependencies": [
+        "TaintedPower"
+      ],
+      "mutable_state": "Stacked Affliction Amount and attached Card reference.",
+      "random_outcomes": "none",
+      "sha256": "5174e931345568425ba072f474868281ba624aef7fe4a951f85805fdf83bf534",
+      "variant_members": [],
+      "reviewed_dependency_sources": [
+        {
+          "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/VitalSparkPower.cs",
+          "sha256": "a38f842d4de1fa70c3f268f1df8c168290b3b66b87cfbb11736999a5821db1fe",
+          "source_lines": [
+            1,
+            99
+          ]
+        },
+        {
+          "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/TaintedPower.cs",
+          "sha256": "795f015fbe6e6b69d7d03dc2936f69b0e5eb19d06b83f8aa34bcaeea001ea75d",
+          "source_lines": [
+            1,
+            40
+          ]
+        }
+      ]
+    }
+  ],
+  "required_nonroot_power_records": [
+    {
+      "class_name": "EntropyPower",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/EntropyPower.cs",
+      "sha256": "139d073dec2c97530f47b5de39b4ba25d0e99d098df13303b779b920f673b135",
+      "source_lines": [
+        1,
+        34
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "public override PowerType Type => PowerType.Buff;"
+        },
+        {
+          "line": 17,
+          "member": "public override PowerStackType StackType => PowerStackType.Counter;"
+        },
+        {
+          "line": 21,
+          "member": "public override async Task AfterPlayerTurnStart(PlayerChoiceContext choiceContext, Player player)"
+        }
+      ],
+      "effect": "Owner AfterPlayerTurnStart selects Amount cards from Hand, then TransformToRandom sequentially using CombatCardSelection. Choice count and transformations preserve actual selected identities; shared selector handles undersized hand.",
+      "state": "Amount, owner, selected cards/continuation; no extra local fields.",
+      "deps": [],
+      "regression": "Owner vs other player;0/undersized/many candidates; replacement identity, pile position, transform hooks and RNG.",
+      "random": "CardFactory.GetDefaultTransformationOptions/filtered transformation rules, not FilterForCombat alone."
+    },
+    {
+      "class_name": "JugglingPower",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/JugglingPower.cs",
+      "sha256": "ca4b2e59d6e791c588285a5a3d4642841be0b2c4d1a13f50f1a5a9794e5c2bb7",
+      "source_lines": [
+        1,
+        63
+      ],
+      "members": [
+        {
+          "line": 21,
+          "member": "public override PowerType Type => PowerType.Buff;"
+        },
+        {
+          "line": 23,
+          "member": "public override PowerStackType StackType => PowerStackType.Counter;"
+        },
+        {
+          "line": 25,
+          "member": "protected override object InitInternalData()"
+        },
+        {
+          "line": 30,
+          "member": "public override Task AfterApplied(Creature? applier, CardModel? cardSource)"
+        },
+        {
+          "line": 36,
+          "member": "public override async Task BeforeCardPlayed(CardPlay cardPlay)"
+        },
+        {
+          "line": 54,
+          "member": "public override Task AfterSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)"
+        }
+      ],
+      "effect": "AfterApplied initializes attack counter from owner CardPlaysStarted this turn. BeforeCardPlayed for owner Attack increments; when exactly3, clone the current Attack Amount times into Hand. AfterSideTurnEnd with owner participant resets counter0.",
+      "state": "Internal Data.attacksPlayedThisTurn plus source/play identity and generated clone state.",
+      "deps": [],
+      "regression": "Power applied after1/2/3 attacks; third vs fourth; nested copies; multi-play events and exact history scope.",
+      "random": "No random pool; clones the actual Attack instance."
+    },
+    {
+      "class_name": "ManglePower",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/ManglePower.cs",
+      "sha256": "bcd39ae2678966e154491b11cbc17bf2d11fbf26e138de543f2aa1b9fc37e988",
+      "source_lines": [
+        1,
+        10
+      ],
+      "members": [
+        {
+          "line": 7,
+          "member": "public override AbstractModel OriginModel => ModelDb.Card<Mangle>();"
+        },
+        {
+          "line": 9,
+          "member": "protected override bool IsPositive => false;"
+        }
+      ],
+      "effect": "TemporaryStrengthPower with IsPositive=false; OriginModel Mangle. Inherits immediate signed Strength application, subsequent stack deltas and side-end removal/reversal.",
+      "state": "Amount and applied temporary Strength/owner/applier/source identity.",
+      "deps": [
+        "TemporaryStrengthPower",
+        "StrengthPower"
+      ],
+      "regression": "Initial vs stacked negative effect; Artifact; side-turn removal then reverse Strength order.",
+      "random": "none"
+    },
+    {
+      "class_name": "SetupStrikePower",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/SetupStrikePower.cs",
+      "sha256": "83e4d4d20b3783557a72dc32580a52e6ae960807a00135a5a0aba8c473b4ef15",
+      "source_lines": [
+        1,
+        8
+      ],
+      "members": [
+        {
+          "line": 7,
+          "member": "public override AbstractModel OriginModel => ModelDb.Card<SetupStrike>();"
+        }
+      ],
+      "effect": "TemporaryStrengthPower default positive sign; OriginModel SetupStrike. Inherits initial Strength, subsequent stack deltas, owner-side removal then reverse Strength.",
+      "state": "Amount and applied temporary Strength/owner/applier/source identity.",
+      "deps": [
+        "TemporaryStrengthPower",
+        "StrengthPower"
+      ],
+      "regression": "Initial/stacked effect; removal and reversal; owner participation.",
+      "random": "none"
+    },
+    {
+      "class_name": "TemporaryStrengthPower",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/TemporaryStrengthPower.cs",
+      "sha256": "5a0bd8788489f1e6b01dcec2a9614b882b6e86ef445da461f7c147ce91e4d9d4",
+      "source_lines": [
+        1,
+        156
+      ],
+      "members": [
+        {
+          "line": 37,
+          "member": "public override PowerStackType StackType => PowerStackType.Counter;"
+        },
+        {
+          "line": 44,
+          "member": "public PowerModel InternallyAppliedPower => ModelDb.Power<StrengthPower>();"
+        },
+        {
+          "line": 49,
+          "member": "protected virtual bool IsPositive => true;"
+        },
+        {
+          "line": 134,
+          "member": "public override async Task BeforeApplied(Creature target, decimal amount, Creature? applier, CardModel? cardSource)"
+        },
+        {
+          "line": 139,
+          "member": "public override async Task AfterPowerAmountChanged(PlayerChoiceContext choiceContext, PowerModel power, decimal amount, Creature? applier, CardModel? cardSource)"
+        },
+        {
+          "line": 147,
+          "member": "public override async Task AfterSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)"
+        }
+      ],
+      "effect": "Abstract shared base, not extra content ID. BeforeApplied applies signed Strength with ThrowingPlayerChoiceContext, silent. AfterPowerAmountChanged when power==this and delta!=current Amount applies signed delta. AfterSideTurnEnd containing owner removes this, then applies -Sign*Amount Strength.",
+      "state": "Owner, Amount, Source/Applier and hook continuation; origin model title references are not random output dependencies.",
+      "deps": [
+        "StrengthPower"
+      ],
+      "regression": "Signed buffs/debuffs, first application vs stack, Artifact behavior delegated to outer PowerCmd, exact removal-before-reversal.",
+      "random": "none"
+    },
+    {
+      "class_name": "OneTwoPunchPower",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/OneTwoPunchPower.cs",
+      "sha256": "293fe6f5f10155b7fac864388563f11b833e75f52548ef0ceed9d5befd4eeff3",
+      "source_lines": [
+        1,
+        44
+      ],
+      "members": [
+        {
+          "line": 15,
+          "member": "public override PowerType Type => PowerType.Buff;"
+        },
+        {
+          "line": 17,
+          "member": "public override PowerStackType StackType => PowerStackType.Counter;"
+        },
+        {
+          "line": 19,
+          "member": "public override int ModifyCardPlayCount(CardModel card, Creature? target, int playCount)"
+        },
+        {
+          "line": 32,
+          "member": "public override async Task AfterModifyingCardPlayCount(CardModel card)"
+        },
+        {
+          "line": 37,
+          "member": "public override async Task AfterSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)"
+        }
+      ],
+      "effect": "ModifyCardPlayCount for owner Attack adds1. AfterModifyingCardPlayCount decrements Amount. At side end containing owner removes power.",
+      "state": "Amount, owner and modifier-consumption ordering in suspended play-count generation.",
+      "deps": [],
+      "regression": "Multiple charges and duplicate modifiers; Skill unaffected; side-end expiry.",
+      "random": "none"
+    },
+    {
+      "class_name": "FreeAttackPower",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/FreeAttackPower.cs",
+      "sha256": "3b5e91b54cfa618c14e9567d99c0fab1292e057db822817207c4e4ddda4a00d2",
+      "source_lines": [
+        1,
+        65
+      ],
+      "members": [
+        {
+          "line": 10,
+          "member": "public override PowerType Type => PowerType.Buff;"
+        },
+        {
+          "line": 12,
+          "member": "public override PowerStackType StackType => PowerStackType.Counter;"
+        },
+        {
+          "line": 14,
+          "member": "public override bool TryModifyEnergyCostInCombatLate(CardModel card, decimal originalCost, out decimal modifiedCost)"
+        },
+        {
+          "line": 44,
+          "member": "public override async Task BeforeCardPlayed(CardPlay cardPlay)"
+        }
+      ],
+      "effect": "Late cost modifier sets owner Attack in Hand/Play to0. BeforeCardPlayed decrements for same eligibility. Other card types, owners and piles unchanged.",
+      "state": "Amount and owner; actual source-card pile determines eligibility.",
+      "deps": [],
+      "regression": "Cost query purity; apply vs consume; Hand/Play vs Draw/Exhaust autoplay; stacked charges.",
+      "random": "none"
+    },
+    {
+      "class_name": "StampedePower",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/StampedePower.cs",
+      "sha256": "efc803dce77ed62afa8c57a61088c80eac386e54a3ca26111da3063120aa1a8a",
+      "source_lines": [
+        1,
+        35
+      ],
+      "members": [
+        {
+          "line": 14,
+          "member": "public override PowerType Type => PowerType.Buff;"
+        },
+        {
+          "line": 16,
+          "member": "public override PowerStackType StackType => PowerStackType.Counter;"
+        },
+        {
+          "line": 18,
+          "member": "public override async Task AfterAutoPostPlayPhaseEntered(PlayerChoiceContext choiceContext, Player player)"
+        }
+      ],
+      "effect": "Owner AfterAutoPostPlayPhaseEntered loops Amount times; each iteration gathers current Hand Attack without Unplayable, chooses via Shuffle.NextItem and autoplays if non-null.",
+      "state": "Amount, loop cursor, pending autoplay/target/choice continuation.",
+      "deps": [],
+      "regression": "Changing hand, nested generated cards,0 candidates, multiple charges; native RNG per iteration.",
+      "random": "Existing hand instances only; Shuffle RNG."
+    },
+    {
+      "class_name": "TheGambitPower",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/TheGambitPower.cs",
+      "sha256": "79042e9a52b1beabe93a03ae23292711b7689faf59dcc85bd6470a1fb3de4faa",
+      "source_lines": [
+        1,
+        25
+      ],
+      "members": [
+        {
+          "line": 12,
+          "member": "public override PowerType Type => PowerType.Debuff;"
+        },
+        {
+          "line": 14,
+          "member": "public override PowerStackType StackType => PowerStackType.Single;"
+        },
+        {
+          "line": 16,
+          "member": "public override async Task AfterDamageReceived(PlayerChoiceContext choiceContext, Creature target, DamageResult result, ValueProp props, Creature? _, CardModel? __)"
+        }
+      ],
+      "effect": "Single Debuff. AfterDamageReceived on owner, if powered attack and UnblockedDamage>0, removes self, then Kill owner.",
+      "state": "Power identity until removed; damage result and continuation.",
+      "deps": [],
+      "regression": "Blocked0, unpowered, self HP loss, actual powered leak; removal before death hooks.",
+      "random": "none"
+    },
+    {
+      "class_name": "ViciousPower",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/ViciousPower.cs",
+      "sha256": "612363fd7b9401ed1970cfa473b6ae843b9afbc898ef24b63cb1f4c10356ecf8",
+      "source_lines": [
+        1,
+        27
+      ],
+      "members": [
+        {
+          "line": 13,
+          "member": "public override PowerType Type => PowerType.Buff;"
+        },
+        {
+          "line": 15,
+          "member": "public override PowerStackType StackType => PowerStackType.Counter;"
+        },
+        {
+          "line": 19,
+          "member": "public override async Task AfterPowerAmountChanged(PlayerChoiceContext choiceContext, PowerModel power, decimal amount, Creature? applier, CardModel? cardSource)"
+        }
+      ],
+      "effect": "AfterPowerAmountChanged: delta>0, applier==owner and power is VulnerablePower => draw Amount.",
+      "state": "Amount, owner and suspended draw/trigger state.",
+      "deps": [
+        "VulnerablePower"
+      ],
+      "regression": "New/stack Vulnerable, prevented application, negative delta, another applier; multiple target applications.",
+      "random": "none"
+    },
+    {
+      "class_name": "CuriousPower",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/CuriousPower.cs",
+      "sha256": "f3df630baac3366c2e297a029df30eee1abd014d0e752fa4142c540ee545ec6c",
+      "source_lines": [
+        1,
+        34
+      ],
+      "members": [
+        {
+          "line": 8,
+          "member": "public override PowerType Type => PowerType.Buff;"
+        },
+        {
+          "line": 10,
+          "member": "public override PowerStackType StackType => PowerStackType.Counter;"
+        },
+        {
+          "line": 12,
+          "member": "public override bool TryModifyEnergyCostInCombat(CardModel card, decimal originalCost, out decimal modifiedCost)"
+        }
+      ],
+      "effect": "ModifyEnergyCostInCombat for owner Power with originalCost>0 subtracts Amount and clamps0; other cards unchanged.",
+      "state": "Amount and owner; query must not consume state.",
+      "deps": [],
+      "regression": "Positive/zero costs, other owner/type, stacked cost modifiers and preview purity.",
+      "random": "none"
+    },
+    {
+      "class_name": "ImprovementPower",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/ImprovementPower.cs",
+      "sha256": "2af9811d1c6336a1692d81d7f9644fbc85b2f27a68b98169d720d0fb9be01de5",
+      "source_lines": [
+        1,
+        32
+      ],
+      "members": [
+        {
+          "line": 13,
+          "member": "public override PowerType Type => PowerType.Buff;"
+        },
+        {
+          "line": 15,
+          "member": "public override PowerStackType StackType => PowerStackType.Counter;"
+        },
+        {
+          "line": 17,
+          "member": "public override Task AfterCombatEnd(CombatRoom room)"
+        }
+      ],
+      "effect": "AfterCombatEnd gathers current upgradable permanent Deck cards; repeats Amount times, stopping if empty; CombatCardSelection.NextItem, removes candidate then Upgrade. Selection without replacement.",
+      "state": "Amount, deck identities, upgraded flags; remaining candidate set and loop if command can suspend.",
+      "deps": [],
+      "regression": "0/fewer/more eligible than Amount; upgrade persists to Deck, without replacement and exact RNG.",
+      "random": "Existing permanent-deck candidates only, CombatCardSelection RNG."
+    },
+    {
+      "class_name": "StranglePower",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/StranglePower.cs",
+      "sha256": "c1a2932f962be486559c73985d104f06e0d6d5b0b96ad54d5c1b7eeda60e3736",
+      "source_lines": [
+        1,
+        66
+      ],
+      "members": [
+        {
+          "line": 22,
+          "member": "public readonly Dictionary<CardModel, int> amountsForPlayedCards = new Dictionary<CardModel, int>();"
+        },
+        {
+          "line": 25,
+          "member": "public override PowerType Type => PowerType.Debuff;"
+        },
+        {
+          "line": 27,
+          "member": "public override PowerStackType StackType => PowerStackType.Counter;"
+        },
+        {
+          "line": 29,
+          "member": "public override PowerInstanceType InstanceType => PowerInstanceType.InstancedPerApplier;"
+        },
+        {
+          "line": 31,
+          "member": "protected override object InitInternalData()"
+        },
+        {
+          "line": 36,
+          "member": "public override Task BeforeCardPlayed(CardPlay cardPlay)"
+        },
+        {
+          "line": 50,
+          "member": "public override async Task AfterCardPlayed(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 59,
+          "member": "public override async Task AfterSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)"
+        }
+      ],
+      "effect": "InstancedPerApplier Debuff. BeforeCardPlayed from applier player records this Amount in dictionary keyed by CardModel. AfterCardPlayed removes captured entry and deals captured unblocked/unpowered damage to owner (no source card). Removes at side end containing owner.",
+      "state": "Internal dictionary<CardModel,int> amountsForPlayedCards; captured amounts and per-applier identity survive pending nested plays.",
+      "deps": [],
+      "regression": "Applying/stacking card must not trigger its own new amount; nested/repeated source identities; applier ownership; side-end cleanup.",
+      "random": "none"
+    }
+  ],
+  "extra_semantic_system_edges": [
+    {
+      "from_id": "CARD.SPOILS_MAP",
+      "required": "SpoilsActMap",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/SpoilsMap.cs",
+      "line": 60,
+      "reason": "Fixed alternate map implementation plus quest attach/remove/completion lifecycle, not a random content outcome."
+    }
+  ]
+}

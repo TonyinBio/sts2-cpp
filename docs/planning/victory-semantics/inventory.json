@@ -1,0 +1,1456 @@
+{
+  "scope": "31 observed relic roots and 15 potion roots; source audit only",
+  "sources_base": "build/combat-state-audit/decompiled",
+  "records": [
+    {
+      "id": "RELIC.ALCHEMICAL_COFFER",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/AlchemicalCoffer.cs",
+      "lines": [
+        1,
+        32
+      ],
+      "sha256": "f9e446f1c6dd40ba86490cb56127ad4ad0244fb3831cc26d98588be9089e6dca",
+      "semantics": "On acquisition record old capacity; increase max potion count by 4; generate 4 distinct rarity-selected out-of-combat potions using CombatPotionGeneration; procure sequentially into old capacity+i slots.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 20,
+          "declaration": "public override async Task AfterObtained()"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "All unlocked character+shared potion pool outcomes; generation is mandatory, arbitrary potion effect implementations are not fixed dependencies.",
+      "regressions": "Capacity expansion, existing sparse slots, each rarity, all four procurement slots."
+    },
+    {
+      "id": "RELIC.ARCHAIC_TOOTH",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/ArchaicTooth.cs",
+      "lines": [
+        1,
+        173
+      ],
+      "sha256": "a2b0e2e32c48689bc16f6c6225687b4c75a995e7ef5006f0cecc10de463d08fa",
+      "semantics": "Setup selects first deck card among five starter IDs and saves serialized starter/replacement; acquisition transforms current first matching starter. Fixed mapping Bash\u2192Break, Neutralize\u2192Suppress, Unleash\u2192Protector, FallingStar\u2192MeteorShower, Dualcast\u2192Quadcast; preserve upgrade and cloned enchantment. Fallback replacement method creates Doubt; normal SetupForPlayer false prevents no-starter offer.",
+      "fixed_semantic_dependencies": [
+        "Break",
+        "Suppress",
+        "Protector",
+        "MeteorShower",
+        "Quadcast"
+      ],
+      "methods": [
+        {
+          "line": 24,
+          "declaration": "private List<IHoverTip> _extraHoverTips = new List<IHoverTip>();"
+        },
+        {
+          "line": 92,
+          "declaration": "protected override void AfterCloned()"
+        },
+        {
+          "line": 103,
+          "declaration": "public bool SetupForPlayer(Player player)"
+        },
+        {
+          "line": 117,
+          "declaration": "public void SetupForTests(SerializableCard starterCard, SerializableCard ancientCard)"
+        },
+        {
+          "line": 125,
+          "declaration": "private void UpdateHoverTips()"
+        },
+        {
+          "line": 144,
+          "declaration": "private CardModel? GetTranscendenceStarterCard(Player player)"
+        },
+        {
+          "line": 149,
+          "declaration": "private CardModel GetTranscendenceTransformedCard(CardModel starterCard)"
+        },
+        {
+          "line": 168,
+          "declaration": "public override async Task AfterObtained()"
+        }
+      ],
+      "mutable_field_declarations": [
+        {
+          "line": 20,
+          "declaration": "private SerializableCard? _serializableStarterCard;"
+        },
+        {
+          "line": 22,
+          "declaration": "private SerializableCard? _serializableAncientCard;"
+        },
+        {
+          "line": 24,
+          "declaration": "private List<IHoverTip> _extraHoverTips = new List<IHoverTip>();"
+        }
+      ],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "All five starter mappings; upgraded+enchanted source; no matching starter; serialized descriptors and clone hover-tip isolation.",
+      "identity_predicates": [
+        "Bash",
+        "Neutralize",
+        "Unleash",
+        "FallingStar",
+        "Dualcast"
+      ],
+      "defensive_fallback_dependency": "Doubt; no normal reachable no-starter acquisition branch established"
+    },
+    {
+      "id": "RELIC.BAG_OF_MARBLES",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/BagOfMarbles.cs",
+      "lines": [
+        1,
+        31
+      ],
+      "sha256": "74dc0706aded95fe9d8639e42101d57dc9c8a4737f6a03a7e576381488ded908",
+      "semantics": "Before side turn start, if owner participates and owner turn <=1, apply Vulnerable 1 to current hittable enemies.",
+      "fixed_semantic_dependencies": [
+        "VulnerablePower"
+      ],
+      "methods": [
+        {
+          "line": 23,
+          "declaration": "public override async Task BeforeSideTurnStart(PlayerChoiceContext choiceContext, CombatSide side, IReadOnlyList<Creature> participants, ICombatState combatState)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Opening versus later turn; hittable subset; multi-enemy ordered application."
+    },
+    {
+      "id": "RELIC.BAG_OF_PREPARATION",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/BagOfPreparation.cs",
+      "lines": [
+        1,
+        26
+      ],
+      "sha256": "c3b3a527c44562ca78288265f36ca10aa48b5c913ca363efda870761db35d761",
+      "semantics": "Modify owner hand draw by +2 only while owner turn <=1; other players/later turns unchanged.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 14,
+          "declaration": "public override decimal ModifyHandDraw(Player player, decimal count)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "First draw with hand cap, reshuffle, draw-modifier combinations."
+    },
+    {
+      "id": "RELIC.BLOOD_VIAL",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/BloodVial.cs",
+      "lines": [
+        1,
+        24
+      ],
+      "sha256": "68a09be73d3832bd3f4eac44bc1d81d6165f33a306b896fdcfdff141499fa7b6",
+      "semantics": "After owner player-turn-start late, turn <=1 heal 2.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 17,
+          "declaration": "public override async Task AfterPlayerTurnStartLate(PlayerChoiceContext choiceContext, Player player)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Full/partial HP; ordering after early start hooks; later turns do not heal."
+    },
+    {
+      "id": "RELIC.BURNING_BLOOD",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/BurningBlood.cs",
+      "lines": [
+        1,
+        24
+      ],
+      "sha256": "eefa04d6cee4b2da1245894fe1e4e1ed3ff0c36db8c8011264955870fb422410",
+      "semantics": "After combat victory, heal 6 only if owner is not dead.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 16,
+          "declaration": "public override async Task AfterCombatVictory(CombatRoom _)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Victory/death distinction, HP cap, victory hook order."
+    },
+    {
+      "id": "RELIC.BURNING_STICKS",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/BurningSticks.cs",
+      "lines": [
+        1,
+        62
+      ],
+      "sha256": "7c01f7308ea8d12a84161c069c669dbdadc18fb48ef5f551a5d9adcfbe3e8cf9",
+      "semantics": "Combat-room entry resets once/combat flag and activates status. First own exhausted Skill clones exact card and adds generated clone to Hand; after awaited add mark used. Combat end resets flag/status. Ethereal cause is not excluded.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 33,
+          "declaration": "public override Task AfterRoomEntered(AbstractRoom room)"
+        },
+        {
+          "line": 44,
+          "declaration": "public override async Task AfterCardExhausted(PlayerChoiceContext choiceContext, CardModel card, bool causedByEthereal)"
+        },
+        {
+          "line": 56,
+          "declaration": "public override Task AfterCombatEnd(CombatRoom _)"
+        }
+      ],
+      "mutable_field_declarations": [
+        {
+          "line": 14,
+          "declaration": "private bool _wasUsedThisCombat;"
+        }
+      ],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "First/second Skill exhaust, Attack exhaust, Ethereal exhaust, full hand, clone modifications/identity, nested triggers before used flag assignment."
+    },
+    {
+      "id": "RELIC.CENTENNIAL_PUZZLE",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/CentennialPuzzle.cs",
+      "lines": [
+        1,
+        58
+      ],
+      "sha256": "610d506f51cef90c84cded79e508251f3ce462177fa3e7ccda88b8feac2593aa",
+      "semantics": "After damage received in ongoing combat, own creature and UnblockedDamage>0 and unused: mark used BEFORE drawing 3 via three awaited single draws; reset combat end.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 40,
+          "declaration": "public override async Task AfterDamageReceived(PlayerChoiceContext choiceContext, Creature target, DamageResult result, ValueProp props, Creature? dealer, CardModel? cardSource)"
+        },
+        {
+          "line": 53,
+          "declaration": "public override Task AfterCombatEnd(CombatRoom _)"
+        }
+      ],
+      "mutable_field_declarations": [
+        {
+          "line": 16,
+          "declaration": "private bool _usedThisCombat;"
+        }
+      ],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Blocked/zero/non-owner damage, damage outside combat, lethal damage, nested draw/exhaust hooks and reshuffle."
+    },
+    {
+      "id": "RELIC.CHOSEN_CHEESE",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/ChosenCheese.cs",
+      "lines": [
+        1,
+        21
+      ],
+      "sha256": "cbf74c424e68ccc4178e0379dd2ab26b22e3e289ac6f60eeffc7093c0eb3aa9a",
+      "semantics": "After combat END (not victory-only), gain 1 maximum HP.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 16,
+          "declaration": "public override async Task AfterCombatEnd(CombatRoom _)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Victory/death end hooks; max-HP/current-HP command behavior."
+    },
+    {
+      "id": "RELIC.DISTINGUISHED_CAPE",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/DistinguishedCape.cs",
+      "lines": [
+        1,
+        55
+      ],
+      "sha256": "0513ba2907671770a7eb6405752535e651db6300a1a426a5fabb914a0c223b00",
+      "semantics": "Acquisition selects 2 curses without replacement from unlocked CurseCardPool cards whose CanBeGeneratedByModifiers is true, sorted Id, using Niche; add curses to Deck sequentially; then create/add 3 Apparitions.",
+      "fixed_semantic_dependencies": [
+        "Apparition"
+      ],
+      "methods": [
+        {
+          "line": 30,
+          "declaration": "public override async Task AfterObtained()"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "Eligible curse models via Niche; preserve full eligibility, ordering, no replacement.",
+      "regressions": "Two distinct curses and RNG; acquisition hooks per add; Apparition exact effects; empty/changed eligibility."
+    },
+    {
+      "id": "RELIC.GOLDEN_PEARL",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/GoldenPearl.cs",
+      "lines": [
+        1,
+        21
+      ],
+      "sha256": "e130e8e60098aafeffdc71183191584be762a20a985cad003c02442289f8f01a",
+      "semantics": "Acquisition gains 150 gold.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 17,
+          "declaration": "public override async Task AfterObtained()"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Gold modifiers/history, overflow/limits, acquisition order."
+    },
+    {
+      "id": "RELIC.GORGET",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/Gorget.cs",
+      "lines": [
+        1,
+        29
+      ],
+      "sha256": "5a3daa66675fce1767a7e54e59b803cdbf7322c655e2c696def4027d80dc586a",
+      "semantics": "After entering CombatRoom apply Plating 4 to owner via ThrowingPlayerChoiceContext.",
+      "fixed_semantic_dependencies": [
+        "PlatingPower"
+      ],
+      "methods": [
+        {
+          "line": 21,
+          "declaration": "public override async Task AfterRoomEntered(AbstractRoom room)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Combat vs noncombat rooms, combined initial powers and turn start."
+    },
+    {
+      "id": "RELIC.HORN_CLEAT",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/HornCleat.cs",
+      "lines": [
+        1,
+        28
+      ],
+      "sha256": "c410e13417a8b4ccb1acde332b8c4197901c746a76ba49aee8f387dff21eeb2f",
+      "semantics": "After own block cleared, if owner turn==2 gain 14 Unpowered block.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 20,
+          "declaration": "public override async Task AfterBlockCleared(Creature creature)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Turn 1/2/3; retained/preexisting block; exact block-cleared hook placement."
+    },
+    {
+      "id": "RELIC.JOSS_PAPER",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/JossPaper.cs",
+      "lines": [
+        1,
+        149
+      ],
+      "sha256": "97237a51eda6199f48455edf7e83c061a73b97980279ee4a6cfdd149561b6bf2",
+      "semantics": "Own non-Ethereal exhaust increments persistent CardsExhausted and draws floor(counter/5) then counter%=5 when >=5. Ethereal exhaust instead accumulates EtherealCount; after own side turn end add deferred count, clear it, draw threshold amounts after flush. Combat end clears deferred count only.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 102,
+          "declaration": "public override async Task AfterCardExhausted(PlayerChoiceContext choiceContext, CardModel card, bool causedByEthereal)"
+        },
+        {
+          "line": 116,
+          "declaration": "public override async Task AfterSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)"
+        },
+        {
+          "line": 126,
+          "declaration": "private async Task DrawIfThresholdMet(PlayerChoiceContext choiceContext)"
+        },
+        {
+          "line": 136,
+          "declaration": "private async Task DoActivateVisuals()"
+        },
+        {
+          "line": 144,
+          "declaration": "public override Task AfterCombatEnd(CombatRoom room)"
+        }
+      ],
+      "mutable_field_declarations": [
+        {
+          "line": 22,
+          "declaration": "private bool _isActivating;"
+        },
+        {
+          "line": 24,
+          "declaration": "private int _cardsExhausted;"
+        },
+        {
+          "line": 26,
+          "declaration": "private int _etherealCount;"
+        }
+      ],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Cross-combat remainder; >=10 batch exhaust; Ethereal draw after flush; nested draws before modulo; saved counter vs transient display activation."
+    },
+    {
+      "id": "RELIC.LEAD_PAPERWEIGHT",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/LeadPaperweight.cs",
+      "lines": [
+        1,
+        37
+      ],
+      "sha256": "3631dcf67276d245a1613031a97b95be33c3c0fdf83b2cf17fac22f10744f8b4",
+      "semantics": "Acquisition creates 2 Colorless reward choices with source Other and RegularEncounter rarity odds; choose canSkip; add selected to Deck, and append not-picked CardChoiceHistoryEntry for every unselected including both on skip.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 19,
+          "declaration": "public override async Task AfterObtained()"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "ColorlessCardPool reward generation and all native reward/upgrade/modifier hooks.",
+      "regressions": "Choose either/skip; rewards RNG/odds and upgrade; unchosen history; nested reward modification."
+    },
+    {
+      "id": "RELIC.LETTER_OPENER",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/LetterOpener.cs",
+      "lines": [
+        1,
+        142
+      ],
+      "sha256": "7e7baa1be33e66dad81bf434502c81d327e4980b94470fa76a00f3295f6b2679",
+      "semantics": "Before combat reset Skill counter; owner side turn start resets except turn1. After own Skill played in ongoing combat increment; each multiple of 3 deal 5 Unpowered damage to hittable enemies. Combat end resets display activation/status.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 73,
+          "declaration": "private void UpdateDisplay()"
+        },
+        {
+          "line": 87,
+          "declaration": "public override Task BeforeCombatStart()"
+        },
+        {
+          "line": 94,
+          "declaration": "public override Task AfterSideTurnStart(CombatSide side, IReadOnlyList<Creature> participants, ICombatState combatState)"
+        },
+        {
+          "line": 109,
+          "declaration": "public override async Task AfterCardPlayed(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 123,
+          "declaration": "private async Task DoActivateVisuals()"
+        },
+        {
+          "line": 131,
+          "declaration": "public override Task AfterCombatEnd(CombatRoom _)"
+        },
+        {
+          "line": 138,
+          "declaration": "public int GetSkillsPlayedForTest()"
+        }
+      ],
+      "mutable_field_declarations": [
+        {
+          "line": 19,
+          "declaration": "private bool _isActivating;"
+        },
+        {
+          "line": 21,
+          "declaration": "private int _skillsPlayedThisTurn;"
+        }
+      ],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Skill 3/6, duplicated plays, combat ending during card, turn resets, multi-target death/hook ordering."
+    },
+    {
+      "id": "RELIC.LORDS_PARASOL",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/LordsParasol.cs",
+      "lines": [
+        1,
+        113
+      ],
+      "sha256": "962f2adac8d5f509a702683965bc79d3b98eda4ca1d4522c5c9c41ae43db17b5",
+      "semantics": "On MerchantRoom entry asynchronously purchase owner local inventory for free: stocked character cards in order, stocked colorless in order, relic entries then potion entries using purchase wrappers. Finally if removal entry exists and run ongoing purchase noncancelable free removal. Input-blocking/UI operations surround purchase sequence.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 21,
+          "declaration": "public override Task AfterRoomEntered(AbstractRoom room)"
+        },
+        {
+          "line": 31,
+          "declaration": "private async Task PurchaseEverything(MerchantInventory inventory)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "Actual generated shop contents; arbitrary shop item effects are random outcomes, wrapper/payment/selection semantics mandatory.",
+      "regressions": "Full potion slots; out-of-stock card branch; relic pickup prompts before following entry; free noncancelable removal; run ends mid-chain; continuation barrier before next player input."
+    },
+    {
+      "id": "RELIC.LUCKY_FYSH",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/LuckyFysh.cs",
+      "lines": [
+        1,
+        33
+      ],
+      "sha256": "0d1e889ba2653e9d46c9c7336c57cb7d3066e0d0e2d3fdf5e8f79d02cfb6b13b",
+      "semantics": "On any own card changing into Deck, gain 15 gold; generation excludes shops and after-act3-treasure eligibility via IsBeforeAct3TreasureChest.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 19,
+          "declaration": "public override bool IsAllowed(IRunState runState)"
+        },
+        {
+          "line": 24,
+          "declaration": "public override async Task AfterCardChangedPiles(CardModel card, PileType oldPileType, AbstractModel? clonedBy)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "New add/transform/move into Deck; repeated transitions; gold modifier hooks."
+    },
+    {
+      "id": "RELIC.MINIATURE_TENT",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/MiniatureTent.cs",
+      "lines": [
+        1,
+        19
+      ],
+      "sha256": "bff5579ca0489078bed1ab678da853295dd32650e9e62fe3315e56b43907d45f",
+      "semantics": "ShouldDisableRemainingRestSiteOptions returns false for owner, true for other player; owner flashes.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 10,
+          "declaration": "public override bool ShouldDisableRemainingRestSiteOptions(Player player)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Multiple rest choices, exhausted individual option versus remaining options; other-player branch excluded single-player but preserve owner semantics."
+    },
+    {
+      "id": "RELIC.MUMMIFIED_HAND",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/MummifiedHand.cs",
+      "lines": [
+        1,
+        49
+      ],
+      "sha256": "6d42915b26aae3089dc6a389b85eeddc5d1f02ee97d34f0073abec88bebb1907",
+      "semantics": "After own Power played during ongoing combat, select hand candidate using CombatCardSelection: prefer base energy>0 or base star>0 AND currently costs; fallback any currently costs; fallback base-cost-positive set; fallback any hand. Set selected card free this turn, null-safe.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 16,
+          "declaration": "public override Task AfterCardPlayed(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "No new model output: selection among existing cards.",
+      "regressions": "All four candidate tiers, empty hand, energy/star/global costs, exact RNG calls including empty NextItem cases, duplicated powers."
+    },
+    {
+      "id": "RELIC.NUNCHAKU",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/Nunchaku.cs",
+      "lines": [
+        1,
+        109
+      ],
+      "sha256": "a92136bd62320001fe02783db5c11ef70aa5df3b4ef5226243df5f1830697243",
+      "semantics": "After own Attack played increment saved AttacksPlayed even if combat no longer ongoing; if ongoing and multiple of 10 gain 1 energy. Persistent counter has no combat reset override.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 74,
+          "declaration": "private void UpdateDisplay()"
+        },
+        {
+          "line": 88,
+          "declaration": "public override async Task AfterCardPlayed(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 102,
+          "declaration": "private async Task DoActivateVisuals()"
+        }
+      ],
+      "mutable_field_declarations": [
+        {
+          "line": 17,
+          "declaration": "private bool _isActivating;"
+        },
+        {
+          "line": 19,
+          "declaration": "private int _attacksPlayed;"
+        }
+      ],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "9\u219210 across combats; killing tenth Attack no energy; repeated/autoplay attacks; counter codec."
+    },
+    {
+      "id": "RELIC.PENDULUM",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/Pendulum.cs",
+      "lines": [
+        1,
+        117
+      ],
+      "sha256": "b6cde64b88889ab99f32e49c660e864ecebe732b003220f1d9663b1025e592e9",
+      "semantics": "Before own hand draw set saved TurnsSeen=(TurnsSeen+1)%3. Modify own hand draw +1 when TurnsSeen==0; combat end resets status only, not saved counter.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 76,
+          "declaration": "public override Task BeforeHandDraw(Player player, PlayerChoiceContext choiceContext, ICombatState combatState)"
+        },
+        {
+          "line": 91,
+          "declaration": "public override decimal ModifyHandDraw(Player player, decimal count)"
+        },
+        {
+          "line": 104,
+          "declaration": "private async Task DoActivateVisuals()"
+        },
+        {
+          "line": 112,
+          "declaration": "public override Task AfterCombatEnd(CombatRoom _)"
+        }
+      ],
+      "mutable_field_declarations": [
+        {
+          "line": 19,
+          "declaration": "private bool _isActivating;"
+        },
+        {
+          "line": 21,
+          "declaration": "private int _turnsSeen;"
+        }
+      ],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Cross-combat 3-turn cycle; modifier before BeforeHandDraw, codec at remainder, no accidental counter reset."
+    },
+    {
+      "id": "RELIC.PERMAFROST",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/Permafrost.cs",
+      "lines": [
+        1,
+        54
+      ],
+      "sha256": "15f99b67cc992dd3c88839f8eae79d829528b92ad6a57e71266cbf88897cd585",
+      "semantics": "Combat room entry clears ActivatedThisCombat. After first own Power played while combat ongoing gain 7 Unpowered block then mark activated.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 35,
+          "declaration": "public override Task AfterRoomEntered(AbstractRoom room)"
+        },
+        {
+          "line": 45,
+          "declaration": "public override async Task AfterCardPlayed(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        }
+      ],
+      "mutable_field_declarations": [
+        {
+          "line": 16,
+          "declaration": "private bool _activatedThisCombat;"
+        }
+      ],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "First/second Power, killing Power ends combat, nested block-trigger reentrancy before flag assignment."
+    },
+    {
+      "id": "RELIC.PUNCH_DAGGER",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/PunchDagger.cs",
+      "lines": [
+        1,
+        34
+      ],
+      "sha256": "1847afb09cf4b098bce8dfc1d96bcb7abb6f55ab6af4b966f0a57de99a885c74",
+      "semantics": "Acquisition selects exactly one eligible deck card through FromDeckForEnchantment using canonical Momentum/amount5; enchant chosen card with mutable Momentum5.",
+      "fixed_semantic_dependencies": [
+        "Momentum"
+      ],
+      "methods": [
+        {
+          "line": 24,
+          "declaration": "public override async Task AfterObtained()"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "No eligible/one/many candidates selection helper behavior; existing enchantment compatibility; amount5 and upgrade interaction."
+    },
+    {
+      "id": "RELIC.RAINBOW_RING",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/RainbowRing.cs",
+      "lines": [
+        1,
+        132
+      ],
+      "sha256": "2af36eb8b68494aabc34ac77cb75f7785850a5218631fe12c630cef96caab1a8",
+      "semantics": "Before own side turn reset attack/skill/power counts and activation count. Own played cards in ongoing combat increment type count until first activation; once all three positive apply Strength1 THEN Dexterity1 THEN increment activation. Combat end resets all counters.",
+      "fixed_semantic_dependencies": [
+        "StrengthPower",
+        "DexterityPower"
+      ],
+      "methods": [
+        {
+          "line": 94,
+          "declaration": "public override Task BeforeSideTurnStart(PlayerChoiceContext choiceContext, CombatSide side, IReadOnlyList<Creature> participants, ICombatState combatState)"
+        },
+        {
+          "line": 107,
+          "declaration": "public override async Task AfterCardPlayed(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 124,
+          "declaration": "public override Task AfterCombatEnd(CombatRoom _)"
+        }
+      ],
+      "mutable_field_declarations": [
+        {
+          "line": 19,
+          "declaration": "private int _attacksPlayedThisTurn;"
+        },
+        {
+          "line": 21,
+          "declaration": "private int _skillsPlayedThisTurn;"
+        },
+        {
+          "line": 23,
+          "declaration": "private int _powersPlayedThisTurn;"
+        },
+        {
+          "line": 25,
+          "declaration": "private int _activationCountThisTurn;"
+        }
+      ],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "All six orderings, duplicate plays, once/turn guard, nested power-hook ordering before activation increment."
+    },
+    {
+      "id": "RELIC.RED_SKULL",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/RedSkull.cs",
+      "lines": [
+        1,
+        86
+      ],
+      "sha256": "cf57eb10a81ced7a20a845c53b1f58253fbf980f1b72f76243d57f1cbe165382",
+      "semantics": "On combat room entry and any current-HP change while combat ongoing evaluate OWNER HP <=50% max. If newly low add Strength3; if above and previously applied subtract3; combat end clears latch/status. Hp-change hook does not filter changed creature.",
+      "fixed_semantic_dependencies": [
+        "StrengthPower"
+      ],
+      "methods": [
+        {
+          "line": 44,
+          "declaration": "public override async Task AfterRoomEntered(AbstractRoom room)"
+        },
+        {
+          "line": 52,
+          "declaration": "public override Task AfterCombatEnd(CombatRoom _)"
+        },
+        {
+          "line": 59,
+          "declaration": "public override async Task AfterCurrentHpChanged(Creature creature, decimal _)"
+        },
+        {
+          "line": 67,
+          "declaration": "private async Task ModifyStrengthIfNecessary()"
+        }
+      ],
+      "mutable_field_declarations": [
+        {
+          "line": 19,
+          "declaration": "private bool _strengthApplied;"
+        }
+      ],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Exactly half/odd maxHP, heal/damage crossings, other-creature HP changes, maxHP change consequences, clone latch."
+    },
+    {
+      "id": "RELIC.SEA_GLASS",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/SeaGlass.cs",
+      "lines": [
+        1,
+        94
+      ],
+      "sha256": "6833f9402cf40a44b2844589ef2b8391519c8181ad557ac8af2d9a1ebaa32665",
+      "semantics": "Saved CharacterId selects character pool/title; missing ID defaults Ironclad on pickup. Generate 5 Common,5 Uncommon,5 Rare (Cards15/3) reward cards, uniform odds, NoRarityModification|NoCardPoolModifications; concatenate in that order; choose 0..15 using grid reward selector; add each chosen to Deck.",
+      "fixed_semantic_dependencies": [
+        "Ironclad character fallback"
+      ],
+      "methods": [
+        {
+          "line": 74,
+          "declaration": "public override async Task AfterObtained()"
+        }
+      ],
+      "mutable_field_declarations": [
+        {
+          "line": 23,
+          "declaration": "private ModelId? _characterId;"
+        }
+      ],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "Selected character pool; generation flags do not disable upgrade rolls or all modify hooks.",
+      "regressions": "All character variants, null fallback, select none/some/all; reward RNG and upgrade; selection/add order and actual flags."
+    },
+    {
+      "id": "RELIC.SILKEN_TRESS",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/SilkenTress.cs",
+      "lines": [
+        1,
+        84
+      ],
+      "sha256": "f045974dee1b42bf18fb678bd11b4f60b529f3d272866dfad3c266884d099139",
+      "semantics": "Acquisition loses all current gold. Late reward-options modifier applies only owner, IsCardReward flag, unused: for each Glam-compatible offer clone card then enchant Glam1 and record modification; returns true even if no compatible options. AfterModifyingCardRewardOptions sets saved IsUsed, disables status.",
+      "fixed_semantic_dependencies": [
+        "Glam"
+      ],
+      "methods": [
+        {
+          "line": 42,
+          "declaration": "public override async Task AfterObtained()"
+        },
+        {
+          "line": 47,
+          "declaration": "public override bool TryModifyCardRewardOptionsLate(Player player, List<CardCreationResult> cardRewards, CardCreationOptions options)"
+        },
+        {
+          "line": 75,
+          "declaration": "public override Task AfterModifyingCardRewardOptions()"
+        }
+      ],
+      "mutable_field_declarations": [
+        {
+          "line": 16,
+          "declaration": "private bool _isUsed;"
+        }
+      ],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "No-compatible reward still consumes use; wrong-source flag does not; first/next reward, cloned identity and enchant eligibility, gold loss hooks."
+    },
+    {
+      "id": "RELIC.SPARKLING_ROUGE",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/SparklingRouge.cs",
+      "lines": [
+        1,
+        38
+      ],
+      "sha256": "4ff8a99dd8c9982f47dc8e1b84f61441636b853c97b96e45101c04817be81e64",
+      "semantics": "After owner block cleared on turn3, apply Strength1 then Dexterity1.",
+      "fixed_semantic_dependencies": [
+        "StrengthPower",
+        "DexterityPower"
+      ],
+      "methods": [
+        {
+          "line": 29,
+          "declaration": "public override async Task AfterBlockCleared(Creature creature)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "none",
+      "regressions": "Turn2/3/4, ordering with block-cleared hooks and repeated clear events."
+    },
+    {
+      "id": "RELIC.VEXING_PUZZLEBOX",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/VexingPuzzlebox.cs",
+      "lines": [
+        1,
+        26
+      ],
+      "sha256": "d12af68e178176839e1f32212123257ebd0ceeed35424bd5a3c6c4fa76a29e1f",
+      "semantics": "After own player turn start on turn1, distinct combat-generation sample1 from unlocked character card pool using CombatCardGeneration; set free this turn, add generated Hand.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 16,
+          "declaration": "public override async Task AfterPlayerTurnStart(PlayerChoiceContext choiceContext, Player player)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "Character pool after native combat/player-count filters.",
+      "regressions": "Full pool identity/RNG, hand cap, start ordering, generated nonroot result explicit unsupported effect, generated/root upgraded variants."
+    },
+    {
+      "id": "RELIC.WHISPERING_EARRING",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/WhisperingEarring.cs",
+      "lines": [
+        1,
+        107
+      ],
+      "sha256": "4d4a67823048a590d8d7984dd328fe44973da1c945277e262c6d722acc564bba",
+      "semantics": "Modify owner max energy +1. First-turn AfterAutoPrePlayPhaseEnteredLate installs VakuuCardSelector; at most13 iterations: stop if combat ending, owner ready-to-end, turn changed, or no CanPlay card. Choose first playable Hand card, target leftmost hittable enemy/owner for AnyPlayer/random eligible other-player ally via CombatTargets; SpendResources then AutoPlay Default skipXCapture:true. Dispose selector; after any plays emit warning if cap reached else approval.",
+      "fixed_semantic_dependencies": [
+        "VakuuCardSelector"
+      ],
+      "methods": [
+        {
+          "line": 29,
+          "declaration": "public override decimal ModifyMaxEnergy(Player player, decimal amount)"
+        },
+        {
+          "line": 41,
+          "declaration": "public override async Task AfterAutoPrePlayPhaseEnteredLate(PlayerChoiceContext choiceContext, Player player)"
+        },
+        {
+          "line": 96,
+          "declaration": "private Creature? GetTarget(CardModel card, ICombatState combatState)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "random_output_boundary": "Existing hand cards only; ally branch is unreachable in scoped single-player.",
+      "regressions": "Resource/X capture and play order; 0/1/13 plays; turn-changing/ending card; nested selection uses top-left up to max and first reward; restore selector stack; no manual-choice substitution."
+    },
+    {
+      "id": "POTION.BLOCK_POTION",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/BlockPotion.cs",
+      "lines": [
+        1,
+        31
+      ],
+      "sha256": "580c18cd744735b84b486937268bcb5ba4e4fb572be1b6b3128c2994c48a79b4",
+      "semantics": "Gain 12 Unpowered block on AnyPlayer target.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 26,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AnyPlayer",
+      "random_output_boundary": "none",
+      "regressions": "Legal target and invalid target; effect order; power stacking/removal and interaction with supported hooks; consumed source/history"
+    },
+    {
+      "id": "POTION.COLORLESS_POTION",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/ColorlessPotion.cs",
+      "lines": [
+        1,
+        35
+      ],
+      "sha256": "75d7adbc3684dd92dce7975dccc66a03819f80db7ee19a4c3f14d595fe1a14f5",
+      "semantics": "Generate 3 distinct combat-eligible unlocked colorless cards using CombatCardGeneration; choose canSkip, if chosen set free this turn then add generated card to Hand (base.Owner).",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 23,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AnyPlayer",
+      "random_output_boundary": "Full native eligible card pool; effect implementations outside roots/semantic closure remain unsupported",
+      "regressions": "Each offer and skip, exact RNG/pool/filters, hand cap/free-cost lifetime, consumed potion retained through suspended choice, clone/restore/resume"
+    },
+    {
+      "id": "POTION.CURE_ALL",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/CureAll.cs",
+      "lines": [
+        1,
+        38
+      ],
+      "sha256": "94ebfc9713c739957b84759679cce6e3d1925e634afe0c2e36fb63d23a6c0a95",
+      "semantics": "Gain 1 energy on target Player THEN draw2. Name does not imply cleanse/heal.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 31,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AnyPlayer",
+      "random_output_boundary": "none",
+      "regressions": "Legal target and invalid target; effect order; power stacking/removal and interaction with supported hooks; consumed source/history"
+    },
+    {
+      "id": "POTION.DEXTERITY_POTION",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/DexterityPotion.cs",
+      "lines": [
+        1,
+        31
+      ],
+      "sha256": "d7990f15b1c53ea4b430064b9e528885c39794dd1f6fadbced61a6dd9de008e8",
+      "semantics": "Apply Dexterity2 to AnyPlayer target, source owner creature.",
+      "fixed_semantic_dependencies": [
+        "DexterityPower"
+      ],
+      "methods": [
+        {
+          "line": 26,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AnyPlayer",
+      "random_output_boundary": "none",
+      "regressions": "Legal target and invalid target; effect order; power stacking/removal and interaction with supported hooks; consumed source/history"
+    },
+    {
+      "id": "POTION.DUPLICATOR",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/Duplicator.cs",
+      "lines": [
+        1,
+        24
+      ],
+      "sha256": "7019f17659ee911ee4cd22f3b7e5434699e123985ab1c2b8712a1656cd088d31",
+      "semantics": "Apply Duplication1 to AnyPlayer target with target as applier.",
+      "fixed_semantic_dependencies": [
+        "DuplicationPower"
+      ],
+      "methods": [
+        {
+          "line": 19,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AnyPlayer",
+      "random_output_boundary": "none",
+      "regressions": "Legal target and invalid target; effect order; power stacking/removal and interaction with supported hooks; consumed source/history"
+    },
+    {
+      "id": "POTION.EXPLOSIVE_AMPOULE",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/ExplosiveAmpoule.cs",
+      "lines": [
+        1,
+        38
+      ],
+      "sha256": "a7662917b58fc3918e208494aebf029d55fdcb05e6eda2195a66a867a3ba01e5",
+      "semantics": "Capture current HittableEnemies list; deal 10 Unpowered damage to those targets, dealer owner creature.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 26,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AllEnemies",
+      "random_output_boundary": "none",
+      "regressions": "Legal target and invalid target; effect order; power stacking/removal and interaction with supported hooks; consumed source/history"
+    },
+    {
+      "id": "POTION.GAMBLERS_BREW",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/GamblersBrew.cs",
+      "lines": [
+        1,
+        30
+      ],
+      "sha256": "352e98c38cafb34769ddcb8f5fa20a1284646a8a06b67da8ff03109207baf510",
+      "semantics": "From target hand select 0..999999999 discard candidates with potion source; then DiscardAndDraw selected list and list.Count.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 23,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AnyPlayer",
+      "random_output_boundary": "none",
+      "regressions": "Zero/all/partial hand selection and reshuffle; retained consumed potion as selection source"
+    },
+    {
+      "id": "POTION.HEART_OF_IRON",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/HeartOfIron.cs",
+      "lines": [
+        1,
+        35
+      ],
+      "sha256": "12c271642fcf66b45431263962d631c92893af9ebd4a446708c3d662840d404b",
+      "semantics": "Apply Plating7 to AnyPlayer target, source owner creature.",
+      "fixed_semantic_dependencies": [
+        "PlatingPower"
+      ],
+      "methods": [
+        {
+          "line": 30,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AnyPlayer",
+      "random_output_boundary": "none",
+      "regressions": "Legal target and invalid target; effect order; power stacking/removal and interaction with supported hooks; consumed source/history"
+    },
+    {
+      "id": "POTION.LIQUID_BRONZE",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/LiquidBronze.cs",
+      "lines": [
+        1,
+        31
+      ],
+      "sha256": "ca947b1b31789b7fd9d84aa9e0d6a3fd8486ac083b3b3fc160f7aef39d597758",
+      "semantics": "Apply Thorns3 to AnyPlayer target, source owner creature.",
+      "fixed_semantic_dependencies": [
+        "ThornsPower"
+      ],
+      "methods": [
+        {
+          "line": 26,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AnyPlayer",
+      "random_output_boundary": "none",
+      "regressions": "Legal target and invalid target; effect order; power stacking/removal and interaction with supported hooks; consumed source/history"
+    },
+    {
+      "id": "POTION.POTION_OF_BINDING",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/PotionOfBinding.cs",
+      "lines": [
+        1,
+        47
+      ],
+      "sha256": "61cbf688a03ddaaf616bdec4e7da9310cc51787f0ec75c1230507e69ab0c8f47",
+      "semantics": "Capture HittableEnemies; apply Weak using VulnerablePower IntValue(1), THEN Vulnerable using WeakPower IntValue(1). Preserve native cross-key lookup/order.",
+      "fixed_semantic_dependencies": [
+        "WeakPower",
+        "VulnerablePower"
+      ],
+      "methods": [
+        {
+          "line": 37,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AllEnemies",
+      "random_output_boundary": "none",
+      "regressions": "Legal target and invalid target; effect order; power stacking/removal and interaction with supported hooks; consumed source/history"
+    },
+    {
+      "id": "POTION.SKILL_POTION",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/SkillPotion.cs",
+      "lines": [
+        1,
+        36
+      ],
+      "sha256": "99235b9e8c305193621fc035d10192763283c92ea78414b5f9b19f519ca6beef",
+      "semantics": "Generate 3 distinct combat-eligible unlocked target character Skills using CombatCardGeneration; choose canSkip; if chosen set free this turn then add generated card to Hand (base.Owner).",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 22,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AnyPlayer",
+      "random_output_boundary": "Full native eligible card pool; effect implementations outside roots/semantic closure remain unsupported",
+      "regressions": "Each offer and skip, exact RNG/pool/filters, hand cap/free-cost lifetime, consumed potion retained through suspended choice, clone/restore/resume"
+    },
+    {
+      "id": "POTION.STABLE_SERUM",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/StableSerum.cs",
+      "lines": [
+        1,
+        31
+      ],
+      "sha256": "865bd368cd2e2aba93a774707c78628e16f29359dffe87fdf0d77783f3bf8d13",
+      "semantics": "Apply RetainHand2 to AnyPlayer target, source owner creature.",
+      "fixed_semantic_dependencies": [
+        "RetainHandPower"
+      ],
+      "methods": [
+        {
+          "line": 26,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AnyPlayer",
+      "random_output_boundary": "none",
+      "regressions": "Legal target and invalid target; effect order; power stacking/removal and interaction with supported hooks; consumed source/history"
+    },
+    {
+      "id": "POTION.STRENGTH_POTION",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/StrengthPotion.cs",
+      "lines": [
+        1,
+        34
+      ],
+      "sha256": "45fb9e35a16b06190b483f7fcc8972a8fc81c88765ddadc63e148ccc7a908c03",
+      "semantics": "Apply Strength2 to AnyPlayer target, source owner creature.",
+      "fixed_semantic_dependencies": [
+        "StrengthPower"
+      ],
+      "methods": [
+        {
+          "line": 28,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AnyPlayer",
+      "random_output_boundary": "none",
+      "regressions": "Legal target and invalid target; effect order; power stacking/removal and interaction with supported hooks; consumed source/history"
+    },
+    {
+      "id": "POTION.SWIFT_POTION",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/SwiftPotion.cs",
+      "lines": [
+        1,
+        30
+      ],
+      "sha256": "8c662f8e3cb9adba655763d4e42bbeda976ba0427e1ed3fac5c5a31369180522",
+      "semantics": "Draw3 for AnyPlayer target Player.",
+      "fixed_semantic_dependencies": [],
+      "methods": [
+        {
+          "line": 24,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AnyPlayer",
+      "random_output_boundary": "none",
+      "regressions": "Legal target and invalid target; effect order; power stacking/removal and interaction with supported hooks; consumed source/history"
+    },
+    {
+      "id": "POTION.WEAK_POTION",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Potions/WeakPotion.cs",
+      "lines": [
+        1,
+        34
+      ],
+      "sha256": "3f573de421ca22fa942dde5e87d54006eeecdf078ad14d36bca0f8c48d4c1730",
+      "semantics": "Apply Weak3 to AnyEnemy target, source owner creature.",
+      "fixed_semantic_dependencies": [
+        "WeakPower"
+      ],
+      "methods": [
+        {
+          "line": 28,
+          "declaration": "protected override async Task OnUse(PlayerChoiceContext choiceContext, Creature? target)"
+        }
+      ],
+      "mutable_field_declarations": [],
+      "evidence": "source-inspected; not runtime verified for all branches",
+      "usage": "CombatOnly",
+      "target_type": "AnyEnemy",
+      "random_output_boundary": "none",
+      "regressions": "Legal target and invalid target; effect order; power stacking/removal and interaction with supported hooks; consumed source/history"
+    }
+  ],
+  "shared_sources": [
+    "MegaCrit.Sts2.Core.Models/PotionModel.cs:297-353",
+    "MegaCrit.Sts2.Core.Factories/PotionFactory.cs:45-95",
+    "MegaCrit.Sts2.Core.Factories/CardFactory.cs:89-164,214-320",
+    "MegaCrit.Sts2.Core.Models.Relics/VakuuCardSelector.cs:16-26"
+  ],
+  "limits": [
+    "Per-model source inspection does not prove dispatch ordering among different models; parent shared-hook audit is required.",
+    "No live branch probes were run; regression lists are requirements.",
+    "Source paths and SHA-256 permit local matching; game decompilation is not redistributed.",
+    "Semantic dependencies listed are direct; fixed transitive closure is owned by parent audit."
+  ],
+  "support_records": [
+    {
+      "id": "POWER.RETAIN_HAND_POWER",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/RetainHandPower.cs",
+      "lines": [
+        1,
+        35
+      ],
+      "sha256": "1ff9604e0cbc7bb8f13fa843f3b1e716cb43f954aab7eb87b41108ae983b2ba4",
+      "semantics": "StableSerum fixed effect: Counter buff, owner ShouldFlush=false; AfterSideTurnEnd when owner participates decrement power. Does not itself override Ethereal exhaustion.",
+      "fixed_semantic_dependencies": [],
+      "regressions": "Retain two owner turns, stack durations, end-side order, Ethereal cards, clone countdown.",
+      "evidence": "source-inspected; not a live branch certification"
+    },
+    {
+      "id": "ENCHANTMENT.MOMENTUM",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Enchantments/Momentum.cs",
+      "lines": [
+        1,
+        48
+      ],
+      "sha256": "fdfcdc593cd17473289558ceca7f8da2b080f30d1371847f49615dae7ef549de",
+      "semantics": "PunchDagger fixed effect: Attack-only eligibility; private ExtraDamage accumulator; each OnPlay adds enchantment Amount; powered-attack EnchantDamageAdditive returns accumulator, other props zero. This definition has no explicit reset hook.",
+      "fixed_semantic_dependencies": [],
+      "regressions": "First/repeated/replayed attack, multi-hit application, non-powered damage, clone/combat-copy accumulator lifetime.",
+      "evidence": "source-inspected; not a live branch certification"
+    },
+    {
+      "id": "VakuuCardSelector",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/VakuuCardSelector.cs",
+      "lines": [
+        1,
+        28
+      ],
+      "sha256": "9a0cf2e8800326e52a8a829b5f6c8991241f3092adc3d0fb88d4e66651608948",
+      "semantics": "WhisperingEarring fixed selector policy: take first maxSelect options; rewards choose first option card or null. Scoped selector must survive nested effects and be restored when disposed.",
+      "fixed_semantic_dependencies": [],
+      "regressions": "Nested discard/exhaust selections, optional choices, max=0 and no options, scope restoration.",
+      "evidence": "source-inspected; not a live branch certification"
+    },
+    {
+      "id": "CARD.SUPPRESS",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Suppress.cs",
+      "lines": [
+        1,
+        56
+      ],
+      "sha256": "b1a79d659df56b08a4f5454f4ac5b3b3c880711b9887565c51b15e6280170791",
+      "semantics": "ArchaicTooth Neutralize replacement: Ancient Attack energy0 AnyEnemy Innate; damage11 then Weak3; upgrade damage+6 and Weak+2. Required conditional on legal Silent-owner variant; fixed mapping rather than random output.",
+      "fixed_semantic_dependencies": [
+        "POWER.WEAK_POWER"
+      ],
+      "regressions": "Upgraded17/Weak5, lethal attack before debuff, innate placement, enchantment-copy transformation.",
+      "evidence": "source-inspected; not a live branch certification"
+    },
+    {
+      "id": "CARD.PROTECTOR",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Protector.cs",
+      "lines": [
+        1,
+        52
+      ],
+      "sha256": "2b2e824c930c08eb9a5dd9f14f7448de606141312ca48ee75223330838f13017",
+      "semantics": "ArchaicTooth Unleash replacement: Ancient Attack energy1 AnyEnemy OstyAttack; calculated damage base10 plus ExtraDamage1 times live Osty.MaxHp (zero if absent/dead), FromOsty. OnPlay skips attack if Osty missing; upgrade energy-1 and calculation base+5. Required conditional on Necrobinder-owner variant.",
+      "fixed_semantic_dependencies": [
+        "MONSTER.OSTY"
+      ],
+      "regressions": "Osty absent/dead/live with changing maxHP, upgrade energy0/base15, source-specific damage modifiers and enchantment copy.",
+      "evidence": "source-inspected; not a live branch certification"
+    },
+    {
+      "id": "CARD.METEOR_SHOWER",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/MeteorShower.cs",
+      "lines": [
+        1,
+        48
+      ],
+      "sha256": "9eb224ae1899f164cb9d86e38ed44a13f8f5b99da97bad979b6e0bb0c203f5cb",
+      "semantics": "ArchaicTooth FallingStar replacement: Ancient Attack energy0 star2 AllEnemies; attack14 all opponents then Weak2 to current hittable enemies then Vulnerable2 to current hittable enemies; upgrade damage+7 only. Required conditional on Regent-owner variant.",
+      "fixed_semantic_dependencies": [
+        "POWER.WEAK_POWER",
+        "POWER.VULNERABLE_POWER"
+      ],
+      "regressions": "Star payment, partial kills change post-hit targets, upgrade21, ordered debuff blockers.",
+      "evidence": "source-inspected; not a live branch certification"
+    },
+    {
+      "id": "CARD.QUADCAST",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Quadcast.cs",
+      "lines": [
+        1,
+        42
+      ],
+      "sha256": "321c1c85c37f64dfbb0e1dfcd0b10b2c96ef533aa3f54585afd424a2fd0ce2ff",
+      "semantics": "ArchaicTooth Dualcast replacement: Ancient Skill energy1 Self; no-op if no orbs; four EvokeNext calls, dequeue=false first3 true fourth. Upgrade energy-1. Required conditional on Defect-owner variant; existing front-orb effects and orbit queue/hook semantics mandatory. No concrete orb model is generated by this card.",
+      "fixed_semantic_dependencies": [],
+      "regressions": "No-orb case, same orb evoked3 then removed fourth, death/combat-end between repeats, mutable orb effects/after-evoke hooks, upgraded cost0.",
+      "evidence": "source-inspected; not a live branch certification"
+    },
+    {
+      "id": "CARD.DOUBT",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Doubt.cs",
+      "lines": [
+        1,
+        38
+      ],
+      "sha256": "881307a1a2b5264562a6f7b3239ed594840a9211650ce4060c38fe8195595581",
+      "semantics": "ArchaicTooth replacement helper fallback for unmapped source ID; normal first-matching starter lookup makes this fallback defensive, not a randomly selected legal offer. Unplayable Curse energy-1, no upgrade; turn-end in Hand apply Weak1 and set SkipNextDurationTick only when no Weak existed and resulting power non-null.",
+      "fixed_semantic_dependencies": [
+        "POWER.WEAK_POWER"
+      ],
+      "regressions": "New/existing Weak, blocked application, tick skipping and duplicate curses. Do not invent a normal no-starter acquisition path.",
+      "evidence": "source-inspected; not a live branch certification"
+    },
+    {
+      "id": "MONSTER.OSTY",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Monsters/Osty.cs",
+      "lines": [
+        1,
+        79
+      ],
+      "sha256": "ac145cfe8b32f3ef7a9765da44fd62a8211362a45aaaf763880775345662251c",
+      "semantics": "Protector dependency: pet monster initial HP1, self-loop NOTHING_MOVE; IsHealthBarVisible tracks alive; CheckMissingWithAnim returns owner.IsOstyMissing. Player.cs:125-142 retains dead pet identity and defines missing as absent OR dead. Summoning/full pet lifecycle is a shared capability; this definition does not summon Osty.",
+      "fixed_semantic_dependencies": [],
+      "regressions": "Distinguish absent/dead/live retained pet, attack dealer/ownership and maxHP calculation.",
+      "evidence": "source-inspected; not a live branch certification"
+    },
+    {
+      "id": "OrbCmd.EvokeNext",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/OrbCmd.cs",
+      "lines": [
+        1,
+        171
+      ],
+      "sha256": "b29ea07cd3f1bef01f6f119eb53dad76fe954b752d1264c338304072242adbc4",
+      "semantics": "Quadcast operation dependency: select current first orb every call; Evoke returns immediately if combat ending/queue empty. On dequeue remove orb before Evoke; push source context, invoke orb effect, pop, AfterOrbEvoked, then RemoveInternal if removed and player combat still exists. It dispatches the existing orb model rather than generating a model.",
+      "fixed_semantic_dependencies": [],
+      "regressions": "Mutating orb queue between calls, effect death, source retained across awaited hooks.",
+      "evidence": "source-inspected; not a live branch certification"
+    }
+  ]
+}

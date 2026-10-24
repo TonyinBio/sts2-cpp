@@ -1,0 +1,1146 @@
+{
+  "evidence_kind": "source identity and inventory integrity, not behavior certification",
+  "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+  "game_dll_checked_this_run": true,
+  "decompiler": "ILSpy 9.1.0.7988",
+  "root_file_sha256": "cce7e3da97cfd14e914c1cc3562610628b6945c1c34f98eb9daa82a1c4bb6f69",
+  "root_counts": {
+    "cards": 71,
+    "relics": 31,
+    "potions": 15,
+    "powers": 39,
+    "monsters": 30,
+    "encounters": 22,
+    "events": 11,
+    "enchantments": 3,
+    "afflictions": 2
+  },
+  "roots_checked": 224,
+  "artifact_sha256": {
+    "cards.json": "f51e107fef8a32d3fe3ea71e90f65d66ed6b7b4d92f5a55fbc0b23d118ac68c6",
+    "inventory.json": "e395fccb154b6664c1653809cd90c30c3f694fca3e9875a2030c61b7f1bc540d",
+    "encounters.json": "c00c3c9396882e30618af6836eda39c8c7f1a2de18c66290688826b7e7434ddd"
+  },
+  "sources": {
+    "MegaCrit.Sts2.Core.CardSelection/CardSelectorPrefs.cs": {
+      "sha256": "be907ced510772bbac02fd30e7553a360e426c4868c4436224d454d0f8177086",
+      "lines": 79
+    },
+    "MegaCrit.Sts2.Core.Combat/CombatManager.cs": {
+      "sha256": "590b7a9b013b5f72cfc90330330f3eca7e7fd2adaed180872b521549e654d1ad",
+      "lines": 1982
+    },
+    "MegaCrit.Sts2.Core.Combat/CombatState.cs": {
+      "sha256": "bd5f86957741c078fd279bad8d089b54ca5e17326d14e18cdecf9832a5661bb8",
+      "lines": 618
+    },
+    "MegaCrit.Sts2.Core.Commands.Builders/AttackCommand.cs": {
+      "sha256": "6e2611720bf778be9d814c01d130e1a2cced40a7366ef667cc0397e45093b878",
+      "lines": 693
+    },
+    "MegaCrit.Sts2.Core.Commands/CardCmd.cs": {
+      "sha256": "0ea75a4209aa6cf4aecc1246656e4a2e54930ab84f341ce830ff0cfcbdd1db87",
+      "lines": 900
+    },
+    "MegaCrit.Sts2.Core.Commands/CardPileCmd.cs": {
+      "sha256": "7d8615a01c8f201527c27e9b59042de3a616785145ee0334ac0a6dac691cc291",
+      "lines": 1286
+    },
+    "MegaCrit.Sts2.Core.Commands/CardSelectCmd.cs": {
+      "sha256": "70d6e6d84faac5656156113959e324249b1b5396675317e9be14156ff7fa6a89",
+      "lines": 1032
+    },
+    "MegaCrit.Sts2.Core.Commands/CreatureCmd.cs": {
+      "sha256": "b4c0eace35caeb0998edb70af5b626f96835c0d3149d474b9b7c4693d9e30278",
+      "lines": 1001
+    },
+    "MegaCrit.Sts2.Core.Commands/OrbCmd.cs": {
+      "sha256": "b29ea07cd3f1bef01f6f119eb53dad76fe954b752d1264c338304072242adbc4",
+      "lines": 171
+    },
+    "MegaCrit.Sts2.Core.Commands/PowerCmd.cs": {
+      "sha256": "d61e73c082ebcdbafe4abdc6992424598372a0f2fa84e50b8bb43e8d1ed015f6",
+      "lines": 300
+    },
+    "MegaCrit.Sts2.Core.Commands/RelicCmd.cs": {
+      "sha256": "7da9c58b87b37e212a85f1541883d0e627d081c561d6b833ed2e1f89e69c3e51",
+      "lines": 94
+    },
+    "MegaCrit.Sts2.Core.Entities.Cards/CardEnergyCost.cs": {
+      "sha256": "c2b18b52ad44a44acbac01c5df4a209f5534a6ec7138e748ea73d66b2dcedd53",
+      "lines": 422
+    },
+    "MegaCrit.Sts2.Core.Entities.Merchant/MerchantEntry.cs": {
+      "sha256": "dbd59a15346ec9afcd5bf0a4a980985ff5d02d8f34d8a8ff2281e70c8f45ccf4",
+      "lines": 116
+    },
+    "MegaCrit.Sts2.Core.Entities.Merchant/MerchantPotionEntry.cs": {
+      "sha256": "79ec91e3b6a1349e7d0d9f3330f11348e794d613e0a4e65784b9428047bd19c1",
+      "lines": 105
+    },
+    "MegaCrit.Sts2.Core.Factories/CardFactory.cs": {
+      "sha256": "69bba37c3d0ea3efc423264dd796fc4d22a49dcff3290c56ba9813365e8030dd",
+      "lines": 306
+    },
+    "MegaCrit.Sts2.Core.Factories/PotionFactory.cs": {
+      "sha256": "cad6c73dd86f624a401f4600f4f1073a196695415295d8c36d0aecef445a715b",
+      "lines": 96
+    },
+    "MegaCrit.Sts2.Core.Hooks/Hook.cs": {
+      "sha256": "fdb5fc0401e7f7018acb52cd8c8050f6f937bd3a210e4c595feb5946db12bde8",
+      "lines": 2568
+    },
+    "MegaCrit.Sts2.Core.Map/SpoilsActMap.cs": {
+      "sha256": "20d4f57a56cd8814d1b057695f824a1076c8c3afe74910adfa09923fc17555d2",
+      "lines": 514
+    },
+    "MegaCrit.Sts2.Core.Models.Afflictions/Ringing.cs": {
+      "sha256": "4be06937d6969ba919d562902d5c65c9f5ae9f198522636f921cb58f58b00e39",
+      "lines": 9
+    },
+    "MegaCrit.Sts2.Core.Models.Afflictions/Tainted.cs": {
+      "sha256": "5174e931345568425ba072f474868281ba624aef7fe4a951f85805fdf83bf534",
+      "lines": 23
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Apparition.cs": {
+      "sha256": "108391d46dcacf68b0c0bce425f40dc3119901ba739240585dea800c8370ea63",
+      "lines": 39
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Armaments.cs": {
+      "sha256": "8a61b0d23dfc9f6f41fc167ab8c002af1ad7bbd27e4892439c000e86ab929ce1",
+      "lines": 40
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Automation.cs": {
+      "sha256": "50902e2382f164d0281814559054545d1b9061a8e308ea98bd64d55776bdda08",
+      "lines": 32
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Bash.cs": {
+      "sha256": "ccd5cd825109781b14607f89329ff59213d4a9ceb4c44f70954d62e4465bc738",
+      "lines": 43
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/BloodWall.cs": {
+      "sha256": "6698d3bfbe4219ec635dd06a036162b64b196ec1e42198449bb7ce5db485011c",
+      "lines": 47
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Bloodletting.cs": {
+      "sha256": "c9d841d7773e1e4007d48c94571c991c7a5c7b67faf63734b4a7ac4bc2f7ba77",
+      "lines": 39
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Bludgeon.cs": {
+      "sha256": "614c3e3b03f6067888534ff9329af874179a53c5e460c1b02ecd4094cc29b6b9",
+      "lines": 36
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/BodySlam.cs": {
+      "sha256": "6bf65e2ac088fc3d924889d04ca0ce99dfd72869663f9f86c5687f12ed101aaa",
+      "lines": 42
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Bolas.cs": {
+      "sha256": "9c4a908541dc18cbfd51425d47443ce7b573c6935dd7850259f7911c930b26b8",
+      "lines": 55
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Brand.cs": {
+      "sha256": "2ba534e9dff9b5803700141f1c56bb6d3735a7e85e427969a5e3f731174fa820",
+      "lines": 56
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Break.cs": {
+      "sha256": "b9cdb9260afcc476b828d6ef2dcff048c0ce72cf2de4eeddc979451af02495a0",
+      "lines": 46
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Breakthrough.cs": {
+      "sha256": "fc857c4effcb64fb83cc68b583d647f7e51400c1c1bc6da5362e5bcb2e1a0a0f",
+      "lines": 37
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Burn.cs": {
+      "sha256": "4793b73fd68b92958152f4bf2eddbf2785fc1d7b86979201ec8e61828d914de6",
+      "lines": 37
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/BurningPact.cs": {
+      "sha256": "08eba57f671fbf9766976dc5b3badd504687d0ccb69b6c81ddcffdd2f9e05126",
+      "lines": 39
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Catastrophe.cs": {
+      "sha256": "a6793468810144fb4ec1d1e52f5ff80c5d2baacb9aa65854614b583ef112ccf8",
+      "lines": 42
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Cinder.cs": {
+      "sha256": "88a67d880e14e913de4763b92533bdcf5c5d948e895fe16615e7a94975060a7b",
+      "lines": 46
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Clumsy.cs": {
+      "sha256": "dd7b6af48036835a8cb5ce2180272ab7f5f8ab576017eb9a45854c04a55cc805",
+      "lines": 20
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Colossus.cs": {
+      "sha256": "21cef021e8fc843a10d1351678c12272721f3bbd7dee7a59c88b5f7c74fdbc30",
+      "lines": 43
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Conflagration.cs": {
+      "sha256": "b48af48e46d06061dbccc7708bbbcfa6b2ffeec06ef686285a3c23244f1eec11",
+      "lines": 47
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/CrimsonMantle.cs": {
+      "sha256": "7abc08cadc94b7ecc060f2aa8ae1201181fa87b5ffe386729e71afc1535c9157",
+      "lines": 35
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Dazed.cs": {
+      "sha256": "39cabddd30dc92ac99afa0ebb5ea8d82dc64cba692f2dee6111530c222b011e3",
+      "lines": 20
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Debt.cs": {
+      "sha256": "3d905c35b7731c658893b2bc0f06a46c20777298181962a08543e5c6ffb0c315",
+      "lines": 31
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/DefendIronclad.cs": {
+      "sha256": "08ba8e1d038f6b2fed46217d974154f4d9deea82a235bedc0efb1c1459c509ef",
+      "lines": 33
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Dismantle.cs": {
+      "sha256": "b80698380b1ee68a5757e4ba79f06d8adc659d3b37a485618e6b224eb3b76dd4",
+      "lines": 43
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Dominate.cs": {
+      "sha256": "bccdb8bc8235402effc9fbd5994cd069aae69500da8e31d27cb1ce1f0531a81a",
+      "lines": 49
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Doubt.cs": {
+      "sha256": "881307a1a2b5264562a6f7b3239ed594840a9211650ce4060c38fe8195595581",
+      "lines": 38
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/DrumOfBattle.cs": {
+      "sha256": "cacf678c75908500daab3407ac0f04777b38f7b5284f9cf6452667da281022d4",
+      "lines": 47
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Entropy.cs": {
+      "sha256": "9cf9a30e2a65cfda0270b4f2f18a25ae15972c063adb916ca86a10432d9093d1",
+      "lines": 32
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/FeelNoPain.cs": {
+      "sha256": "4fd134b915fdfd2b54812a284b3e812c85b1929c23d2803b3115bad9a46b7dab",
+      "lines": 38
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/FlameBarrier.cs": {
+      "sha256": "970b12d59d1daa57ae10ac48d4934786ca68ed0aae00cc2ae110738c9d82f22e",
+      "lines": 45
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/FranticEscape.cs": {
+      "sha256": "fbd36d62124e9fdcdeb59c4cdd02cd483a1f8973cb10fe09e529a0da9dbbffa4",
+      "lines": 52
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/GoldAxe.cs": {
+      "sha256": "c2b0cbd0ce6de8236c3c61e6e422f2e0e7ef100b6189ac7dc152532bca5f35f6",
+      "lines": 41
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Havoc.cs": {
+      "sha256": "2571cd74ec58e5c8e1e52dc7a04ca6ba43ec41bb96e4a622cbb3aea2a8668045",
+      "lines": 28
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Headbutt.cs": {
+      "sha256": "b8400c89dace20e5d1a8161ee82ceb2e118590eca22ffcb67863cc7bfb256d15",
+      "lines": 40
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/HowlFromBeyond.cs": {
+      "sha256": "fd83dd6d6534f05aa9a8a5a9aa575ac4f2f23b8507b0f309680cd245ad818e9a",
+      "lines": 45
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Impervious.cs": {
+      "sha256": "f84b61f87a86e88152d2c6b35157a6d1f57c7cef2a7ab2a51a2e116caf47c88b",
+      "lines": 33
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Infection.cs": {
+      "sha256": "2c5b5cfe9eab2aaa7573fdd7fff5724cfb0f907d5c4ab73d058a7b2d3a95f270",
+      "lines": 41
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Inflame.cs": {
+      "sha256": "b77881751730c199219a516152ca5ee8d908d32c058d8393860090866dee1b0d",
+      "lines": 45
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/IronWave.cs": {
+      "sha256": "f8a7f22fac4f2b39b5ae4595df39a1dbe3f3329fa01292d58bf5586a8adae829",
+      "lines": 41
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/JackOfAllTrades.cs": {
+      "sha256": "6f90789fa7e239bf6ffbb798a0c01b6b31b3d83a60edc35ea6d56deb0c30ac80",
+      "lines": 39
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Juggling.cs": {
+      "sha256": "f80bc151ffc077d238aff0266f86f352f1d11a4fa85ed214b0ac1f1230002526",
+      "lines": 26
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/MadScience.cs": {
+      "sha256": "264d8ab11121154a78846b9c2596b6d643637b00642672109462f94e212cfc7d",
+      "lines": 303
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Mangle.cs": {
+      "sha256": "ec860f4e2df9b833369b82a372bf4f8fa1ef6b2f624654b6126f14e83c6bc02b",
+      "lines": 48
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/MeteorShower.cs": {
+      "sha256": "9eb224ae1899f164cb9d86e38ed44a13f8f5b99da97bad979b6e0bb0c203f5cb",
+      "lines": 48
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/MoltenFist.cs": {
+      "sha256": "c2ad51ea224d655492762ad9c91d852d33b2afdc366801f21dc1b19f2dcce35b",
+      "lines": 49
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Normality.cs": {
+      "sha256": "5bbed77a0f3cd6c99909e68351eba557bc80c2c4f56a9dc8c8202fc4566b3840",
+      "lines": 53
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Offering.cs": {
+      "sha256": "401902bb5f21d705f00c0ad600275801996b7c2dd9ed4efb69dc2351a8a93afe",
+      "lines": 41
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/OneTwoPunch.cs": {
+      "sha256": "68634744da6a56a6bc711c0b8b2e857a05307201be72fefa9dd248a436c0b5f1",
+      "lines": 31
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/PactsEnd.cs": {
+      "sha256": "184354546c0ed66df893730d72ecfc6975105f3bcdb3452d19b94a62b74caa7b",
+      "lines": 46
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/PerfectedStrike.cs": {
+      "sha256": "87c619fad16500a02a4e832cbf2c17d3b392e9b564aa6bcc44856ff7d3173c16",
+      "lines": 51
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Pillage.cs": {
+      "sha256": "db0b6d42558db966d0c399928e3d804cb74bf2a993726381e040bcd9a5395e3d",
+      "lines": 40
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/PommelStrike.cs": {
+      "sha256": "a6e86802680579e0fe516b8680d1bd49b1e1e9edbccd6a6c4bad4ba07b5836ba",
+      "lines": 41
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Protector.cs": {
+      "sha256": "2b2e824c930c08eb9a5dd9f14f7448de606141312ca48ee75223330838f13017",
+      "lines": 52
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Purity.cs": {
+      "sha256": "7944b2f8b652fd687fc4a63f9adaaf1bdbc3fd43ba238fc8fd27d2556d69cfaf",
+      "lines": 38
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Quadcast.cs": {
+      "sha256": "321c1c85c37f64dfbb0e1dfcd0b10b2c96ef533aa3f54585afd424a2fd0ce2ff",
+      "lines": 42
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/SecondWind.cs": {
+      "sha256": "1f9d4bc3dfeccdfa762c2a79b67737161965b740582fc37e403f7928e4ca158f",
+      "lines": 46
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/SetupStrike.cs": {
+      "sha256": "44d6350e3fb130af4a416f15ac14419f47549334d174766fc12a03edeb4cfa85",
+      "lines": 45
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Shockwave.cs": {
+      "sha256": "16f98ad1049df4ba06654f26f3f311559d5c4dda2cc44f6c65925c64dc705d57",
+      "lines": 48
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/ShrugItOff.cs": {
+      "sha256": "8ade3858ece71ae87bac9748a992e53011280705375326ac8325672467299b7f",
+      "lines": 36
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Slimed.cs": {
+      "sha256": "b3a292d4813bb5eda5bdd41ae82656817563274bdae2fb988416834b414648e8",
+      "lines": 35
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Splash.cs": {
+      "sha256": "2e62caf5aa1cd3f31156f1d0126e63292c04095ba3ec7e5dda67bca2730d15f5",
+      "lines": 66
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/SpoilsMap.cs": {
+      "sha256": "bb52465415aa2e7df7024e94b04013f8fca94b01d0af47d2f188619528ef99bc",
+      "lines": 125
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Stampede.cs": {
+      "sha256": "606bca7a8b137c47f2def409ed5f287f6f9817d6bf32ff1503b4eb19219d041f",
+      "lines": 31
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs": {
+      "sha256": "c0e918b41b91b1d85ec20fe87d34d37b8a3dade11fbf301e8465a7d12be2bcdf",
+      "lines": 41
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Suppress.cs": {
+      "sha256": "b1a79d659df56b08a4f5454f4ac5b3b3c880711b9887565c51b15e6280170791",
+      "lines": 56
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/SwordBoomerang.cs": {
+      "sha256": "30396e5009159a29dc4bce78524619a185c476f745a3f9c476b9632f3e77e2a3",
+      "lines": 36
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Taunt.cs": {
+      "sha256": "97c7bbafb741806bdeec226f6b7665a1314bff44d5494a4478630fd9d3bed323",
+      "lines": 44
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/TearAsunder.cs": {
+      "sha256": "fcf49863bbf7aeedae7fc6106bbccd50d1beb0beb216896b3076bf520c4a36d6",
+      "lines": 47
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/TheGambit.cs": {
+      "sha256": "7df85c6236fc0d0fd6cf0dfff1d5a596b6942bfa47d1e4995dd5ae7d11f86b38",
+      "lines": 33
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Thrash.cs": {
+      "sha256": "62e6781c5d0b75d3a7633d6297aaa0d7f6aedf2bb652855c1b0a5863a8f0e7a5",
+      "lines": 87
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Thunderclap.cs": {
+      "sha256": "054a7b203b1dd111a5299463cfd3c7c3a44019d0052710d221a48ee2ea4fd0a2",
+      "lines": 40
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Tremble.cs": {
+      "sha256": "4aeff120553628b5ccd4449e9d033eda97903022719006b95b1902ffc4f88ea7",
+      "lines": 37
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/TrueGrit.cs": {
+      "sha256": "05e1d60c99a232c327cf24767efee9c8e99ecd1a56a10315b7c8ed3f6ec15f1d",
+      "lines": 51
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/TwinStrike.cs": {
+      "sha256": "8e8a47fed7f942b061438bc32138c8d2e6d0badff6dd92fd91f0b305a4632270",
+      "lines": 36
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/UltimateStrike.cs": {
+      "sha256": "1600b4b140411babff561501603bbd3c0b21028ca2335fb5ccb1c1c192338053",
+      "lines": 35
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Unrelenting.cs": {
+      "sha256": "ccb41dc311d71e66240cc3f07248ad93bda52f9f1f361e1bed041f65b0bef5d4",
+      "lines": 38
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Uppercut.cs": {
+      "sha256": "e8f44b4ad2c77716615912d5a962ced08deff1c42c2aec12413f451232fb56d8",
+      "lines": 53
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Vicious.cs": {
+      "sha256": "97742f63322d7a1556391e06bc9ed120c2881d1e47ea0ca8d9ca2fcc8c5ecf8e",
+      "lines": 33
+    },
+    "MegaCrit.Sts2.Core.Models.Cards/Wound.cs": {
+      "sha256": "4b102e46e74b6487680b1e9f797829329feb34c6929d4dcb786faff3622c1553",
+      "lines": 16
+    },
+    "MegaCrit.Sts2.Core.Models.Enchantments/Glam.cs": {
+      "sha256": "ebaa7dbf63e737db9b23ce5c5f7b3a325d1d0c7abc86040b3b016275bb641618",
+      "lines": 57
+    },
+    "MegaCrit.Sts2.Core.Models.Enchantments/Momentum.cs": {
+      "sha256": "fdfcdc593cd17473289558ceca7f8da2b080f30d1371847f49615dae7ef549de",
+      "lines": 48
+    },
+    "MegaCrit.Sts2.Core.Models.Enchantments/Nimble.cs": {
+      "sha256": "b730c1c94d6ec506575c5db5dd883f98d01880e700111936de1363ded34f685c",
+      "lines": 20
+    },
+    "MegaCrit.Sts2.Core.Models.Enchantments/PerfectFit.cs": {
+      "sha256": "034bb8bd5daa7b987c0e4f1127f4d432cd029a10aef0fd7dab821b0a131f7a91",
+      "lines": 18
+    },
+    "MegaCrit.Sts2.Core.Models.Enchantments/Sharp.cs": {
+      "sha256": "11ad3962e03491d6ef3bf2081d8213e6723c6a73219c4272ee5a4eebb9d89f2a",
+      "lines": 23
+    },
+    "MegaCrit.Sts2.Core.Models.Enchantments/Swift.cs": {
+      "sha256": "efe0086917e21ead2de37ef0e06bffbf39a67bcde1b56c38e9b01922d515b57a",
+      "lines": 23
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/BowlbugsWeak.cs": {
+      "sha256": "a85930445dd51e876118d9f11be20e5c3dfcf45e875b56d7c8a43f84e727166d",
+      "lines": 35
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/ByrdonisElite.cs": {
+      "sha256": "3cfea1179aeee7fc4c6a8a05b2e8a7e8b8ec8e982ff764f3c10e60551a150acf",
+      "lines": 17
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/CeremonialBeastBoss.cs": {
+      "sha256": "9f38229d78747b47ce3a9a00514967e8783bc64e32e96067fb321cdc64929754",
+      "lines": 35
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/DecimillipedeElite.cs": {
+      "sha256": "d75edaf36e6f5c62da7df61703931e8a23ee84afaf2f8a7dc1c59896eef1830b",
+      "lines": 50
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/DevotedSculptorWeak.cs": {
+      "sha256": "e46cf3766ebe52ea3552d73a748b9d2c4fc9d7d2b21c4f080f16243f7e7cb3c4",
+      "lines": 19
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/ExoskeletonsNormal.cs": {
+      "sha256": "8ac232af7ce1d9de9d51ce0a06639444861fcc6b9802999289b8199a2ede486d",
+      "lines": 38
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/FogmogNormal.cs": {
+      "sha256": "078996132ba2cbe261d6964353a5513da4257abd1c2e2010c1fe36d6d0fefff8",
+      "lines": 29
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/InfestedPrismsElite.cs": {
+      "sha256": "2b5cffeb7afd6f227ca133ec3c2e7785012062aa1133909bf8b5ef24a020dcbc",
+      "lines": 20
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/MechaKnightElite.cs": {
+      "sha256": "b28383e224ffd976b9179321b6be5c66f5ce42726aa604466c3cd257a05da6ad",
+      "lines": 28
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/NibbitsNormal.cs": {
+      "sha256": "f1c0386f52c14844942666254fad206e86747f86ebdc2c6a921e034e5078386b",
+      "lines": 31
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/NibbitsWeak.cs": {
+      "sha256": "72b7110694ee0b6819e1935eaf91e2ee44f27fcd4d8a0ba628541b909874b236",
+      "lines": 24
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/OvicopterNormal.cs": {
+      "sha256": "47d9dbf8600e0e1f7d0a89d1131080a41d9aa1f10e6afa3359d3b7c2c7ddef4d",
+      "lines": 42
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/PhrogParasiteElite.cs": {
+      "sha256": "5b030a2a34e621bb54d093010ebaef9312456cb04d2fa0c95713b2594748b462",
+      "lines": 42
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/ScrollsOfBitingWeak.cs": {
+      "sha256": "fc0972a52008d577df97e1c32942d8e2b0beb1e8d2977b73e19caa2630a2b8f3",
+      "lines": 33
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/ShrinkerBeetleWeak.cs": {
+      "sha256": "90b8eb22088e9fadad9b38528438fb8c53242baddab6c1501d50157ca6bf81c2",
+      "lines": 22
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/SlimedBerserkerNormal.cs": {
+      "sha256": "ef4d6411758e7e71c6c6f0533305cf2cbfad0862a2bea76957a870ba5810fe9e",
+      "lines": 17
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/SlimesNormal.cs": {
+      "sha256": "d2c6ccf1093ae2e1bcdc149f5b6ee3138441200a29ec1003d4e2bdbb8f49677f",
+      "lines": 46
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/SlimesWeak.cs": {
+      "sha256": "28dfe46549350f953e4174d2c5554c3c5c3b56b07901d9e0c27db8084c2e95a8",
+      "lines": 60
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/TestSubjectBoss.cs": {
+      "sha256": "2b79aee0c4e2dc5af23b39aecddd9c808c0954c26347d6080366fc54fad96c4f",
+      "lines": 26
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/TheArchitectEventEncounter.cs": {
+      "sha256": "f23a77c49ebdefe04fc08cc77033b6179acb7f11003acd01c70bae87d584b1c3",
+      "lines": 19
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/TheInsatiableBoss.cs": {
+      "sha256": "5bdd9681c16c487693aaed27923323b95e70a9197da82130cb38260bfd9cbf92",
+      "lines": 28
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/TheLostAndForgottenNormal.cs": {
+      "sha256": "7aef08948cdba811e42407947615cae984bb6c5d9ca11ca3e463f277c6f778cc",
+      "lines": 25
+    },
+    "MegaCrit.Sts2.Core.Models.Encounters/ThievingHopperWeak.cs": {
+      "sha256": "29fe27a4ae1c320d0397c7a82f49a8e6c84baf242f2907f943e5462cbba50b33",
+      "lines": 22
+    },
+    "MegaCrit.Sts2.Core.Models.Events/BrainLeech.cs": {
+      "sha256": "b8021fcd5c4f459597428ade5af16b78bed9551af7f70d1292a9d0e46a0b1b65",
+      "lines": 73
+    },
+    "MegaCrit.Sts2.Core.Models.Events/FieldOfManSizedHoles.cs": {
+      "sha256": "2f6fcabc64b998eb55c266f1fd2907659d071e419fa41b131ab16d0a4106c5f1",
+      "lines": 66
+    },
+    "MegaCrit.Sts2.Core.Models.Events/Neow.cs": {
+      "sha256": "91792868cca097093258c6306b784e54509e292147cfa2275c8ba161fdd7a303",
+      "lines": 314
+    },
+    "MegaCrit.Sts2.Core.Models.Events/Orobas.cs": {
+      "sha256": "570fb013195b4369939db8728dae9516e46505cd552b5440e8c9386f82920ebb",
+      "lines": 214
+    },
+    "MegaCrit.Sts2.Core.Models.Events/RelicTrader.cs": {
+      "sha256": "d5aec2da5f9924b5b170dd0542898e2774f7024f7d969ec128219c8ef7076b35",
+      "lines": 170
+    },
+    "MegaCrit.Sts2.Core.Models.Events/RoomFullOfCheese.cs": {
+      "sha256": "51b29d7a0008be45cfe19c7f6e45ad6b88dab177fe431ea68120c5af8fe0829c",
+      "lines": 53
+    },
+    "MegaCrit.Sts2.Core.Models.Events/SelfHelpBook.cs": {
+      "sha256": "702c88748d43fae31df190b686ae8812bdd48d1fcbabcd16b191876906b3076f",
+      "lines": 141
+    },
+    "MegaCrit.Sts2.Core.Models.Events/TheArchitect.cs": {
+      "sha256": "3d3ea8889b71d0781a0d6bc06ed2db2c5c6786dfeefbfe9f7bfa4503af70149a",
+      "lines": 527
+    },
+    "MegaCrit.Sts2.Core.Models.Events/TheLegendsWereTrue.cs": {
+      "sha256": "3810ff9cc6d5d621b9c221edb486151efe8f6affd28a686ae81b060862796cb2",
+      "lines": 63
+    },
+    "MegaCrit.Sts2.Core.Models.Events/TinkerTime.cs": {
+      "sha256": "cac562ffd790a2eec13be854b4646d242dea639b212788bce977a517e9a87723",
+      "lines": 205
+    },
+    "MegaCrit.Sts2.Core.Models.Events/Vakuu.cs": {
+      "sha256": "f889c0428921f664bc52c119574ef8978a910f85a5cfffac70f71e1fc690a84b",
+      "lines": 165
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/Architect.cs": {
+      "sha256": "717b49d7efd3e2040daee855abc4483d0e6b22eb6e681875bd5e15a215118634",
+      "lines": 39
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/BowlbugEgg.cs": {
+      "sha256": "dfc9dd8529cc0cc99014c43e6d83047f96e43084b19b3d3314e552ffac6fd7e7",
+      "lines": 91
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/BowlbugNectar.cs": {
+      "sha256": "20fe7813633482f3a07034e9170bcf8b9e0410e31aac1c0be0ef79dc09a38738",
+      "lines": 92
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/BowlbugRock.cs": {
+      "sha256": "00baecb5bfb0aa0d52a78c64a771ad9b6a8406fc64845fdc39266559419dd1c1",
+      "lines": 143
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/Byrdonis.cs": {
+      "sha256": "c54b3470401b1cb94baa23d216f923ef9d300da48790ac0b4edaf9712630d28a",
+      "lines": 86
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/CeremonialBeast.cs": {
+      "sha256": "92983d05e83715e135d4495321c23fc5d3003368c9b6db9d9f92c6de7ad30a2f",
+      "lines": 325
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/DecimillipedeSegment.cs": {
+      "sha256": "c5218cdeb9df32ccfbc1fcfc6e14209b319cfe654eec96dd6226cdb08f98b27c",
+      "lines": 282
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/DecimillipedeSegmentBack.cs": {
+      "sha256": "0a8c1a5883f67310fcb988c1708b2feb228fb0803ed9b03490a477c1143cdb05",
+      "lines": 15
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/DecimillipedeSegmentFront.cs": {
+      "sha256": "aa560470bf39e41d5d062ddea747cfbb14ec29ed2abd1eb8e539b7d116365bd8",
+      "lines": 15
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/DecimillipedeSegmentMiddle.cs": {
+      "sha256": "3c1fd33848308186f837e0f37cff18cc74669582d5c293aed9ecb3f963614507",
+      "lines": 18
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/DevotedSculptor.cs": {
+      "sha256": "9b6197d69bc1acd9c517506117e49b245ec7521867e0105bd1f7ed592f7ea6ed",
+      "lines": 60
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/Exoskeleton.cs": {
+      "sha256": "f21db9bca6467201414ef10ddc99949a797725637c002f57d3ca99508637d110",
+      "lines": 125
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/EyeWithTeeth.cs": {
+      "sha256": "72f0a276381a9eb594a3486f66059e771187ba0529cb94075028331c23279c81",
+      "lines": 64
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/Fogmog.cs": {
+      "sha256": "adb0ae07239973c167d7c35a3c36ae8b4cafd764b4bc44e7e44b04f91874d7b9",
+      "lines": 113
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/InfestedPrism.cs": {
+      "sha256": "4ce7c426026ad904192a24eb789323d01a032b1834d4f1cece1685c181621c93",
+      "lines": 140
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/LeafSlimeM.cs": {
+      "sha256": "b5b07b6f4a9bf24dbe59a2ef15d297f6a89e256b52e0ea57c0a3b94627c9c2d9",
+      "lines": 75
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/LeafSlimeS.cs": {
+      "sha256": "20d4e5e8eace77c1d3758426262ccff2efac0e741fbfff04b477c2112c032994",
+      "lines": 57
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/MechaKnight.cs": {
+      "sha256": "a1d4ddb845a2464546ffc654a598b41cab7838b2324216a0af6a4d0652eae01a",
+      "lines": 182
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/Nibbit.cs": {
+      "sha256": "458e619107e58b5bfccfa6e0cc3f6c7cf753ba7c8ea01b1dbf6d100be22afd9b",
+      "lines": 139
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/Osty.cs": {
+      "sha256": "ac145cfe8b32f3ef7a9765da44fd62a8211362a45aaaf763880775345662251c",
+      "lines": 79
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/Ovicopter.cs": {
+      "sha256": "bffac853521afcaa0fd4d74d6aa595da359096e65cc67d0e99484b600881aaec",
+      "lines": 148
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/PhrogParasite.cs": {
+      "sha256": "f4c04051a57b538221044b4bae93cfccebeb67f4a4aff607e455386c82f38099",
+      "lines": 79
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/ScrollOfBiting.cs": {
+      "sha256": "36138c02e24b461e6145e591ba695baa9cdd52fa5debf13fbfe45416616c3d26",
+      "lines": 148
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/ShrinkerBeetle.cs": {
+      "sha256": "55ec3478a5bfe0840864f6b66d375b0e8fd548e97dec639d6d68b0c1c5d18eb7",
+      "lines": 74
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/SlimedBerserker.cs": {
+      "sha256": "b7704ffc1c64d6a38a5e35acd6e0588f5e47171b1579c5e01cecb4d03dad5807",
+      "lines": 122
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/TestSubject.cs": {
+      "sha256": "73375eba65bc85c3db7ae61dfee6e9cd929fb4691df0d4b89471cec20610a6ae",
+      "lines": 423
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/TheForgotten.cs": {
+      "sha256": "b794f95e50cf2521ba12606ebf1802c1f86893c737b00cf7771add60560965ab",
+      "lines": 88
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/TheInsatiable.cs": {
+      "sha256": "66c6ad48b3544056e8f8057bea38376c919e70dfc153b79cf9525737eb68660f",
+      "lines": 212
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/TheLost.cs": {
+      "sha256": "388a51eb8d265412e9543f592ddb80fddeeb5e3bbed13874d4d66c50af4e7afc",
+      "lines": 82
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/ThievingHopper.cs": {
+      "sha256": "509b8dd88d0124606d88a1b4982e92a5e79d90d78228ba70bfea882cc6523852",
+      "lines": 329
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/ToughEgg.cs": {
+      "sha256": "68d8a9d5a728ae5a43c9ea258c00d5902143bac9dd1053532e1d47ba442cde02",
+      "lines": 209
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/TwigSlimeM.cs": {
+      "sha256": "14860c5f62e075ac51ba87809d6dcf14142e8bf22785469406f81cbff60dc8eb",
+      "lines": 80
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/TwigSlimeS.cs": {
+      "sha256": "45d7085d166a0f78fa02e8aff7759f5c8f858bb9d42031e9ceeb6a83e7bb6d46",
+      "lines": 39
+    },
+    "MegaCrit.Sts2.Core.Models.Monsters/Wriggler.cs": {
+      "sha256": "05285e4ac115443c4980cf5d7ac86efeaa32b8b255954760db58a6fc441f5062",
+      "lines": 111
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/BlockPotion.cs": {
+      "sha256": "580c18cd744735b84b486937268bcb5ba4e4fb572be1b6b3128c2994c48a79b4",
+      "lines": 31
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/ColorlessPotion.cs": {
+      "sha256": "75d7adbc3684dd92dce7975dccc66a03819f80db7ee19a4c3f14d595fe1a14f5",
+      "lines": 35
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/CureAll.cs": {
+      "sha256": "94ebfc9713c739957b84759679cce6e3d1925e634afe0c2e36fb63d23a6c0a95",
+      "lines": 38
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/DexterityPotion.cs": {
+      "sha256": "d7990f15b1c53ea4b430064b9e528885c39794dd1f6fadbced61a6dd9de008e8",
+      "lines": 31
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/Duplicator.cs": {
+      "sha256": "7019f17659ee911ee4cd22f3b7e5434699e123985ab1c2b8712a1656cd088d31",
+      "lines": 24
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/ExplosiveAmpoule.cs": {
+      "sha256": "a7662917b58fc3918e208494aebf029d55fdcb05e6eda2195a66a867a3ba01e5",
+      "lines": 38
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/GamblersBrew.cs": {
+      "sha256": "352e98c38cafb34769ddcb8f5fa20a1284646a8a06b67da8ff03109207baf510",
+      "lines": 30
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/HeartOfIron.cs": {
+      "sha256": "12c271642fcf66b45431263962d631c92893af9ebd4a446708c3d662840d404b",
+      "lines": 35
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/LiquidBronze.cs": {
+      "sha256": "ca947b1b31789b7fd9d84aa9e0d6a3fd8486ac083b3b3fc160f7aef39d597758",
+      "lines": 31
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/PotionOfBinding.cs": {
+      "sha256": "61cbf688a03ddaaf616bdec4e7da9310cc51787f0ec75c1230507e69ab0c8f47",
+      "lines": 47
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/SkillPotion.cs": {
+      "sha256": "99235b9e8c305193621fc035d10192763283c92ea78414b5f9b19f519ca6beef",
+      "lines": 36
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/StableSerum.cs": {
+      "sha256": "865bd368cd2e2aba93a774707c78628e16f29359dffe87fdf0d77783f3bf8d13",
+      "lines": 31
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/StrengthPotion.cs": {
+      "sha256": "45fb9e35a16b06190b483f7fcc8972a8fc81c88765ddadc63e148ccc7a908c03",
+      "lines": 34
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/SwiftPotion.cs": {
+      "sha256": "8c662f8e3cb9adba655763d4e42bbeda976ba0427e1ed3fac5c5a31369180522",
+      "lines": 30
+    },
+    "MegaCrit.Sts2.Core.Models.Potions/WeakPotion.cs": {
+      "sha256": "3f573de421ca22fa942dde5e87d54006eeecdf078ad14d36bca0f8c48d4c1730",
+      "lines": 34
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/AdaptablePower.cs": {
+      "sha256": "d52696c9f8e9b8753844c46a7d9e1a8644bcadcf332a93042fa8440ad91285d4",
+      "lines": 71
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/ArtifactPower.cs": {
+      "sha256": "7fbccd6288412f8f5c5d183596f98c5117210bc4fe0da15634fbacdb5d0c4a8e",
+      "lines": 47
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/AutomationPower.cs": {
+      "sha256": "568fac0e930bd76b3887f9a6a82f81421a8daba902ea988d396d21ecbd931505",
+      "lines": 52
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/ColossusPower.cs": {
+      "sha256": "8dcf3e5b406108634580430d63a861fc180d58f8513dcc958d8c88cd167fec0d",
+      "lines": 55
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/CrimsonMantlePower.cs": {
+      "sha256": "4e32008e5a7c8d311d0874a705c8afe91e882ab8fcbbbb2e81cebf8c09e215d1",
+      "lines": 41
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/CuriousPower.cs": {
+      "sha256": "f3df630baac3366c2e297a029df30eee1abd014d0e752fa4142c540ee545ec6c",
+      "lines": 34
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/DexterityPower.cs": {
+      "sha256": "40117b7d813af37ed580a278f516ce276d15cc89dd1ccaaa8876a0681f754096",
+      "lines": 39
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/DuplicationPower.cs": {
+      "sha256": "7b601e4615be02e223e5e6a3dbeac7835cc31b4a43043379937bb14a12f3cef1",
+      "lines": 39
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/EnragePower.cs": {
+      "sha256": "ff5fc31f32e76264ac9548c102f9d7923f4fc15e53af249e99308cdd76b2b4ce",
+      "lines": 23
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/EntropyPower.cs": {
+      "sha256": "139d073dec2c97530f47b5de39b4ba25d0e99d098df13303b779b920f673b135",
+      "lines": 34
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/EscapeArtistPower.cs": {
+      "sha256": "ee57a2996eb2307c23959f721c9a90b8ffc6491c284d93101b3b2d771a1b2657",
+      "lines": 35
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/FeelNoPainPower.cs": {
+      "sha256": "2a56d06c88a43237f75b9aeab62d28776eefd9214e6de0dc094b7db934474a27",
+      "lines": 26
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/FlameBarrierPower.cs": {
+      "sha256": "7808c901f9b89b72060ef12abd938afeb23f6b1e39473298e68553f91682993d",
+      "lines": 33
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/FlutterPower.cs": {
+      "sha256": "61c76bc99a0cca773045018c7c33abdb0b6b1ecb0aafa2b8a6b9ba7f65a341f0",
+      "lines": 62
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/FreeAttackPower.cs": {
+      "sha256": "3b5e91b54cfa618c14e9567d99c0fab1292e057db822817207c4e4ddda4a00d2",
+      "lines": 65
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/HardToKillPower.cs": {
+      "sha256": "b29b9ec57bf2e55f56f15b170a142490052a732c53676d734445828c2e9345df",
+      "lines": 29
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/HatchPower.cs": {
+      "sha256": "f5bb49856cc482d818b7a49a828ba7c135509fed828612ce7556f69793f50092",
+      "lines": 25
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/IllusionPower.cs": {
+      "sha256": "7461c923281077a0f9acf3647dc08ec0ff75ed04e1098406f6dc8b6fbb6fb31d",
+      "lines": 135
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/ImbalancedPower.cs": {
+      "sha256": "7620e27c03d07e67845d2bad487c2ca1d5338ae3c861239287ca17d4eb0b1043",
+      "lines": 32
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/ImprovementPower.cs": {
+      "sha256": "2af9811d1c6336a1692d81d7f9644fbc85b2f27a68b98169d720d0fb9be01de5",
+      "lines": 32
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/InfestedPower.cs": {
+      "sha256": "d496c595a5fbc7527cd5bd6ca4282ec2bbecd3f5fdc36a72a3d777e35ea3a38f",
+      "lines": 55
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/IntangiblePower.cs": {
+      "sha256": "9862e8fc5b8997da105bf388cfc75449f8a38922b244ba85eaa454d0fcf59fc7",
+      "lines": 73
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/JugglingPower.cs": {
+      "sha256": "ca4b2e59d6e791c588285a5a3d4642841be0b2c4d1a13f50f1a5a9794e5c2bb7",
+      "lines": 63
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/ManglePower.cs": {
+      "sha256": "bcd39ae2678966e154491b11cbc17bf2d11fbf26e138de543f2aa1b9fc37e988",
+      "lines": 10
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/MinionPower.cs": {
+      "sha256": "10ed71ca328a4cc2325a7424ea67df54ca93e73562f22ca7dcb3964962c05537",
+      "lines": 24
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/NemesisPower.cs": {
+      "sha256": "26f4d0934e270d6cc6ac3dbccf6174d61687f7ec798910fe7093d6a772a4c22e",
+      "lines": 36
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/OneTwoPunchPower.cs": {
+      "sha256": "293fe6f5f10155b7fac864388563f11b833e75f52548ef0ceed9d5befd4eeff3",
+      "lines": 44
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/PainfulStabsPower.cs": {
+      "sha256": "831faebcd0e3abddd1d9970cef5ccb5968e8c6f82c5c8531ab4f37ab7d2d71a9",
+      "lines": 69
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/PaperCutsPower.cs": {
+      "sha256": "451342ada2c96adbf7c1aabf5e8a508ea4d1da32eb302d44cb8280e178aa7623",
+      "lines": 23
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/PlatingPower.cs": {
+      "sha256": "d3cd1402c704dcc379caf0981595356d449ccd81da10ff043836e0c1644cc2f1",
+      "lines": 89
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/PlowPower.cs": {
+      "sha256": "3c59d2c0e4bcae4dc599453d81188eeeef4aa6d9d4e5290181f3fa0279bf2f89",
+      "lines": 53
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/PossessSpeedPower.cs": {
+      "sha256": "96bea597fc9827911f2a3d052f3f1061c0f1b6c5d18a15c685273e9617b35a86",
+      "lines": 68
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/PossessStrengthPower.cs": {
+      "sha256": "983c6efcb84feb5dad5dabab06dfd319f2b220ae4620a50fe8edff50c8d65526",
+      "lines": 68
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/ReattachPower.cs": {
+      "sha256": "7d8b21db9c6908f0e87c1a4c803cdca54066ba628df5f9ee2e066fa71bf0e652",
+      "lines": 160
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/RetainHandPower.cs": {
+      "sha256": "1ff9604e0cbc7bb8f13fa843f3b1e716cb43f954aab7eb87b41108ae983b2ba4",
+      "lines": 35
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/RingingPower.cs": {
+      "sha256": "ac56cca21c934bbd7e51554b0294a21cef9a334fff47dd84f4aa9b4cd8d904d1",
+      "lines": 76
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/RitualPower.cs": {
+      "sha256": "b8917547dbef7e61619523c35d30c478645b8eea612fbcc20e15eacac10f1912",
+      "lines": 58
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/SandpitPower.cs": {
+      "sha256": "e462e0e30741cb1c1d11c70ce7b2b721f356e5cff0e734f94305b26a0274d6b9",
+      "lines": 202
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/SetupStrikePower.cs": {
+      "sha256": "83e4d4d20b3783557a72dc32580a52e6ae960807a00135a5a0aba8c473b4ef15",
+      "lines": 8
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs": {
+      "sha256": "c5d922d4e2fd20804939ca73a9ccbd527587d28d262c664c5c84ea8c52f9ba6c",
+      "lines": 108
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/StampedePower.cs": {
+      "sha256": "efc803dce77ed62afa8c57a61088c80eac386e54a3ca26111da3063120aa1a8a",
+      "lines": 35
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/StranglePower.cs": {
+      "sha256": "c1a2932f962be486559c73985d104f06e0d6d5b0b96ad54d5c1b7eeda60e3736",
+      "lines": 66
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/StrengthPower.cs": {
+      "sha256": "3b924e73b1b1f65c8d5cf2e3b4796210f0073d641cd1a94707a3e6145ca125ff",
+      "lines": 28
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/SwipePower.cs": {
+      "sha256": "25bc80f818baa5bf58a0aa0c6ece876ab675150f8ff4d9eab86a2f1d07708aac",
+      "lines": 79
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/TaintedPower.cs": {
+      "sha256": "795f015fbe6e6b69d7d03dc2936f69b0e5eb19d06b83f8aa34bcaeea001ea75d",
+      "lines": 40
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/TemporaryStrengthPower.cs": {
+      "sha256": "5a0bd8788489f1e6b01dcec2a9614b882b6e86ef445da461f7c147ce91e4d9d4",
+      "lines": 156
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/TerritorialPower.cs": {
+      "sha256": "7b8d8182290cdbc7a2c2a184e8684703ccebdbbdb0b99d0f9909b7d1601877e0",
+      "lines": 29
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/TheGambitPower.cs": {
+      "sha256": "79042e9a52b1beabe93a03ae23292711b7689faf59dcc85bd6470a1fb3de4faa",
+      "lines": 25
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/ThornsPower.cs": {
+      "sha256": "0e405bb5509da536a90712c0d2475fbd59ebf3e76c93d335e1150819f1883b6c",
+      "lines": 25
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/ViciousPower.cs": {
+      "sha256": "612363fd7b9401ed1970cfa473b6ae843b9afbc898ef24b63cb1f4c10356ecf8",
+      "lines": 27
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/VitalSparkPower.cs": {
+      "sha256": "a38f842d4de1fa70c3f268f1df8c168290b3b66b87cfbb11736999a5821db1fe",
+      "lines": 99
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs": {
+      "sha256": "836ae57ad21b7663130b13a02b1acbfb9d7201bf64b6eb3e222b78a09b75936a",
+      "lines": 67
+    },
+    "MegaCrit.Sts2.Core.Models.Powers/WeakPower.cs": {
+      "sha256": "5336dcab83b9c15a2d77712ecc29aa447f1d02697446ce9078f013f9d8e01b59",
+      "lines": 56
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/AlchemicalCoffer.cs": {
+      "sha256": "f9e446f1c6dd40ba86490cb56127ad4ad0244fb3831cc26d98588be9089e6dca",
+      "lines": 32
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/ArchaicTooth.cs": {
+      "sha256": "a2b0e2e32c48689bc16f6c6225687b4c75a995e7ef5006f0cecc10de463d08fa",
+      "lines": 173
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/BagOfMarbles.cs": {
+      "sha256": "74dc0706aded95fe9d8639e42101d57dc9c8a4737f6a03a7e576381488ded908",
+      "lines": 31
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/BagOfPreparation.cs": {
+      "sha256": "c3b3a527c44562ca78288265f36ca10aa48b5c913ca363efda870761db35d761",
+      "lines": 26
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/BloodVial.cs": {
+      "sha256": "68a09be73d3832bd3f4eac44bc1d81d6165f33a306b896fdcfdff141499fa7b6",
+      "lines": 24
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/BurningBlood.cs": {
+      "sha256": "eefa04d6cee4b2da1245894fe1e4e1ed3ff0c36db8c8011264955870fb422410",
+      "lines": 24
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/BurningSticks.cs": {
+      "sha256": "7c01f7308ea8d12a84161c069c669dbdadc18fb48ef5f551a5d9adcfbe3e8cf9",
+      "lines": 62
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/CentennialPuzzle.cs": {
+      "sha256": "610d506f51cef90c84cded79e508251f3ce462177fa3e7ccda88b8feac2593aa",
+      "lines": 58
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/ChosenCheese.cs": {
+      "sha256": "cbf74c424e68ccc4178e0379dd2ab26b22e3e289ac6f60eeffc7093c0eb3aa9a",
+      "lines": 21
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/DistinguishedCape.cs": {
+      "sha256": "0513ba2907671770a7eb6405752535e651db6300a1a426a5fabb914a0c223b00",
+      "lines": 55
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/GoldenPearl.cs": {
+      "sha256": "e130e8e60098aafeffdc71183191584be762a20a985cad003c02442289f8f01a",
+      "lines": 21
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/Gorget.cs": {
+      "sha256": "5a3daa66675fce1767a7e54e59b803cdbf7322c655e2c696def4027d80dc586a",
+      "lines": 29
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/HornCleat.cs": {
+      "sha256": "c410e13417a8b4ccb1acde332b8c4197901c746a76ba49aee8f387dff21eeb2f",
+      "lines": 28
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/JossPaper.cs": {
+      "sha256": "97237a51eda6199f48455edf7e83c061a73b97980279ee4a6cfdd149561b6bf2",
+      "lines": 149
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/LeadPaperweight.cs": {
+      "sha256": "3631dcf67276d245a1613031a97b95be33c3c0fdf83b2cf17fac22f10744f8b4",
+      "lines": 37
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/LetterOpener.cs": {
+      "sha256": "7e7baa1be33e66dad81bf434502c81d327e4980b94470fa76a00f3295f6b2679",
+      "lines": 142
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/LordsParasol.cs": {
+      "sha256": "962f2adac8d5f509a702683965bc79d3b98eda4ca1d4522c5c9c41ae43db17b5",
+      "lines": 113
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/LuckyFysh.cs": {
+      "sha256": "0d1e889ba2653e9d46c9c7336c57cb7d3066e0d0e2d3fdf5e8f79d02cfb6b13b",
+      "lines": 33
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/MiniatureTent.cs": {
+      "sha256": "bff5579ca0489078bed1ab678da853295dd32650e9e62fe3315e56b43907d45f",
+      "lines": 19
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/MummifiedHand.cs": {
+      "sha256": "6d42915b26aae3089dc6a389b85eeddc5d1f02ee97d34f0073abec88bebb1907",
+      "lines": 49
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/Nunchaku.cs": {
+      "sha256": "a92136bd62320001fe02783db5c11ef70aa5df3b4ef5226243df5f1830697243",
+      "lines": 109
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/Pendulum.cs": {
+      "sha256": "b6cde64b88889ab99f32e49c660e864ecebe732b003220f1d9663b1025e592e9",
+      "lines": 117
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/Permafrost.cs": {
+      "sha256": "15f99b67cc992dd3c88839f8eae79d829528b92ad6a57e71266cbf88897cd585",
+      "lines": 54
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/PunchDagger.cs": {
+      "sha256": "1847afb09cf4b098bce8dfc1d96bcb7abb6f55ab6af4b966f0a57de99a885c74",
+      "lines": 34
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/RainbowRing.cs": {
+      "sha256": "2af36eb8b68494aabc34ac77cb75f7785850a5218631fe12c630cef96caab1a8",
+      "lines": 132
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/RedSkull.cs": {
+      "sha256": "cf57eb10a81ced7a20a845c53b1f58253fbf980f1b72f76243d57f1cbe165382",
+      "lines": 86
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/SeaGlass.cs": {
+      "sha256": "6833f9402cf40a44b2844589ef2b8391519c8181ad557ac8af2d9a1ebaa32665",
+      "lines": 94
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/SilkenTress.cs": {
+      "sha256": "f045974dee1b42bf18fb678bd11b4f60b529f3d272866dfad3c266884d099139",
+      "lines": 84
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/SparklingRouge.cs": {
+      "sha256": "4ff8a99dd8c9982f47dc8e1b84f61441636b853c97b96e45101c04817be81e64",
+      "lines": 38
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/VakuuCardSelector.cs": {
+      "sha256": "9a0cf2e8800326e52a8a829b5f6c8991241f3092adc3d0fb88d4e66651608948",
+      "lines": 28
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/VexingPuzzlebox.cs": {
+      "sha256": "d12af68e178176839e1f32212123257ebd0ceeed35424bd5a3c6c4fa76a29e1f",
+      "lines": 26
+    },
+    "MegaCrit.Sts2.Core.Models.Relics/WhisperingEarring.cs": {
+      "sha256": "4d4a67823048a590d8d7984dd328fe44973da1c945277e262c6d722acc564bba",
+      "lines": 107
+    },
+    "MegaCrit.Sts2.Core.Models/CardModel.cs": {
+      "sha256": "aa464f969f3d28c271aee8ed1594ba3118ddc4d4c6c1802d5ded725b6b70fe0c",
+      "lines": 2295
+    },
+    "MegaCrit.Sts2.Core.Models/CardPoolModel.cs": {
+      "sha256": "56dd246977ccec6a8340e81791cbff27fc9a754dc726c1271ee6ce932ac52dff",
+      "lines": 129
+    },
+    "MegaCrit.Sts2.Core.Models/EnchantmentModel.cs": {
+      "sha256": "b876fb7086c0c5359be5c7afc83545f10019c9424c603a47b9045c228311e52e",
+      "lines": 460
+    },
+    "MegaCrit.Sts2.Core.Models/MonsterModel.cs": {
+      "sha256": "4b1d47c2021ceeb555a5e86c7dc9912268cc3c7f060eca9963780c6be6e87621",
+      "lines": 516
+    },
+    "MegaCrit.Sts2.Core.Models/PotionModel.cs": {
+      "sha256": "7f84eddd89624d0bdf25b0e0082212d9ed60fce3ce239d4a1eca422ff9590836",
+      "lines": 401
+    },
+    "MegaCrit.Sts2.Core.MonsterMoves.MonsterMoveStateMachine/RandomBranchState.cs": {
+      "sha256": "40bdd029d51ff7dfe94e907f90add0d630bcfa617fc36ceb182798c330ee0792",
+      "lines": 173
+    },
+    "MegaCrit.Sts2.Core.Runs/RunState.cs": {
+      "sha256": "e7066191a376a6d6beeb08d90b839389d0b7d1600e900f164759ef928e735a11",
+      "lines": 733
+    }
+  }
+}
