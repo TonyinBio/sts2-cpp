@@ -11,7 +11,13 @@ native control flow, not implemented C++ behavior or exhaustive runtime verifica
 creature order: allies then enemies, each creature's powers before its monster model
 or active player's unmelted relics, occupied potion slots, orbs and pile-ordered cards
 with affliction then enchantment. Modifiers/badges/scaling follow. It checks membership
-as it yields; a removed candidate is not automatically still dispatched. Run listeners
+as it yields, using type-specific `Contains` rules. That is not uniformly equivalent
+to active collection membership: a power removed from its owner's power list retains
+its Owner and can still qualify for an already captured dispatch while that owner's
+combat/active-hook conditions hold. Cards, relics and potions have their own removal
+flags and owner checks. Preserve the exact predicate rather than skipping every
+logically removed listener. The later lifetime audit supplies this clarification and
+its removal-during-dispatch regression. Run listeners
 in `MegaCrit.Sts2.Core.Runs/RunState.cs:545–596` have a different order: active players'
 permanent deck cards and enchantments, then out-of-combat inventories and modifiers
 when no child combat exists, otherwise the child combat listeners after run subscribers.

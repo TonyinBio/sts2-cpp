@@ -173,13 +173,22 @@ State
   StateArena           backing slabs for variable-length records
 ```
 
-`RunState` owns persistent card/relic/potion instances. Combat-only instances live in
-encounter pools. Use explicitly distinct handle domains so a persistent card can move
-between deck/combat zones without changing identity and a generated card cannot alias
-a persistent one. Records refer to definitions through typed integer IDs and to
-instances through generation-tagged handles. Destroying an instance advances its slot
-generation; generation exhaustion retires the slot or returns a resource error rather
-than permitting stale-handle aliasing.
+`RunState` owns persistent card/relic/potion instances. A permanent deck card and its
+combat copy are distinct instances: combat setup creates a copy with a new identity
+and a `DeckVersion` link to the permanent card. Moving that combat copy between combat
+piles preserves its identity; entering combat does not move the permanent object out
+of its deck or merge the two objects. Floating offers and generated cards also have
+scope and identity before acquiring pile membership. Use explicitly distinct handle
+domains so generated/combat instances cannot alias persistent instances. Records refer
+to definitions through typed integer IDs and to instances through generation-tagged
+handles. Logical removal or death does not permit destruction while required histories,
+continuations, dispatches or other complete-state references still need the instance.
+Once destruction is valid, advance its slot generation; generation exhaustion retires
+the slot or returns a resource error rather than permitting stale-handle aliasing.
+
+This distinction follows the normative [state inventory](state-inventory.md#continuation-and-ownership-requirements)
+and the source-backed [lifetime audit](../../planning/instance-lifetimes/README.md),
+including `Player.PopulateCombatState` and the native `DeckVersion` relationship.
 
 Store object identity separately from zone membership. `OrderedZone` stores handles
 in gameplay order; moving a card changes membership, not its handle. Pools preserve

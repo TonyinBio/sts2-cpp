@@ -1,0 +1,2957 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "Static source-audited history/reference and dispatch lifetime requirements, not runtime parity",
+  "sources": [
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History/CombatHistory.cs",
+      "sha256": "c48ca79dec6801310a0ce26716bb81a48cd30d5d1372e8f6ffe3474de7bcec2a",
+      "line_count": 131,
+      "member_citations": [
+        {
+          "line": 32,
+          "declaration": "public void Clear()"
+        },
+        {
+          "line": 38,
+          "declaration": "public void CardPlayStarted(ICombatState combatState, CardPlay cardPlay)"
+        },
+        {
+          "line": 43,
+          "declaration": "public void CardPlayFinished(ICombatState combatState, CardPlay cardPlay)"
+        },
+        {
+          "line": 48,
+          "declaration": "public void CardAfflicted(ICombatState combatState, CardModel card, AfflictionModel affliction)"
+        },
+        {
+          "line": 53,
+          "declaration": "public void CardDiscarded(ICombatState combatState, CardModel card)"
+        },
+        {
+          "line": 58,
+          "declaration": "public void CardDrawn(ICombatState combatState, CardModel card, bool fromHandDraw)"
+        },
+        {
+          "line": 63,
+          "declaration": "public void CardExhausted(ICombatState combatState, CardModel card)"
+        },
+        {
+          "line": 68,
+          "declaration": "public void CardGenerated(ICombatState combatState, CardModel card, Player? creator)"
+        },
+        {
+          "line": 73,
+          "declaration": "public void CreatureAttacked(ICombatState combatState, Creature attacker, IReadOnlyList<DamageResult> damageResults)"
+        },
+        {
+          "line": 78,
+          "declaration": "public void DamageReceived(ICombatState combatState, Creature receiver, Creature? dealer, DamageResult result, CardModel? cardSource)"
+        },
+        {
+          "line": 83,
+          "declaration": "public void BlockGained(ICombatState combatState, Creature receiver, int amount, ValueProp props, CardPlay? cardPlay)"
+        },
+        {
+          "line": 88,
+          "declaration": "public void EnergySpent(ICombatState combatState, int amount, Player player)"
+        },
+        {
+          "line": 93,
+          "declaration": "public void MonsterPerformedMove(ICombatState combatState, MonsterModel monster, MoveState move, IEnumerable<Creature>? targets)"
+        },
+        {
+          "line": 98,
+          "declaration": "public void OrbChanneled(ICombatState combatState, OrbModel orb)"
+        },
+        {
+          "line": 103,
+          "declaration": "public void PotionUsed(ICombatState combatState, PotionModel potion, Creature? target)"
+        },
+        {
+          "line": 108,
+          "declaration": "public void PowerReceived(ICombatState combatState, PowerModel power, decimal amount, Creature? applier)"
+        },
+        {
+          "line": 113,
+          "declaration": "public void StarsModified(ICombatState combatState, int amount, Player player)"
+        },
+        {
+          "line": 118,
+          "declaration": "public void Summoned(ICombatState combatState, int amount, Player player)"
+        },
+        {
+          "line": 123,
+          "declaration": "private void Add(ICombatState combatState, CombatHistoryEntry entry)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History/CombatHistoryEntry.cs",
+      "sha256": "d81e6c7e7c7b73bd02184a74a3e7fc7391e3bd09ec9433eba690c97089dfbb13",
+      "line_count": 109,
+      "member_citations": [
+        {
+          "line": 47,
+          "declaration": "protected CombatHistoryEntry(Creature actor, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        },
+        {
+          "line": 62,
+          "declaration": "public bool HappenedThisTurn(ICombatState? state)"
+        },
+        {
+          "line": 99,
+          "declaration": "public bool HappenedLastPlayerTurn(Player player)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Cards/CardPlay.cs",
+      "sha256": "aa1d17e65071e32d6aae13927e54c77f6e022a1452eebc5802938f20af6ac6ca",
+      "line_count": 74,
+      "member_citations": []
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Creatures/DamageResult.cs",
+      "sha256": "33128b75cbb7863e8d56d116b0e517064500579284c1f9b668c07553b688dc49",
+      "line_count": 106,
+      "member_citations": [
+        {
+          "line": 101,
+          "declaration": "public DamageResult(Creature receiver, ValueProp props)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat/CombatManager.cs",
+      "sha256": "590b7a9b013b5f72cfc90330330f3eca7e7fd2adaed180872b521549e654d1ad",
+      "line_count": 1982,
+      "member_citations": [
+        {
+          "line": 306,
+          "declaration": "public CombatState? DebugOnlyGetState()"
+        },
+        {
+          "line": 314,
+          "declaration": "private static void SetPhaseForAllPlayers(CombatState state, PlayerTurnPhase phase)"
+        },
+        {
+          "line": 336,
+          "declaration": "private CombatTurnState? LiveTurnStateFor(CombatId? combatId)"
+        },
+        {
+          "line": 358,
+          "declaration": "public bool IsCurrentLiveCombat(CombatId? combatId)"
+        },
+        {
+          "line": 368,
+          "declaration": "public bool IsExecutingCardOrPotionEffect(Player player)"
+        },
+        {
+          "line": 385,
+          "declaration": "public CombatId? BeginCardOrPotionEffect(Player player)"
+        },
+        {
+          "line": 396,
+          "declaration": "public async Task EndCardOrPotionEffect(CombatId? combatId, Player player)"
+        },
+        {
+          "line": 417,
+          "declaration": "private bool IsCombatEnding(CombatTurnState turnState)"
+        },
+        {
+          "line": 438,
+          "declaration": "private CombatManager()"
+        },
+        {
+          "line": 444,
+          "declaration": "public void SetUpCombat(CombatState state)"
+        },
+        {
+          "line": 470,
+          "declaration": "public void AfterCombatRoomLoaded()"
+        },
+        {
+          "line": 488,
+          "declaration": "internal Task DebugOnlyWhenNextTurnLoopWaitsForPrevious()"
+        },
+        {
+          "line": 499,
+          "declaration": "private async Task RunTurnLoopAfter(Task? previousTurnLoopTask)"
+        },
+        {
+          "line": 539,
+          "declaration": "private async Task WaitForPreviousTurnLoopToFinish(Task? previousTurnLoopTask, CombatTurnState? turnState)"
+        },
+        {
+          "line": 576,
+          "declaration": "private async Task StartCombatInternal(CombatTurnState turnState)"
+        },
+        {
+          "line": 635,
+          "declaration": "private async Task<Func<Task>?> AwaitTurnEndAndSwitchSides(CombatTurnState turnState)"
+        },
+        {
+          "line": 688,
+          "declaration": "private async Task StartTurn(CombatTurnState turnState, Func<Task>? actionDuringEnemyTurn = null)"
+        },
+        {
+          "line": 862,
+          "declaration": "private async Task RunAutoPrePlayPhase(CombatTurnState turnState, HookPlayerChoiceContext playerChoiceContext, Task setupPlayerTurnTask, Player player)"
+        },
+        {
+          "line": 880,
+          "declaration": "private async Task SetupPlayerTurn(CombatTurnState turnState, Player player, HookPlayerChoiceContext playerChoiceContext)"
+        },
+        {
+          "line": 935,
+          "declaration": "public void SetReadyToEndTurn(Player player, bool canBackOut, Func<Task>? actionDuringEnemyTurn = null)"
+        },
+        {
+          "line": 969,
+          "declaration": "public void UndoReadyToEndTurn(Player player)"
+        },
+        {
+          "line": 995,
+          "declaration": "public void OnEndedTurnLocally()"
+        },
+        {
+          "line": 1006,
+          "declaration": "public void SetReadyToBeginEnemyTurn(Player player, Func<Task>? actionDuringEnemyTurn = null)"
+        },
+        {
+          "line": 1035,
+          "declaration": "public bool IsPlayerReadyToEndTurn(Player player)"
+        },
+        {
+          "line": 1048,
+          "declaration": "public bool AllPlayersReadyToEndTurn()"
+        },
+        {
+          "line": 1058,
+          "declaration": "private bool AllPlayersReadyToEndTurn(CombatTurnState turnState)"
+        },
+        {
+          "line": 1076,
+          "declaration": "private async Task EndEnemyTurn(CombatTurnState turnState)"
+        },
+        {
+          "line": 1099,
+          "declaration": "public void AddCreature(Creature creature)"
+        },
+        {
+          "line": 1119,
+          "declaration": "public Task AfterCreatureAdded(Creature creature)"
+        },
+        {
+          "line": 1128,
+          "declaration": "private static async Task AfterCreatureAdded(Creature creature, CombatState state)"
+        },
+        {
+          "line": 1162,
+          "declaration": "public async Task CheckForEmptyHand(CombatId? combatId, PlayerChoiceContext choiceContext, Player player)"
+        },
+        {
+          "line": 1174,
+          "declaration": "private async Task CheckForEmptyHand(CombatTurnState turnState, PlayerChoiceContext choiceContext, Player player)"
+        },
+        {
+          "line": 1187,
+          "declaration": "public void Reset(bool graceful)"
+        },
+        {
+          "line": 1221,
+          "declaration": "public async Task HandlePlayerDeath(CombatId? combatId, Player player)"
+        },
+        {
+          "line": 1245,
+          "declaration": "public async Task RemoveDeadPlayerCardsFromCombat(CombatId? combatId, Player player)"
+        },
+        {
+          "line": 1265,
+          "declaration": "public void LoseCombat()"
+        },
+        {
+          "line": 1277,
+          "declaration": "private void ProcessPendingLoss(CombatTurnState turnState)"
+        },
+        {
+          "line": 1291,
+          "declaration": "internal async Task EndCombatInternal()"
+        },
+        {
+          "line": 1300,
+          "declaration": "private async Task EndCombatInternal(CombatTurnState turnState)"
+        },
+        {
+          "line": 1365,
+          "declaration": "public void RemoveCreature(Creature creature)"
+        },
+        {
+          "line": 1376,
+          "declaration": "public async Task<bool> CheckWinCondition()"
+        },
+        {
+          "line": 1390,
+          "declaration": "private async Task<bool> CheckWinCondition(CombatTurnState turnState)"
+        },
+        {
+          "line": 1405,
+          "declaration": "private async Task ExecuteEnemyTurn(CombatTurnState turnState, Func<Task>? actionDuringEnemyTurn = null)"
+        },
+        {
+          "line": 1440,
+          "declaration": "private async Task AfterAllPlayersReadyToEndTurn(CombatTurnState turnState, EndTurnSignal signal)"
+        },
+        {
+          "line": 1478,
+          "declaration": "private async Task WaitUntilQueueIsEmptyOrWaitingOnNonPlayerDrivenAction(CombatTurnState turnState)"
+        },
+        {
+          "line": 1509,
+          "declaration": "internal async Task EndPlayerTurnPhaseOneInternal()"
+        },
+        {
+          "line": 1518,
+          "declaration": "private async Task EndPlayerTurnPhaseOneInternal(CombatTurnState turnState)"
+        },
+        {
+          "line": 1602,
+          "declaration": "private async Task DoTurnEnd(CombatTurnState turnState, Player player, PlayerChoiceContext choiceContext)"
+        },
+        {
+          "line": 1636,
+          "declaration": "private async Task DoTurnEndCards(CombatTurnState turnState, List<CardModel> turnEndCards, PlayerChoiceContext choiceContext)"
+        },
+        {
+          "line": 1665,
+          "declaration": "private async Task AddTurnEndCardToPlayPileWithDelay(CardModel card, float delay)"
+        },
+        {
+          "line": 1671,
+          "declaration": "private async Task<CardPileAddResult?> ResolveTurnEndCardEffects(CardModel card, PlayerChoiceContext choiceContext, Task waitTask)"
+        },
+        {
+          "line": 1678,
+          "declaration": "private async Task TweenTurnEndCardToResultPile(CombatTurnState turnState, Task<CardPileAddResult?> resultTask)"
+        },
+        {
+          "line": 1691,
+          "declaration": "private async Task EndEnemyTurnInternal(CombatTurnState turnState)"
+        },
+        {
+          "line": 1702,
+          "declaration": "private async Task AfterAllPlayersReadyToBeginEnemyTurn(CombatTurnState turnState)"
+        },
+        {
+          "line": 1732,
+          "declaration": "internal async Task EndPlayerTurnPhaseTwoInternal()"
+        },
+        {
+          "line": 1741,
+          "declaration": "private async Task EndPlayerTurnPhaseTwoInternal(CombatTurnState turnState)"
+        },
+        {
+          "line": 1780,
+          "declaration": "private async Task FlushPlayerHand(CombatTurnState turnState, Player player, HookPlayerChoiceContext playerChoiceContext)"
+        },
+        {
+          "line": 1820,
+          "declaration": "private async Task SwitchFromPlayerToEnemySide(CombatTurnState turnState)"
+        },
+        {
+          "line": 1852,
+          "declaration": "private void SwitchSides(CombatTurnState turnState)"
+        },
+        {
+          "line": 1895,
+          "declaration": "public void Pause()"
+        },
+        {
+          "line": 1906,
+          "declaration": "public void Unpause()"
+        },
+        {
+          "line": 1919,
+          "declaration": "public bool IsPartOfPlayerTurn(Player player)"
+        },
+        {
+          "line": 1936,
+          "declaration": "public Task WaitForUnpause()"
+        },
+        {
+          "line": 1950,
+          "declaration": "private async Task WaitForUnpause(CombatTurnState turnState)"
+        },
+        {
+          "line": 1967,
+          "declaration": "public void DebugForceTopCardOnNextShuffle(CardModel card)"
+        },
+        {
+          "line": 1978,
+          "declaration": "public void DebugClearForcedTopCardOnNextShuffle()"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat/CombatState.cs",
+      "sha256": "bd5f86957741c078fd279bad8d089b54ca5e17326d14e18cdecf9832a5661bb8",
+      "line_count": 618,
+      "member_citations": [
+        {
+          "line": 153,
+          "declaration": "public CombatState(EncounterModel? encounter = null, IRunState? runState = null, IReadOnlyList<ModifierModel>? modifiers = null, IReadOnlyList<BadgeModel>? badgeModels = null, MultiplayerScalingModel? multiplayerScalingModel = null)"
+        },
+        {
+          "line": 176,
+          "declaration": "public CardModel CreateCard(CardModel canonicalCard, Player owner)"
+        },
+        {
+          "line": 189,
+          "declaration": "public CardModel CloneCard(CardModel mutableCard)"
+        },
+        {
+          "line": 199,
+          "declaration": "public void AddCard(CardModel card, Player owner)"
+        },
+        {
+          "line": 205,
+          "declaration": "public void RemoveCard(CardModel card)"
+        },
+        {
+          "line": 214,
+          "declaration": "public bool ContainsCard(CardModel card)"
+        },
+        {
+          "line": 222,
+          "declaration": "public void AddPlayer(Player player)"
+        },
+        {
+          "line": 233,
+          "declaration": "public Creature CreateCreature(MonsterModel monster, CombatSide side, string? slot)"
+        },
+        {
+          "line": 257,
+          "declaration": "private void AttachCreature(Creature creature)"
+        },
+        {
+          "line": 267,
+          "declaration": "public void CreatureEscaped(Creature creature)"
+        },
+        {
+          "line": 278,
+          "declaration": "public void RemoveCreature(Creature creature, bool unattach = true)"
+        },
+        {
+          "line": 307,
+          "declaration": "public bool ContainsCreature(Creature creature)"
+        },
+        {
+          "line": 324,
+          "declaration": "public Creature? GetCreature(uint? combatId)"
+        },
+        {
+          "line": 340,
+          "declaration": "public async Task<Creature?> GetCreatureAsync(uint? combatId, double timeoutSec)"
+        },
+        {
+          "line": 378,
+          "declaration": "public IReadOnlyList<Creature> GetCreaturesOnSide(CombatSide side)"
+        },
+        {
+          "line": 390,
+          "declaration": "public IReadOnlyList<Creature> GetOpponentsOf(Creature creature)"
+        },
+        {
+          "line": 398,
+          "declaration": "public IReadOnlyList<Creature> GetTeammatesOf(Creature creature)"
+        },
+        {
+          "line": 403,
+          "declaration": "public Player? GetPlayer(ulong playerId)"
+        },
+        {
+          "line": 411,
+          "declaration": "public IEnumerable<AbstractModel> IterateHookListeners()"
+        },
+        {
+          "line": 496,
+          "declaration": "public void SortEnemiesBySlotName()"
+        },
+        {
+          "line": 504,
+          "declaration": "public void SetEnemyIndex(Creature creature, int index)"
+        },
+        {
+          "line": 518,
+          "declaration": "private void AddCard(CardModel card)"
+        },
+        {
+          "line": 535,
+          "declaration": "public void AddCreature(Creature creature)"
+        },
+        {
+          "line": 550,
+          "declaration": "private bool Contains(AbstractModel model)"
+        },
+        {
+          "line": 603,
+          "declaration": "private static async Task GodotTimerTask(double timeSec)"
+        },
+        {
+          "line": 614,
+          "declaration": "public bool IsLiveCombat()"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Hooks/Hook.cs",
+      "sha256": "fdb5fc0401e7f7018acb52cd8c8050f6f937bd3a210e4c595feb5946db12bde8",
+      "line_count": 2568,
+      "member_citations": [
+        {
+          "line": 53,
+          "declaration": "private static IEnumerable<AbstractModel> IterateCombatHookListeners(ICombatState combatState)"
+        },
+        {
+          "line": 68,
+          "declaration": "public static async Task AfterActEntered(IRunState runState)"
+        },
+        {
+          "line": 80,
+          "declaration": "public static async Task BeforeAttack(ICombatState combatState, AttackCommand command)"
+        },
+        {
+          "line": 92,
+          "declaration": "public static async Task AfterAttack(ICombatState combatState, PlayerChoiceContext choiceContext, AttackCommand command)"
+        },
+        {
+          "line": 107,
+          "declaration": "public static async Task AfterBlockBroken(ICombatState combatState, PlayerChoiceContext choiceContext, Creature target, Creature? breaker)"
+        },
+        {
+          "line": 119,
+          "declaration": "public static async Task AfterBlockCleared(ICombatState combatState, Creature creature)"
+        },
+        {
+          "line": 131,
+          "declaration": "public static async Task BeforeBlockGained(ICombatState combatState, Creature creature, decimal amount, ValueProp props, CardModel? cardSource)"
+        },
+        {
+          "line": 143,
+          "declaration": "public static async Task AfterBlockGained(ICombatState combatState, Creature creature, decimal amount, ValueProp props, CardModel? cardSource)"
+        },
+        {
+          "line": 155,
+          "declaration": "public static async Task BeforeCardAutoPlayed(ICombatState combatState, CardModel card, Creature? target, AutoPlayType type)"
+        },
+        {
+          "line": 167,
+          "declaration": "public static async Task AfterCardChangedPiles(IRunState runState, ICombatState? combatState, CardModel card, PileType oldPile, AbstractModel? clonedBy)"
+        },
+        {
+          "line": 186,
+          "declaration": "public static async Task AfterCardDiscarded(ICombatState combatState, PlayerChoiceContext choiceContext, CardModel card)"
+        },
+        {
+          "line": 202,
+          "declaration": "public static async Task AfterCardDrawn(ICombatState combatState, PlayerChoiceContext choiceContext, CardModel card, bool fromHandDraw)"
+        },
+        {
+          "line": 223,
+          "declaration": "public static async Task AfterCardEnteredCombat(ICombatState combatState, CardModel card)"
+        },
+        {
+          "line": 237,
+          "declaration": "public static async Task AfterCardExhausted(ICombatState combatState, PlayerChoiceContext choiceContext, CardModel card, bool causedByEthereal)"
+        },
+        {
+          "line": 251,
+          "declaration": "public static async Task AfterCardGeneratedForCombat(ICombatState combatState, CardModel card, Player? creator)"
+        },
+        {
+          "line": 263,
+          "declaration": "public static async Task BeforeCardPlayed(ICombatState combatState, CardPlay cardPlay)"
+        },
+        {
+          "line": 278,
+          "declaration": "public static async Task AfterCardPlayed(ICombatState combatState, PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 299,
+          "declaration": "public static async Task BeforeCardRemoved(IRunState runState, CardModel card)"
+        },
+        {
+          "line": 311,
+          "declaration": "public static async Task BeforeCombatStart(IRunState runState, ICombatState? combatState)"
+        },
+        {
+          "line": 328,
+          "declaration": "public static async Task AfterCombatEnd(IRunState runState, ICombatState? combatState, CombatRoom room)"
+        },
+        {
+          "line": 340,
+          "declaration": "public static async Task BeforeCombatRewardOffered(RewardsSet rewards, IRunState runState, CombatRoom room)"
+        },
+        {
+          "line": 352,
+          "declaration": "public static async Task AfterCombatVictory(IRunState runState, ICombatState? combatState, CombatRoom room)"
+        },
+        {
+          "line": 374,
+          "declaration": "public static async Task AfterCreatureAddedToCombat(ICombatState combatState, Creature creature)"
+        },
+        {
+          "line": 386,
+          "declaration": "public static async Task AfterCurrentHpChanged(IRunState runState, ICombatState? combatState, Creature creature, decimal delta)"
+        },
+        {
+          "line": 401,
+          "declaration": "public static async Task AfterDamageGiven(PlayerChoiceContext choiceContext, ICombatState combatState, Creature? dealer, DamageResult results, ValueProp props, Creature target, CardModel? cardSource)"
+        },
+        {
+          "line": 415,
+          "declaration": "public static async Task BeforeDamageReceived(PlayerChoiceContext choiceContext, IRunState runState, ICombatState? combatState, Creature target, decimal amount, ValueProp props, Creature? dealer, CardModel? cardSource)"
+        },
+        {
+          "line": 429,
+          "declaration": "public static async Task AfterDamageReceived(PlayerChoiceContext choiceContext, IRunState runState, ICombatState? combatState, Creature target, DamageResult result, ValueProp props, Creature? dealer, CardModel? cardSource)"
+        },
+        {
+          "line": 450,
+          "declaration": "public static async Task BeforeDeath(IRunState runState, ICombatState? combatState, Creature creature)"
+        },
+        {
+          "line": 462,
+          "declaration": "public static async Task AfterDeath(IRunState runState, ICombatState? combatState, Creature creature, bool wasRemovalPrevented, float deathAnimLength)"
+        },
+        {
+          "line": 481,
+          "declaration": "public static async Task AfterGoldGained(IRunState runState, Player player)"
+        },
+        {
+          "line": 496,
+          "declaration": "public static async Task AfterDiedToDoom(ICombatState combatState, IReadOnlyList<Creature> creatures)"
+        },
+        {
+          "line": 515,
+          "declaration": "public static async Task AfterEnergyReset(ICombatState combatState, Player player)"
+        },
+        {
+          "line": 532,
+          "declaration": "public static async Task AfterEnergySpent(ICombatState combatState, CardModel card, int amount)"
+        },
+        {
+          "line": 544,
+          "declaration": "public static async Task BeforeFlush(ICombatState combatState, Player player)"
+        },
+        {
+          "line": 572,
+          "declaration": "public static async Task AfterFlush(ICombatState combatState, Player player, PlayerChoiceContext playerChoiceContext, IReadOnlyCollection<CardModel> flushedCards, IReadOnlyCollection<CardModel> retainedCards)"
+        },
+        {
+          "line": 586,
+          "declaration": "public static async Task AfterForge(ICombatState combatState, decimal amount, Player forger, AbstractModel? source)"
+        },
+        {
+          "line": 600,
+          "declaration": "public static async Task BeforeHandDraw(ICombatState combatState, Player player, PlayerChoiceContext playerChoiceContext)"
+        },
+        {
+          "line": 623,
+          "declaration": "public static async Task AfterHandEmptied(ICombatState combatState, PlayerChoiceContext choiceContext, Player player)"
+        },
+        {
+          "line": 637,
+          "declaration": "public static async Task AfterItemPurchased(IRunState runState, Player player, MerchantEntry itemPurchased, int goldSpent)"
+        },
+        {
+          "line": 649,
+          "declaration": "public static async Task AfterMapGenerated(IRunState runState, ActMap map, int actIndex)"
+        },
+        {
+          "line": 661,
+          "declaration": "public static async Task AfterModifyingBlockAmount(ICombatState combatState, decimal modifiedBlock, CardModel? cardSource, CardPlay? cardPlay, IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 676,
+          "declaration": "public static async Task AfterModifyingCardPlayCount(ICombatState combatState, CardModel card, IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 691,
+          "declaration": "public static async Task AfterModifyingCardRewardOptions(IRunState runState, IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 706,
+          "declaration": "public static async Task AfterModifyingDamageAmount(IRunState runState, ICombatState? combatState, CardModel? cardSource, IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 721,
+          "declaration": "public static async Task AfterModifyingEnergyGain(ICombatState combatState, IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 736,
+          "declaration": "public static async Task AfterModifyingGoldGained(IRunState runState, ICombatState? combatState, IEnumerable<AbstractModel> modifiers, Player player, decimal amount)"
+        },
+        {
+          "line": 751,
+          "declaration": "public static async Task AfterModifyingHandDraw(ICombatState combatState, IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 766,
+          "declaration": "public static async Task AfterModifyingHpLostBeforeOsty(IRunState runState, ICombatState? combatState, IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 781,
+          "declaration": "public static async Task AfterModifyingHpLostAfterOsty(IRunState runState, ICombatState? combatState, IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 796,
+          "declaration": "public static async Task AfterModifyingOrbPassiveTriggerCount(ICombatState combatState, OrbModel orb, IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 811,
+          "declaration": "public static async Task AfterModifyingPowerAmountGiven(ICombatState combatState, IEnumerable<AbstractModel> modifiers, PowerModel modifiedPower)"
+        },
+        {
+          "line": 826,
+          "declaration": "public static async Task AfterModifyingPowerAmountReceived(ICombatState combatState, IEnumerable<AbstractModel> modifiers, PowerModel modifiedPower)"
+        },
+        {
+          "line": 841,
+          "declaration": "public static async Task AfterModifyingRewards(IRunState runState, IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 856,
+          "declaration": "public static async Task AfterOrbChanneled(ICombatState combatState, PlayerChoiceContext choiceContext, Player player, OrbModel orb)"
+        },
+        {
+          "line": 870,
+          "declaration": "public static async Task AfterOrbEvoked(PlayerChoiceContext choiceContext, ICombatState combatState, OrbModel orb, IEnumerable<Creature> targets)"
+        },
+        {
+          "line": 882,
+          "declaration": "public static async Task AfterOstyRevived(ICombatState combatState, Creature osty)"
+        },
+        {
+          "line": 894,
+          "declaration": "public static async Task AfterPlayerTurnStart(ICombatState combatState, PlayerChoiceContext choiceContext, Player player)"
+        },
+        {
+          "line": 922,
+          "declaration": "public static async Task AfterAutoPostPlayPhaseEntered(HookPlayerChoiceContext playerChoiceContext, ICombatState combatState, Player player)"
+        },
+        {
+          "line": 940,
+          "declaration": "public static async Task AfterAutoPrePlayPhaseEntered(HookPlayerChoiceContext playerChoiceContext, ICombatState combatState, Player player)"
+        },
+        {
+          "line": 972,
+          "declaration": "public static async Task AfterPotionDiscarded(IRunState runState, ICombatState? combatState, PotionModel potion)"
+        },
+        {
+          "line": 984,
+          "declaration": "public static async Task AfterPotionProcured(IRunState runState, ICombatState? combatState, PotionModel potion)"
+        },
+        {
+          "line": 996,
+          "declaration": "public static async Task BeforePotionUsed(IRunState runState, ICombatState? combatState, PotionModel potion, Creature? target)"
+        },
+        {
+          "line": 1008,
+          "declaration": "public static async Task AfterPotionUsed(IRunState runState, ICombatState? combatState, PotionModel potion, Creature? target)"
+        },
+        {
+          "line": 1020,
+          "declaration": "public static async Task BeforePowerAmountChanged(ICombatState combatState, PowerModel power, decimal amount, Creature target, Creature? applier, CardModel? cardSource)"
+        },
+        {
+          "line": 1032,
+          "declaration": "public static async Task AfterPowerAmountChanged(ICombatState combatState, PlayerChoiceContext choiceContext, PowerModel power, decimal amount, Creature? applier, CardModel? cardSource)"
+        },
+        {
+          "line": 1044,
+          "declaration": "public static async Task AfterPreventingBlockClear(ICombatState combatState, AbstractModel preventer, Creature creature)"
+        },
+        {
+          "line": 1056,
+          "declaration": "public static async Task AfterPreventingDeath(IRunState runState, ICombatState? combatState, AbstractModel preventer, Creature creature)"
+        },
+        {
+          "line": 1068,
+          "declaration": "public static async Task AfterPreventingDraw(ICombatState combatState, AbstractModel modifier)"
+        },
+        {
+          "line": 1080,
+          "declaration": "public static async Task AfterRestSiteHeal(IRunState runState, Player player, bool isMimicked)"
+        },
+        {
+          "line": 1092,
+          "declaration": "public static async Task AfterRestSiteSmith(IRunState runState, Player player)"
+        },
+        {
+          "line": 1104,
+          "declaration": "public static async Task AfterRewardTaken(IRunState runState, Player player, Reward reward)"
+        },
+        {
+          "line": 1116,
+          "declaration": "public static async Task BeforeRoomEntered(IRunState runState, AbstractRoom room)"
+        },
+        {
+          "line": 1128,
+          "declaration": "public static async Task AfterRoomEntered(IRunState runState, AbstractRoom room)"
+        },
+        {
+          "line": 1142,
+          "declaration": "public static async Task AfterShuffle(ICombatState combatState, PlayerChoiceContext choiceContext, Player shuffler)"
+        },
+        {
+          "line": 1156,
+          "declaration": "public static async Task BeforeSideTurnStart(ICombatState combatState, CombatSide side, IReadOnlyList<Creature> participants)"
+        },
+        {
+          "line": 1175,
+          "declaration": "public static async Task AfterSideTurnStart(ICombatState combatState, CombatSide side, IReadOnlyList<Creature> participants)"
+        },
+        {
+          "line": 1192,
+          "declaration": "public static async Task AfterStarsGained(ICombatState combatState, int amount, Player gainer)"
+        },
+        {
+          "line": 1204,
+          "declaration": "public static async Task AfterStarsSpent(ICombatState combatState, int amount, Player spender)"
+        },
+        {
+          "line": 1218,
+          "declaration": "public static async Task AfterSummon(ICombatState combatState, PlayerChoiceContext choiceContext, Player summoner, decimal amount)"
+        },
+        {
+          "line": 1232,
+          "declaration": "public static async Task AfterTakingExtraTurn(ICombatState combatState, Player player)"
+        },
+        {
+          "line": 1244,
+          "declaration": "public static async Task BeforeSideTurnEnd(ICombatState combatState, CombatSide side, IEnumerable<Creature> participants)"
+        },
+        {
+          "line": 1279,
+          "declaration": "public static async Task AfterSideTurnEnd(ICombatState combatState, CombatSide side, IEnumerable<Creature> participants)"
+        },
+        {
+          "line": 1309,
+          "declaration": "public static decimal ModifyAttackHitCount(ICombatState combatState, AttackCommand attackCommand, int originalHitCount)"
+        },
+        {
+          "line": 1322,
+          "declaration": "public static decimal ModifyBlock(ICombatState combatState, Creature target, decimal block, ValueProp props, CardModel? cardSource, CardPlay? cardPlay, out IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 1357,
+          "declaration": "public static CardModel ModifyCardBeingAddedToDeck(IRunState runState, CardModel card, out List<AbstractModel> modifyingModels)"
+        },
+        {
+          "line": 1384,
+          "declaration": "public static int ModifyCardPlayCount(ICombatState combatState, CardModel card, int playCount, Creature? target, out List<AbstractModel> modifyingModels)"
+        },
+        {
+          "line": 1403,
+          "declaration": "public static CardLocation ModifyCardPlayResultLocation(ICombatState combatState, CardModel card, bool isAutoPlay, ResourceInfo resources, CardLocation cardLocation, out IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 1422,
+          "declaration": "public static IEnumerable<AbstractModel> ModifyCardRewardAlternatives(IRunState runState, Player player, CardReward cardReward, List<CardRewardAlternative> alternatives)"
+        },
+        {
+          "line": 1438,
+          "declaration": "public static CardCreationOptions ModifyCardRewardCreationOptions(IRunState runState, Player player, CardCreationOptions options)"
+        },
+        {
+          "line": 1454,
+          "declaration": "public static bool TryModifyCardRewardOptions(IRunState runState, Player player, List<CardCreationResult> cardRewardOptions, CardCreationOptions creationOptions, out List<AbstractModel> modifiers)"
+        },
+        {
+          "line": 1482,
+          "declaration": "public static decimal ModifyCardRewardUpgradeOdds(IRunState runState, Player player, CardModel card, decimal originalOdds)"
+        },
+        {
+          "line": 1495,
+          "declaration": "public static decimal ModifyDamage(IRunState runState, ICombatState? combatState, Creature? target, Creature? dealer, decimal damage, ValueProp props, CardModel? cardSource, CardPlay? cardPlay, ModifyDamageHookType modifyDamageHookType, CardPreviewMode previewMode, out IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 1583,
+          "declaration": "public static decimal ModifyEnergyCostInCombat(ICombatState combatState, CardModel card, decimal originalCost)"
+        },
+        {
+          "line": 1604,
+          "declaration": "public static void ModifyKeywordsInCombat(ICombatState combatState, CardModel card, ISet<CardKeyword> keywords)"
+        },
+        {
+          "line": 1615,
+          "declaration": "public static decimal ModifyEnergyGain(ICombatState combatState, Player player, decimal originalAmount, out IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 1635,
+          "declaration": "public static decimal ModifyGoldGained(IRunState runState, ICombatState? combatState, decimal amount, Player player, out IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 1655,
+          "declaration": "public static IReadOnlyList<LocString> ModifyExtraRestSiteHealText(IRunState runState, Player player, IReadOnlyList<LocString> extraText)"
+        },
+        {
+          "line": 1667,
+          "declaration": "public static ActMap ModifyGeneratedMap(IRunState runState, ActMap map, int actIndex)"
+        },
+        {
+          "line": 1680,
+          "declaration": "public static ActMap ModifyGeneratedMapLate(IRunState runState, ActMap map, int actIndex)"
+        },
+        {
+          "line": 1693,
+          "declaration": "public static decimal ModifyHandDraw(ICombatState combatState, Player player, decimal originalCardCount, out IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 1726,
+          "declaration": "public static decimal ModifyHpLost(IRunState runState, ICombatState? combatState, Creature target, decimal amount, ValueProp props, Creature? dealer, CardModel? cardSource, HpLossHookPhase phases, out IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 1779,
+          "declaration": "public static decimal ModifyMaxEnergy(ICombatState combatState, Player player, decimal amount)"
+        },
+        {
+          "line": 1792,
+          "declaration": "public static void ModifyMerchantCardCreationResults(IRunState runState, Player player, List<CardCreationResult> cards)"
+        },
+        {
+          "line": 1803,
+          "declaration": "public static IEnumerable<CardModel> ModifyMerchantCardPool(IRunState runState, Player player, IEnumerable<CardModel> options)"
+        },
+        {
+          "line": 1815,
+          "declaration": "public static CardRarity ModifyMerchantCardRarity(IRunState runState, Player player, CardRarity rarity)"
+        },
+        {
+          "line": 1827,
+          "declaration": "public static decimal ModifyMerchantPrice(IRunState runState, Player player, MerchantEntry entry, decimal result)"
+        },
+        {
+          "line": 1839,
+          "declaration": "public static EventModel ModifyNextEvent(IRunState runState, EventModel currentEvent)"
+        },
+        {
+          "line": 1852,
+          "declaration": "public static float ModifyOddsIncreaseForUnrolledRoomType(IRunState runState, RoomType roomType, float oddsIncrease)"
+        },
+        {
+          "line": 1864,
+          "declaration": "public static int ModifyOrbPassiveTriggerCount(ICombatState combatState, OrbModel orb, int triggerCount, out List<AbstractModel> modifyingModels)"
+        },
+        {
+          "line": 1883,
+          "declaration": "public static decimal ModifyOrbValue(ICombatState combatState, OrbModel orb, decimal amount)"
+        },
+        {
+          "line": 1897,
+          "declaration": "public static decimal ModifyPowerAmountGiven(ICombatState combatState, PowerModel power, Creature giver, decimal amount, Creature? target, CardModel? cardSource, out IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 1926,
+          "declaration": "public static decimal ModifyPowerAmountReceived(ICombatState combatState, PowerModel canonicalPower, Creature target, decimal amount, Creature? giver, out IEnumerable<AbstractModel> modifiers)"
+        },
+        {
+          "line": 1945,
+          "declaration": "public static decimal ModifyRestSiteHealAmount(IRunState runState, Creature creature, decimal amount)"
+        },
+        {
+          "line": 1958,
+          "declaration": "public static IEnumerable<AbstractModel> ModifyRestSiteOptions(IRunState runState, Player player, ICollection<RestSiteOption> options)"
+        },
+        {
+          "line": 1974,
+          "declaration": "public static IEnumerable<AbstractModel> ModifyRestSiteHealRewards(IRunState runState, Player player, List<Reward> rewards, bool isMimicked)"
+        },
+        {
+          "line": 1990,
+          "declaration": "public static IEnumerable<AbstractModel> ModifyRewards(IRunState runState, Player player, List<Reward> rewards, AbstractRoom? room)"
+        },
+        {
+          "line": 2013,
+          "declaration": "public static void ModifyShuffleOrder(ICombatState combatState, Player player, List<CardModel> cards, bool isInitialShuffle)"
+        },
+        {
+          "line": 2024,
+          "declaration": "public static decimal ModifyStarCost(ICombatState combatState, CardModel card, decimal originalCost)"
+        },
+        {
+          "line": 2041,
+          "declaration": "public static decimal ModifySummonAmount(ICombatState combatState, Player summoner, decimal amount, AbstractModel? source)"
+        },
+        {
+          "line": 2057,
+          "declaration": "public static Creature ModifyUnblockedDamageTarget(ICombatState combatState, Creature originalTarget, decimal amount, ValueProp props, Creature? dealer)"
+        },
+        {
+          "line": 2070,
+          "declaration": "public static IReadOnlySet<RoomType> ModifyUnknownMapPointRoomTypes(IRunState runState, IReadOnlySet<RoomType> roomTypes)"
+        },
+        {
+          "line": 2080,
+          "declaration": "public static int ModifyXValue(ICombatState combatState, CardModel card, int originalValue)"
+        },
+        {
+          "line": 2093,
+          "declaration": "public static bool ShouldAddToDeck(IRunState runState, CardModel card, out AbstractModel? preventer)"
+        },
+        {
+          "line": 2110,
+          "declaration": "public static bool ShouldAfflict(ICombatState combatState, CardModel card, AfflictionModel affliction)"
+        },
+        {
+          "line": 2125,
+          "declaration": "public static bool ShouldAllowAncient(IRunState runState, Player player, AncientEventModel ancient)"
+        },
+        {
+          "line": 2140,
+          "declaration": "public static bool ShouldAllowHitting(ICombatState combatState, Creature creature)"
+        },
+        {
+          "line": 2155,
+          "declaration": "public static bool ShouldAllowMerchantCardRemoval(IRunState runState, Player player)"
+        },
+        {
+          "line": 2170,
+          "declaration": "public static bool ShouldAllowSelectingMoreCardRewards(IRunState runState, Player player, CardReward reward)"
+        },
+        {
+          "line": 2185,
+          "declaration": "public static bool ShouldAllowTargeting(ICombatState combatState, Creature target, out AbstractModel? preventer)"
+        },
+        {
+          "line": 2202,
+          "declaration": "public static bool ShouldClearBlock(ICombatState combatState, Creature creature, out AbstractModel? preventer)"
+        },
+        {
+          "line": 2223,
+          "declaration": "public static bool ShouldCreatureBeRemovedFromCombatAfterDeath(ICombatState combatState, Creature creature)"
+        },
+        {
+          "line": 2238,
+          "declaration": "public static bool ShouldDie(IRunState runState, ICombatState? combatState, Creature creature, out AbstractModel? preventer)"
+        },
+        {
+          "line": 2263,
+          "declaration": "public static bool ShouldDisableRemainingRestSiteOptions(IRunState runState, Player player)"
+        },
+        {
+          "line": 2278,
+          "declaration": "public static bool ShouldDraw(ICombatState combatState, Player player, bool fromHandDraw, out AbstractModel? modifier)"
+        },
+        {
+          "line": 2295,
+          "declaration": "public static bool ShouldEtherealTrigger(ICombatState combatState, CardModel card)"
+        },
+        {
+          "line": 2310,
+          "declaration": "public static bool ShouldFlush(ICombatState combatState, Player player)"
+        },
+        {
+          "line": 2325,
+          "declaration": "public static bool ShouldGenerateTreasure(IRunState runState, Player player)"
+        },
+        {
+          "line": 2340,
+          "declaration": "public static bool ShouldGainStars(ICombatState combatState, decimal amount, Player player)"
+        },
+        {
+          "line": 2355,
+          "declaration": "public static bool ShouldPayExcessEnergyCostWithStars(ICombatState combatState, Player player)"
+        },
+        {
+          "line": 2370,
+          "declaration": "public static bool ShouldPlay(ICombatState combatState, CardModel card, out AbstractModel? preventer, AutoPlayType autoPlayType)"
+        },
+        {
+          "line": 2387,
+          "declaration": "public static bool ShouldPlayerResetEnergy(ICombatState combatState, Player player)"
+        },
+        {
+          "line": 2402,
+          "declaration": "public static bool ShouldProceedToNextMapPoint(IRunState runState)"
+        },
+        {
+          "line": 2417,
+          "declaration": "public static bool ShouldProcurePotion(IRunState runState, ICombatState? combatState, PotionModel potion, Player player)"
+        },
+        {
+          "line": 2432,
+          "declaration": "public static bool ShouldRefillMerchantEntry(IRunState runState, MerchantEntry entry, Player player)"
+        },
+        {
+          "line": 2451,
+          "declaration": "public static bool ShouldStopCombatFromEnding(ICombatState combatState)"
+        },
+        {
+          "line": 2466,
+          "declaration": "public static bool ShouldTakeExtraTurn(ICombatState combatState, Player player)"
+        },
+        {
+          "line": 2481,
+          "declaration": "public static bool ShouldForcePotionReward(IRunState runState, Player player, RoomType roomType)"
+        },
+        {
+          "line": 2494,
+          "declaration": "public static bool ShouldAllowFreeTravel(IRunState runState)"
+        },
+        {
+          "line": 2504,
+          "declaration": "public static bool ShouldPowerBeRemovedOnDeath(PowerModel power)"
+        },
+        {
+          "line": 2520,
+          "declaration": "private static decimal ModifyDamageInternal(IRunState runState, ICombatState? combatState, Creature? target, Creature? dealer, decimal damage, ValueProp props, CardModel? cardSource, CardPlay? cardPlay, ModifyDamageHookType modifyDamageHookType, out List<AbstractModel> modifiers)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Runs/RunState.cs",
+      "sha256": "e7066191a376a6d6beeb08d90b839389d0b7d1600e900f164759ef928e735a11",
+      "line_count": 733,
+      "member_citations": [
+        {
+          "line": 272,
+          "declaration": "public static RunState CreateForNewRun(IReadOnlyList<Player> players, IReadOnlyList<ActModel> acts, IReadOnlyList<ModifierModel> modifiers, GameMode gameMode, int ascensionLevel, string seed)"
+        },
+        {
+          "line": 291,
+          "declaration": "public static RunState FromSerializable(SerializableRun save)"
+        },
+        {
+          "line": 304,
+          "declaration": "public static RunState CreateForTest(IReadOnlyList<Player>? players = null, IReadOnlyList<ActModel>? acts = null, IReadOnlyList<ModifierModel>? modifiers = null, GameMode gameMode = GameMode.Standard, int ascensionLevel = 0, string? seed = null)"
+        },
+        {
+          "line": 319,
+          "declaration": "private static RunState CreateShared(IReadOnlyList<Player> players, IReadOnlyList<ActModel> acts, IReadOnlyList<ModifierModel> modifiers, GameMode gameMode, int currentActIndex, RunRngSet rng, RunOddsSet odds, RelicGrabBag sharedRelicGrabBag, int ascensionLevel)"
+        },
+        {
+          "line": 336,
+          "declaration": "private RunState(IReadOnlyList<Player> players, IReadOnlyList<ActModel> acts, IReadOnlyList<ModifierModel> modifiers, GameMode gameMode, int currentActIndex, RunRngSet rng, RunOddsSet odds, RelicGrabBag sharedRelicGrabBag, int ascensionLevel)"
+        },
+        {
+          "line": 354,
+          "declaration": "public int GetPlayerSlotIndex(Player player)"
+        },
+        {
+          "line": 359,
+          "declaration": "public int GetPlayerSlotIndex(ulong netId)"
+        },
+        {
+          "line": 367,
+          "declaration": "public Player? GetPlayer(ulong netId)"
+        },
+        {
+          "line": 383,
+          "declaration": "public CardModel CreateCard(CardModel canonicalCard, Player owner)"
+        },
+        {
+          "line": 394,
+          "declaration": "public CardModel CloneCard(CardModel mutableCard)"
+        },
+        {
+          "line": 404,
+          "declaration": "public void AddCard(CardModel card, Player owner)"
+        },
+        {
+          "line": 416,
+          "declaration": "public void RemoveCard(CardModel card)"
+        },
+        {
+          "line": 425,
+          "declaration": "public bool ContainsCard(CardModel card)"
+        },
+        {
+          "line": 433,
+          "declaration": "public CardModel LoadCard(SerializableCard serializableCard, Player owner)"
+        },
+        {
+          "line": 440,
+          "declaration": "private void AddCard(CardModel card)"
+        },
+        {
+          "line": 460,
+          "declaration": "public bool AddVisitedMapCoord(MapCoord coord)"
+        },
+        {
+          "line": 476,
+          "declaration": "public AbstractRoom PopCurrentRoom()"
+        },
+        {
+          "line": 491,
+          "declaration": "public void PushRoom(AbstractRoom room)"
+        },
+        {
+          "line": 503,
+          "declaration": "public void AddVisitedEvent(EventModel eventModel)"
+        },
+        {
+          "line": 511,
+          "declaration": "public void AppendToMapPointHistory(MapPointType mapPointType, RoomType initialRoomType, ModelId? roomModelId)"
+        },
+        {
+          "line": 533,
+          "declaration": "public MapPointHistoryEntry? GetHistoryEntryFor(MapLocation location)"
+        },
+        {
+          "line": 545,
+          "declaration": "public IEnumerable<AbstractModel> IterateHookListeners(ICombatState? childCombatState)"
+        },
+        {
+          "line": 604,
+          "declaration": "public void AddPlayerDebug(Player player, int index)"
+        },
+        {
+          "line": 635,
+          "declaration": "public void SetActDebug(ActModel act)"
+        },
+        {
+          "line": 649,
+          "declaration": "public void RemoveStaleVisitedMapCoords(ActMap map)"
+        },
+        {
+          "line": 662,
+          "declaration": "public void ClearVisitedMapCoordsDebug()"
+        },
+        {
+          "line": 672,
+          "declaration": "public void AddModifierDebug(ModifierModel modifier)"
+        },
+        {
+          "line": 686,
+          "declaration": "public int GetAndIncrementNextRoomId()"
+        },
+        {
+          "line": 697,
+          "declaration": "private static bool Contains(AbstractModel model)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Runs/RunManager.cs",
+      "sha256": "1e00a9480697d85f15fa12011749d38752b6c4c9c775d76d2ed793281c98d76d",
+      "line_count": 1813,
+      "member_citations": [
+        {
+          "line": 278,
+          "declaration": "private RunManager()"
+        },
+        {
+          "line": 295,
+          "declaration": "public void SetUpNewSingleplayer(RunState state, bool shouldSave, DateTimeOffset? dailyTime = null)"
+        },
+        {
+          "line": 328,
+          "declaration": "public void SetUpNewMultiplayer(RunState state, StartRunLobby lobby, bool shouldSave, DateTimeOffset? dailyTime = null)"
+        },
+        {
+          "line": 354,
+          "declaration": "public async Task SetUpSavedSingleplayer(RunState state, SerializableRun save)"
+        },
+        {
+          "line": 383,
+          "declaration": "public async Task SetUpSavedMultiplayer(RunState state, LoadRunLobby lobby)"
+        },
+        {
+          "line": 413,
+          "declaration": "public void SetUpReplay(RunState state, CombatReplay replay, ulong playerIdToLoad)"
+        },
+        {
+          "line": 446,
+          "declaration": "public void SetUpTest(RunState state, INetGameService gameService, bool disableCombatStateSync = true, bool shouldSave = false)"
+        },
+        {
+          "line": 464,
+          "declaration": "private void InitializeShared(INetGameService netService, PeerInputSynchronizer inputSynchronizer, bool shouldSave, DateTimeOffset? dailyTime, long startTime, long runTime, long winTime, int numReloads)"
+        },
+        {
+          "line": 506,
+          "declaration": "private void InitializeRunLobby(INetGameService netService, RunState state, IEnumerable<RunLobbyPlayer> players)"
+        },
+        {
+          "line": 520,
+          "declaration": "private void InitializeNewRun()"
+        },
+        {
+          "line": 541,
+          "declaration": "private void InitializeSavedRun(SerializableRun save)"
+        },
+        {
+          "line": 568,
+          "declaration": "private void SendPostActionChecksum(GameAction action)"
+        },
+        {
+          "line": 579,
+          "declaration": "private void SetStartedWithNeowFlag()"
+        },
+        {
+          "line": 603,
+          "declaration": "public static SerializableRun CanonicalizeSave(SerializableRun save, ulong localPlayerId)"
+        },
+        {
+          "line": 660,
+          "declaration": "public static HashSet<RoomType> BuildRoomTypeBlacklist(MapPointHistoryEntry? previousMapPointEntry, IReadOnlyCollection<MapPoint> nextMapPoints)"
+        },
+        {
+          "line": 670,
+          "declaration": "public SerializableRun ToSave(AbstractRoom? preFinishedRoom)"
+        },
+        {
+          "line": 711,
+          "declaration": "public RunState Launch()"
+        },
+        {
+          "line": 725,
+          "declaration": "public async Task FinalizeStartingRelics()"
+        },
+        {
+          "line": 743,
+          "declaration": "public void GenerateRooms()"
+        },
+        {
+          "line": 773,
+          "declaration": "public bool ShouldApplyTutorialModifications()"
+        },
+        {
+          "line": 799,
+          "declaration": "public async Task GenerateMap()"
+        },
+        {
+          "line": 833,
+          "declaration": "public Task EnterMapCoord(MapCoord coord)"
+        },
+        {
+          "line": 846,
+          "declaration": "public async Task LoadIntoLatestMapCoord(AbstractRoom? preFinishedRoom)"
+        },
+        {
+          "line": 863,
+          "declaration": "private Task EnterMapCoordInternal(MapCoord coord, AbstractRoom? preFinishedRoom, bool saveGame)"
+        },
+        {
+          "line": 876,
+          "declaration": "public async Task EnterMapPointInternal(int actFloor, MapPointType pointType, AbstractRoom? preFinishedRoom, bool saveGame)"
+        },
+        {
+          "line": 941,
+          "declaration": "private AbstractRoom CreateRoom(RoomType roomType, MapPointType mapPointType = MapPointType.Unassigned, AbstractModel? model = null)"
+        },
+        {
+          "line": 976,
+          "declaration": "private RoomType RollRoomTypeFor(MapPointType pointType, IEnumerable<RoomType> blacklist)"
+        },
+        {
+          "line": 1000,
+          "declaration": "private bool TryGetRoomTypeForTutorial(MapPointType pointType, out RoomType roomType)"
+        },
+        {
+          "line": 1031,
+          "declaration": "public async Task FadeIn(bool showTransition = true)"
+        },
+        {
+          "line": 1050,
+          "declaration": "public async Task FadeOut()"
+        },
+        {
+          "line": 1069,
+          "declaration": "private void ClearScreens()"
+        },
+        {
+          "line": 1082,
+          "declaration": "public async Task EnterMapCoordDebug(MapCoord coord, RoomType roomType, MapPointType pointType = MapPointType.Unassigned, AbstractModel? model = null, bool showTransition = true)"
+        },
+        {
+          "line": 1091,
+          "declaration": "public async Task<AbstractRoom> EnterRoomDebug(RoomType roomType, MapPointType pointType = MapPointType.Unassigned, AbstractModel? model = null, bool showTransition = true)"
+        },
+        {
+          "line": 1162,
+          "declaration": "private async Task ExitCurrentRooms()"
+        },
+        {
+          "line": 1174,
+          "declaration": "private async Task<AbstractRoom?> ExitCurrentRoom()"
+        },
+        {
+          "line": 1192,
+          "declaration": "private async Task EnterRoomInternal(AbstractRoom room, bool isRestoringRoomStackBase = false)"
+        },
+        {
+          "line": 1256,
+          "declaration": "public async Task EnterRoom(AbstractRoom room)"
+        },
+        {
+          "line": 1278,
+          "declaration": "public async Task EnterRoomWithoutExitingCurrentRoom(AbstractRoom room, bool fadeToBlack)"
+        },
+        {
+          "line": 1308,
+          "declaration": "public async Task EnterNextAct()"
+        },
+        {
+          "line": 1335,
+          "declaration": "public async Task WinRun()"
+        },
+        {
+          "line": 1344,
+          "declaration": "public async Task EnterAct(int currentActIndex, bool doTransition = true)"
+        },
+        {
+          "line": 1379,
+          "declaration": "public async Task SetActInternal(int actIndex)"
+        },
+        {
+          "line": 1398,
+          "declaration": "private void UpdateRichPresence()"
+        },
+        {
+          "line": 1419,
+          "declaration": "public async Task ProceedFromTerminalRewardsScreen()"
+        },
+        {
+          "line": 1445,
+          "declaration": "private async Task ResumePreviousRoom()"
+        },
+        {
+          "line": 1464,
+          "declaration": "private void AfterMapLocationChanged()"
+        },
+        {
+          "line": 1475,
+          "declaration": "public void Abandon()"
+        },
+        {
+          "line": 1496,
+          "declaration": "private async Task AbandonInternal()"
+        },
+        {
+          "line": 1524,
+          "declaration": "private async Task GuaranteeKillAllPlayers()"
+        },
+        {
+          "line": 1537,
+          "declaration": "private void StateDiverged(ulong divergedFrom, NetFullCombatState state)"
+        },
+        {
+          "line": 1558,
+          "declaration": "public void WriteReplay(bool stopRecording)"
+        },
+        {
+          "line": 1569,
+          "declaration": "public void CleanUp(bool graceful = true)"
+        },
+        {
+          "line": 1623,
+          "declaration": "public SerializableRun OnEnded(bool isVictory)"
+        },
+        {
+          "line": 1703,
+          "declaration": "private static void CheckUpdateEnemyDiscoveryAfterLoss(Player player, ModelId monster)"
+        },
+        {
+          "line": 1713,
+          "declaration": "private void UpdatePlayerStatsInMapPointHistory()"
+        },
+        {
+          "line": 1731,
+          "declaration": "public bool HasAscension(AscensionLevel level)"
+        },
+        {
+          "line": 1740,
+          "declaration": "public void ApplyAscensionEffects(Player player)"
+        },
+        {
+          "line": 1745,
+          "declaration": "public ClientRejoinResponseMessage GetRejoinMessage()"
+        },
+        {
+          "line": 1754,
+          "declaration": "public void LocalPlayerDisconnected(NetErrorInfo info)"
+        },
+        {
+          "line": 1770,
+          "declaration": "private void RemotePlayerDisconnected(ulong playerId)"
+        },
+        {
+          "line": 1775,
+          "declaration": "private async Task ReturnToMainMenuWithError(NetErrorInfo info)"
+        },
+        {
+          "line": 1796,
+          "declaration": "public string? GetLocalCharacterEnergyIconPrefix()"
+        },
+        {
+          "line": 1809,
+          "declaration": "public RunState? DebugOnlyGetState()"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Runs/RunHistory.cs",
+      "sha256": "6b98364a450cea80fb6f9b0ef2e8d88e9c574a4cfbddf92cfe261226cf4e5250",
+      "line_count": 60,
+      "member_citations": []
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Runs/ScoreUtility.cs",
+      "sha256": "63dd1ece6002e12e4fc6a851613cbbad66272832966b151c4834d4fa439e1a87",
+      "line_count": 179,
+      "member_citations": [
+        {
+          "line": 29,
+          "declaration": "public static int CalculateScore(IRunState runState, bool won)"
+        },
+        {
+          "line": 40,
+          "declaration": "public static int CalculateScore(SerializableRun run, bool won)"
+        },
+        {
+          "line": 45,
+          "declaration": "private static int CalculateScore(IReadOnlyList<IReadOnlyList<MapPointHistoryEntry>> history, int ascension, bool won, int playerCount)"
+        },
+        {
+          "line": 59,
+          "declaration": "public static int GetScoreForFloor(IReadOnlyList<IReadOnlyList<MapPointHistoryEntry>> history)"
+        },
+        {
+          "line": 73,
+          "declaration": "public static int GetElitesKilledCount(IReadOnlyList<IReadOnlyList<MapPointHistoryEntry>> history)"
+        },
+        {
+          "line": 88,
+          "declaration": "public static int GetScoreForElitesKilled(int elitesKilled)"
+        },
+        {
+          "line": 96,
+          "declaration": "public static int GetBossesSlainCount(IReadOnlyList<IReadOnlyList<MapPointHistoryEntry>> history, bool won)"
+        },
+        {
+          "line": 120,
+          "declaration": "public static int GetScoreForBossesSlain(int bossCount)"
+        },
+        {
+          "line": 125,
+          "declaration": "public static int GetScoreForGoldGained(IReadOnlyList<IReadOnlyList<MapPointHistoryEntry>> history, int playerCount)"
+        },
+        {
+          "line": 133,
+          "declaration": "public static List<Badge> GetBadges(SerializableRun run, ulong playerId, bool won)"
+        },
+        {
+          "line": 150,
+          "declaration": "public static int CalculateDailyScore(SerializableRun run, ulong localPlayerNetId, bool isVictory)"
+        },
+        {
+          "line": 162,
+          "declaration": "public static DecodedDailyScore DecodeDailyScore(int encodedScore)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Runs/PlayerMapPointHistoryEntry.cs",
+      "sha256": "f5e83c0b2b694ecdb7cd3c990138c29f7ea3df2ebdfb3cb23a23f1d2ff3c7717",
+      "line_count": 319,
+      "member_citations": [
+        {
+          "line": 143,
+          "declaration": "public LocString? GetAncientPickedChoiceLoc()"
+        },
+        {
+          "line": 148,
+          "declaration": "public List<LocString> GetAncientSkippedChoiceLoc()"
+        },
+        {
+          "line": 156,
+          "declaration": "public void MarkLootStolen(int amount = 1)"
+        },
+        {
+          "line": 162,
+          "declaration": "public void MarkLootReturned(int amount = 1)"
+        },
+        {
+          "line": 167,
+          "declaration": "public void Serialize(PacketWriter writer)"
+        },
+        {
+          "line": 221,
+          "declaration": "public void Deserialize(PacketReader reader)"
+        },
+        {
+          "line": 281,
+          "declaration": "public PlayerMapPointHistoryEntry Anonymized()"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Runs.History/MapPointHistoryEntry.cs",
+      "sha256": "caf23cb3594e7d810070cfddd90857f33d67bfdd2f562fa0b611989814f30d2f",
+      "line_count": 115,
+      "member_citations": [
+        {
+          "line": 31,
+          "declaration": "public MapPointHistoryEntry()"
+        },
+        {
+          "line": 35,
+          "declaration": "public MapPointHistoryEntry(MapPointType mapPointType, IPlayerCollection playerCollection)"
+        },
+        {
+          "line": 47,
+          "declaration": "public PlayerMapPointHistoryEntry GetEntry(ulong playerId)"
+        },
+        {
+          "line": 57,
+          "declaration": "public bool HasRoomOfType(RoomType roomType)"
+        },
+        {
+          "line": 69,
+          "declaration": "public IEnumerable<MapPointRoomHistoryEntry> GetRoomsOfType(RoomType roomType)"
+        },
+        {
+          "line": 80,
+          "declaration": "public MapPointRoomHistoryEntry? FirstRoomOfType(RoomType roomType)"
+        },
+        {
+          "line": 92,
+          "declaration": "public void Serialize(PacketWriter writer)"
+        },
+        {
+          "line": 99,
+          "declaration": "public void Deserialize(PacketReader reader)"
+        },
+        {
+          "line": 106,
+          "declaration": "public MapPointHistoryEntry Anonymized()"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Runs.History/MapPointRoomHistoryEntry.cs",
+      "sha256": "ab2573a06eda8b271285df389b27a54573341964183efeb1b68f8634b2c3941a",
+      "line_count": 63,
+      "member_citations": [
+        {
+          "line": 41,
+          "declaration": "public void Serialize(PacketWriter writer)"
+        },
+        {
+          "line": 53,
+          "declaration": "public void Deserialize(PacketReader reader)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Runs.History/CardChoiceHistoryEntry.cs",
+      "sha256": "d5d0faf17f6745fb00a3ddedb40106a58be5dc986aed82ac5f9cf4337d8fe6bf",
+      "line_count": 35,
+      "member_citations": [
+        {
+          "line": 18,
+          "declaration": "public CardChoiceHistoryEntry(CardModel card, bool wasPicked)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Runs.History/CardTransformationHistoryEntry.cs",
+      "sha256": "f4fc95a21313411b5efd9b809fd4f6f160975eb8e8987e0b46026f737d047588",
+      "line_count": 33,
+      "member_citations": [
+        {
+          "line": 16,
+          "declaration": "public CardTransformationHistoryEntry(CardModel originalCard, CardModel finalCard)"
+        },
+        {
+          "line": 22,
+          "declaration": "public void Serialize(PacketWriter writer)"
+        },
+        {
+          "line": 28,
+          "declaration": "public void Deserialize(PacketReader reader)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/PowerModel.cs",
+      "sha256": "2cc44bddbdd6de6e1d3ded50110a0aace66bc37a942dbf1c5af2af08b9a80dbc",
+      "line_count": 650,
+      "member_citations": [
+        {
+          "line": 440,
+          "declaration": "public void StartPulsing()"
+        },
+        {
+          "line": 445,
+          "declaration": "public void StopPulsing()"
+        },
+        {
+          "line": 450,
+          "declaration": "protected void Flash()"
+        },
+        {
+          "line": 455,
+          "declaration": "protected void InvokeDisplayAmountChanged()"
+        },
+        {
+          "line": 460,
+          "declaration": "public PowerType GetTypeForAmount(decimal customAmount)"
+        },
+        {
+          "line": 478,
+          "declaration": "public bool ShouldRemoveDueToAmount()"
+        },
+        {
+          "line": 503,
+          "declaration": "public virtual decimal GetScaledAmountForMultiplayer(ICombatState combatState, Creature? applier, decimal amount, Creature target, CardModel? cardSource)"
+        },
+        {
+          "line": 512,
+          "declaration": "protected virtual object? InitInternalData()"
+        },
+        {
+          "line": 523,
+          "declaration": "protected T GetInternalData<T>()"
+        },
+        {
+          "line": 528,
+          "declaration": "public HoverTip GetDumbHoverTip(int? amountOverride = null)"
+        },
+        {
+          "line": 535,
+          "declaration": "private void AddDumbVariablesToDescription(LocString description, int? amountOverride = null)"
+        },
+        {
+          "line": 542,
+          "declaration": "public void SetAmount(int amount, bool silent = false)"
+        },
+        {
+          "line": 555,
+          "declaration": "public PowerModel ToMutable(int initialAmount = 0)"
+        },
+        {
+          "line": 564,
+          "declaration": "public void ApplyInternal(Creature owner, decimal amount, bool silent = false)"
+        },
+        {
+          "line": 575,
+          "declaration": "public void RemoveInternal()"
+        },
+        {
+          "line": 582,
+          "declaration": "protected override void DeepCloneFields()"
+        },
+        {
+          "line": 589,
+          "declaration": "protected override void AfterCloned()"
+        },
+        {
+          "line": 608,
+          "declaration": "public virtual Task BeforeApplied(Creature target, decimal amount, Creature? applier, CardModel? cardSource)"
+        },
+        {
+          "line": 619,
+          "declaration": "public virtual Task AfterApplied(Creature? applier, CardModel? cardSource)"
+        },
+        {
+          "line": 628,
+          "declaration": "public virtual Task AfterRemoved(Creature oldOwner)"
+        },
+        {
+          "line": 637,
+          "declaration": "public virtual bool ShouldPowerBeRemovedAfterOwnerDeath()"
+        },
+        {
+          "line": 646,
+          "declaration": "public virtual bool ShouldOwnerDeathTriggerFatal()"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/PowerCmd.cs",
+      "sha256": "d61e73c082ebcdbafe4abdc6992424598372a0f2fa84e50b8bb43e8d1ed015f6",
+      "line_count": 300,
+      "member_citations": [
+        {
+          "line": 105,
+          "declaration": "public static async Task Apply(PlayerChoiceContext choiceContext, PowerModel power, Creature target, decimal amount, Creature? applier, CardModel? cardSource, bool silent = false)"
+        },
+        {
+          "line": 169,
+          "declaration": "public static PowerModel? FindExistingInstanceForStacking(PowerModel basePower, Creature target, Creature? applier)"
+        },
+        {
+          "line": 184,
+          "declaration": "public static async Task Decrement(PowerModel power)"
+        },
+        {
+          "line": 194,
+          "declaration": "public static async Task TickDownDuration(PowerModel power)"
+        },
+        {
+          "line": 219,
+          "declaration": "public static async Task<int> ModifyAmount(PlayerChoiceContext choiceContext, PowerModel power, decimal offset, Creature? applier, CardModel? cardSource, bool silent = false)"
+        },
+        {
+          "line": 291,
+          "declaration": "public static async Task Remove(PowerModel? power)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bolas.cs",
+      "sha256": "9c4a908541dc18cbfd51425d47443ce7b573c6935dd7850259f7911c930b26b8",
+      "line_count": 55,
+      "member_citations": [
+        {
+          "line": 25,
+          "declaration": "public Bolas()"
+        },
+        {
+          "line": 30,
+          "declaration": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 39,
+          "declaration": "public override async Task BeforeHandDraw(Player player, PlayerChoiceContext choiceContext, ICombatState combatState)"
+        },
+        {
+          "line": 51,
+          "declaration": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/GoldAxe.cs",
+      "sha256": "c2b0cbd0ce6de8236c3c61e6e422f2e0e7ef100b6189ac7dc152532bca5f35f6",
+      "line_count": 41,
+      "member_citations": [
+        {
+          "line": 24,
+          "declaration": "public GoldAxe()"
+        },
+        {
+          "line": 29,
+          "declaration": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 37,
+          "declaration": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/TearAsunder.cs",
+      "sha256": "fcf49863bbf7aeedae7fc6106bbccd50d1beb0beb216896b3076bf520c4a36d6",
+      "line_count": 47,
+      "member_citations": [
+        {
+          "line": 29,
+          "declaration": "public TearAsunder()"
+        },
+        {
+          "line": 34,
+          "declaration": "protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)"
+        },
+        {
+          "line": 43,
+          "declaration": "protected override void OnUpgrade()"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Normality.cs",
+      "sha256": "5bbed77a0f3cd6c99909e68351eba557bc80c2c4f56a9dc8c8202fc4566b3840",
+      "line_count": 53,
+      "member_citations": [
+        {
+          "line": 35,
+          "declaration": "public Normality()"
+        },
+        {
+          "line": 40,
+          "declaration": "public override bool ShouldPlay(CardModel card, AutoPlayType _)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/JugglingPower.cs",
+      "sha256": "ca4b2e59d6e791c588285a5a3d4642841be0b2c4d1a13f50f1a5a9794e5c2bb7",
+      "line_count": 63,
+      "member_citations": [
+        {
+          "line": 25,
+          "declaration": "protected override object InitInternalData()"
+        },
+        {
+          "line": 30,
+          "declaration": "public override Task AfterApplied(Creature? applier, CardModel? cardSource)"
+        },
+        {
+          "line": 36,
+          "declaration": "public override async Task BeforeCardPlayed(CardPlay cardPlay)"
+        },
+        {
+          "line": 54,
+          "declaration": "public override Task AfterSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/RingingPower.cs",
+      "sha256": "ac56cca21c934bbd7e51554b0294a21cef9a334fff47dd84f4aa9b4cd8d904d1",
+      "line_count": 76,
+      "member_citations": [
+        {
+          "line": 22,
+          "declaration": "public override async Task AfterApplied(Creature? applier, CardModel? cardSource)"
+        },
+        {
+          "line": 34,
+          "declaration": "public override async Task AfterCardEnteredCombat(CardModel card)"
+        },
+        {
+          "line": 42,
+          "declaration": "public override async Task AfterSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)"
+        },
+        {
+          "line": 51,
+          "declaration": "public override Task AfterRemoved(Creature oldOwner)"
+        },
+        {
+          "line": 64,
+          "declaration": "public override bool ShouldPlay(CardModel card, AutoPlayType _)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/LeadPaperweight.cs",
+      "sha256": "3631dcf67276d245a1613031a97b95be33c3c0fdf83b2cf17fac22f10744f8b4",
+      "line_count": 37,
+      "member_citations": [
+        {
+          "line": 19,
+          "declaration": "public override async Task AfterObtained()"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/SwipePower.cs",
+      "sha256": "25bc80f818baa5bf58a0aa0c6ece876ab675150f8ff4d9eab86a2f1d07708aac",
+      "line_count": 79,
+      "member_citations": [
+        {
+          "line": 50,
+          "declaration": "public override Task BeforeDeath(Creature target)"
+        },
+        {
+          "line": 69,
+          "declaration": "public async Task Steal(CardModel card)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/CardCmd.cs",
+      "sha256": "0ea75a4209aa6cf4aecc1246656e4a2e54930ab84f341ce830ff0cfcbdd1db87",
+      "line_count": 900,
+      "member_citations": [
+        {
+          "line": 51,
+          "declaration": "public static async Task AutoPlay(PlayerChoiceContext choiceContext, CardModel card, Creature? target, AutoPlayType type = AutoPlayType.Default, bool skipXCapture = false, bool skipCardPileVisuals = false)"
+        },
+        {
+          "line": 133,
+          "declaration": "private static async Task MoveToResultPileWithoutPlaying(PlayerChoiceContext choiceContext, CardModel card)"
+        },
+        {
+          "line": 147,
+          "declaration": "public static async Task Discard(PlayerChoiceContext choiceContext, CardModel card)"
+        },
+        {
+          "line": 157,
+          "declaration": "public static async Task Discard(PlayerChoiceContext choiceContext, IEnumerable<CardModel> cards)"
+        },
+        {
+          "line": 172,
+          "declaration": "public static async Task DiscardAndDraw(PlayerChoiceContext choiceContext, IEnumerable<CardModel> cardsToDiscard, int cardsToDraw)"
+        },
+        {
+          "line": 212,
+          "declaration": "public static void Downgrade(CardModel card)"
+        },
+        {
+          "line": 237,
+          "declaration": "public static async Task<CardPileAddResult?> Exhaust(PlayerChoiceContext choiceContext, CardModel card, bool causedByEthereal = false, bool skipVisuals = false)"
+        },
+        {
+          "line": 256,
+          "declaration": "public static void Upgrade(CardModel card, CardPreviewStyle style = CardPreviewStyle.HorizontalLayout)"
+        },
+        {
+          "line": 267,
+          "declaration": "public static void Upgrade(IEnumerable<CardModel> cards, CardPreviewStyle style)"
+        },
+        {
+          "line": 325,
+          "declaration": "public static async Task<CardPileAddResult> TransformToRandom(CardModel original, Rng rng, CardPreviewStyle style = CardPreviewStyle.HorizontalLayout)"
+        },
+        {
+          "line": 350,
+          "declaration": "public static async Task<CardPileAddResult?> Transform(CardModel original, CardModel replacement, CardPreviewStyle style = CardPreviewStyle.HorizontalLayout)"
+        },
+        {
+          "line": 355,
+          "declaration": "private static int PileIndexSort((CardTransformation, CardPile, int, CardModel) value1, (CardTransformation, CardPile, int, CardModel) value2)"
+        },
+        {
+          "line": 371,
+          "declaration": "public static async Task<IEnumerable<CardPileAddResult>> Transform(IEnumerable<CardTransformation> transformations, Rng? rng, CardPreviewStyle style = CardPreviewStyle.HorizontalLayout)"
+        },
+        {
+          "line": 534,
+          "declaration": "public static EnchantmentModel? Enchant(EnchantmentModel enchantment, CardModel card, decimal amount)"
+        },
+        {
+          "line": 567,
+          "declaration": "public static void ClearEnchantment(CardModel card)"
+        },
+        {
+          "line": 627,
+          "declaration": "public static Task<AfflictionModel?> Afflict(AfflictionModel affliction, CardModel card, decimal amount)"
+        },
+        {
+          "line": 668,
+          "declaration": "public static void ClearAffliction(CardModel card)"
+        },
+        {
+          "line": 678,
+          "declaration": "public static void ApplyKeyword(CardModel card, params CardKeyword[] keywords)"
+        },
+        {
+          "line": 687,
+          "declaration": "public static void RemoveKeyword(CardModel card, params CardKeyword[] keywords)"
+        },
+        {
+          "line": 700,
+          "declaration": "public static void ApplySingleTurnSly(CardModel card)"
+        },
+        {
+          "line": 710,
+          "declaration": "public static void ApplySingleTurnRetain(CardModel card)"
+        },
+        {
+          "line": 723,
+          "declaration": "public static TaskCompletionSource? Preview(CardModel card, float time = 1.2f, CardPreviewStyle style = CardPreviewStyle.HorizontalLayout)"
+        },
+        {
+          "line": 735,
+          "declaration": "public static void Preview(IReadOnlyList<CardModel> cards, float time = 1.2f, CardPreviewStyle style = CardPreviewStyle.HorizontalLayout)"
+        },
+        {
+          "line": 747,
+          "declaration": "public static void PreviewCardPileAdd(CardPileAddResult result, float time = 1.2f, CardPreviewStyle style = CardPreviewStyle.HorizontalLayout)"
+        },
+        {
+          "line": 755,
+          "declaration": "public static void PreviewCardPileAdd(IReadOnlyList<CardPileAddResult> results, float time = 1.2f, CardPreviewStyle style = CardPreviewStyle.HorizontalLayout)"
+        },
+        {
+          "line": 774,
+          "declaration": "private static TaskCompletionSource? PreviewInternal(CardModel card, bool isAddingCardsToPile, IEnumerable<RelicModel>? relicsToFlash = null, float time = 1.2f, CardPreviewStyle style = CardPreviewStyle.HorizontalLayout)"
+        },
+        {
+          "line": 869,
+          "declaration": "private static int GetTotalCardsBeingPreviewed()"
+        },
+        {
+          "line": 887,
+          "declaration": "private static Task FlashRelics(NCard node, IEnumerable<RelicModel>? relicsToFlash)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/CardPileCmd.cs",
+      "sha256": "7d8615a01c8f201527c27e9b59042de3a616785145ee0334ac0a6dac691cc291",
+      "line_count": 1286,
+      "member_citations": [
+        {
+          "line": 43,
+          "declaration": "public static async Task RemoveFromDeck(CardModel card, bool showPreview = true)"
+        },
+        {
+          "line": 53,
+          "declaration": "public static async Task RemoveFromDeck(IReadOnlyList<CardModel> cards, bool showPreview = true)"
+        },
+        {
+          "line": 98,
+          "declaration": "public static async Task RemoveFromCombat(CardModel card, bool skipVisuals = false)"
+        },
+        {
+          "line": 110,
+          "declaration": "public static async Task RemoveFromCombat(IEnumerable<CardModel> cards, bool skipVisuals = false)"
+        },
+        {
+          "line": 224,
+          "declaration": "public static async Task GiveToAnotherPlayer(CardModel card, Player player, PileType pileType, CardPilePosition position = CardPilePosition.Bottom, AbstractModel? clonedBy = null)"
+        },
+        {
+          "line": 267,
+          "declaration": "public static async Task<CardPileAddResult> AddGeneratedCardToCombat(CardModel card, PileType newPileType, Player? creator, CardPilePosition position = CardPilePosition.Bottom)"
+        },
+        {
+          "line": 281,
+          "declaration": "public static async Task<IReadOnlyList<CardPileAddResult>> AddGeneratedCardsToCombat(IEnumerable<CardModel> cards, PileType newPileType, Player? creator, CardPilePosition position = CardPilePosition.Bottom)"
+        },
+        {
+          "line": 324,
+          "declaration": "public static async Task<CardPileAddResult> Add(CardModel card, PileType newPileType, CardPilePosition position = CardPilePosition.Bottom, AbstractModel? clonedBy = null, bool skipVisuals = false)"
+        },
+        {
+          "line": 341,
+          "declaration": "public static async Task<CardPileAddResult> Add(CardModel card, CardPile newPile, CardPilePosition position = CardPilePosition.Bottom, AbstractModel? clonedBy = null, bool skipVisuals = false)"
+        },
+        {
+          "line": 354,
+          "declaration": "public static async Task<IReadOnlyList<CardPileAddResult>> Add(IEnumerable<CardModel> cards, PileType newPileType, CardPilePosition position = CardPilePosition.Bottom, AbstractModel? clonedBy = null, bool skipVisuals = false)"
+        },
+        {
+          "line": 373,
+          "declaration": "public static async Task<IReadOnlyList<CardPileAddResult>> Add(IEnumerable<CardModel> cards, CardPile newPile, CardPilePosition position = CardPilePosition.Bottom, AbstractModel? clonedBy = null, bool skipVisuals = false, bool isChangingOwners = false)"
+        },
+        {
+          "line": 559,
+          "declaration": "public static (Tween?, bool) GetTweenForCardsChangingPiles(IEnumerable<CardPileAddResult> results, bool fromSilentAdd)"
+        },
+        {
+          "line": 681,
+          "declaration": "private static Tween? GetTweenForCardsChangingPiles(IEnumerable<(NCard, PileType?)> cards)"
+        },
+        {
+          "line": 827,
+          "declaration": "public static async Task AddDuringManualCardPlay(CardModel card)"
+        },
+        {
+          "line": 866,
+          "declaration": "private static NCard CreateCardNodeAndUpdateVisuals(CardModel card, PileType? oldPileType, PileType targetPileType, bool owningPlayerIsLocal)"
+        },
+        {
+          "line": 886,
+          "declaration": "private static void MoveCardNodeToNewPileBeforeTween(NCard cardNode, PileType newPileType)"
+        },
+        {
+          "line": 922,
+          "declaration": "private static void AppendPlayPileLerpTween(Tween? tween, NCard cardNode, PileType? oldPile)"
+        },
+        {
+          "line": 931,
+          "declaration": "private static void AppendPileLerpTween(Tween? tween, NCard cardNode, PileType typePile, PileType? oldPile)"
+        },
+        {
+          "line": 969,
+          "declaration": "public static async Task<CardModel?> Draw(PlayerChoiceContext choiceContext, Player player)"
+        },
+        {
+          "line": 982,
+          "declaration": "public static Task<IEnumerable<CardModel>> Draw(PlayerChoiceContext choiceContext, decimal count, Player player, bool fromHandDraw = false)"
+        },
+        {
+          "line": 1000,
+          "declaration": "public static Task DrawWithoutBlockingOnOtherPlayers(PlayerChoiceContext choiceContext, decimal count, Player player, CardModel source, bool fromHandDraw = false)"
+        },
+        {
+          "line": 1007,
+          "declaration": "private static async Task<IEnumerable<CardModel>> DrawInternal(PlayerChoiceContext choiceContext, decimal count, Player player, bool fromHandDraw = false)"
+        },
+        {
+          "line": 1073,
+          "declaration": "public static async Task Shuffle(PlayerChoiceContext choiceContext, Player player)"
+        },
+        {
+          "line": 1145,
+          "declaration": "public static async Task AutoPlayFromDrawPile(PlayerChoiceContext choiceContext, Player player, int count, CardPilePosition position, bool forceExhaust)"
+        },
+        {
+          "line": 1186,
+          "declaration": "public static async Task ShuffleIfNecessary(PlayerChoiceContext choiceContext, Player player)"
+        },
+        {
+          "line": 1200,
+          "declaration": "private static async Task ShuffleFtueCheck()"
+        },
+        {
+          "line": 1256,
+          "declaration": "public static async Task<IEnumerable<CardPileAddResult>> AddCursesToDeck(IEnumerable<CardModel> curses, Player owner)"
+        },
+        {
+          "line": 1272,
+          "declaration": "private static bool CheckIfDrawIsPossibleAndShowThoughtBubbleIfNot(Player player)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/PlayerCmd.cs",
+      "sha256": "8630f180d829942738c860f96dc6621cae01e7c2402fd33cee871fe21f42f668",
+      "line_count": 295,
+      "member_citations": [
+        {
+          "line": 29,
+          "declaration": "public static async Task GainEnergy(decimal amount, Player player)"
+        },
+        {
+          "line": 50,
+          "declaration": "public static Task LoseEnergy(decimal amount, Player player)"
+        },
+        {
+          "line": 69,
+          "declaration": "public static async Task SetEnergy(decimal amount, Player player)"
+        },
+        {
+          "line": 90,
+          "declaration": "public static async Task GainStars(decimal amount, Player player)"
+        },
+        {
+          "line": 104,
+          "declaration": "public static Task LoseStars(decimal amount, Player player)"
+        },
+        {
+          "line": 119,
+          "declaration": "public static async Task SetStars(decimal amount, Player player)"
+        },
+        {
+          "line": 141,
+          "declaration": "public static async Task GainGold(decimal amount, Player player, bool wasStolenBack = false)"
+        },
+        {
+          "line": 178,
+          "declaration": "public static Task LoseGold(decimal amount, Player player, GoldLossType goldLossType = GoldLossType.Lost)"
+        },
+        {
+          "line": 207,
+          "declaration": "public static async Task SetGold(decimal amount, Player player)"
+        },
+        {
+          "line": 220,
+          "declaration": "public static Task GainMaxPotionCount(int amount, Player player)"
+        },
+        {
+          "line": 226,
+          "declaration": "public static Task LoseMaxPotionCount(int amount, Player player)"
+        },
+        {
+          "line": 249,
+          "declaration": "public static async Task AddPet(Creature pet, Player player)"
+        },
+        {
+          "line": 264,
+          "declaration": "public static async Task MimicRestSiteHeal(Player player, bool playSfx = true)"
+        },
+        {
+          "line": 279,
+          "declaration": "public static void EndTurn(Player player, bool canBackOut, Func<Task>? actionDuringEnemyTurn = null)"
+        },
+        {
+          "line": 291,
+          "declaration": "public static void CompleteQuest(CardModel questCard)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/RelicCmd.cs",
+      "sha256": "7da9c58b87b37e212a85f1541883d0e627d081c561d6b833ed2e1f89e69c3e51",
+      "line_count": 94,
+      "member_citations": [
+        {
+          "line": 35,
+          "declaration": "public static async Task<RelicModel> Obtain(RelicModel relic, Player player, int index = -1)"
+        },
+        {
+          "line": 61,
+          "declaration": "public static async Task Remove(RelicModel relic)"
+        },
+        {
+          "line": 74,
+          "declaration": "public static async Task<RelicModel> Replace(RelicModel original, RelicModel replace)"
+        },
+        {
+          "line": 89,
+          "declaration": "public static async Task Melt(RelicModel relic)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/PotionCmd.cs",
+      "sha256": "101e099dcbfe8ef4622e79aee327ad2d6a46e4329ce06a52ddb3ec7fca89979b",
+      "line_count": 61,
+      "member_citations": [
+        {
+          "line": 28,
+          "declaration": "public static async Task<PotionProcureResult> TryToProcure(PotionModel potion, Player player, int slotIndex = -1)"
+        },
+        {
+          "line": 55,
+          "declaration": "public static async Task Discard(PotionModel potion)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/BlockGainedEntry.cs",
+      "sha256": "2212473e093cd3934e581880e313e64a1f8b39d85d8b6f94fd0a9757c864c71d",
+      "line_count": 44,
+      "member_citations": [
+        {
+          "line": 28,
+          "declaration": "public BlockGainedEntry(int amount, ValueProp props, CardPlay? cardPlay, Creature receiver, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        },
+        {
+          "line": 36,
+          "declaration": "private static string GetId(Creature creature)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardAfflictedEntry.cs",
+      "sha256": "8addd413d64969679c72c28d4792d3e56e97259fa508189110cd7a9c3c2292fa",
+      "line_count": 21,
+      "member_citations": [
+        {
+          "line": 15,
+          "declaration": "public CardAfflictedEntry(CardModel card, AfflictionModel affliction, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardDiscardedEntry.cs",
+      "sha256": "a0022e361bd4b591c296031efa2f1e3a50f1a2f1dffe09be9a40986377fa9b9d",
+      "line_count": 18,
+      "member_citations": [
+        {
+          "line": 13,
+          "declaration": "public CardDiscardedEntry(CardModel card, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardDrawnEntry.cs",
+      "sha256": "ed62106d8fffb341ec4d1e0b77b1b7aa3522c2033c7989966c3ce77f406cdcd3",
+      "line_count": 21,
+      "member_citations": [
+        {
+          "line": 15,
+          "declaration": "public CardDrawnEntry(CardModel card, int roundNumber, CombatSide currentSide, bool fromHandDraw, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardExhaustedEntry.cs",
+      "sha256": "5a9d386c933ef3c723f866e9ab2fe82a1075d7ddaf6509f29fb5ea9f22fe572c",
+      "line_count": 18,
+      "member_citations": [
+        {
+          "line": 13,
+          "declaration": "public CardExhaustedEntry(CardModel card, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardGeneratedEntry.cs",
+      "sha256": "fd14b608569f1e1215c566607cfe7151a63c0f577e08de8ef275b6b4778d2d6d",
+      "line_count": 21,
+      "member_citations": [
+        {
+          "line": 15,
+          "declaration": "public CardGeneratedEntry(CardModel card, Player? creator, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardPlayFinishedEntry.cs",
+      "sha256": "1993423cc9628f7f7011b59d93074307f3c3160e4bcc3e8428470ae06cdd61ea",
+      "line_count": 47,
+      "member_citations": [
+        {
+          "line": 41,
+          "declaration": "public CardPlayFinishedEntry(CardPlay cardPlay, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardPlayStartedEntry.cs",
+      "sha256": "cbc5d4e28350d8423fa4fc9abb9c457d5559b0f3c50fa2cb7a4ceca80f4cb216",
+      "line_count": 37,
+      "member_citations": [
+        {
+          "line": 32,
+          "declaration": "public CardPlayStartedEntry(CardPlay cardPlay, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CreatureAttackedEntry.cs",
+      "sha256": "5dc6516e7224a46d87f17dda2bdbf15b340ad29d822581737f3e37f534d165e2",
+      "line_count": 18,
+      "member_citations": [
+        {
+          "line": 13,
+          "declaration": "public CreatureAttackedEntry(Creature attacker, IReadOnlyList<DamageResult> damageResults, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/DamageReceivedEntry.cs",
+      "sha256": "0d8cdee160d5b061f7eee200d5fb2b05654fe365b788537c65ef3c74afdffb70",
+      "line_count": 50,
+      "member_citations": [
+        {
+          "line": 34,
+          "declaration": "public DamageReceivedEntry(DamageResult result, Creature receiver, Creature? dealer, CardModel? cardSource, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        },
+        {
+          "line": 42,
+          "declaration": "private static string GetId(Creature creature)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/EnergySpentEntry.cs",
+      "sha256": "884b4659b32f5d59e4a9e01391180d8485eee9789f744cf981f45ed98eeb013a",
+      "line_count": 17,
+      "member_citations": [
+        {
+          "line": 12,
+          "declaration": "public EnergySpentEntry(int amount, Player player, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/MonsterPerformedMoveEntry.cs",
+      "sha256": "3e585d81b1e8caaa4e62f1b4331470c405a48a0187e8331df44e783ef88c6e26",
+      "line_count": 52,
+      "member_citations": [
+        {
+          "line": 36,
+          "declaration": "public MonsterPerformedMoveEntry(MonsterModel monster, MoveState move, IEnumerable<Creature>? targets, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        },
+        {
+          "line": 44,
+          "declaration": "private static string GetTargetName(Creature creature)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/OrbChanneledEntry.cs",
+      "sha256": "7bd972bfc6d170a406b31569d46b62f73cadddc612dc27c5cc3e7b361f798fb3",
+      "line_count": 18,
+      "member_citations": [
+        {
+          "line": 13,
+          "declaration": "public OrbChanneledEntry(OrbModel orb, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/PotionUsedEntry.cs",
+      "sha256": "0caaac65c5a7490a2cbe506bc14320fe9745ef8b29e5b3d2a94d768ababea030",
+      "line_count": 38,
+      "member_citations": [
+        {
+          "line": 32,
+          "declaration": "public PotionUsedEntry(PotionModel potion, Creature? target, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/PowerReceivedEntry.cs",
+      "sha256": "11fac8bb0bfbad1dacb98f5ebbbf4f7f113da4c20a80a8c647555a69c996c587",
+      "line_count": 35,
+      "member_citations": [
+        {
+          "line": 28,
+          "declaration": "public PowerReceivedEntry(PowerModel power, decimal amount, Creature? applier, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/StarsModifiedEntry.cs",
+      "sha256": "6c440064b0ddaa5c545198840915829afcd49da6361672801ec0b024e41271c6",
+      "line_count": 17,
+      "member_citations": [
+        {
+          "line": 12,
+          "declaration": "public StarsModifiedEntry(int amount, Player player, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/SummonedEntry.cs",
+      "sha256": "de5fabf2b7ad09f29046fde17b42e7062478ed8d41a96156523f27666cf8f1a4",
+      "line_count": 17,
+      "member_citations": [
+        {
+          "line": 12,
+          "declaration": "public SummonedEntry(int amount, Player player, int roundNumber, CombatSide currentSide, CombatHistory history, IEnumerable<Player> players)"
+        }
+      ]
+    },
+    {
+      "source": "tools/oracle/adapters/RecordingSession.cs",
+      "sha256": "019f471d110281192d2ebfbd6ea633356177734dacce6792e27536e33257505f",
+      "line_count": 521,
+      "citations": [
+        {
+          "line": 215,
+          "end_line": 359,
+          "purpose": "Synthetic object reference graph, retained inventories and history export; intentional diagnostic entry omission"
+        }
+      ]
+    }
+  ],
+  "combat_history_entries": [
+    {
+      "entry_type": "CardPlayStartedEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardPlayStartedEntry.cs",
+      "references": [
+        "CardPlay",
+        "Actor/Player.Creature",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "CardPlayFinishedEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardPlayFinishedEntry.cs",
+      "references": [
+        "CardPlay",
+        "Actor/Player.Creature",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map",
+        "WasEthereal at entry creation"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "CardDrawnEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardDrawnEntry.cs",
+      "references": [
+        "Card",
+        "Actor/Card.Owner.Creature",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map",
+        "FromHandDraw"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "CardDiscardedEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardDiscardedEntry.cs",
+      "references": [
+        "Card",
+        "Actor/Card.Owner.Creature",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "CardExhaustedEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardExhaustedEntry.cs",
+      "references": [
+        "Card",
+        "Actor/Card.Owner.Creature",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "CardGeneratedEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardGeneratedEntry.cs",
+      "references": [
+        "Card",
+        "Creator?",
+        "Actor/Card.Owner.Creature",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "CardAfflictedEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CardAfflictedEntry.cs",
+      "references": [
+        "Card",
+        "Affliction",
+        "Actor/Card.Owner.Creature",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "DamageReceivedEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/DamageReceivedEntry.cs",
+      "references": [
+        "Result",
+        "Receiver/Actor",
+        "Dealer?",
+        "CardSource?",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "CreatureAttackedEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/CreatureAttackedEntry.cs",
+      "references": [
+        "Actor/Attacker",
+        "DamageResults ordered collection",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "BlockGainedEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/BlockGainedEntry.cs",
+      "references": [
+        "Receiver/Actor",
+        "CardPlay?",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map",
+        "Amount",
+        "ValueProp"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "PowerReceivedEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/PowerReceivedEntry.cs",
+      "references": [
+        "Power",
+        "Applier?",
+        "Actor/Power.Owner",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map",
+        "Amount at receipt"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "PotionUsedEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/PotionUsedEntry.cs",
+      "references": [
+        "Potion",
+        "Target?",
+        "Actor/Potion.Owner.Creature",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "OrbChanneledEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/OrbChanneledEntry.cs",
+      "references": [
+        "Orb",
+        "Actor/Orb.Owner.Creature",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "EnergySpentEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/EnergySpentEntry.cs",
+      "references": [
+        "Actor/Player.Creature",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map",
+        "Amount"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "StarsModifiedEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/StarsModifiedEntry.cs",
+      "references": [
+        "Actor/Player.Creature",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map",
+        "Amount"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "SummonedEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/SummonedEntry.cs",
+      "references": [
+        "Actor/Player.Creature",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map",
+        "Amount"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    },
+    {
+      "entry_type": "MonsterPerformedMoveEntry",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat.History.Entries/MonsterPerformedMoveEntry.cs",
+      "references": [
+        "Monster",
+        "Move",
+        "Targets? enumerable",
+        "Actor/Monster.Creature",
+        "History"
+      ],
+      "captured_values": [
+        "RoundNumber",
+        "CurrentSide",
+        "player turn-number map"
+      ],
+      "retirement": "CombatHistory.Clear drops history-owned edge; objects remain required while other semantic references survive"
+    }
+  ],
+  "card_play_edges": [
+    "Card",
+    "Player (distinct from current Card.Owner)",
+    "Target?"
+  ],
+  "damage_result_edges": [
+    "Receiver"
+  ],
+  "history_lifetime_boundaries": [
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat/CombatManager.cs",
+      "line": 1318,
+      "end_line": 1330,
+      "order": [
+        "AfterCombatEnd",
+        "History.Clear",
+        "room.OnCombatEnded",
+        "player.AfterCombatEnd",
+        "AfterCombatVictory"
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat/CombatManager.cs",
+      "line": 1186,
+      "end_line": 1208,
+      "order": [
+        "graceful creature reset/removal if requested",
+        "drop turn state",
+        "History.Clear",
+        "clear effect-depth map",
+        "cancel old turn state"
+      ]
+    }
+  ],
+  "scoped_history_consumers": [
+    {
+      "model_id": "CARD.BOLAS",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bolas.cs",
+      "line": 41,
+      "requirement": "Exact CardPlay.Card identity, last player turn; prior-turn entries retained"
+    },
+    {
+      "model_id": "CARD.GOLD_AXE",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/GoldAxe.cs",
+      "line": 21,
+      "requirement": "All finished plays in combat, no turn/owner filter"
+    },
+    {
+      "model_id": "CARD.TEAR_ASUNDER",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/TearAsunder.cs",
+      "line": 26,
+      "requirement": "All combat positive-unblocked DamageReceived entries for owner creature"
+    },
+    {
+      "model_id": "CARD.NORMALITY",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Normality.cs",
+      "line": 33,
+      "requirement": "Started owner plays this turn; Hand membership gates restriction"
+    },
+    {
+      "model_id": "POWER.JUGGLING_POWER",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/JugglingPower.cs",
+      "line": 32,
+      "requirement": "On application initialize from owner Attack plays already started this turn"
+    },
+    {
+      "model_id": "POWER.RINGING_POWER",
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/RingingPower.cs",
+      "line": 74,
+      "requirement": "Any started owner play this turn limits Ringing-afflicted cards"
+    }
+  ],
+  "scoped_history_text_index": [
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bolas.cs",
+      "lines": [
+        41
+      ],
+      "classification": "textual query/write index; authored consumer semantics listed separately"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/GoldAxe.cs",
+      "lines": [
+        21
+      ],
+      "classification": "textual query/write index; authored consumer semantics listed separately"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Normality.cs",
+      "lines": [
+        33
+      ],
+      "classification": "textual query/write index; authored consumer semantics listed separately"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/TearAsunder.cs",
+      "lines": [
+        26
+      ],
+      "classification": "textual query/write index; authored consumer semantics listed separately"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/JugglingPower.cs",
+      "lines": [
+        32
+      ],
+      "classification": "textual query/write index; authored consumer semantics listed separately"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/RingingPower.cs",
+      "lines": [
+        74
+      ],
+      "classification": "textual query/write index; authored consumer semantics listed separately"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/SwipePower.cs",
+      "lines": [
+        65,
+        76
+      ],
+      "classification": "textual query/write index; authored consumer semantics listed separately"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/LeadPaperweight.cs",
+      "lines": [
+        33
+      ],
+      "classification": "textual query/write index; authored consumer semantics listed separately"
+    }
+  ],
+  "dispatch_invariants": [
+    "Snapshot candidate order and nested dispatch cursor at enumeration start; do not rebuild on restore from current memberships.",
+    "Candidate additions are excluded from current pass; fresh normal/late or early/ordinary passes can include them.",
+    "Type-specific Contains predicates, not generic active membership, control each saved candidate yield.",
+    "Removed powers retain Owner and may remain eligible in already captured dispatch; removal does not itself fail Power Contains.",
+    "Guarded combat dispatch evaluates ending once at enumeration entry; preserve setup exemption and direct-dispatch exceptions.",
+    "Modifier-contribution identity lists are not candidate snapshots; after-modification paths freshly enumerate and intersect eligible contributors."
+  ],
+  "safe_retirement_conditions": [
+    "No active membership/owner retaining semantic state",
+    "No combat history or history-record graph references",
+    "No in-flight dispatch payload/candidate/current-callback references",
+    "No continuations/pending prompts/model-field references",
+    "Required captured descriptor and comparison data preserved",
+    "No altered allocator/generation/public instance identity behavior"
+  ],
+  "native_vs_simulator": [
+    "Native .NET strong references show required logical reachability, not a mandated reference-counting strategy or arena lifetime.",
+    "Native history references are mixed with explicit captured scalar values; preserve aliases and mutation semantics.",
+    "Run history SerializableCard/ModelId records are descriptors rather than direct CardModel references.",
+    "Retaining all native diagnostics is not automatically mandatory under bounded comparison contract; exclusions cannot remove future-affecting state."
+  ],
+  "exporter_limits": [
+    "RecordingSession excludes MonsterPerformedMoveEntry, SummonedEntry, PotionUsedEntry by audited no-gameplay-consumer classification.",
+    "Synthetic path/label assignment is an exporter convention; it does not define native allocations or prove active zone membership."
+  ],
+  "regression_requirements": [
+    "Same card/different play identity and matching started-finished aliases across suspension",
+    "Bolas previous-turn exact identity versus same-model duplicate",
+    "Juggling applied midturn and Normality/Ringing during a started-unfinished play",
+    "GoldAxe/TearAsunder retain whole-combat prior-turn history",
+    "Removed captured power callback versus removed inventory/card callback predicates",
+    "New listener appears in fresh late pass only",
+    "Last-enemy lethal during guarded dispatch preserves remaining captured callbacks",
+    "AfterCombatEnd sees history and AfterCombatVictory sees cleared history",
+    "Live object mutation after log plus frozen WasEthereal/amount/turn fields",
+    "Nested room/run history and final scoring across acts"
+  ],
+  "limits": [
+    "No gameplay experiment or C++ behavior change.",
+    "Scoped consumer textual index cannot prove absence of delegated or reflective consumers.",
+    "No history compression or arbitrary capacity/early-retirement choice approved.",
+    "All external model/continuation references must be combined with sibling audit graphs before final retirement design."
+  ]
+}

@@ -1,0 +1,370 @@
+{
+  "evidence_kind": "source-derived entity lifetime audit; no fresh runtime parity certification",
+  "records": [
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat/CombatState.cs",
+      "sha256": "bd5f86957741c078fd279bad8d089b54ca5e17326d14e18cdecf9832a5661bb8",
+      "source_lines": 618,
+      "citations": [
+        {
+          "start": 1,
+          "end": 618
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Creatures/Creature.cs",
+      "sha256": "7a38841c525d5cc8873a2151e993e30e2ee84ecb345ea57e2570bbac4516c20d",
+      "source_lines": 823,
+      "citations": [
+        {
+          "start": 1,
+          "end": 823
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/CreatureCmd.cs",
+      "sha256": "b4c0eace35caeb0998edb70af5b626f96835c0d3149d474b9b7c4693d9e30278",
+      "source_lines": 1001,
+      "citations": [
+        {
+          "start": 1,
+          "end": 1001
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat/CombatTurnState.cs",
+      "sha256": "cfd1cd990a3c6763f5b2555e8d130fa3bd0cc4ad15ad752482c0e14749e067ad",
+      "source_lines": 132,
+      "citations": [
+        {
+          "start": 1,
+          "end": 132
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat/CombatManager.cs",
+      "sha256": "590b7a9b013b5f72cfc90330330f3eca7e7fd2adaed180872b521549e654d1ad",
+      "source_lines": 1982,
+      "citations": [
+        {
+          "start": 1,
+          "end": 1982
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/MonsterModel.cs",
+      "sha256": "4b1d47c2021ceeb555a5e86c7dc9912268cc3c7f060eca9963780c6be6e87621",
+      "source_lines": 516,
+      "citations": [
+        {
+          "start": 1,
+          "end": 516
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.MonsterMoves.MonsterMoveStateMachine/MonsterMoveStateMachine.cs",
+      "sha256": "467f003e8a7586372fb8a16756a05b40c552e52cf19d32441ed2e2924cec8dd3",
+      "source_lines": 88,
+      "citations": [
+        {
+          "start": 1,
+          "end": 88
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/PowerModel.cs",
+      "sha256": "2cc44bddbdd6de6e1d3ded50110a0aace66bc37a942dbf1c5af2af08b9a80dbc",
+      "source_lines": 650,
+      "citations": [
+        {
+          "start": 1,
+          "end": 650
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/AdaptablePower.cs",
+      "sha256": "d52696c9f8e9b8753844c46a7d9e1a8644bcadcf332a93042fa8440ad91285d4",
+      "source_lines": 71,
+      "citations": [
+        {
+          "start": 1,
+          "end": 71
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Monsters/TestSubject.cs",
+      "sha256": "73375eba65bc85c3db7ae61dfee6e9cd929fb4691df0d4b89471cec20610a6ae",
+      "source_lines": 423,
+      "citations": [
+        {
+          "start": 1,
+          "end": 423
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/ReattachPower.cs",
+      "sha256": "7d8b21db9c6908f0e87c1a4c803cdca54066ba628df5f9ee2e066fa71bf0e652",
+      "source_lines": 160,
+      "citations": [
+        {
+          "start": 1,
+          "end": 160
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Monsters/DecimillipedeSegment.cs",
+      "sha256": "c5218cdeb9df32ccfbc1fcfc6e14209b319cfe654eec96dd6226cdb08f98b27c",
+      "source_lines": 282,
+      "citations": [
+        {
+          "start": 1,
+          "end": 282
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/IllusionPower.cs",
+      "sha256": "7461c923281077a0f9acf3647dc08ec0ff75ed04e1098406f6dc8b6fbb6fb31d",
+      "source_lines": 135,
+      "citations": [
+        {
+          "start": 1,
+          "end": 135
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/InfestedPower.cs",
+      "sha256": "d496c595a5fbc7527cd5bd6ca4282ec2bbecd3f5fdc36a72a3d777e35ea3a38f",
+      "source_lines": 55,
+      "citations": [
+        {
+          "start": 1,
+          "end": 55
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Encounters/PhrogParasiteElite.cs",
+      "sha256": "5b030a2a34e621bb54d093010ebaef9312456cb04d2fa0c95713b2594748b462",
+      "source_lines": 42,
+      "citations": [
+        {
+          "start": 1,
+          "end": 42
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Monsters/ToughEgg.cs",
+      "sha256": "68d8a9d5a728ae5a43c9ea258c00d5902143bac9dd1053532e1d47ba442cde02",
+      "source_lines": 209,
+      "citations": [
+        {
+          "start": 1,
+          "end": 209
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/HatchPower.cs",
+      "sha256": "f5bb49856cc482d818b7a49a828ba7c135509fed828612ce7556f69793f50092",
+      "source_lines": 25,
+      "citations": [
+        {
+          "start": 1,
+          "end": 25
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Monsters/Ovicopter.cs",
+      "sha256": "bffac853521afcaa0fd4d74d6aa595da359096e65cc67d0e99484b600881aaec",
+      "source_lines": 148,
+      "citations": [
+        {
+          "start": 1,
+          "end": 148
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/SwipePower.cs",
+      "sha256": "25bc80f818baa5bf58a0aa0c6ece876ab675150f8ff4d9eab86a2f1d07708aac",
+      "source_lines": 79,
+      "citations": [
+        {
+          "start": 1,
+          "end": 79
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/PossessStrengthPower.cs",
+      "sha256": "983c6efcb84feb5dad5dabab06dfd319f2b220ae4620a50fe8edff50c8d65526",
+      "source_lines": 68,
+      "citations": [
+        {
+          "start": 1,
+          "end": 68
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Powers/PossessSpeedPower.cs",
+      "sha256": "96bea597fc9827911f2a3d052f3f1061c0f1b6c5d18a15c685273e9617b35a86",
+      "source_lines": 68,
+      "citations": [
+        {
+          "start": 1,
+          "end": 68
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/EncounterModel.cs",
+      "sha256": "d2f5b2f819caab947250cfc9eb42c6887776ba1b971a551b569c7c5ac3636e20",
+      "source_lines": 414,
+      "citations": [
+        {
+          "start": 1,
+          "end": 414
+        }
+      ],
+      "role": "Source-inspected; precise topic/member citations and authored findings in entities.md"
+    },
+    {
+      "source": "tools/oracle/adapters/RecordingSession.cs",
+      "sha256": "019f471d110281192d2ebfbd6ea633356177734dacce6792e27536e33257505f",
+      "source_lines": 521,
+      "citations": [
+        {
+          "start": 277,
+          "end": 306
+        },
+        {
+          "start": 410,
+          "end": 432
+        }
+      ],
+      "role": "Current adapter graph reference export; not native retention proof"
+    }
+  ],
+  "reference_graph": [
+    {
+      "owner": "combat",
+      "targets": [
+        "ordered active creatures",
+        "escaped creature instances",
+        "attached inactive created entities"
+      ]
+    },
+    {
+      "owner": "creature",
+      "targets": [
+        "combat membership/domain",
+        "monster instance",
+        "ordered powers"
+      ]
+    },
+    {
+      "owner": "power",
+      "targets": [
+        "bound owner even after removal",
+        "optional applier",
+        "optional target",
+        "internal per-creature dictionaries and flags"
+      ]
+    },
+    {
+      "owner": "monster/AI",
+      "targets": [
+        "creature",
+        "current/initial state",
+        "dynamic revive states",
+        "ordered state log",
+        "captured move target list"
+      ]
+    },
+    {
+      "owner": "turn state",
+      "targets": [
+        "original combat/domain ID",
+        "pending loss room",
+        "readiness and cancellation stage"
+      ]
+    },
+    {
+      "owner": "encounter",
+      "targets": [
+        "unique canonical spawned monster definitions",
+        "ordered slots"
+      ]
+    },
+    {
+      "owner": "Swipe",
+      "targets": [
+        "stolen combat card",
+        "removed DeckVersion",
+        "original player target",
+        "reward reference to same deck card"
+      ]
+    }
+  ],
+  "invariants": [
+    "Do not conflate active membership, life, hit/power eligibility and semantic reachability.",
+    "Retire only after all future-affecting declared references and callbacks are discharged.",
+    "Checkpoint clones preserve live internal data/aliases rather than native prototype clone reset behavior.",
+    "Preserve combat domain identity so stale work cannot adopt the next combat.",
+    "Hatching and native revival mutate existing creature identity.",
+    "Encounter SpawnedEnemies contains unique canonical definitions, not spawned instances."
+  ],
+  "regressions": [
+    "Restore both TestSubject dead/revive stops and final death.",
+    "Kill one/all Decimillipede segments with repeat/multihit/retaliation.",
+    "Kill monster while performing its own move, including deferred removal.",
+    "Hatch same ToughEgg ID with Minion and removable powers.",
+    "Restore Illusion dynamic revive state and captured followup.",
+    "Spawn Ovicopter eggs/Infested Wrigglers sequentially with correct IDs/slots.",
+    "Swipe and return exact upgraded enchanted DeckVersion/reward identity.",
+    "Possess target dictionaries with repeated theft/prevented death/clone branches.",
+    "Complete or lose/reset old combat then begin new; stale captured work cannot mutate it."
+  ],
+  "limits": [
+    "Named victory dependencies and common primitives inspected; additional handlers require captured-reference audit.",
+    "Native references do not dictate C++ allocation layout.",
+    "No new oracle/runtime branch test; no simulator implementation."
+  ]
+}

@@ -104,8 +104,11 @@ The later milestone-order decision owns implementation slicing and sequencing.
   `DeckVersion`. Preserve separate identities and explicit links where the game does.
   The normative [state inventory](../../specs/engine/state-inventory.md) requires this;
   the architecture's simplified movement wording must not collapse those objects.
-- Consumed potions remain continuation sources at actions 385, 612 and 647, in
-  `/combat/retained_inventory_models`. Slot membership and lifetime are different.
+- Consumed potions remain continuation sources in the boundaries after actions 384,
+  611 and 646, immediately before selections 385, 612 and 647, in
+  `/combat/retained_inventory_models`. Those exporter entries disappear after the
+  selections; that does not prove native destruction. Slot membership and lifetime
+  are different. The lifetime audit clarifies these before/after action identities.
 - Potion indices refer to `slot_index`, not compact-list position. Action 650 targets
   slot 2 while only one potion remains.
 - The final boss can have no legal enemy target while revival is pending. Pinned

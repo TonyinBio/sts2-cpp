@@ -1,0 +1,495 @@
+{
+  "evidence_kind": "Static pinned-source lifetime audit; no runtime or simulator certification",
+  "sources": [
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Players/Player.cs",
+      "sha256": "9fa253c367c1f2d709cee662c49a9579dd32ab989073a3dfdf4be53e073eda6d",
+      "source_lines": 876,
+      "inspected_ranges": [
+        [
+          452,
+          523
+        ],
+        [
+          692,
+          706
+        ],
+        [
+          794,
+          815
+        ],
+        [
+          837,
+          843
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Runs/RunState.cs",
+      "sha256": "e7066191a376a6d6beeb08d90b839389d0b7d1600e900f164759ef928e735a11",
+      "source_lines": 733,
+      "inspected_ranges": [
+        [
+          383,
+          453
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Combat/CombatState.cs",
+      "sha256": "bd5f86957741c078fd279bad8d089b54ca5e17326d14e18cdecf9832a5661bb8",
+      "source_lines": 618,
+      "inspected_ranges": [
+        [
+          168,
+          216
+        ],
+        [
+          519,
+          525
+        ],
+        [
+          556,
+          601
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/CardModel.cs",
+      "sha256": "aa464f969f3d28c271aee8ed1594ba3118ddc4d4c6c1802d5ded725b6b70fe0c",
+      "source_lines": 2295,
+      "inspected_ranges": [
+        [
+          1198,
+          1241
+        ],
+        [
+          1599,
+          1608
+        ],
+        [
+          1858,
+          2035
+        ],
+        [
+          2182,
+          2227
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/AbstractModel.cs",
+      "sha256": "1d29219b11c030ac17dadf903b3761bb022d3f653e1833a5de974bf96ad27c2d",
+      "source_lines": 2475,
+      "inspected_ranges": [
+        [
+          153,
+          196
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/CardPileCmd.cs",
+      "sha256": "7d8615a01c8f201527c27e9b59042de3a616785145ee0334ac0a6dac691cc291",
+      "source_lines": 1286,
+      "inspected_ranges": [
+        [
+          53,
+          88
+        ],
+        [
+          110,
+          208
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/CardCmd.cs",
+      "sha256": "0ea75a4209aa6cf4aecc1246656e4a2e54930ab84f341ce830ff0cfcbdd1db87",
+      "source_lines": 900,
+      "inspected_ranges": [
+        [
+          371,
+          455
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Cards/CardCreationResult.cs",
+      "sha256": "fd46e6cd8cfb28c1590d34bc7f0e78dd488a9d1136a67281e3071d92b152e428",
+      "source_lines": 35,
+      "inspected_ranges": [
+        [
+          7,
+          35
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/PotionModel.cs",
+      "sha256": "7f84eddd89624d0bdf25b0e0082212d9ed60fce3ce239d4a1eca422ff9590836",
+      "source_lines": 401,
+      "inspected_ranges": [
+        [
+          116,
+          145
+        ],
+        [
+          220,
+          239
+        ],
+        [
+          297,
+          353
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/RelicModel.cs",
+      "sha256": "82d29bc5857bbf1dadaf26a6d55dbb05c19af0067bf8a642dd6d225999303f7b",
+      "source_lines": 590,
+      "inspected_ranges": [
+        [
+          512,
+          535
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Commands/RelicCmd.cs",
+      "sha256": "7da9c58b87b37e212a85f1541883d0e627d081c561d6b833ed2e1f89e69c3e51",
+      "source_lines": 94,
+      "inspected_ranges": [
+        [
+          35,
+          93
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/EnchantmentModel.cs",
+      "sha256": "b876fb7086c0c5359be5c7afc83545f10019c9424c603a47b9045c228311e52e",
+      "source_lines": 460,
+      "inspected_ranges": [
+        [
+          130,
+          189
+        ],
+        [
+          273,
+          336
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/AfflictionModel.cs",
+      "sha256": "8aee0ce0b30603c24b325ed4c02aa67e1c2182817b163a0e85a03a195df03e41",
+      "source_lines": 258,
+      "inspected_ranges": [
+        [
+          220,
+          258
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Entities.Players/PlayerCombatState.cs",
+      "sha256": "c908ea3144a466dc0d979ec44ade207dd692d6b23b9512afbcccae3468fea123",
+      "source_lines": 293,
+      "inspected_ranges": [
+        [
+          142,
+          152
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/ArchaicTooth.cs",
+      "sha256": "a2b0e2e32c48689bc16f6c6225687b4c75a995e7ef5006f0cecc10de463d08fa",
+      "source_lines": 173,
+      "inspected_ranges": [
+        [
+          20,
+          24
+        ],
+        [
+          54,
+          119
+        ],
+        [
+          149,
+          173
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/SilkenTress.cs",
+      "sha256": "f045974dee1b42bf18fb678bd11b4f60b529f3d272866dfad3c266884d099139",
+      "source_lines": 84,
+      "inspected_ranges": [
+        [
+          16,
+          82
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/SeaGlass.cs",
+      "sha256": "6833f9402cf40a44b2844589ef2b8391519c8181ad557ac8af2d9a1ebaa32665",
+      "source_lines": 94,
+      "inspected_ranges": [
+        [
+          23,
+          94
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/Nunchaku.cs",
+      "sha256": "a92136bd62320001fe02783db5c11ef70aa5df3b4ef5226243df5f1830697243",
+      "source_lines": 109,
+      "inspected_ranges": [
+        [
+          17,
+          109
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/Pendulum.cs",
+      "sha256": "b6cde64b88889ab99f32e49c660e864ecebe732b003220f1d9663b1025e592e9",
+      "source_lines": 117,
+      "inspected_ranges": [
+        [
+          19,
+          117
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/JossPaper.cs",
+      "sha256": "97237a51eda6199f48455edf7e83c061a73b97980279ee4a6cfdd149561b6bf2",
+      "source_lines": 149,
+      "inspected_ranges": [
+        [
+          22,
+          149
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/LetterOpener.cs",
+      "sha256": "7e7baa1be33e66dad81bf434502c81d327e4980b94470fa76a00f3295f6b2679",
+      "source_lines": 142,
+      "inspected_ranges": [
+        [
+          19,
+          142
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/RainbowRing.cs",
+      "sha256": "2af36eb8b68494aabc34ac77cb75f7785850a5218631fe12c630cef96caab1a8",
+      "source_lines": 132,
+      "inspected_ranges": [
+        [
+          19,
+          132
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/BurningSticks.cs",
+      "sha256": "7c01f7308ea8d12a84161c069c669dbdadc18fb48ef5f551a5d9adcfbe3e8cf9",
+      "source_lines": 62,
+      "inspected_ranges": [
+        [
+          14,
+          61
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/CentennialPuzzle.cs",
+      "sha256": "610d506f51cef90c84cded79e508251f3ce462177fa3e7ccda88b8feac2593aa",
+      "source_lines": 58,
+      "inspected_ranges": [
+        [
+          16,
+          58
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/Permafrost.cs",
+      "sha256": "15f99b67cc992dd3c88839f8eae79d829528b92ad6a57e71266cbf88897cd585",
+      "source_lines": 54,
+      "inspected_ranges": [
+        [
+          16,
+          53
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Relics/RedSkull.cs",
+      "sha256": "cf57eb10a81ced7a20a845c53b1f58253fbf980f1b72f76243d57f1cbe165382",
+      "source_lines": 86,
+      "inspected_ranges": [
+        [
+          19,
+          86
+        ]
+      ]
+    },
+    {
+      "source": "tools/oracle/adapters/RecordingSession.cs",
+      "sha256": "019f471d110281192d2ebfbd6ea633356177734dacce6792e27536e33257505f",
+      "source_lines": 521,
+      "inspected_ranges": [
+        [
+          228,
+          304
+        ],
+        [
+          354,
+          371
+        ],
+        [
+          433,
+          479
+        ]
+      ],
+      "role": "adapter corroboration, not native lifetime authority"
+    }
+  ],
+  "records": [
+    {
+      "kind": "deck-and-combat-card",
+      "native_facts": [
+        "Player clones each permanent deck card into combat then sets clone.DeckVersion to permanent instance.",
+        "Native creation clone resets DeckVersion/current target/index/removal flag; simulator state clone must instead preserve pending state."
+      ],
+      "references": [
+        "owner",
+        "DeckVersion",
+        "CloneOf",
+        "enchantment.Card",
+        "affliction.Card",
+        "pile memberships",
+        "history/active play"
+      ],
+      "retire_preconditions": [
+        "no live semantic reference or required identity/export consumer",
+        "no authoritative membership",
+        "enclosing operation/dispatch finished or its required data independently preserved"
+      ]
+    },
+    {
+      "kind": "floating-and-removed-card",
+      "native_facts": [
+        "RunState/CombatState register created/cloned cards independently of piles.",
+        "CardModel.RemoveFromState removes current pile and sets removed flag; retains owner and registry/list references.",
+        "Scope RemoveCard is a different API which removes registry entry and clears owner."
+      ],
+      "references": [
+        "CardCreationResult.originalCard",
+        "CardCreationResult.modifiedCard",
+        "modifying relics",
+        "captured original/replacement/pile/index"
+      ],
+      "retire_preconditions": [
+        "cannot infer reclamation from removed flag, skip or empty pile",
+        "native scope list remains strong unless explicitly removed; simulator earlier reclamation requires semantic proof"
+      ]
+    },
+    {
+      "kind": "consumed-potion",
+      "native_facts": [
+        "Slot becomes null without compacting others; source owner retained.",
+        "Removal precedes BeforePotionUsed/OnUse, source is still read after asynchronous choice and by later callbacks."
+      ],
+      "references": [
+        "choice context source stack",
+        "pending operation source",
+        "captured target",
+        "owner",
+        "post-use history"
+      ],
+      "retire_preconditions": [
+        "effect and all downstream callbacks/continuations/history consumers have completed"
+      ]
+    },
+    {
+      "kind": "removed-or-melted-relic",
+      "native_facts": [
+        "Removal drops ordered inventory membership and marks removed but retains owner.",
+        "Melt keeps inventory instance with melted/disabled flags.",
+        "AfterRemoved runs on removed source; replacement preserves inventory position with distinct instance."
+      ],
+      "references": [
+        "captured dispatch",
+        "operation source",
+        "CardCreationResult.modifyingRelics",
+        "owner"
+      ],
+      "retire_preconditions": [
+        "direct callback/operation users done",
+        "no remaining semantic reference; hook ineligibility is distinct from object lifetime"
+      ]
+    },
+    {
+      "kind": "persistent-versus-combat-local-inventory-state",
+      "native_facts": [
+        "Nunchaku.AttacksPlayed, Pendulum.TurnsSeen, JossPaper.CardsExhausted, SilkenTress.IsUsed and SeaGlass character identity persist according to native saved fields and hook consumers.",
+        "Other observed flags/counters reset at specific turn/combat/room hooks; no blanket room reset is valid."
+      ],
+      "references": [
+        "model runtime/saved properties",
+        "dynamic values",
+        "hook stage"
+      ],
+      "retire_preconditions": [
+        "model removed and no semantic users",
+        "relevant reset hook performed rather than inferred from allocation scope"
+      ]
+    },
+    {
+      "kind": "export-surface",
+      "native_facts": [
+        "Adapter traverses inventory/history/active/pending/model references, exporting consumed inventory sources separately.",
+        "Adapter includes DeckVersion/CloneOf/removed/cost/attachment state but does not prove scope-allCards or native async-local completeness."
+      ],
+      "references": [
+        "registered native instance paths",
+        "retained_inventory_models",
+        "pending sources",
+        "model fields"
+      ],
+      "retire_preconditions": [
+        "preserve required comparison relationships independently of native allocation shape"
+      ]
+    }
+  ],
+  "required_invariants": [
+    "Separate stable identity from membership and logical removed/subscribed status.",
+    "Complete-state clone preserves aliasing internally and isolation externally.",
+    "Do not rerun native creation/reset hooks on checkpoint restore.",
+    "Retire only with no live semantic consumer; preserve generation and free-slot identity behavior.",
+    "No one-run maximum establishes capacity."
+  ],
+  "regressions": [
+    "permanent card removal/transformation while combat clone lives",
+    "floating original and modified reward offers across choose/skip/cancel",
+    "consumed choice potion across sparse-slot clone/checkpoint/resume",
+    "relic removal/replacement during dispatch with retained source",
+    "saved versus turn/combat counter resets over two combats"
+  ],
+  "limits": [
+    "Static source evidence only.",
+    "Native object creation clone is not simulator complete-state clone.",
+    "No whole-content reference closure or GC-timing equivalence claim.",
+    "Parent audit covers histories, entities and enclosing room/combat retirement."
+  ]
+}

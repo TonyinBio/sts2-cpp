@@ -1,0 +1,90 @@
+{
+  "evidence_kind": "stored recording extraction, not a new oracle experiment",
+  "actions_sha256": "a488c5496a83a55468fc44207c65ffd7270b6682eae250c7ca91d98f3501a766",
+  "states_decompressed_sha256": "8da581cb8f70bcb28054f0c1ba1841986bbef1ef3eab0633a715c732f2d7af0f",
+  "boundaries_scanned": 697,
+  "retained_choice_inventory_sources": [
+    {
+      "after_action": "action-000384",
+      "action": {
+        "kind": "use_potion",
+        "potion_index": 2
+      },
+      "source_pointer": "/combat/retained_inventory_models/39",
+      "model_id": "POTION.SKILL_POTION",
+      "source_slot_index": -1,
+      "removed_from_state": true,
+      "offered_candidates": [
+        "/combat/cards/card_31",
+        "/combat/cards/card_32",
+        "/combat/cards/card_33"
+      ],
+      "next_action": {
+        "id": "action-000385",
+        "action": {
+          "kind": "select_cards",
+          "card_instances": [
+            "card_32"
+          ]
+        }
+      },
+      "pointer_present_in_next_export_inventory": false,
+      "interpretation_limit": "Absence in later export is not native object destruction or permission to retire storage."
+    },
+    {
+      "after_action": "action-000611",
+      "action": {
+        "kind": "use_potion",
+        "potion_index": 1
+      },
+      "source_pointer": "/combat/retained_inventory_models/55",
+      "model_id": "POTION.COLORLESS_POTION",
+      "source_slot_index": -1,
+      "removed_from_state": true,
+      "offered_candidates": [
+        "/combat/cards/card_36",
+        "/combat/cards/card_37",
+        "/combat/cards/card_38"
+      ],
+      "next_action": {
+        "id": "action-000612",
+        "action": {
+          "kind": "select_cards",
+          "card_instances": [
+            "card_38"
+          ]
+        }
+      },
+      "pointer_present_in_next_export_inventory": false,
+      "interpretation_limit": "Absence in later export is not native object destruction or permission to retire storage."
+    },
+    {
+      "after_action": "action-000646",
+      "action": {
+        "kind": "use_potion",
+        "potion_index": 0
+      },
+      "source_pointer": "/combat/retained_inventory_models/54",
+      "model_id": "POTION.SKILL_POTION",
+      "source_slot_index": -1,
+      "removed_from_state": true,
+      "offered_candidates": [
+        "/combat/cards/card_39",
+        "/combat/cards/card_40",
+        "/combat/cards/card_41"
+      ],
+      "next_action": {
+        "id": "action-000647",
+        "action": {
+          "kind": "select_cards",
+          "card_instances": [
+            "card_40"
+          ]
+        }
+      },
+      "pointer_present_in_next_export_inventory": false,
+      "interpretation_limit": "Absence in later export is not native object destruction or permission to retire storage."
+    }
+  ],
+  "limits": "Ordinary JSON is used for inventory extraction only; this is not the exact state comparator. Export labels are local to adapter scope and do not identify native global object lifetimes."
+}

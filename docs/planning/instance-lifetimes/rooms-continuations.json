@@ -1,0 +1,308 @@
+{
+  "evidence_kind": "Static room/continuation lifetime source audit and current C++ gaps; not runtime certification",
+  "sources": [
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Runs/RunState.cs",
+      "sha256": "e7066191a376a6d6beeb08d90b839389d0b7d1600e900f164759ef928e735a11",
+      "source_lines": 733,
+      "inspected_ranges": [
+        [
+          171,
+          185
+        ],
+        [
+          458,
+          499
+        ],
+        [
+          686,
+          691
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Runs/RunManager.cs",
+      "sha256": "1e00a9480697d85f15fa12011749d38752b6c4c9c775d76d2ed793281c98d76d",
+      "source_lines": 1813,
+      "inspected_ranges": [
+        [
+          923,
+          931
+        ],
+        [
+          1162,
+          1245
+        ],
+        [
+          1278,
+          1304
+        ],
+        [
+          1335,
+          1339
+        ],
+        [
+          1418,
+          1463
+        ],
+        [
+          1569,
+          1615
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rooms/AbstractRoom.cs",
+      "sha256": "4b4cd57087afed1e09db00ddaac8bae717f538b4fbc5409b434cd9523f88ae23",
+      "source_lines": 112,
+      "inspected_ranges": [
+        [
+          27,
+          34
+        ],
+        [
+          59,
+          80
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rooms/EventRoom.cs",
+      "sha256": "27d94b51c8fe2f5926dacde99f9dfa54d879871d02349024b18a460a4f57165e",
+      "source_lines": 143,
+      "inspected_ranges": [
+        [
+          56,
+          112
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rooms/CombatRoom.cs",
+      "sha256": "ee7f601665e3a7dc6ad8cf804ebba667314b5ef5e55f7e55dd663d142162d627",
+      "source_lines": 275,
+      "inspected_ranges": [
+        [
+          122,
+          158
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rooms/MerchantRoom.cs",
+      "sha256": "25f2da261216087d13df0299fb11e95acd3fcd1224be0afe6cdc6f58022e7cf1",
+      "source_lines": 123,
+      "inspected_ranges": [
+        [
+          52,
+          116
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rooms/RestSiteRoom.cs",
+      "sha256": "fee185f6a75eb7ccb8e9e4b07999ed79982ad426f4962e18d1d3cab40d45aac3",
+      "source_lines": 59,
+      "inspected_ranges": [
+        [
+          23,
+          49
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rooms/TreasureRoom.cs",
+      "sha256": "0b65d84f86c990e94c35f5f01c748a92355bed824ce4cb6af7a76b698d139e4a",
+      "source_lines": 98,
+      "inspected_ranges": [
+        [
+          34,
+          86
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Multiplayer.Game/EventSynchronizer.cs",
+      "sha256": "c3fce10eb0c00a41cc3829256e19165d405d6ab6c132f648e7667f0998684cfa",
+      "source_lines": 383,
+      "inspected_ranges": [
+        [
+          98,
+          126
+        ],
+        [
+          277,
+          290
+        ],
+        [
+          339,
+          381
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Multiplayer.Game/EventCombatSynchronizer.cs",
+      "sha256": "163a99bb922f7ffaf1263e5d3a7d014b64aa045f42f505c95a99e4225c82e409",
+      "source_lines": 187,
+      "inspected_ranges": [
+        [
+          63,
+          88
+        ],
+        [
+          127,
+          181
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Multiplayer.Game/RewardsSetSynchronizer.cs",
+      "sha256": "37d0b18814a3589efb01f7ba80c1c8e975f404ac0f2b91ec3945d81dcdd5d12e",
+      "source_lines": 453,
+      "inspected_ranges": [
+        [
+          57,
+          98
+        ],
+        [
+          167,
+          199
+        ],
+        [
+          329,
+          430
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Multiplayer.Game/RestSiteSynchronizer.cs",
+      "sha256": "dc61cb74d46515d6d4b790ad5d2dafca56c376f6a774fbf926e450aef85a888b",
+      "source_lines": 352,
+      "inspected_ranges": [
+        [
+          177,
+          253
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models/EventModel.cs",
+      "sha256": "fe3478e3d52a53a29f39d3307203558c6114ba1a1970c04c8b939f02e691fb81",
+      "source_lines": 661,
+      "inspected_ranges": [
+        [
+          510,
+          545
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rewards/RewardsSet.cs",
+      "sha256": "44bcf24ed0a76ea96391858ce6b7943012ea4d9f529c66e7ad54ca706f6cc002",
+      "source_lines": 392,
+      "inspected_ranges": [
+        [
+          46,
+          77
+        ],
+        [
+          129,
+          191
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rewards/Reward.cs",
+      "sha256": "97cb231aefb107d5f6df9d445e235d5d6b70c243c0067fe667930048d0656b87",
+      "source_lines": 188,
+      "inspected_ranges": [
+        [
+          127,
+          145
+        ]
+      ]
+    },
+    {
+      "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Rewards/CardReward.cs",
+      "sha256": "f102e52cdd40891fe1a49419f8b7f714a1a83fc252b699d1bd7d9a67423ee007",
+      "source_lines": 361,
+      "inspected_ranges": [
+        [
+          185,
+          313
+        ]
+      ]
+    },
+    {
+      "source": "tools/oracle/adapters/RunRecordingSession.cs",
+      "sha256": "3a7dfab76677b735ab8255b17f8479cd5a24e585c43ea5a9abdd9a65f7b6cee2",
+      "source_lines": 595,
+      "inspected_ranges": [
+        [
+          38,
+          98
+        ],
+        [
+          187,
+          236
+        ]
+      ]
+    },
+    {
+      "source": "include/sts2/state/run.hpp",
+      "sha256": "83b6fd4c95f3277b937ab935a2ceeaf93465c88e316bdf3202652c5e40eafe33",
+      "source_lines": 36,
+      "inspected_ranges": [
+        [
+          17,
+          35
+        ]
+      ]
+    },
+    {
+      "source": "include/sts2/state/history.hpp",
+      "sha256": "5dbc296577168962c0dd5886cdf34b76d05eee3a8f8e25e8dd70d0395c5cf013",
+      "source_lines": 35,
+      "inspected_ranges": [
+        [
+          6,
+          35
+        ]
+      ]
+    },
+    {
+      "source": "src/kernel/run_simulator.cpp",
+      "sha256": "776e617c725044330c1fc0879db18729711523c62e28f2a7dccf93ff6255f949",
+      "source_lines": 222,
+      "inspected_ranges": [
+        [
+          146,
+          153
+        ]
+      ]
+    },
+    {
+      "source": "src/kernel/run_validation.cpp",
+      "sha256": "34017921dbcadca5b8f40a5b63b09255737eee2932294b10c391e9a4e17a75f4",
+      "source_lines": 78,
+      "inspected_ranges": [
+        [
+          19,
+          24
+        ]
+      ]
+    }
+  ],
+  "findings_document": "rooms-continuations.md",
+  "retirement_requirements": [
+    "Complete native exit/end/cleanup and enclosing return work",
+    "No required prompt, operation, dispatch, history, field or export edge remains",
+    "Outstanding stale scope work cannot mutate a newer scope",
+    "Preserve required logical records and identity allocation metadata"
+  ],
+  "limits": [
+    "Does not prove CLR garbage-collection times",
+    "Does not prescribe an allocator or certify complete paused-state export",
+    "Network transport excluded; local semantic consequences retained"
+  ]
+}
