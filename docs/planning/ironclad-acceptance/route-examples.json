@@ -1,0 +1,220 @@
+{
+  "examples": [
+    {
+      "boundary": "action-000018",
+      "action": {
+        "kind": "proceed"
+      },
+      "room": {
+        "encounter_id": "ENCOUNTER.NIBBITS_WEAK",
+        "encounter_state": {},
+        "event_id": null,
+        "extra_rewards": {},
+        "is_pre_finished": true,
+        "parent_event_id": null,
+        "reward_proportion": 1,
+        "room_type": "monster",
+        "should_resume_parent_event": true
+      },
+      "boundary_kind": "awaiting_input",
+      "pending_choice_present": false,
+      "run_ending_reason": null
+    },
+    {
+      "boundary": "action-000294",
+      "action": {
+        "kind": "buy_potion",
+        "potion_index": 2
+      },
+      "room": {
+        "encounter_id": null,
+        "encounter_state": {},
+        "event_id": null,
+        "extra_rewards": {},
+        "is_pre_finished": false,
+        "parent_event_id": null,
+        "reward_proportion": 0,
+        "room_type": "shop",
+        "should_resume_parent_event": true
+      },
+      "boundary_kind": "awaiting_input",
+      "pending_choice_present": false,
+      "run_ending_reason": null
+    },
+    {
+      "boundary": "action-000384",
+      "action": {
+        "kind": "use_potion",
+        "potion_index": 2
+      },
+      "room": {
+        "encounter_id": "ENCOUNTER.THE_INSATIABLE_BOSS",
+        "encounter_state": {},
+        "event_id": null,
+        "extra_rewards": {},
+        "is_pre_finished": false,
+        "parent_event_id": null,
+        "reward_proportion": 1,
+        "room_type": "boss",
+        "should_resume_parent_event": true
+      },
+      "boundary_kind": "awaiting_input",
+      "pending_choice_present": true,
+      "run_ending_reason": null
+    },
+    {
+      "boundary": "action-000385",
+      "action": {
+        "kind": "select_cards",
+        "card_instances": [
+          "card_32"
+        ]
+      },
+      "room": {
+        "encounter_id": "ENCOUNTER.THE_INSATIABLE_BOSS",
+        "encounter_state": {},
+        "event_id": null,
+        "extra_rewards": {},
+        "is_pre_finished": false,
+        "parent_event_id": null,
+        "reward_proportion": 1,
+        "room_type": "boss",
+        "should_resume_parent_event": true
+      },
+      "boundary_kind": "awaiting_input",
+      "pending_choice_present": false,
+      "run_ending_reason": null
+    },
+    {
+      "boundary": "action-000611",
+      "action": {
+        "kind": "use_potion",
+        "potion_index": 1
+      },
+      "room": {
+        "encounter_id": "ENCOUNTER.TEST_SUBJECT_BOSS",
+        "encounter_state": {},
+        "event_id": null,
+        "extra_rewards": {},
+        "is_pre_finished": false,
+        "parent_event_id": null,
+        "reward_proportion": 1,
+        "room_type": "boss",
+        "should_resume_parent_event": true
+      },
+      "boundary_kind": "awaiting_input",
+      "pending_choice_present": true,
+      "run_ending_reason": null
+    },
+    {
+      "boundary": "action-000612",
+      "action": {
+        "kind": "select_cards",
+        "card_instances": [
+          "card_38"
+        ]
+      },
+      "room": {
+        "encounter_id": "ENCOUNTER.TEST_SUBJECT_BOSS",
+        "encounter_state": {},
+        "event_id": null,
+        "extra_rewards": {},
+        "is_pre_finished": false,
+        "parent_event_id": null,
+        "reward_proportion": 1,
+        "room_type": "boss",
+        "should_resume_parent_event": true
+      },
+      "boundary_kind": "awaiting_input",
+      "pending_choice_present": false,
+      "run_ending_reason": null
+    },
+    {
+      "boundary": "action-000646",
+      "action": {
+        "kind": "use_potion",
+        "potion_index": 0
+      },
+      "room": {
+        "encounter_id": "ENCOUNTER.TEST_SUBJECT_BOSS",
+        "encounter_state": {},
+        "event_id": null,
+        "extra_rewards": {},
+        "is_pre_finished": false,
+        "parent_event_id": null,
+        "reward_proportion": 1,
+        "room_type": "boss",
+        "should_resume_parent_event": true
+      },
+      "boundary_kind": "awaiting_input",
+      "pending_choice_present": true,
+      "run_ending_reason": null
+    },
+    {
+      "boundary": "action-000647",
+      "action": {
+        "kind": "select_cards",
+        "card_instances": [
+          "card_40"
+        ]
+      },
+      "room": {
+        "encounter_id": "ENCOUNTER.TEST_SUBJECT_BOSS",
+        "encounter_state": {},
+        "event_id": null,
+        "extra_rewards": {},
+        "is_pre_finished": false,
+        "parent_event_id": null,
+        "reward_proportion": 1,
+        "room_type": "boss",
+        "should_resume_parent_event": true
+      },
+      "boundary_kind": "awaiting_input",
+      "pending_choice_present": false,
+      "run_ending_reason": null
+    },
+    {
+      "boundary": "action-000650",
+      "action": {
+        "kind": "use_potion",
+        "potion_index": 2
+      },
+      "room": {
+        "encounter_id": "ENCOUNTER.TEST_SUBJECT_BOSS",
+        "encounter_state": {},
+        "event_id": null,
+        "extra_rewards": {},
+        "is_pre_finished": false,
+        "parent_event_id": null,
+        "reward_proportion": 1,
+        "room_type": "boss",
+        "should_resume_parent_event": true
+      },
+      "boundary_kind": "awaiting_input",
+      "pending_choice_present": false,
+      "run_ending_reason": null
+    },
+    {
+      "boundary": "action-000696",
+      "action": {
+        "kind": "choose_option",
+        "option_index": 0
+      },
+      "room": {
+        "encounter_id": null,
+        "encounter_state": {},
+        "event_id": "EVENT.THE_ARCHITECT",
+        "extra_rewards": {},
+        "is_pre_finished": false,
+        "parent_event_id": null,
+        "reward_proportion": 0,
+        "room_type": "event",
+        "should_resume_parent_event": true
+      },
+      "boundary_kind": "run_complete",
+      "pending_choice_present": false,
+      "run_ending_reason": "victory"
+    }
+  ],
+  "interpretation": "Stored anchors to inspect; existence proves neither an alternate branch nor an independent public golden."
+}

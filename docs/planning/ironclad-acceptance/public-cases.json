@@ -1,0 +1,405 @@
+{
+  "case_count": 34,
+  "cases": [
+    {
+      "case": "combat-pile-order",
+      "source": "docs/planning/public-visibility-audit/combat.md",
+      "line": 144,
+      "requirements": [
+        "Draw contains at least three different rarity/model keys in non-display order; inspection shows rarity + ordinal model entry, not backing draw order. Discard and exhaust retain their sequence.",
+        "C1, C2"
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "combat-draw-equal-keys",
+      "source": "docs/planning/public-visibility-audit/combat.md",
+      "line": 145,
+      "requirements": [
+        "Same-model duplicates with different visible upgrades/enchantments; capture native order for short and longer draw piles. Preserve native tie behavior without inventing hidden instance-order fields.",
+        "C1, C2"
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "combat-selection-order",
+      "source": "docs/planning/public-visibility-audit/combat.md",
+      "line": 146,
+      "requirements": [
+        "Draw selection includes names whose English title order differs from model entry order and status/curse/token rarities. Capture native grid versus selector adapter; their output order need not agree.",
+        "C2, C6, C7"
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "combat-empty-piles",
+      "source": "docs/planning/public-visibility-audit/combat.md",
+      "line": 147,
+      "requirements": [
+        "Empty draw/discard yields thought feedback; never-used exhaust button is absent; empty-after-reveal exhaust is a distinct UI history case.",
+        "C3, C4"
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "combat-powers",
+      "source": "docs/planning/public-visibility-audit/combat.md",
+      "line": 148,
+      "requirements": [
+        "Visible counter zero, visible non-counter, hidden AmbergrisPower: respectively preserve visible zero, empty amount label, and absence of hidden power.",
+        "C12–C15"
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "combat-intents",
+      "source": "docs/planning/public-visibility-audit/combat.md",
+      "line": 149,
+      "requirements": [
+        "Single attack, multiattack, status, composite intent list and HiddenIntent: capture ordered icons/labels/tips with damage modifiers. Hidden has no fabricated public type label.",
+        "C8–C11"
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "combat-disabled-card",
+      "source": "docs/planning/public-visibility-audit/combat.md",
+      "line": 150,
+      "requirements": [
+        "Card has simultaneous energy and hook restrictions; hand retains it, cost/icon disabled state is visible, failed play feedback selects native priority and localized blocker name only where used.",
+        "C16, C19–C21"
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "combat-targets",
+      "source": "docs/planning/public-visibility-audit/combat.md",
+      "line": 151,
+      "requirements": [
+        "Living enemy, dead enemy, self, other player, node-filtered or hook-blocked target; compare card and potion forms including null/self difference. Restrict production fixtures to reachable single-player states; other-player branch is source-only.",
+        "C16–C18"
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "combat-draw-choice-scope",
+      "source": "docs/planning/public-visibility-audit/combat.md",
+      "line": 152,
+      "requirements": [
+        "Droplet: 0/1/many eligible draw cards, manual/nonmanual confirmation variants. Capture whether there is a prompt and its order, then observe selected card in hand and absence of any granted ordered-draw view.",
+        "C7, C22"
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "combat-query-purity",
+      "source": "docs/planning/public-visibility-audit/combat.md",
+      "line": 153,
+      "requirements": [
+        "Repeated observation/actions/previews/pile queries leave complete state, pending prompt, gameplay RNG, identity allocator and boundary unchanged; native graphical open/target-cancel is recorded separately.",
+        "C1–C3, C8; contract"
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P01 Fixed versus optional simple grid",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 95,
+      "requirements": [
+        "Same three offered cards: exact 1 auto-submits on click; 0–2 remains partial and permits zero confirmation. Selected card toggles off; max blocks an additional selection."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P02 Hand differs from grid",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 96,
+      "requirements": [
+        "Native discard/retain/upgrade hand prompt: capture preselection, select, deselect, replace-at-cap and explicit confirm. Include unpowered-preview and pretend-playable flags. Certify actual clicked path rather than the automated selector."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P03 Deck two-level cancellation",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 97,
+      "requirements": [
+        "Shop removal: enter selection, select card, cancel preview, select another card, confirm; alternate branch closes grid. Preview cancel retains the pending purchase and empties partial selection. Whole close returns to shop without spending or incrementing removal count. Confirm spends once."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P04 Disabled rest option",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 98,
+      "requirements": [
+        "Deck with no upgradable cards: Smith remains visible/inspectable with disabled description. A valid Smith branch cancelled at selection returns to usable rest options. Repeated inspect leaves stored options/RNG untouched."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P05 Dynamic eligible pile",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 99,
+      "requirements": [
+        "Pile choice with filtered candidates: changing eligible membership removes invalid selected cards; reduced remaining candidates clamp completion count; none remaining completes empty. Capture a naturally reachable supported mechanic before claiming runtime coverage."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P06 Reward states",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 100,
+      "requirements": [
+        "Ordered mixed rewards, one linked set, card alternatives, skipped/claimed states and all-claimed state. Terminal rewards retain proceed; a nonterminal custom reward returns to owner context. Include a DisallowSkipping set."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P07 Shop accepted failure",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 101,
+      "requirements": [
+        "Full potion slots, enough gold, stocked potion: native attempt does not procure, charge or clear stock; preserve visible failure feedback. Compare with insufficient-gold presentation and used-removal presentation; don't fabricate English reasons."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P08 Event option shape",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 102,
+      "requirements": [
+        "One native locked branch, one omitted branch, one lethal single-player branch and one repeatable cancellable confirmation. Capture actual visible option sequence and lock text. Cancellation must not make a repeatable branch unusable."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P09 Treasure before/reveal/after",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 103,
+      "requirements": [
+        "Inspect closed chest, reveal, collect or skip, proceed. Relic identity/content is absent before native reveal and remains stable once revealed. Additional reward overlays must return to treasure collection."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P10 Nested room return",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 104,
+      "requirements": [
+        "Event starts combat, rewards proceed resumes the original event; compare ordinary combat rewards proceeding to map. Same room type must not erase return context."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P11 Map reachability",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 105,
+      "requirements": [
+        "Ordinary children, free-travel next row, boss and second-boss special cases. Keep visible topology fixed while varying hidden unknown-room resolution; actions remain unchanged until revelation."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P12 Terminal classification and fields",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 106,
+      "requirements": [
+        "Natural loss and Architect victory, score-line presence/order including zero counts. Repeated inspect and acknowledgment do not reroll loss quote, replay final effects or alter outcome. Capture UI score fields independently from native save serialization."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P13 Bundle choice",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 107,
+      "requirements": [
+        "Offer several distinct bundles; click one, inspect a card, cancel preview, choose another, confirm. Bundle row order is preserved; preview physical order is mapped explicitly. Preview cancel does not mean skip, grant cards or complete the owning effect."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P14 Relic choice",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 108,
+      "requirements": [
+        "Offer several relics; choose one versus press the visible Skip. Immediate selection and empty skip are separate from bundle preview/confirm. IDs survive inspection and no unoffered pool relic appears."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P15 Explicit configuration",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 109,
+      "requirements": [
+        "Enter ` oi `, clear seed, tick two mutually exclusive modifier types, tick CharacterCards variants, randomize once, inspect repeatedly and embark. Check native displayed entry, canonical start seed `01`, checkbox changes, modifier order and null/random seed distinction. This certifies the custom editor facts without asserting new game-mode scope."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "P16 Event page and hover visibility",
+      "source": "docs/planning/public-visibility-audit/prompts.md",
+      "line": 110,
+      "requirements": [
+        "Tinker Time reveals only the sampled two types and then only the sampled two riders; Self Help Book exposes locked text versus sole no-options continuation; Relic Trader hover tips expose the actual offered pair. Neow modifier options appear serially, and Architect dialogue uses continue/respond/proceed rather than normal combat inputs."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "NI-RNG",
+      "source": "docs/planning/public-visibility-audit/invariants.md",
+      "line": 68,
+      "requirements": [
+        "Future RNG state/counters",
+        "Already generated public offers, current intents, visible values and legal inputs. No RNG fields, seed derivations or debug diagnostics leak; future actions may subsequently diverge."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "NI-DRAW",
+      "source": "docs/planning/public-visibility-audit/invariants.md",
+      "line": 69,
+      "requirements": [
+        "Permute draw backing sequence among distinct native inspection sort keys",
+        "Same cards and visible modifications, counts, current hand and public identity history; no explicit sequence reveal active. Same sorted inspection and public actions. Do not extend this assertion blindly to same-key duplicates; see combat report's tie-order gap."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "NI-AI",
+      "source": "docs/planning/public-visibility-audit/invariants.md",
+      "line": 70,
+      "requirements": [
+        "Change a future AI roll/history element that does not feed current intent/hover/previews",
+        "Same current visible intent and target eligibility. Exclude all current visible forecast dependencies from the variation. Never substitute an AI move-state name for a public intent."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "NI-MAP",
+      "source": "docs/planning/public-visibility-audit/invariants.md",
+      "line": 71,
+      "requirements": [
+        "Vary unrevealed unknown-room result or future act generation",
+        "Same visible map topology, node icons, visited path, available travel and boss disclosure. A current map/boss reveal invalidates the pair if it exposes the changed fact."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "NI-OFFER",
+      "source": "docs/planning/public-visibility-audit/invariants.md",
+      "line": 72,
+      "requirements": [
+        "Change not-yet-generated or inaccessible future stock/reward choices",
+        "Current offered objects, displayed locked/sold state, costs and legal inputs. Revealing the changed stock is a later intentional divergence."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "NI-FRAME",
+      "source": "docs/planning/public-visibility-audit/invariants.md",
+      "line": 73,
+      "requirements": [
+        "Change an opaque retained execution detail not used by current public fields",
+        "Same prompt owner, instruction, options, restrictions, partial selection and visible captured feedback. This cannot omit semantic state from checkpoints."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "NI-ID",
+      "source": "docs/planning/public-visibility-audit/invariants.md",
+      "line": 74,
+      "requirements": [
+        "Allocate/retire an otherwise unobservable instance or alter hidden storage slot placement",
+        "Same public identity history and visible object graph. Public IDs and enumerated options do not reveal allocation order/count or future pool positions."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    },
+    {
+      "case": "NI-ERROR",
+      "source": "docs/planning/public-visibility-audit/invariants.md",
+      "line": 75,
+      "requirements": [
+        "Submit the same stale/malformed public action to equivalent pairs",
+        "Equal public restriction category/reason and unchanged full state/RNG/IDs; privileged diagnostics stay outside the public channel. Distinguish native accepted attempts, including full-inventory purchase failure, from rejected inputs."
+      ],
+      "native_capture": "pending",
+      "C++_comparison": "pending",
+      "scope_rule": "Only reachable observed-plus-fixed single-player mechanics gate Ironclad; examples outside that closure are deferred. P15 graphical editor/modifier controls do not become an in-run milestone requirement. Bundle/relic/dynamic-pile paths require a supported native caller. Droplet and Ambergris examples do not automatically add those model effects to scope."
+    }
+  ],
+  "cross_cutting": [
+    "independent native public path, not filtered snapshot",
+    "stable identity correspondence, not numeric native/C++ ID equality",
+    "missing/hidden/empty/zero distinctions",
+    "read/inspect/advance purity at every supported stop",
+    "meaningful semantic ordering and reveal before/during/after",
+    "partial selection toggles are inputs, not pure reads"
+  ]
+}

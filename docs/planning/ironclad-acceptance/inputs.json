@@ -1,0 +1,76 @@
+{
+  "inputs": [
+    {
+      "path": "docs/planning/victory-mechanics/scope-roots.json",
+      "sha256": "cce7e3da97cfd14e914c1cc3562610628b6945c1c34f98eb9daa82a1c4bb6f69"
+    },
+    {
+      "path": "docs/planning/victory-mechanics/inventory.json",
+      "sha256": "5de026b59a3e96b1441c50e5468dcb94dc4c67894043882f6fb4233b3e441559"
+    },
+    {
+      "path": "docs/planning/victory-semantics/cards.json",
+      "sha256": "f51e107fef8a32d3fe3ea71e90f65d66ed6b7b4d92f5a55fbc0b23d118ac68c6"
+    },
+    {
+      "path": "docs/planning/victory-semantics/inventory.json",
+      "sha256": "e395fccb154b6664c1653809cd90c30c3f694fca3e9875a2030c61b7f1bc540d"
+    },
+    {
+      "path": "docs/planning/victory-semantics/encounters.json",
+      "sha256": "c00c3c9396882e30618af6836eda39c8c7f1a2de18c66290688826b7e7434ddd"
+    },
+    {
+      "path": "docs/planning/public-visibility-audit/combat.md",
+      "sha256": "3a84b781945637c7c06ce243ad7b24baea8dd54e2d0e73b06a79e3a8ce0afab8"
+    },
+    {
+      "path": "docs/planning/public-visibility-audit/prompts.md",
+      "sha256": "befd7ab4461308e357c4315191a6865832fababd7eb1bfff67a1a1f5796d34b9"
+    },
+    {
+      "path": "docs/planning/public-visibility-audit/invariants.md",
+      "sha256": "7e6b37fe6b4f016fb7eed272ca1fc848c037bfa804ff64d4b5fd243acf67ad99"
+    },
+    {
+      "path": "docs/planning/public-visibility-audit/adapter.md",
+      "sha256": "a765170df7afe5541c312d24b8c99b9dc2ca7ca75c3c1ab5d334e4551f6f6708"
+    },
+    {
+      "path": "docs/planning/instance-lifetimes/cards-inventory.json",
+      "sha256": "3ab50c475c4b766d05d27d0848760425726f8b99737a050eef21c23bee912077"
+    },
+    {
+      "path": "docs/planning/instance-lifetimes/entities.json",
+      "sha256": "1355181c1582c0bc953f4ea3fef9d179d3e793a23cc7c34768018896b2bc2d78"
+    },
+    {
+      "path": "docs/planning/instance-lifetimes/history-dispatch.json",
+      "sha256": "f350cf85bb45a5f8bb9c0fb5111e36aeeb19467074c86bed1629ec59235bbc62"
+    },
+    {
+      "path": "docs/planning/instance-lifetimes/rooms-continuations.json",
+      "sha256": "a69064a72ec8383f28c8a8be2117391662925ba73bb5acfbb229bb3328638812"
+    },
+    {
+      "path": "tests/parity/fixtures/reference/run-victory-1234/dense/states.json.gz",
+      "sha256": "3704b5bbdcfe5c9c1d574f4d98f852f4bbd95e9d9463efbffcde5fb4e84aeda7"
+    },
+    {
+      "path": "tests/parity/fixtures/reference/run-victory-1234/dense/actions.json.gz",
+      "sha256": "247278237f579e44ee87e814bb8749bee759127104707ec7de8cdfbeae3895df"
+    },
+    {
+      "path": "tests/parity/fixtures/reference/run-victory-1234/verification.json",
+      "sha256": "ac39a93f89a139d3ab29c5a20af460fb69cb2aecc5af4807ca3444ecd4b4b2fb"
+    }
+  ],
+  "counts": {
+    "roots": 224,
+    "supporting_records": 32,
+    "public_case_families": 34,
+    "leaf_shapes": 4416,
+    "boundaries": 697
+  },
+  "limits": "Integrity and linkage, not proof of semantic completeness, live native feasibility or simulator parity."
+}
