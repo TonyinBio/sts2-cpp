@@ -1,0 +1,90 @@
+[
+  {
+    "source": "tools/oracle/adapters/RecordingDisplay.cs",
+    "sha256": "757ce47b0dda810bca8ead0436628ee6f038bd8a25c4f4f920864feb027464c5",
+    "inspected_ranges": [
+      [
+        1,
+        66
+      ]
+    ]
+  },
+  {
+    "source": "tools/oracle/adapters/RunRecordingSession.cs",
+    "sha256": "3a7dfab76677b735ab8255b17f8479cd5a24e585c43ea5a9abdd9a65f7b6cee2",
+    "inspected_ranges": [
+      [
+        60,
+        128
+      ],
+      [
+        151,
+        187
+      ],
+      [
+        257,
+        468
+      ],
+      [
+        538,
+        595
+      ]
+    ]
+  },
+  {
+    "source": "tools/oracle/reference_runtime.py",
+    "sha256": "0fbe190c2f7154cf890c5415ff4eded97f49ae75ecbd9fb7b4eae8a9c8016f07",
+    "inspected_ranges": [
+      [
+        149,
+        218
+      ]
+    ]
+  },
+  {
+    "source": "tools/oracle/upstream_play.py",
+    "sha256": "da244980e6a1eaab04029da8a7285f5d4edc636456a1a693dc8e6a000de4b702",
+    "inspected_ranges": [
+      [
+        93,
+        190
+      ]
+    ]
+  },
+  {
+    "source": "tools/oracle/check_play.py",
+    "sha256": "4ec989dab00bef509f3dadfe73d18365ff13ae4d3db63dbe829b108ea22dfb6f",
+    "inspected_ranges": [
+      [
+        1,
+        84
+      ]
+    ]
+  },
+  {
+    "source": "sts2-cli/src/Sts2Headless/RunSimulator.cs",
+    "sha256": "19176bfe655e1b27c79b3c6b9918114018568926d73b60dc8a90abf49085c2ab",
+    "inspected_ranges": [
+      [
+        1767,
+        2349
+      ],
+      [
+        2500,
+        2795
+      ],
+      [
+        2859,
+        3085
+      ],
+      [
+        3324,
+        3381
+      ],
+      [
+        3815,
+        3880
+      ]
+    ]
+  }
+]

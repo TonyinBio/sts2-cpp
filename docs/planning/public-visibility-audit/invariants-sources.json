@@ -1,0 +1,106 @@
+[
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.CommonUi/NTopBar.cs",
+    "sha256": "5028221148214ab43eef0c6379cba3f920384484c27ebc402bd6911c26dd4cc0",
+    "inspected_ranges": [
+      [
+        307,
+        349
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.sts2.Core.Nodes.TopBar/NTopBarHp.cs",
+    "sha256": "12e18c8e7db28dac159a1b3f36960c95b3d54bcf07d9b00188c3bbdec869e309",
+    "inspected_ranges": [
+      [
+        104,
+        113
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.sts2.Core.Nodes.TopBar/NTopBarGold.cs",
+    "sha256": "23ace069d049d27bd9279bdcb6b8993bb336926eb3e88231305b5cd8f9394a73",
+    "inspected_ranges": [
+      [
+        113,
+        118
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Potions/NPotionContainer.cs",
+    "sha256": "ac2148bb1efb607910558f80e13de1faeacbd8b2ea39722615619e8be96e3765",
+    "inspected_ranges": [
+      [
+        208,
+        264
+      ],
+      [
+        295,
+        307
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Relics/NRelicInventoryHolder.cs",
+    "sha256": "d26d626329eca589b89e967326dedf93aab98a86403b75f0f5c5b095b8f63b64",
+    "inspected_ranges": [
+      [
+        229,
+        241
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens/NDeckViewScreen.cs",
+    "sha256": "0fb2dfa161b17530073c0e2666f6afea4744b4e2258a81eac0011e03564f3b95",
+    "inspected_ranges": [
+      [
+        236,
+        310
+      ]
+    ]
+  },
+  {
+    "source": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen/NGameOverScreen.cs",
+    "sha256": "f8c29c1115286b32b6b113703e7dd19b234615161681aad07352e4ed4c0fceae",
+    "inspected_ranges": [
+      [
+        647,
+        671
+      ]
+    ]
+  },
+  {
+    "source": "tools/oracle/adapters/RunRecordingSession.cs",
+    "sha256": "3a7dfab76677b735ab8255b17f8479cd5a24e585c43ea5a9abdd9a65f7b6cee2",
+    "inspected_ranges": [
+      [
+        489,
+        506
+      ]
+    ]
+  },
+  {
+    "source": "tools/oracle/adapters/RecordingDisplay.cs",
+    "sha256": "757ce47b0dda810bca8ead0436628ee6f038bd8a25c4f4f920864feb027464c5",
+    "inspected_ranges": [
+      [
+        10,
+        18
+      ]
+    ]
+  },
+  {
+    "source": "tools/oracle/check_play.py",
+    "sha256": "4ec989dab00bef509f3dadfe73d18365ff13ae4d3db63dbe829b108ea22dfb6f",
+    "inspected_ranges": [
+      [
+        13,
+        75
+      ]
+    ]
+  }
+]
