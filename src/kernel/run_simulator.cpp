@@ -51,12 +51,26 @@ StepResult initialize_run(RunState& destination, const SeededConfig& config) {
     catch (...) { return {StepStatus::engine_error, {}, Restriction::execution_budget}; }
 }
 StepResult initialize_seeded_combat(RunState& destination, const SeededConfig& config) {
+    return initialize_combat_scenario(destination, config, {});
+}
+StepResult initialize_combat_scenario(RunState& destination, const SeededConfig& config, std::span<const CardSpec> scenario_deck) {
     if (config.character != "CHARACTER.IRONCLAD" || config.ascension != 0)
         return {StepStatus::unsupported_content, destination.boundary, Restriction::unsupported_setup};
     try {
         RunState next;
         const auto result = initialize_run(next, config);
         if (result.status != StepStatus::awaiting_input) return result;
+        if (!scenario_deck.empty()) {
+            if (scenario_deck.size() > 4096) return {StepStatus::resource_limit, destination.boundary, Restriction::capacity};
+            next.setup.deck.clear();
+            for (const auto& card : scenario_deck) {
+                const auto* definition = Ruleset::pinned().card(card.definition);
+                if (!definition) return {StepStatus::unsupported_content, destination.boundary, Restriction::unsupported_setup};
+                const auto id = SetupRules::find(definition->model_id);
+                if (id == no_content) return {StepStatus::unsupported_content, destination.boundary, Restriction::unsupported_setup};
+                next.setup.deck.push_back({id, static_cast<std::uint32_t>(next.setup.deck.size()), static_cast<std::uint32_t>(card.upgraded), -1});
+            }
+        }
         next.combat.emplace(); CombatConfig combat;
         std::vector<CardSpec> deck;
         for (const auto& card : next.setup.deck) {

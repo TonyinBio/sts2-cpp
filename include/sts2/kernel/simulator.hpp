@@ -22,6 +22,17 @@ private:
     const Ruleset& rules_;
     Limits limits_;
 };
+// Diagnostic scenario command, separate from legal player inputs. Uses the
+// same native power application semantics, preserving source/applier identity.
+struct PowerScenario {
+    PowerId definition;
+    std::int32_t amount;
+    bool enemy_owner = false;
+    bool applier_enemy = false;
+    bool has_applier = true;
+    CardHandle source;
+};
+[[nodiscard]] StepResult apply_power_scenario(State&, BoundaryId, const PowerScenario&) noexcept;
 // Complete owning copy; all handles remain local to the destination's storage.
 void clone_into(State& destination, const State& source);
 [[nodiscard]] bool valid_state(const State&, const Ruleset& = Ruleset::pinned()) noexcept;

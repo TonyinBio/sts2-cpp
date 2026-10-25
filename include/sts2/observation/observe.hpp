@@ -20,6 +20,7 @@ struct ObservationView {
     BeetleMove intent;
     std::span<const CardHandle> hand;
     std::size_t draw_count, discard_count, exhaust_count;
+    std::int32_t strength, dexterity, weak, enemy_weak;
     std::optional<SelectionView> selection;
 };
 // Borrows hand storage; invalidated by state mutation. Hidden draw order, RNG,
@@ -30,6 +31,8 @@ struct CardView {
     std::string_view model_id, name;
     std::int32_t cost, damage, block, vulnerable;
     bool upgraded, enemy_target;
+    std::int32_t strength = 0, weak = 0;
+    bool exhaust = false, power = false;
 };
 [[nodiscard]] std::optional<CardView> observe_card(const State&, CardHandle, const Ruleset& = Ruleset::pinned()) noexcept;
 // Metadata for inspectable hand/draw/discard/exhaust cards; never pile position.

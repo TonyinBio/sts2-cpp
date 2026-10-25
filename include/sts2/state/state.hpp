@@ -18,12 +18,14 @@ struct CardInstance {
     bool upgraded = false;
     std::uint32_t creation_order = 0;
     std::uint32_t deck_instance = UINT32_MAX;
+    bool removed = false;
     friend bool operator==(const CardInstance&, const CardInstance&) = default;
 };
 using CardPool = Pool<CardInstance, CardInstanceTag>;
 struct CreatureState {
     std::int32_t hp = 0, max_hp = 0, block = 0, vulnerable = 0;
     bool shrink = false;
+    std::int32_t strength = 0, dexterity = 0, weak = 0;
     friend bool operator==(const CreatureState&, const CreatureState&) = default;
 };
 // Every suspended operand is owned here, never on the C++ call stack or in Scratch.
@@ -42,6 +44,13 @@ struct CardSelection {
     bool automatic_at_maximum = false;
     std::vector<CardHandle> candidates, selected;
     friend bool operator==(const CardSelection&, const CardSelection&) = default;
+};
+// Native AfterSideTurnEnd captures once; detached powers remain owned by index.
+struct PowerDispatch {
+    std::vector<std::uint32_t> candidates;
+    std::uint32_t cursor = 0;
+    bool active = false;
+    friend bool operator==(const PowerDispatch&, const PowerDispatch&) = default;
 };
 struct State {
     std::uint32_t rules = rules_revision;
@@ -63,6 +72,7 @@ struct State {
     std::vector<CombatHistoryEntry> history;
     std::vector<CardPlayRecord> plays;
     std::vector<PowerRecord> powers;
+    PowerDispatch power_dispatch;
     std::int32_t damage_dealt = 0, damage_taken = 0, debuffs_applied = 0, healing = 0;
     std::uint32_t next_creation_order = 0;
     std::uint64_t cards_played = 0, cards_drawn = 0, shuffles = 0;

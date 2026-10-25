@@ -204,6 +204,8 @@ DefinitionText describe(const VisibleCard& card) {
             if (op.opcode == Opcode::damage) preview.damage = value;
             if (op.opcode == Opcode::block) preview.block = value;
             if (op.opcode == Opcode::vulnerable) preview.vulnerable = value;
+            if (op.opcode == Opcode::strength) preview.strength = value;
+            if (op.opcode == Opcode::weak) preview.weak = value;
         }
         return {std::string(definition.name), describe(preview), true};
     }

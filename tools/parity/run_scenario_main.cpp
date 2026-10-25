@@ -2,6 +2,7 @@
 #include "sts2/observation/run.hpp"
 #include "sts2/persistence/checkpoint.hpp"
 #include <iostream>
+#include <algorithm>
 
 // Diagnostic scenario transport. Room entry is deliberately separate from the
 // public player action surface and never edits generated encounter queues.
@@ -12,7 +13,24 @@ int main() {
     for (std::string line; std::getline(std::cin, line);) try {
         const auto request = Json::parse(line); const auto command = request.at("cmd").get<std::string>();
         if (command == "start") {
-            Session session; session.initialize(request.at("setup")); state = session.state();
+            if (request.contains("scenario_deck")) {
+                const auto& setup = request.at("setup");
+                std::vector<CardSpec> deck;
+                for (const auto& entry : request.at("scenario_deck")) {
+                    CardId id = CardId::count;
+                    for (unsigned i = 0; i < static_cast<unsigned>(CardId::count); ++i)
+                        if (Ruleset::pinned().card(static_cast<CardId>(i))->model_id == entry.at("id")) id = static_cast<CardId>(i);
+                    if (id == CardId::count) throw std::invalid_argument("Unsupported scenario card");
+                    deck.push_back({id, entry.value("upgraded", false)});
+                }
+                if (deck.empty()) throw std::invalid_argument("Empty scenario deck");
+                const auto seed = setup.at("seed").get<std::string>();
+                SeededConfig config; config.seed = seed;
+                config.clock.epoch_seconds = setup.at("clock").at("epoch_seconds");
+                config.clock.seconds_per_action = setup.at("clock").at("seconds_per_action");
+                if (initialize_combat_scenario(state, config, deck).status != StepStatus::awaiting_input)
+                    throw std::invalid_argument("Unsupported scenario setup");
+            } else { Session session; session.initialize(request.at("setup")); state = session.state(); }
         } else {
             const auto before = checkpoint(state).bytes;
             (void)observe(state); (void)actions(state); (void)describe(observe(state));
@@ -20,6 +38,13 @@ int main() {
             RunState restored; if (restore(restored, before, scratch) != RestoreStatus::restored) throw std::runtime_error("Restore failed");
             auto cloned = state;
             auto apply = [&](RunState& run) {
+                if (command == "scenario_power") {
+                    if (!run.combat) throw std::invalid_argument("No combat");
+                    constexpr std::array names{"POWER.SHRINK_POWER", "POWER.VULNERABLE_POWER", "POWER.STRENGTH_POWER", "POWER.DEXTERITY_POWER", "POWER.WEAK_POWER"};
+                    auto at = std::find(names.begin(), names.end(), request.at("id").get<std::string>());
+                    if (at == names.end()) throw std::invalid_argument("Unsupported power");
+                    return apply_power_scenario(*run.combat, run.boundary, {static_cast<PowerId>(at - names.begin()), request.at("amount").get<int>(), request.value("enemy_owner", false), request.value("applier_enemy", false), request.value("has_applier", true)});
+                }
                 if (command == "scenario_enter_combat") return enter_combat_scenario(run, run.boundary, request.at("encounter").get<std::string>());
                 if (command != "action") throw std::invalid_argument("Unknown command");
                 const auto& action = request.at("action"); const auto kind = action.at("kind").get<std::string>();

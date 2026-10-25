@@ -173,12 +173,47 @@ public partial class RunSimulator
         // StartRun performs the real seeded setup and enters the initial act/Neow;
         // recorder mode bypasses its UI-oriented decision detection.
         CheckResponse(StartRun(character, ascension, seed, "en"));
+        // Declared diagnostic setup, separate from player actions and native pools.
+        if (command.TryGetProperty("scenario_deck", out var scenarioDeck))
+        {
+            var ids = scenarioDeck.EnumerateArray().Select(card => card.GetProperty("id").GetString()!.Replace("CARD.", "")).ToArray();
+            var deckJson = JsonSerializer.SerializeToElement(ids);
+            CheckResponse(SetPlayer(new Dictionary<string, JsonElement> { ["deck"] = deckJson }));
+            var index = 0;
+            foreach (var card in scenarioDeck.EnumerateArray())
+            {
+                if (card.TryGetProperty("upgraded", out var upgraded) && upgraded.GetBoolean())
+                    { _runState!.Players[0].Deck.Cards[index].UpgradeInternal(); _runState.Players[0].Deck.Cards[index].FinalizeUpgradeInternal(); }
+                ++index;
+            }
+        }
+
         // First-time EnsureModelDbInitialized installs sts2-cli's automatic reward
         // selector. Bind our explicit decision boundary after that initialization.
         RewardsSet.testSelector = OfferRunRewards;
         if (setup.TryGetProperty("kind", out var setupKind) && setupKind.GetString() == "seeded_combat")
             CheckResponse(EnterRoom("combat", setup.GetProperty("encounter").GetString(), null));
         _runState!.Players[0].Creature.Died += _ => _runDeathObserved = true;
+        AwaitRunBoundary();
+        RegisterCombatIdentities();
+        return OracleRunResponse(command);
+    }
+
+    // Declared native scenario control; never an actions-v1 gameplay input.
+    public Dictionary<string, object?> OraclePowerScenario(JsonElement command)
+    {
+        AwaitRunBoundary();
+        var state = CombatManager.Instance.DebugOnlyGetState()!;
+        var target = command.TryGetProperty("enemy_owner", out var enemyOwner) && enemyOwner.GetBoolean()
+            ? state.Enemies.Single() : _runState!.Players[0].Creature;
+        var applier = command.TryGetProperty("applier_enemy", out var enemyApplier) && enemyApplier.GetBoolean()
+            ? state.Enemies.Single() : _runState!.Players[0].Creature;
+        if (command.TryGetProperty("has_applier", out var hasApplier) && !hasApplier.GetBoolean()) applier = null;
+        var entry = command.GetProperty("id").GetString()!.Replace("POWER.", "");
+        var canonical = ModelDb.GetById<PowerModel>(new ModelId("POWER", entry));
+        var power = canonical.ToMutable();
+        var amount = command.GetProperty("amount").GetDecimal();
+        BeginRunOperation("scenario_power", null, () => PowerCmd.Apply(new ThrowingPlayerChoiceContext(), power, target, amount, applier, null));
         AwaitRunBoundary();
         RegisterCombatIdentities();
         return OracleRunResponse(command);

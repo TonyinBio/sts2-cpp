@@ -17,6 +17,7 @@ struct CombatHistoryEntry {
     std::uint32_t object = 0; // Play or power index, interpreted by kind.
     std::int32_t amount = 0;
     HitResult hit;
+    bool has_applier = true, applier_enemy = false;
     friend bool operator==(const CombatHistoryEntry&, const CombatHistoryEntry&) = default;
 };
 struct CardPlayRecord {
@@ -25,11 +26,13 @@ struct CardPlayRecord {
     bool enemy_target = false;
     friend bool operator==(const CardPlayRecord&, const CardPlayRecord&) = default;
 };
-enum class PowerId : std::uint8_t { shrink, vulnerable };
+enum class PowerId : std::uint8_t { shrink, vulnerable, strength, dexterity, weak };
 struct PowerRecord {
     PowerId definition = PowerId::shrink;
     std::int32_t amount = 0, amount_on_turn_start = 0;
     bool enemy_owner = false, active = true, skip_next_tick = false;
+    bool applier_enemy = false, has_applier = true;
+    CardHandle source;
     friend bool operator==(const PowerRecord&, const PowerRecord&) = default;
 };
 } // namespace sts2::engine
