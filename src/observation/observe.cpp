@@ -23,9 +23,14 @@ std::optional<CardView> inspect_card(const State& s, CardHandle h, const Ruleset
     const auto* instance = s.cards.get(h); if (!instance) return std::nullopt;
     const auto* def = rules.card(instance->definition); if (!def) return std::nullopt;
     CardView view{h, def->model_id, def->name, def->cost, 0, 0, 0, instance->upgraded, def->enemy_target};
+    // Native CardModel.UpdateDynamicVarPreview runs global combat hooks only
+    // for Hand/Play or explicit combat upgrade-preview copies. inspect_card
+    // exposes live pile cards, never upgrade-preview copies or the playing pile.
+    const auto& hand = s.zone(Zone::hand);
+    const bool active_preview = std::find(hand.begin(), hand.end(), h) != hand.end();
     for (const auto& op : def->program) {
         const auto value = op.base + (instance->upgraded ? op.upgrade : 0);
-        if (op.opcode == Opcode::damage) view.damage = static_cast<int>(std::int64_t(value) * (s.player.shrink ? 70 : 100) * (s.enemy.vulnerable ? 150 : 100) / 10000);
+        if (op.opcode == Opcode::damage) view.damage = static_cast<int>(std::int64_t(value) * (active_preview && s.player.shrink ? 70 : 100) * (active_preview && s.enemy.vulnerable ? 150 : 100) / 10000);
         else if (op.opcode == Opcode::block) view.block = value;
         else if (op.opcode == Opcode::vulnerable) view.vulnerable = value;
     }

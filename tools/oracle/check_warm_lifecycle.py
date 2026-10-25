@@ -90,7 +90,7 @@ def verify(game_dir, recording, validator, output):
                         save()
                 finally: warm.close()
             finally: comparator.close()
-        report['status'] = 'passed_scoped_clock_interleaving'
+        report['status'] = 'passed_distinct_seed_interleaving'
     except Exception as error:
         report['status'] = 'failed'
         report['error'] = str(error)

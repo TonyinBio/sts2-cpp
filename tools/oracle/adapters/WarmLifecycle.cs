@@ -41,7 +41,8 @@ public partial class RunSimulator
         Require(CardSelectCmd.Selector == null && CardSelectCmd.LocalSelector == null,
             "Native teardown retained selectors");
         var listeners = new Dictionary<string, int>();
-        foreach (var name in new[] { "TurnStarted", "CombatEnded", "CombatWon" }) {
+        var audit = !command.TryGetProperty("audit", out var requestedAudit) || requestedAudit.GetBoolean();
+        foreach (var name in audit ? new[] { "TurnStarted", "CombatEnded", "CombatWon" } : Array.Empty<string>()) {
             var field = typeof(CombatManager).GetField(name,
                 System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
             var handlers = (field.GetValue(CombatManager.Instance) as Delegate)?.GetInvocationList()

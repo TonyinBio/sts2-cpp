@@ -259,6 +259,28 @@ TEST(PublicRun, StarterVariantsExposeAndExecuteSourceBackedPreviews) {
         play("CARD.STRIKE_IRONCLAD"); EXPECT_EQ(observe(state).combat->enemy_hp, hp - (upgraded ? 9 : 6));
     }
 }
+TEST(PublicRun, InactivePilePreviewsKeepBaseDamageAfterShrink) {
+    RunState state; Scratch scratch;
+    SeededConfig config; config.seed = "KERNELRUN14";
+    ASSERT_EQ(initialize_seeded_combat(state, config).status, StepStatus::awaiting_input);
+    const auto initial = observe(state);
+    const auto strike = std::find_if(initial.hand_cards.begin(), initial.hand_cards.end(), [](const auto& card) {
+        return card.model_id == "CARD.STRIKE_IRONCLAD";
+    });
+    ASSERT_NE(strike, initial.hand_cards.end());
+    ASSERT_EQ(apply_player(state, Input{state.boundary, InputKind::play_card, strike->handle, true}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_player(state, Input{state.boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+    const auto before = checkpoint(state).bytes;
+    const auto view = observe(state);
+    ASSERT_TRUE(view.combat->shrunk);
+    const auto discarded = std::find_if(view.discard.begin(), view.discard.end(), [](const auto& card) { return card.model_id == "CARD.STRIKE_IRONCLAD"; });
+    ASSERT_NE(discarded, view.discard.end());
+    // Native CardModel.UpdateDynamicVarPreview applies global hooks to Hand/Play
+    // only; pile inspection keeps the card's base effect until it returns to hand.
+    EXPECT_EQ(discarded->damage, 6);
+    for (const auto& card : view.hand_cards) if (card.model_id == "CARD.STRIKE_IRONCLAD") EXPECT_EQ(card.damage, 4);
+    EXPECT_EQ(checkpoint(state).bytes, before);
+}
 TEST(PublicRun, InspectablePilesExposeMetadataAndDrawInspectionHidesSequence) {
     auto state = until(4).state();
     const auto before = checkpoint(state).bytes;

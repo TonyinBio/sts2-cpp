@@ -209,7 +209,9 @@ public partial class RunSimulator
         try { await frame.Done.Task; }
         finally { lock (_runGate) _runRewards.Remove(frame); }
     }
-    private RunRewards[] RewardFrames() { lock (_runGate) return _runRewards.ToArray(); }
+    // A completed selector task is no longer a player-input stop. Its owner must
+    // finish the real continuation before publishing the next boundary.
+    private RunRewards[] RewardFrames() { lock (_runGate) return _runRewards.Where(frame => !frame.Done.Task.IsCompleted).ToArray(); }
     private bool Blocked(RunOperation owner) => ReferenceEquals(_runSelector.Pending?.Owner, owner) ||
         RewardFrames().Any(f => ReferenceEquals(f.Owner, owner)) ||
         (_pendingBundles != null && ReferenceEquals(_runBundleOwner, owner));
@@ -489,7 +491,7 @@ public partial class RunSimulator
     private Dictionary<string, object?> OracleRunResponse(JsonElement command) => new() {
         ["type"] = "oracle_state", ["request_id"] = command.GetProperty("request_id").GetString(),
         ["assembly_mvid"] = typeof(CardModel).Assembly.ManifestModule.ModuleVersionId.ToString(),
-        ["runtime_version"] = Environment.Version.ToString(), ["state"] = ExportRunFlowState()
+        ["runtime_version"] = Environment.Version.ToString(), ["state"] = _warmPublic ? null : ExportRunFlowState()
     };
     private static JsonNode? Saved(object? value) => NativeRunRoundTrip.Capture(value);
     private static object[] SavedCards(IEnumerable<CardModel> cards) => cards.Select(c => (object)Saved(c.ToSerializable())!).ToArray();

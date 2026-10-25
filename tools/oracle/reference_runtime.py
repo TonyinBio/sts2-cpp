@@ -115,6 +115,7 @@ class JsonProcess:
                     self.stderr_log.write(value['stack_trace'] + '\n')
                     self.stderr_log.flush()
                 raise RuntimeError(f'Reference error: {value.get("message", value)}')
+            self.last_response_line = line
             return value
 
     def send(self, command):
@@ -260,14 +261,24 @@ def inject(source):
                                 'CombatManager.Instance.CombatEnded += WarmCombatEnded;')
     original = original.replace('CardSelectCmd.UseSelector(',
                                 '_warmSelectorScope = CardSelectCmd.UseSelector(')
+    require(original.count('private static void Log(string message)\n    {') == 1,
+            'Pinned diagnostic logger source changed')
+    original = original.replace('private static void Log(string message)\n    {',
+                                'private static void Log(string message)\n    {\n        if (_warmSuppressLogs) return;')
     simulator.write_text(original)
 
     program = source / 'Program.cs'
     text = program.read_text()
+    require(text.count('WriteIndented = false,') == 1, 'Pinned JSON options changed')
+    text = text.replace('WriteIndented = false,',
+        'WriteIndented = false,\n        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,')
     text = text.replace('result = HandleCommand(sim, cmd);', 'result = HandleCommand(sim, cmd);\n                if (cmd.GetProperty("cmd").GetString() == "oracle_reset") sim = new RunSimulator();')
     require(text.count('case "start_run":') == 1, 'Unexpected command dispatcher')
     program.write_text(text.replace('case "start_run":',
-        'case "oracle_reset": return sim.OracleReset(cmd);\n'
+        'case "benchmark_runtime_info": return sim.WarmRuntimeInfo(cmd);\n'
+        '            case "benchmark_query_audit": return sim.WarmQueryAudit(cmd);\n'
+        '            case "benchmark_operation": return sim.WarmBenchmark(cmd);\n'
+        '            case "oracle_reset": return sim.OracleReset(cmd);\n'
         '            case "oracle_display": return sim.OracleDisplay(cmd);\n'
         '            case "oracle_start": return sim.OracleStart(cmd);\n'
         '            case "oracle_action": return sim.OracleAction(cmd);\n'
@@ -275,7 +286,7 @@ def inject(source):
         '            case "oracle_run_action": return sim.OracleRunAction(cmd);\n'
         '            case "oracle_run_state": return sim.OracleRunState(cmd);\n'
         '            case "start_run":', 1))
-    for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs', 'RunRecordingSession.cs', 'CombatModelFields.cs', 'RecordingDisplay.cs', 'RecordingClock.cs', 'WarmLifecycle.cs'):
+    for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs', 'RunRecordingSession.cs', 'CombatModelFields.cs', 'RecordingDisplay.cs', 'RecordingClock.cs', 'WarmLifecycle.cs', 'WarmPublic.cs'):
         shutil.copy2(Path(__file__).parent / 'adapters' / name, source)
 
     contract = strict_json((Path(__file__).parent / 'combat-field-contract.json').read_bytes())
@@ -331,7 +342,10 @@ def reference_build(game_dir, log_dir, extra_sources=(), *, configuration="Debug
         (log_dir / 'build.log').write_text(build.stdout + build.stderr)
         require(build.returncode == 0, f'Reference build failed; see {log_dir / "build.log"}')
         yield (['dotnet', str(source / f'bin/{configuration}/net9.0/Sts2Headless.dll')], env,
-               {'revision': revision, 'game_dll_sha256': GAME_SHA256, 'adapter_sha256': digest.hexdigest(), 'configuration': configuration})
+               {'revision': revision, 'game_dll_sha256': GAME_SHA256, 'adapter_sha256': digest.hexdigest(), 'configuration': configuration,
+                'assembly_sha256': hashlib.sha256((source / f'bin/{configuration}/net9.0/Sts2Headless.dll').read_bytes()).hexdigest(),
+                'runtime_config': strict_json((source / f'bin/{configuration}/net9.0/Sts2Headless.runtimeconfig.json').read_bytes()),
+                'dotnet_sdk': subprocess.check_output(['dotnet', '--version'], text=True, env=env).strip()})
 
 
 def start_request(actions):
