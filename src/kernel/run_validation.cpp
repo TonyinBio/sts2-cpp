@@ -93,7 +93,7 @@ bool valid_run(const RunState& state) noexcept {
         for (const auto& slot : combat.cards.slots()) if (slot.generation != state.encounters.size() + 1) return false;
         if (!valid_state(combat) || !linked_cards(combat, setup.deck) || combat.seed != setup.seed || combat.player.hp != setup.hp || combat.player.max_hp != setup.max_hp || combat.rng != setup.rng) return false;
         if (state.phase == RunPhase::combat) {
-            if ((combat.phase != Phase::play && combat.phase != Phase::discard_choice) || combat.clock != state.clock || combat.boundary != state.boundary) return false;
+            if ((combat.phase != Phase::play && combat.phase != Phase::discard_choice && combat.phase != Phase::card_choice) || combat.clock != state.clock || combat.boundary != state.boundary) return false;
         } else if (state.phase == RunPhase::complete) {
             if (combat.phase != Phase::player_died) return false;
         } else if (state.phase == RunPhase::combat_done || state.phase == RunPhase::rewards || state.phase == RunPhase::map) {

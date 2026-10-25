@@ -4,6 +4,12 @@
 #include <string>
 
 namespace sts2::engine {
+struct SelectionView {
+    PromptId id;
+    std::span<const CardHandle> candidates, selected;
+    std::uint32_t minimum, maximum;
+    bool automatic_at_maximum, can_confirm;
+};
 struct ObservationView {
     std::string_view build;
     BoundaryId boundary;
@@ -14,6 +20,7 @@ struct ObservationView {
     BeetleMove intent;
     std::span<const CardHandle> hand;
     std::size_t draw_count, discard_count, exhaust_count;
+    std::optional<SelectionView> selection;
 };
 // Borrows hand storage; invalidated by state mutation. Hidden draw order, RNG,
 // execution frames and unrevealed data are never part of the public projection.

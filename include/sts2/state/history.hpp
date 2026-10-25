@@ -3,7 +3,7 @@
 #include <cstdint>
 
 namespace sts2::engine {
-enum class HistoryKind : std::uint8_t { drawn, discarded, energy_spent, play_started, play_finished, damaged, attacked, block_gained, power_received };
+enum class HistoryKind : std::uint8_t { drawn, discarded, energy_spent, play_started, play_finished, damaged, attacked, block_gained, power_received, exhausted };
 struct HitResult {
     std::int32_t blocked = 0, unblocked = 0, overkill = 0;
     bool block_broken = false, fully_blocked = false, killed = false;

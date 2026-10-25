@@ -11,7 +11,7 @@
 
 namespace sts2::engine {
 enum class Zone : std::uint8_t { hand, draw, discard, exhaust, play, count };
-enum class Phase : std::uint8_t { uninitialized, play, discard_choice, combat_won, player_died, invalid };
+enum class Phase : std::uint8_t { uninitialized, play, discard_choice, combat_won, player_died, card_choice, invalid };
 enum class BeetleMove : std::uint8_t { shrink, chomp, stomp };
 struct CardInstance {
     CardId definition = CardId::strike;
@@ -33,6 +33,16 @@ struct EffectFrame {
     std::uint32_t play = 0;
     friend bool operator==(const EffectFrame&, const EffectFrame&) = default;
 };
+enum class SelectionEffect : std::uint8_t { none, exhaust, upgrade, topdeck };
+struct CardSelection {
+    PromptId id;
+    SelectionEffect effect = SelectionEffect::none;
+    Zone zone = Zone::hand;
+    std::uint32_t minimum = 0, maximum = 0;
+    bool automatic_at_maximum = false;
+    std::vector<CardHandle> candidates, selected;
+    friend bool operator==(const CardSelection&, const CardSelection&) = default;
+};
 struct State {
     std::uint32_t rules = rules_revision;
     BoundaryId boundary{};
@@ -48,6 +58,8 @@ struct State {
     CardPool cards;
     std::array<std::vector<CardHandle>, static_cast<std::size_t>(Zone::count)> zones;
     std::vector<EffectFrame> execution;
+    CardSelection selection;
+    PromptId next_prompt{1};
     std::vector<CombatHistoryEntry> history;
     std::vector<CardPlayRecord> plays;
     std::vector<PowerRecord> powers;

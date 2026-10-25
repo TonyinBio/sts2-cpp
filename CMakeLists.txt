@@ -113,7 +113,7 @@ if(BUILD_TESTING)
 
   add_executable(simulator_test tests/unit/simulator_test.cpp tests/unit/rng_test.cpp tests/unit/clock_test.cpp)
   target_link_libraries(simulator_test PRIVATE sts2_simulator GTest::gtest_main)
-  add_executable(engine_test tests/unit/engine_test.cpp tests/unit/map_test.cpp tests/unit/setup_test.cpp tests/unit/run_test.cpp tests/parity/seeded_run_test.cpp)
+  add_executable(engine_test tests/unit/engine_test.cpp tests/unit/card_choices_test.cpp tests/unit/map_test.cpp tests/unit/setup_test.cpp tests/unit/run_test.cpp tests/parity/seeded_run_test.cpp)
   target_link_libraries(engine_test PRIVATE sts2_integration sts2_parity nlohmann_json::nlohmann_json GTest::gtest_main)
   target_compile_definitions(engine_test PRIVATE
     KERNEL_SEEDED_SETUP_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/seeded-setup-v1.json"

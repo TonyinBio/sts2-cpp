@@ -4,9 +4,14 @@
 namespace sts2::engine {
 ObservationView observe(const State& s) noexcept {
     const auto attack = s.move == BeetleMove::chomp ? 7 : s.move == BeetleMove::stomp ? 13 : 0;
-    return {game_build, s.boundary, s.phase, s.player.hp, s.player.max_hp, s.player.block, s.energy,
+    ObservationView view{game_build, s.boundary, s.phase, s.player.hp, s.player.max_hp, s.player.block, s.energy,
         s.turn, s.enemy.hp, s.enemy.max_hp, s.enemy.vulnerable, attack, s.player.shrink, s.move,
-        s.zone(Zone::hand), s.zone(Zone::draw).size(), s.zone(Zone::discard).size(), s.zone(Zone::exhaust).size()};
+        s.zone(Zone::hand), s.zone(Zone::draw).size(), s.zone(Zone::discard).size(), s.zone(Zone::exhaust).size(), {}};
+    if (s.phase == Phase::card_choice) {
+        const auto& p = s.selection;
+        view.selection = SelectionView{p.id, p.candidates, p.selected, p.minimum, p.maximum, p.automatic_at_maximum, p.selected.size() >= p.minimum && p.selected.size() <= p.maximum};
+    }
+    return view;
 }
 std::optional<CardView> observe_card(const State& s, CardHandle h, const Ruleset& rules) noexcept {
     const auto& hand = s.zone(Zone::hand);
@@ -40,12 +45,22 @@ std::string describe(const CardView& card) {
     return text;
 }
 std::size_t ActionSpaceView::size() const noexcept {
+    if (state_.phase == Phase::card_choice) return state_.selection.candidates.size() + 1;
     if (state_.phase == Phase::play) return state_.zone(Zone::hand).size() + 1;
     if (state_.phase == Phase::discard_choice) return state_.zone(Zone::hand).size();
     return 0;
 }
 std::optional<ActionView> ActionSpaceView::at(std::size_t index) const noexcept {
     if (index >= size()) return std::nullopt;
+    if (state_.phase == Phase::card_choice) {
+        const auto& p = state_.selection;
+        Input input{state_.boundary, InputKind::confirm_selection, {}, false, p.id};
+        if (index < p.candidates.size()) {
+            input.card = p.candidates[index];
+            input.kind = std::find(p.selected.begin(), p.selected.end(), input.card) == p.selected.end() ? InputKind::select_card : InputKind::deselect_card;
+        }
+        return ActionView{input, Simulator{}.validate(state_, input)};
+    }
     const auto& hand = state_.zone(Zone::hand);
     Input input{state_.boundary, InputKind::end_turn};
     if (index < hand.size()) {

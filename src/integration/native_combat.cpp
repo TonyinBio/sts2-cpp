@@ -21,6 +21,11 @@ Json variables(const CardInstance& c) {
     case CardId::defend: return {{"Block", c.upgraded ? 8 : 5}};
     case CardId::bash: return {{"Damage", c.upgraded ? 10 : 8}, {"VulnerablePower", c.upgraded ? 3 : 2}};
     case CardId::survivor: return {{"Block", c.upgraded ? 11 : 8}};
+    case CardId::purity: return {{"Cards", c.upgraded ? 5 : 3}};
+    case CardId::armaments: return {{"Block", 5}};
+    case CardId::headbutt: return {{"Damage", c.upgraded ? 12 : 9}};
+    case CardId::burning_pact: return {{"Cards", c.upgraded ? 3 : 2}};
+    case CardId::true_grit: return {{"Block", c.upgraded ? 9 : 7}};
     case CardId::count: break;
     }
     throw std::invalid_argument("Unsupported card variables");
@@ -35,7 +40,7 @@ void export_native_combat(Json& out, const RunState& run) {
     const auto map_room = out["current_room"], map_flow = out["run_flow"];
     const auto& s = *run.combat;
     const bool won = s.phase == Phase::combat_won, died = s.phase == Phase::player_died, terminal = won || died;
-    const bool choosing = s.phase == Phase::discard_choice;
+    const bool choosing = s.phase == Phase::discard_choice || s.phase == Phase::card_choice;
     Json piles = Json::object(); constexpr std::array<const char*, 5> zone_names{"Hand", "Draw", "Discard", "Exhaust", "Play"};
     for (std::size_t i = 0; i < s.zones.size(); ++i) {
         Json list = Json::array(); for (auto h : s.zones[i]) list.push_back(card_ref(h)); piles[zone_names[i]] = std::move(list);
@@ -78,14 +83,19 @@ void export_native_combat(Json& out, const RunState& run) {
         const auto deck_index = card.deck_instance == UINT32_MAX ? card.creation_order : static_cast<std::uint32_t>(linked - run.setup.deck.begin());
         if (deck_index >= run.setup.deck.size()) throw std::invalid_argument("Missing permanent card relationship");
         const auto vars = variables(card);
-        out["native_model_state"]["/players/0/deck/" + std::to_string(deck_index)] = {{"model_fields", Json::object()}, {"dynamic_vars", vars}};
+        auto permanent = card; permanent.upgraded = run.setup.deck[deck_index].upgrade != 0;
+        out["native_model_state"]["/players/0/deck/" + std::to_string(deck_index)] = {{"model_fields", Json::object()}, {"dynamic_vars", variables(permanent)}};
         if (won) continue;
         combat["cards"]["card_" + std::to_string(i)] = {{"saved", out["players"][0]["deck"][deck_index]},
             {"owner", "/players/0"}, {"deck_version", "/players/0/deck/" + std::to_string(deck_index)}, {"clone_of", nullptr},
-            {"is_dupe", false}, {"base_replay_count", 0}, {"local_keywords", Json::array()}, {"exhaust_on_next_play", false},
+            {"is_dupe", false}, {"base_replay_count", 0}, {"local_keywords", card.definition == CardId::purity ? Json::array({"Retain", "Exhaust"}) : Json::array()}, {"exhaust_on_next_play", false},
             {"has_single_turn_retain", false}, {"has_single_turn_sly", false}, {"has_been_removed_from_state", false},
             {"dynamic_vars", vars}, {"energy_cost", {{"base", Ruleset::pinned().card(card.definition)->cost}, {"captured_x_value", 0}, {"local_modifiers", Json::array()}}},
             {"base_star_cost", -1}, {"temporary_star_costs", Json::array()}, {"last_stars_spent", 0}, {"affliction", nullptr}, {"enchantment_runtime", nullptr}, {"model_fields", Json::object()}};
+    }
+    if (!won) for (std::size_t i = 0; i < s.cards.slots().size(); ++i) {
+        const auto& slot = s.cards.slots()[i]; if (!slot.live) continue;
+        combat["cards"]["card_" + std::to_string(i)]["saved"]["current_upgrade_level"] = slot.value.upgraded ? 1 : 0;
     }
     for (std::size_t i = 0; i < run.setup.relics.size(); ++i) {
         const auto name = SetupRules::name(run.setup.relics[i]);
@@ -110,16 +120,16 @@ void export_native_combat(Json& out, const RunState& run) {
     for (std::size_t i = 0; i < s.plays.size(); ++i) {
         const auto& p = s.plays[i];
         combat["card_plays"][std::to_string(i)] = {{"card", card_ref(p.card)}, {"player", "/players/0"}, {"target", p.enemy_target ? Json(enemy) : Json(nullptr)},
-            {"result_pile", "Discard"}, {"resources", {{"energy_spent", p.energy}, {"energy_value", p.energy}, {"stars_spent", 0}, {"star_value", 0}}},
+            {"result_pile", s.cards.get(p.card)->definition == CardId::purity ? "Exhaust" : "Discard"}, {"resources", {{"energy_spent", p.energy}, {"energy_value", p.energy}, {"stars_spent", 0}, {"star_value", 0}}},
             {"is_auto_play", false}, {"play_index", 0}, {"play_count", 1}};
     }
-    constexpr std::array<const char*, 9> kinds{"CardDrawnEntry", "CardDiscardedEntry", "EnergySpentEntry", "CardPlayStartedEntry", "CardPlayFinishedEntry", "DamageReceivedEntry", "CreatureAttackedEntry", "BlockGainedEntry", "PowerReceivedEntry"};
+    constexpr std::array<const char*, 10> kinds{"CardDrawnEntry", "CardDiscardedEntry", "EnergySpentEntry", "CardPlayStartedEntry", "CardPlayFinishedEntry", "DamageReceivedEntry", "CreatureAttackedEntry", "BlockGainedEntry", "PowerReceivedEntry", "CardExhaustedEntry"};
     for (const auto& h : s.history) {
         Json entry = {{"kind", kinds[static_cast<std::size_t>(h.kind)]}, {"actor", creature(h.actor_enemy)}, {"round_number", h.turn},
             {"current_side", h.enemy_side ? "Enemy" : "Player"}, {"player_turn_numbers", Json::array({{{"player", "/players/0"}, {"turn_number", h.turn}}})}};
         switch (h.kind) {
         case HistoryKind::drawn: entry["card"] = card_ref(h.card); entry["from_hand_draw"] = true; break;
-        case HistoryKind::discarded: entry["card"] = card_ref(h.card); break;
+        case HistoryKind::exhausted: case HistoryKind::discarded: entry["card"] = card_ref(h.card); break;
         case HistoryKind::energy_spent: entry["amount"] = h.amount; break;
         case HistoryKind::play_started: case HistoryKind::play_finished:
             entry["card_play"] = play_ref(h.object); if (h.kind == HistoryKind::play_finished) entry["was_ethereal"] = false; break;
@@ -135,10 +145,12 @@ void export_native_combat(Json& out, const RunState& run) {
     if (choosing) {
         const auto& frame = s.execution.back();
         combat["active_card_plays"].push_back({{"card_play", play_ref(frame.play)},
-            {"result_location", {{"player", "/players/0"}, {"pile_type", "Discard"}, {"position", "Bottom"}}}});
-        Json candidates = Json::array(); for (auto h : s.zone(Zone::hand)) candidates.push_back(card_ref(h));
+            {"result_location", {{"player", "/players/0"}, {"pile_type", s.cards.get(frame.source)->definition == CardId::purity ? "Exhaust" : "Discard"}, {"position", "Bottom"}}}});
+        Json candidates = Json::array();
+        const auto& offered = s.phase == Phase::card_choice ? s.selection.candidates : s.zone(Zone::hand);
+        for (auto h : offered) candidates.push_back(card_ref(h));
         out["pending_choice"] = {{"player", "/players/0"}, {"sources", Json::array({card_ref(frame.source)})},
-            {"candidates", candidates}, {"min_select", 1}, {"max_select", 1}, {"require_manual_confirmation", false}, {"cancelable", false}};
+            {"candidates", candidates}, {"min_select", s.phase == Phase::card_choice ? s.selection.minimum : 1}, {"max_select", s.phase == Phase::card_choice ? s.selection.maximum : 1}, {"require_manual_confirmation", s.cards.get(frame.source)->definition == CardId::purity}, {"cancelable", false}};
     }
     out["combat"] = std::move(combat); out["run_flow"] = nullptr;
     out["current_room"] = {{"encounter_id", "ENCOUNTER.SHRINKER_BEETLE_WEAK"}, {"encounter_state", Json::object()}, {"event_id", nullptr},

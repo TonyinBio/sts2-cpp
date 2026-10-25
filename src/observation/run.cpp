@@ -94,6 +94,12 @@ RunObservation observe(const RunState& state) {
             view.prompt = PublicPrompt::discard;
             view.minimum_selection = view.maximum_selection = 1;
         }
+        if (view.combat->selection) {
+            view.prompt = PublicPrompt::card_selection;
+            view.minimum_selection = view.combat->selection->minimum;
+            view.maximum_selection = view.combat->selection->maximum;
+            view.submits_immediately = view.combat->selection->automatic_at_maximum;
+        }
         const auto project_pile = [&](Zone zone, std::vector<CardView>& pile) {
             for (const auto handle : state.combat->zone(zone))
                 if (const auto card = inspect_card(*state.combat, handle)) pile.push_back(*card);

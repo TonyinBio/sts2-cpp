@@ -47,7 +47,7 @@ std::uint64_t content_fingerprint() {
 Checkpoint checkpoint(const State& s) {
     if (!valid_state(s)) throw std::invalid_argument("Cannot checkpoint invalid simulation");
     Writer w;
-    w.text("STS2CP03"); w.u32(3); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
+    w.text("STS2CP04"); w.u32(4); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed);
     w.u32(s.boundary.value); w.u8(static_cast<std::uint8_t>(s.phase));
     const auto config = s.clock.config();
@@ -67,6 +67,12 @@ Checkpoint checkpoint(const State& s) {
     for (const auto& zone : s.zones) { w.u32(static_cast<std::uint32_t>(zone.size())); for (auto h : zone) w.handle(h); }
     w.u32(static_cast<std::uint32_t>(s.execution.size()));
     for (const auto& frame : s.execution) { w.handle(frame.source); w.u32(frame.instruction); w.u32(frame.play); }
+    w.u32(s.next_prompt.value); w.u32(s.selection.id.value);
+    w.u8(static_cast<std::uint8_t>(s.selection.effect)); w.u8(static_cast<std::uint8_t>(s.selection.zone));
+    w.u32(s.selection.minimum); w.u32(s.selection.maximum); w.u8(s.selection.automatic_at_maximum);
+    for (const auto* list : {&s.selection.candidates, &s.selection.selected}) {
+        w.u32(static_cast<std::uint32_t>(list->size())); for (auto card : *list) w.handle(card);
+    }
     w.i32(s.damage_dealt); w.i32(s.damage_taken); w.i32(s.debuffs_applied); w.i32(s.healing);
     w.u32(static_cast<std::uint32_t>(s.plays.size()));
     for (const auto& p : s.plays) { w.handle(p.card); w.i32(p.energy); w.u8(p.enemy_target); }
@@ -86,8 +92,8 @@ RestoreStatus restore(State& destination, std::span<const std::byte> bytes, Scra
         Reader trailer{bytes.last(8)};
         if (trailer.u64() != digest(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
-        for (char c : std::string_view("STS2CP03")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 3 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        for (char c : std::string_view("STS2CP04")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
+        if (r.u32() != 4 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (char c : game_digest) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
         State s;
@@ -124,6 +130,13 @@ RestoreStatus restore(State& destination, std::span<const std::byte> bytes, Scra
         }
         const auto frames = r.u32(); if (frames > 1) return RestoreStatus::malformed;
         for (std::uint32_t i = 0; i < frames; ++i) { auto source = r.handle(); const auto instruction = r.u32(); s.execution.push_back({source, instruction, r.u32()}); }
+        s.next_prompt.value = r.u32(); s.selection.id.value = r.u32();
+        s.selection.effect = static_cast<SelectionEffect>(r.u8()); s.selection.zone = static_cast<Zone>(r.u8());
+        s.selection.minimum = r.u32(); s.selection.maximum = r.u32(); s.selection.automatic_at_maximum = r.boolean();
+        for (auto* list : {&s.selection.candidates, &s.selection.selected}) {
+            const auto n = r.u32(); if (n > count) return RestoreStatus::malformed;
+            for (std::uint32_t j = 0; j < n; ++j) list->push_back(r.handle());
+        }
         s.damage_dealt = r.i32(); s.damage_taken = r.i32(); s.debuffs_applied = r.i32(); s.healing = r.i32();
         const auto bounded_count = [&](std::size_t width) {
             const auto n = r.u32();

@@ -2,12 +2,13 @@
 #include "sts2/state/state.hpp"
 
 namespace sts2::engine {
-enum class InputKind : std::uint8_t { play_card, end_turn, select_card };
+enum class InputKind : std::uint8_t { play_card, end_turn, select_card, deselect_card, confirm_selection };
 struct Input {
     BoundaryId expected_boundary;
     InputKind kind;
     CardHandle card{};
     bool target_enemy = false;
+    PromptId prompt{};
 };
 class Simulator {
 public:

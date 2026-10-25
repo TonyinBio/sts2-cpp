@@ -35,7 +35,7 @@ struct VisibleReward {
     std::string_view model_id;
     bool claimed = false;
 };
-enum class PublicPrompt : std::uint8_t { none, neow, map, combat, discard, rewards, card_reward };
+enum class PublicPrompt : std::uint8_t { none, neow, map, combat, discard, rewards, card_reward, card_selection };
 struct RunObservation {
     std::uint32_t contract_revision = 2;
     std::string_view build = game_build;

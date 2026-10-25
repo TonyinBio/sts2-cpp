@@ -44,6 +44,10 @@ void move_card(State& state, Zone from, Zone to, CardHandle card) {
     source.erase(std::find(source.begin(), source.end(), card));
     state.zone(to).push_back(card);
 }
+void exhaust(State& state, Zone from, CardHandle card) {
+    move_card(state, from, Zone::exhaust, card);
+    history(state, HistoryKind::exhausted, false, false, card);
+}
 void draw(State& state, int count, const Ruleset& rules) {
     auto& hand = state.zone(Zone::hand); auto& pile = state.zone(Zone::draw);
     auto& discard = state.zone(Zone::discard);
@@ -92,12 +96,14 @@ void State::reserve(std::size_t card_count) {
     cards.reserve(card_count);
     for (auto& zone : zones) zone.reserve(card_count);
     execution.reserve(8); history.reserve(128); plays.reserve(32); powers.reserve(8);
+    selection.candidates.reserve(card_count); selection.selected.reserve(card_count);
 }
 std::size_t State::retained_bytes() const noexcept {
     const auto text_address = reinterpret_cast<std::uintptr_t>(seed.data());
     const auto root_address = reinterpret_cast<std::uintptr_t>(this);
     const auto seed_bytes = text_address >= root_address && text_address < root_address + sizeof(State) ? 0 : seed.capacity() + 1;
     auto bytes = sizeof(State) + seed_bytes + cards.retained_bytes() + execution.capacity() * sizeof(EffectFrame);
+    bytes += (selection.candidates.capacity() + selection.selected.capacity()) * sizeof(CardHandle);
     bytes += history.capacity() * sizeof(CombatHistoryEntry) + plays.capacity() * sizeof(CardPlayRecord) + powers.capacity() * sizeof(PowerRecord);
     for (const auto& zone : zones) bytes += zone.capacity() * sizeof(CardHandle);
     return bytes;
@@ -143,6 +149,20 @@ Restriction Simulator::validate(const State& state, const Input& input) const no
         return Restriction::invalid_state;
     if (input.expected_boundary != state.boundary) return Restriction::stale_boundary;
     if (state.phase == Phase::combat_won || state.phase == Phase::player_died) return Restriction::wrong_phase;
+    if (state.phase == Phase::card_choice) {
+        if (input.prompt != state.selection.id) return Restriction::invalid_selection;
+        if (input.target_enemy) return Restriction::malformed_action;
+        const auto& selection = state.selection;
+        if (input.kind == InputKind::confirm_selection) {
+            if (input.card != CardHandle{}) return Restriction::malformed_action;
+            return selection.selected.size() >= selection.minimum && selection.selected.size() <= selection.maximum ? Restriction::none : Restriction::invalid_selection;
+        }
+        if (input.kind != InputKind::select_card && input.kind != InputKind::deselect_card) return Restriction::wrong_phase;
+        const auto selected = std::find(selection.selected.begin(), selection.selected.end(), input.card) != selection.selected.end();
+        if (input.kind == InputKind::deselect_card) return selected ? Restriction::none : Restriction::invalid_selection;
+        return !selected && std::find(selection.candidates.begin(), selection.candidates.end(), input.card) != selection.candidates.end() ? Restriction::none : Restriction::invalid_selection;
+    }
+    if (input.prompt != PromptId{}) return Restriction::invalid_selection;
     if (input.kind == InputKind::end_turn) {
         if (input.card != CardHandle{} || input.target_enemy) return Restriction::malformed_action;
         return state.phase == Phase::play ? Restriction::none : Restriction::wrong_phase;
@@ -173,6 +193,61 @@ StepResult Simulator::advance(State& state, Scratch& scratch) const noexcept try
         const auto instruction = definition->program[frame.instruction++];
         const int amount = instruction.base + (source->upgraded ? instruction.upgrade : 0);
         switch (instruction.opcode) {
+        case Opcode::draw: draw(state, amount, rules_); break;
+        case Opcode::grit_exhaust:
+            if (!source->upgraded) {
+                const auto& hand = state.zone(Zone::hand);
+                if (!hand.empty()) {
+                    std::int32_t index;
+                    if (!state.rng.get(RunStream::combat_card_selection).next_int(0, static_cast<std::int32_t>(hand.size()), index)) return fail(state, Restriction::invalid_state);
+                    exhaust(state, Zone::hand, hand[index]);
+                }
+                break;
+            }
+            [[fallthrough]];
+        case Opcode::exhaust_one:
+            if (state.zone(Zone::hand).size() == 1) {
+                exhaust(state, Zone::hand, state.zone(Zone::hand).front());
+            } else if (!state.zone(Zone::hand).empty()) {
+                if (state.next_prompt.value == UINT32_MAX) return fail(state, Restriction::capacity);
+                state.selection = {state.next_prompt, SelectionEffect::exhaust, Zone::hand, 1, 1, false, state.zone(Zone::hand), {}};
+                ++state.next_prompt.value; state.phase = Phase::card_choice; return result(state);
+            }
+            break;
+        case Opcode::topdeck_choice: {
+            const auto& candidates = state.zone(Zone::discard);
+            if (state.enemy.hp == 0 || candidates.empty()) break;
+            if (candidates.size() == 1) {
+                const auto card = candidates.front(); move_card(state, Zone::discard, Zone::draw, card);
+                auto& pile = state.zone(Zone::draw); std::rotate(pile.begin(), pile.end() - 1, pile.end());
+            } else {
+                if (state.next_prompt.value == UINT32_MAX) return fail(state, Restriction::capacity);
+                state.selection = {state.next_prompt, SelectionEffect::topdeck, Zone::discard, 1, 1, true, candidates, {}};
+                ++state.next_prompt.value; state.phase = Phase::card_choice; return result(state);
+            }
+            break;
+        }
+        case Opcode::upgrade_choice: {
+            auto candidates = state.zone(Zone::hand);
+            std::erase_if(candidates, [&](auto card) { return state.cards.get(card)->upgraded; });
+            if (source->upgraded || candidates.size() <= 1) {
+                for (auto card : candidates) state.cards.get(card)->upgraded = true;
+            } else {
+                if (state.next_prompt.value == UINT32_MAX) return fail(state, Restriction::capacity);
+                state.selection = {state.next_prompt, SelectionEffect::upgrade, Zone::hand, 1, 1, false, std::move(candidates), {}};
+                ++state.next_prompt.value; state.phase = Phase::card_choice; return result(state);
+            }
+            break;
+        }
+        case Opcode::exhaust_choice:
+            if (!state.zone(Zone::hand).empty()) {
+                if (state.next_prompt.value == UINT32_MAX) return fail(state, Restriction::capacity);
+                state.selection = {state.next_prompt, SelectionEffect::exhaust, Zone::hand, 0, static_cast<std::uint32_t>(amount), false, state.zone(Zone::hand), {}};
+                ++state.next_prompt.value;
+                state.phase = Phase::card_choice;
+                return result(state);
+            }
+            break;
         case Opcode::damage: {
             const auto hit = damage(state.enemy, amount, state.player);
             state.damage_dealt += hit.unblocked;
@@ -195,9 +270,12 @@ StepResult Simulator::advance(State& state, Scratch& scratch) const noexcept try
             break;
         case Opcode::finish: {
             const auto card = frame.source; const auto play = frame.play; state.execution.pop_back();
-            move_card(state, Zone::play, Zone::discard, card);
+            const bool exhaust_source = source->definition == CardId::purity;
+            if (!exhaust_source) move_card(state, Zone::play, Zone::discard, card);
             if (state.enemy.hp == 0) { end_combat(state, true); return result(state); }
-            history(state, HistoryKind::play_finished, false, false, card, play); break;
+            history(state, HistoryKind::play_finished, false, false, card, play);
+            if (exhaust_source) exhaust(state, Zone::play, card);
+            break;
         }
         }
     }
@@ -210,10 +288,32 @@ StepResult Simulator::apply(State& state, const Input& input, Scratch& scratch) 
     if (state.boundary.value == std::numeric_limits<std::uint32_t>::max()) return fail(state, Restriction::capacity);
     if (!state.clock.advance_action()) return fail(state, Restriction::clock_exhausted);
     scratch.steps = 0;
-    if (input.kind == InputKind::end_turn) {
+    if (state.phase == Phase::card_choice) {
+        auto& selected = state.selection.selected;
+        if (input.kind == InputKind::select_card) {
+            if (selected.size() == state.selection.maximum) selected.pop_back();
+            selected.push_back(input.card);
+        } else if (input.kind == InputKind::deselect_card) {
+            selected.erase(std::find(selected.begin(), selected.end(), input.card));
+        }
+        if (input.kind == InputKind::confirm_selection || (state.selection.automatic_at_maximum && selected.size() == state.selection.maximum)) {
+            for (auto card : selected) {
+                if (state.selection.effect == SelectionEffect::upgrade) state.cards.get(card)->upgraded = true;
+                else if (state.selection.effect == SelectionEffect::topdeck) {
+                    move_card(state, state.selection.zone, Zone::draw, card);
+                    auto& pile = state.zone(Zone::draw); std::rotate(pile.begin(), pile.end() - 1, pile.end());
+                } else exhaust(state, state.selection.zone, card);
+            }
+            state.selection = {};
+            state.phase = Phase::play;
+            const auto advanced = advance(state, scratch);
+            if (advanced.status == StepStatus::engine_error || advanced.status == StepStatus::resource_limit) return advanced;
+        }
+    } else if (input.kind == InputKind::end_turn) {
         if (!consume(scratch)) return fail(state, Restriction::execution_budget);
         auto& hand = state.zone(Zone::hand); auto& discard = state.zone(Zone::discard);
-        discard.insert(discard.end(), hand.begin(), hand.end()); hand.clear();
+        for (auto card : hand) if (state.cards.get(card)->definition != CardId::purity) discard.push_back(card);
+        std::erase_if(hand, [&](auto card) { return state.cards.get(card)->definition != CardId::purity; });
         state.enemy.block = 0;
         for (auto& p : state.powers) if (p.active && p.enemy_owner) p.amount_on_turn_start = p.amount;
         switch (state.move) {
@@ -288,7 +388,34 @@ bool valid_state(const State& state, const Ruleset& rules) noexcept {
     if ((state.phase == Phase::combat_won && (state.enemy.hp != 0 || state.player.hp == 0)) ||
         (state.phase == Phase::player_died && state.player.hp != 0) ||
         (!terminal && (state.enemy.hp == 0 || state.player.hp == 0))) return false;
-    if (state.phase == Phase::discard_choice) {
+    if (state.next_prompt.value == 0 || (state.phase != Phase::card_choice && state.selection != CardSelection{})) return false;
+    if (state.phase == Phase::card_choice) {
+        const auto& p = state.selection;
+        if (state.execution.size() != 1 || state.zone(Zone::play).size() != 1 ||
+            p.id.value == 0 || p.id.value >= state.next_prompt.value || p.minimum > p.maximum ||
+            p.maximum == 0 || p.selected.size() > p.maximum || static_cast<unsigned>(p.zone) >= static_cast<unsigned>(Zone::count)) return false;
+        const auto& frame = state.execution.back(); const auto* source = state.cards.get(frame.source);
+        if (!source || state.zone(Zone::play).front() != frame.source) return false;
+        const auto* definition = rules.card(source->definition);
+        if (!definition || frame.instruction == 0 || frame.instruction >= definition->program.size()) return false;
+        const auto opcode = definition->program[frame.instruction - 1].opcode;
+        SelectionEffect effect;
+        Zone zone = Zone::hand; std::uint32_t minimum = 1, maximum = 1;
+        bool automatic = false;
+        if (opcode == Opcode::exhaust_choice) { effect = SelectionEffect::exhaust; minimum = 0; maximum = source->upgraded ? 5 : 3; }
+        else if (opcode == Opcode::upgrade_choice && !source->upgraded) effect = SelectionEffect::upgrade;
+        else if (opcode == Opcode::topdeck_choice) { effect = SelectionEffect::topdeck; zone = Zone::discard; automatic = true; }
+        else if (opcode == Opcode::exhaust_one || (opcode == Opcode::grit_exhaust && source->upgraded)) effect = SelectionEffect::exhaust;
+        else return false;
+        if (p.effect != effect || p.zone != zone || p.minimum != minimum || p.maximum != maximum || p.automatic_at_maximum != automatic) return false;
+        std::size_t offered = 0;
+        for (auto card : state.zone(zone)) {
+            if (effect == SelectionEffect::upgrade && state.cards.get(card) && state.cards.get(card)->upgraded) continue;
+            if (offered >= p.candidates.size() || p.candidates[offered++] != card) return false;
+        }
+        if (offered != p.candidates.size() || offered == 0 || (minimum == 1 && offered <= 1)) return false;
+        for (auto card : p.selected) if (std::count(p.selected.begin(), p.selected.end(), card) != 1 || std::find(p.candidates.begin(), p.candidates.end(), card) == p.candidates.end()) return false;
+    } else if (state.phase == Phase::discard_choice) {
         if (state.execution.size() != 1 || state.zone(Zone::play).size() != 1 || state.zone(Zone::hand).empty()) return false;
         const auto& frame = state.execution.back(); const auto* card = state.cards.get(frame.source);
         if (!card || card->definition != CardId::survivor || frame.instruction != 2 || state.zone(Zone::play)[0] != frame.source) return false;
@@ -298,7 +425,7 @@ bool valid_state(const State& state, const Ruleset& rules) noexcept {
     for (const auto& play : state.plays) if (!state.cards.get(play.card) || play.energy < 0) return false;
     for (const auto& p : state.powers) if (static_cast<unsigned>(p.definition) > 1) return false;
     for (const auto& entry : state.history) {
-        if (static_cast<unsigned>(entry.kind) > static_cast<unsigned>(HistoryKind::power_received) || entry.turn < 1 || entry.turn > state.turn) return false;
+        if (static_cast<unsigned>(entry.kind) > static_cast<unsigned>(HistoryKind::exhausted) || entry.turn < 1 || entry.turn > state.turn) return false;
         if (entry.card.present() && !state.cards.get(entry.card)) return false;
         if ((entry.kind == HistoryKind::play_started || entry.kind == HistoryKind::play_finished || entry.kind == HistoryKind::block_gained) && entry.object >= state.plays.size()) return false;
         if (entry.kind == HistoryKind::power_received && entry.object >= state.powers.size()) return false;

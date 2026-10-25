@@ -16,4 +16,5 @@ template<class Tag> struct Handle {
 };
 using CardHandle = Handle<struct CardInstanceTag>;
 using BoundaryId = Id<struct BoundaryTag>;
+using PromptId = Id<struct PromptTag>;
 } // namespace sts2::engine
