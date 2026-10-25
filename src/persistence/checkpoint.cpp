@@ -14,7 +14,7 @@ struct Writer {
     void i32(std::int32_t v) { u32(std::bit_cast<std::uint32_t>(v)); }
     void text(std::string_view s) { for (auto c : s) u8(static_cast<std::uint8_t>(c)); }
     void handle(CardHandle h) { u32(h.slot); u32(h.generation); }
-    void creature(const CreatureState& c) { i32(c.hp); i32(c.max_hp); i32(c.block); i32(c.vulnerable); u8(c.shrink); }
+    void creature(const CreatureState& c) { i32(c.hp); i32(c.max_hp); i32(c.block); i32(c.vulnerable); u8(c.shrink); i32(c.strength); i32(c.dexterity); i32(c.weak); }
 };
 struct Reader {
     std::span<const std::byte> bytes;
@@ -25,7 +25,7 @@ struct Reader {
     std::uint64_t u64() { std::uint64_t v = 0; for (unsigned i = 0; i < 8; ++i) v |= std::uint64_t(u8()) << (8 * i); return v; }
     std::int32_t i32() { return std::bit_cast<std::int32_t>(u32()); }
     CardHandle handle() { const auto slot = u32(); return {slot, u32()}; }
-    CreatureState creature() { CreatureState c; c.hp = i32(); c.max_hp = i32(); c.block = i32(); c.vulnerable = i32(); c.shrink = boolean(); return c; }
+    CreatureState creature() { CreatureState c; c.hp = i32(); c.max_hp = i32(); c.block = i32(); c.vulnerable = i32(); c.shrink = boolean(); c.strength = i32(); c.dexterity = i32(); c.weak = i32(); return c; }
 };
 std::uint64_t digest(std::span<const std::byte> bytes) {
     return game_hash({reinterpret_cast<const char*>(bytes.data()), bytes.size()});
@@ -47,7 +47,7 @@ std::uint64_t content_fingerprint() {
 Checkpoint checkpoint(const State& s) {
     if (!valid_state(s)) throw std::invalid_argument("Cannot checkpoint invalid simulation");
     Writer w;
-    w.text("STS2CP03"); w.u32(3); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
+    w.text("STS2CP04"); w.u32(4); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed);
     w.u32(s.boundary.value); w.u8(static_cast<std::uint8_t>(s.phase));
     const auto config = s.clock.config();
@@ -60,7 +60,7 @@ Checkpoint checkpoint(const State& s) {
     w.u32(static_cast<std::uint32_t>(s.cards.slots().size()));
     for (const auto& slot : s.cards.slots()) {
         w.u32(slot.generation); w.u8(slot.live); w.u8(static_cast<std::uint8_t>(slot.value.definition));
-        w.u8(slot.value.upgraded); w.u32(slot.value.creation_order); w.u32(slot.value.deck_instance);
+        w.u8(slot.value.upgraded); w.u32(slot.value.creation_order); w.u32(slot.value.deck_instance); w.u8(slot.value.removed);
     }
     w.u32(static_cast<std::uint32_t>(s.cards.free_slots().size()));
     for (auto slot : s.cards.free_slots()) w.u32(slot);
@@ -71,11 +71,14 @@ Checkpoint checkpoint(const State& s) {
     w.u32(static_cast<std::uint32_t>(s.plays.size()));
     for (const auto& p : s.plays) { w.handle(p.card); w.i32(p.energy); w.u8(p.enemy_target); }
     w.u32(static_cast<std::uint32_t>(s.powers.size()));
-    for (const auto& p : s.powers) { w.u8(static_cast<std::uint8_t>(p.definition)); w.i32(p.amount); w.i32(p.amount_on_turn_start); w.u8(p.enemy_owner); w.u8(p.active); w.u8(p.skip_next_tick); }
+    for (const auto& p : s.powers) { w.u8(static_cast<std::uint8_t>(p.definition)); w.i32(p.amount); w.i32(p.amount_on_turn_start); w.u8(p.enemy_owner); w.u8(p.active); w.u8(p.skip_next_tick); w.u8(p.applier_enemy); w.u8(p.has_applier); w.handle(p.source); }
+    w.u8(s.power_dispatch.active); w.u32(s.power_dispatch.cursor);
+    w.u32(static_cast<std::uint32_t>(s.power_dispatch.candidates.size()));
+    for (auto index : s.power_dispatch.candidates) w.u32(index);
     w.u32(static_cast<std::uint32_t>(s.history.size()));
     for (const auto& e : s.history) {
         w.u8(static_cast<std::uint8_t>(e.kind)); w.i32(e.turn); w.u8(e.enemy_side); w.u8(e.actor_enemy); w.handle(e.card); w.u32(e.object); w.i32(e.amount);
-        w.i32(e.hit.blocked); w.i32(e.hit.unblocked); w.i32(e.hit.overkill); w.u8(e.hit.block_broken); w.u8(e.hit.fully_blocked); w.u8(e.hit.killed);
+        w.i32(e.hit.blocked); w.i32(e.hit.unblocked); w.i32(e.hit.overkill); w.u8(e.hit.block_broken); w.u8(e.hit.fully_blocked); w.u8(e.hit.killed); w.u8(e.has_applier); w.u8(e.applier_enemy);
     }
     w.u64(digest(w.data));
     return {std::move(w.data)};
@@ -86,8 +89,8 @@ RestoreStatus restore(State& destination, std::span<const std::byte> bytes, Scra
         Reader trailer{bytes.last(8)};
         if (trailer.u64() != digest(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
-        for (char c : std::string_view("STS2CP03")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 3 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        for (char c : std::string_view("STS2CP04")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
+        if (r.u32() != 4 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (char c : game_digest) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
         State s;
@@ -110,7 +113,7 @@ RestoreStatus restore(State& destination, std::span<const std::byte> bytes, Scra
         std::vector<CardPool::Slot> slots(count);
         for (auto& slot : slots) {
             slot.generation = r.u32(); slot.live = r.boolean(); slot.value.definition = static_cast<CardId>(r.u8());
-            slot.value.upgraded = r.boolean(); slot.value.creation_order = r.u32(); slot.value.deck_instance = r.u32();
+            slot.value.upgraded = r.boolean(); slot.value.creation_order = r.u32(); slot.value.deck_instance = r.u32(); slot.value.removed = r.boolean();
         }
         const auto free_count = r.u32(); if (free_count > count) return RestoreStatus::malformed;
         std::vector<std::uint32_t> free(free_count); for (auto& index : free) index = r.u32();
@@ -135,13 +138,16 @@ RestoreStatus restore(State& destination, std::span<const std::byte> bytes, Scra
         const auto powers = bounded_count(12); s.powers.reserve(powers);
         for (std::uint32_t i = 0; i < powers; ++i) {
             PowerRecord p; p.definition = static_cast<PowerId>(r.u8()); p.amount = r.i32(); p.amount_on_turn_start = r.i32();
-            p.enemy_owner = r.boolean(); p.active = r.boolean(); p.skip_next_tick = r.boolean(); s.powers.push_back(p);
+            p.enemy_owner = r.boolean(); p.active = r.boolean(); p.skip_next_tick = r.boolean(); p.applier_enemy = r.boolean(); p.has_applier = r.boolean(); p.source = r.handle(); s.powers.push_back(p);
         }
-        const auto entries = bounded_count(38); s.history.reserve(entries);
+        s.power_dispatch.active = r.boolean(); s.power_dispatch.cursor = r.u32();
+        const auto candidates = bounded_count(4);
+        for (std::uint32_t i = 0; i < candidates; ++i) s.power_dispatch.candidates.push_back(r.u32());
+        const auto entries = bounded_count(40); s.history.reserve(entries);
         for (std::uint32_t i = 0; i < entries; ++i) {
             CombatHistoryEntry e; e.kind = static_cast<HistoryKind>(r.u8()); e.turn = r.i32(); e.enemy_side = r.boolean(); e.actor_enemy = r.boolean();
             e.card = r.handle(); e.object = r.u32(); e.amount = r.i32(); e.hit.blocked = r.i32(); e.hit.unblocked = r.i32(); e.hit.overkill = r.i32();
-            e.hit.block_broken = r.boolean(); e.hit.fully_blocked = r.boolean(); e.hit.killed = r.boolean(); s.history.push_back(e);
+            e.hit.block_broken = r.boolean(); e.hit.fully_blocked = r.boolean(); e.hit.killed = r.boolean(); e.has_applier = r.boolean(); e.applier_enemy = r.boolean(); s.history.push_back(e);
         }
         if (r.at != r.bytes.size() || !valid_state(s)) return RestoreStatus::malformed;
         destination = std::move(s); scratch.steps = 0;

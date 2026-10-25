@@ -27,6 +27,56 @@ CardHandle find_card(const State& state, CardId id) {
 StepResult play(State& s, CardHandle card, Scratch& scratch) {
     return Simulator{}.apply(s, {s.boundary, InputKind::play_card, card, Ruleset::pinned().card(s.cards.get(card)->definition)->enemy_target}, scratch);
 }
+TEST(OrderedPowers, InflameStacksAndStrengthAffectsSubsequentAttack) {
+    const std::array deck{CardSpec{CardId::inflame}, CardSpec{CardId::inflame, true}, CardSpec{CardId::strike}};
+    CombatConfig config; config.deck = deck; config.enemy_hp = 40;
+    auto state = initial(config); Scratch scratch;
+    ASSERT_EQ(play(state, find_card(state, CardId::inflame), scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(play(state, find_card(state, CardId::inflame), scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(state.powers.size(), 1u);
+    EXPECT_EQ(state.powers[0].amount, 5);
+    ASSERT_EQ(play(state, find_card(state, CardId::strike), scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(state.enemy.hp, 29);
+    State restored;
+    ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(restored, state);
+}
+TEST(OrderedPowers, UppercutDamagesBeforeDebuffsAndWeakExpiresAtEnemyTurnEnd) {
+    const std::array deck{CardSpec{CardId::uppercut}, CardSpec{CardId::strike}};
+    CombatConfig config; config.deck = deck; config.enemy_hp = 40;
+    auto state = initial(config); Scratch scratch;
+    ASSERT_EQ(play(state, find_card(state, CardId::uppercut), scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(state.enemy.hp, 27);
+    ASSERT_EQ(state.powers.size(), 2u);
+    EXPECT_EQ(state.powers[0].definition, PowerId::weak);
+    EXPECT_EQ(state.powers[1].definition, PowerId::vulnerable);
+    EXPECT_EQ(observe(state).enemy_weak, 1);
+    EXPECT_EQ(observe_card(state, find_card(state, CardId::strike))->damage, 9);
+    ASSERT_EQ(Simulator{}.apply(state, {state.boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(state.enemy.weak, 0); EXPECT_EQ(state.enemy.vulnerable, 0);
+    EXPECT_FALSE(state.powers[0].active); EXPECT_FALSE(state.powers[1].active);
+    EXPECT_EQ(state.powers[0].amount_on_turn_start, 1);
+}
+TEST(OrderedPowers, SignedModifiersPersistAcrossIndependentRestoredFutures) {
+    const std::array deck{CardSpec{CardId::strike}, CardSpec{CardId::defend}};
+    CombatConfig config; config.deck = deck; config.enemy_hp = 40;
+    auto state = initial(config); Scratch scratch;
+    ASSERT_EQ(apply_power_scenario(state, state.boundary, {PowerId::strength, -2}).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_power_scenario(state, state.boundary, {PowerId::dexterity, -3}).status, StepStatus::awaiting_input);
+    EXPECT_EQ(observe_card(state, find_card(state, CardId::strike))->damage, 4);
+    EXPECT_EQ(observe_card(state, find_card(state, CardId::defend))->block, 2);
+    State alternate; ASSERT_EQ(restore(alternate, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    ASSERT_EQ(play(state, find_card(state, CardId::strike), scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(play(alternate, find_card(alternate, CardId::defend), scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(state.enemy.hp, 36); EXPECT_EQ(alternate.player.block, 2);
+    EXPECT_EQ(alternate.enemy.hp, 40); EXPECT_EQ(state.player.block, 0);
+    ASSERT_EQ(apply_power_scenario(alternate, alternate.boundary, {PowerId::strength, 2}).status, StepStatus::awaiting_input);
+    EXPECT_FALSE(alternate.powers[0].active);
+    EXPECT_EQ(state.powers[0].amount, -2);
+    const auto before = checkpoint(alternate).bytes;
+    EXPECT_EQ(apply_power_scenario(alternate, {0}, {PowerId::strength, 1}).reason, Restriction::stale_boundary);
+    EXPECT_EQ(checkpoint(alternate).bytes, before);
+}
 TEST(GameRng, MatchesPinnedGameMixedCallsAndEntireFinalState) {
     const auto vectors = file(KERNEL_RNG_FIXTURE);
     for (const auto& sequence : vectors["sequences"]) {

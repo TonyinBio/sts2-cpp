@@ -83,7 +83,7 @@ TEST(PublicRun, ConsecutiveScenarioCombatsPreserveHistoryAndRejectOldCards) {
         auto bytes = checkpoint(original).bytes;
         const auto inner = checkpoint(replacement).bytes;
         std::vector<std::byte> magic;
-        for (const char c : std::string_view("STS2CP03")) magic.push_back(std::byte(c));
+        for (const char c : std::string_view("STS2CP04")) magic.push_back(std::byte(c));
         auto at = bytes.begin();
         for (std::size_t i = 0; i <= ordinal; ++i) {
             at = std::search(at, bytes.end(), magic.begin(), magic.end());
