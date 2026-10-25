@@ -3,9 +3,27 @@
 #include <algorithm>
 #include <limits>
 #include <new>
+#include <stdexcept>
 
 namespace sts2::engine {
 namespace {
+constexpr std::array relic_names{"RELIC.BURNING_BLOOD", "RELIC.GOLDEN_PEARL", "RELIC.CHARONS_ASHES", "RELIC.JOSS_PAPER"};
+std::vector<RelicId> combat_relics(const SetupState& setup) {
+    std::vector<RelicId> result;
+    for (auto id : setup.relics) {
+        const auto name = SetupRules::name(id);
+        const auto found = std::find(relic_names.begin(), relic_names.end(), name);
+        if (found == relic_names.end()) throw std::invalid_argument("Unsupported combat relic");
+        result.push_back(static_cast<RelicId>(found - relic_names.begin()));
+    }
+    return result;
+}
+void inherit_relic_counters(State& destination, const std::optional<State>& previous) {
+    if (!previous) return;
+    for (auto& relic : destination.relics)
+        for (const auto& prior : previous->relics)
+            if (relic.definition == prior.definition) relic.counter = prior.counter;
+}
 std::array<ContentId, 3> neow_options(GameRng& rng) {
     const auto curses = SetupRules::neow_curses(); int index;
     (void)rng.next_int(0, static_cast<int>(curses.size()), index);
@@ -53,7 +71,7 @@ StepResult initialize_run(RunState& destination, const SeededConfig& config) {
 StepResult initialize_seeded_combat(RunState& destination, const SeededConfig& config) {
     return initialize_combat_scenario(destination, config, {});
 }
-StepResult initialize_combat_scenario(RunState& destination, const SeededConfig& config, std::span<const CardSpec> scenario_deck) {
+StepResult initialize_combat_scenario(RunState& destination, const SeededConfig& config, std::span<const CardSpec> scenario_deck, std::span<const RelicId> scenario_relics) {
     if (config.character != "CHARACTER.IRONCLAD" || config.ascension != 0)
         return {StepStatus::unsupported_content, destination.boundary, Restriction::unsupported_setup};
     try {
@@ -71,7 +89,15 @@ StepResult initialize_combat_scenario(RunState& destination, const SeededConfig&
                 next.setup.deck.push_back({id, static_cast<std::uint32_t>(next.setup.deck.size()), static_cast<std::uint32_t>(card.upgraded), -1});
             }
         }
+        if (!scenario_relics.empty()) {
+            next.setup.relics.clear();
+            for (auto id : scenario_relics) {
+                if (id > RelicId::joss_paper) return {StepStatus::unsupported_content, destination.boundary, Restriction::unsupported_setup};
+                next.setup.relics.push_back(SetupRules::find(relic_names[static_cast<std::size_t>(id)]));
+            }
+        }
         next.combat.emplace(); CombatConfig combat;
+        const auto relics = combat_relics(next.setup); combat.relics = relics;
         std::vector<CardSpec> deck;
         for (const auto& card : next.setup.deck) {
             CardId definition = CardId::count;
@@ -87,7 +113,7 @@ StepResult initialize_combat_scenario(RunState& destination, const SeededConfig&
         const auto initialized = Simulator{}.initialize(*next.combat, combat, scratch);
         if (initialized.status != StepStatus::awaiting_input) return initialized;
         next.setup.rng = next.combat->rng; next.setup.acts[0].normal_visited = 1;
-        next.phase = RunPhase::combat; next.direct_combat = true;
+        next.phase = RunPhase::combat; next.direct_combat = true; next.complete_run_lifecycle = !scenario_deck.empty();
         destination = std::move(next); return initialized;
     } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, destination.boundary, Restriction::capacity}; }
 }
@@ -101,7 +127,7 @@ StepResult enter_combat_scenario(RunState& state, BoundaryId boundary, std::stri
         return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
     for (auto potion : state.setup.potions) if (potion != no_content && SetupRules::name(potion) != "POTION.POTION_OF_BINDING")
         return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
-    for (auto relic : state.setup.relics) if (SetupRules::name(relic) != "RELIC.BURNING_BLOOD" && SetupRules::name(relic) != "RELIC.GOLDEN_PEARL")
+    for (auto relic : state.setup.relics) if (SetupRules::name(relic) != "RELIC.BURNING_BLOOD" && SetupRules::name(relic) != "RELIC.GOLDEN_PEARL" && SetupRules::name(relic) != "RELIC.CHARONS_ASHES" && SetupRules::name(relic) != "RELIC.JOSS_PAPER")
         return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
     if (state.encounters.size() >= max_retained_encounters || state.setup.acts[state.act_index].normal_visited >= state.setup.acts[state.act_index].normal.size()) return {StepStatus::resource_limit, state.boundary, Restriction::capacity};
     try {
@@ -115,11 +141,13 @@ StepResult enter_combat_scenario(RunState& state, BoundaryId boundary, std::stri
             deck.push_back({definition, card.upgrade == 1, card.instance});
         }
         State combat; CombatConfig config;
+        const auto relics = combat_relics(next.setup); config.relics = relics;
         config.seed = next.setup.seed; config.clock = next.clock.config(); config.initial_rng = &next.setup.rng;
         config.deck = deck; config.player_hp = next.setup.hp; config.player_max_hp = next.setup.max_hp;
         config.card_generation = static_cast<std::uint32_t>(next.encounters.size() + (next.combat ? 2 : 1));
         Scratch scratch; const auto result = Simulator{}.initialize(combat, config, scratch);
         if (result.status != StepStatus::awaiting_input) return result;
+        inherit_relic_counters(combat, next.combat);
         if (next.combat) next.encounters.push_back({std::move(*next.combat), next.rewards, next.setup.deck,
             next.discarded_potions, next.current, static_cast<std::uint32_t>(next.visited.size())});
         next.rewards.reset(); next.discarded_potions.clear();
@@ -223,7 +251,7 @@ StepResult apply_run(RunState& state, const RunInput& input) {
         for (auto potion : state.setup.potions) if (potion != no_content && SetupRules::name(potion) != "POTION.POTION_OF_BINDING")
             return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
         // Inventory hooks are supported only for the starting relic and Golden Pearl.
-        for (auto relic : state.setup.relics) if (SetupRules::name(relic) != "RELIC.BURNING_BLOOD" && SetupRules::name(relic) != "RELIC.GOLDEN_PEARL")
+        for (auto relic : state.setup.relics) if (SetupRules::name(relic) != "RELIC.BURNING_BLOOD" && SetupRules::name(relic) != "RELIC.GOLDEN_PEARL" && SetupRules::name(relic) != "RELIC.CHARONS_ASHES" && SetupRules::name(relic) != "RELIC.JOSS_PAPER")
             return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
         try {
             std::vector<CardSpec> deck;
@@ -235,11 +263,13 @@ StepResult apply_run(RunState& state, const RunInput& input) {
                 deck.push_back({id, card.upgrade == 1, card.instance});
             }
             entering_combat.emplace(); CombatConfig config;
+            const auto relics = combat_relics(state.setup); config.relics = relics;
             config.seed = state.setup.seed; config.clock = state.clock.config(); config.initial_rng = &state.setup.rng;
             config.card_generation = static_cast<std::uint32_t>(state.encounters.size() + (state.combat ? 2 : 1));
             config.deck = deck; config.player_hp = state.setup.hp; config.player_max_hp = state.setup.max_hp;
             Scratch scratch; const auto initialized = Simulator{}.initialize(*entering_combat, config, scratch);
             if (initialized.status != StepStatus::awaiting_input) return initialized;
+            inherit_relic_counters(*entering_combat, state.combat);
             destination = next;
         } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, state.boundary, Restriction::capacity}; }
     } else return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};

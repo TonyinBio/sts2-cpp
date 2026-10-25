@@ -31,6 +31,13 @@ struct PowerScenario {
     bool has_applier = true;
     CardHandle source;
 };
+// Declared consumer perturbation probe: remove a later card/power in ordinary
+// pass, then apply real Strength between ordinary and late native captures.
+[[nodiscard]] StepResult begin_card_played_probe(State&, BoundaryId, std::uint32_t play, CardHandle remove_card, std::uint32_t remove_power) noexcept;
+[[nodiscard]] StepResult step_card_played_probe(State&, BoundaryId) noexcept;
+[[nodiscard]] StepResult capture_duration_scenario(State&, BoundaryId) noexcept;
+[[nodiscard]] StepResult step_duration_scenario(State&, BoundaryId) noexcept;
+[[nodiscard]] StepResult remove_power_scenario(State&, BoundaryId, std::uint32_t index) noexcept;
 [[nodiscard]] StepResult apply_power_scenario(State&, BoundaryId, const PowerScenario&) noexcept;
 // Complete owning copy; all handles remain local to the destination's storage.
 void clone_into(State& destination, const State& source);

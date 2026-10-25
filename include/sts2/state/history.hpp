@@ -3,7 +3,7 @@
 #include <cstdint>
 
 namespace sts2::engine {
-enum class HistoryKind : std::uint8_t { drawn, discarded, energy_spent, play_started, play_finished, damaged, attacked, block_gained, power_received };
+enum class HistoryKind : std::uint8_t { drawn, discarded, energy_spent, play_started, play_finished, damaged, attacked, block_gained, power_received, exhausted };
 struct HitResult {
     std::int32_t blocked = 0, unblocked = 0, overkill = 0;
     bool block_broken = false, fully_blocked = false, killed = false;
@@ -18,6 +18,7 @@ struct CombatHistoryEntry {
     std::int32_t amount = 0;
     HitResult hit;
     bool has_applier = true, applier_enemy = false;
+    std::int32_t props = 8;
     friend bool operator==(const CombatHistoryEntry&, const CombatHistoryEntry&) = default;
 };
 struct CardPlayRecord {
@@ -26,7 +27,7 @@ struct CardPlayRecord {
     bool enemy_target = false;
     friend bool operator==(const CardPlayRecord&, const CardPlayRecord&) = default;
 };
-enum class PowerId : std::uint8_t { shrink, vulnerable, strength, dexterity, weak };
+enum class PowerId : std::uint8_t { shrink, vulnerable, strength, dexterity, weak, artifact };
 struct PowerRecord {
     PowerId definition = PowerId::shrink;
     std::int32_t amount = 0, amount_on_turn_start = 0;

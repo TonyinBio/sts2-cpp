@@ -77,6 +77,78 @@ TEST(OrderedPowers, SignedModifiersPersistAcrossIndependentRestoredFutures) {
     EXPECT_EQ(apply_power_scenario(alternate, {0}, {PowerId::strength, 1}).reason, Restriction::stale_boundary);
     EXPECT_EQ(checkpoint(alternate).bytes, before);
 }
+TEST(OrderedPowers, ArtifactPreventsFirstDebuffAndIsConsumedBeforeSecond) {
+    const std::array deck{CardSpec{CardId::shockwave}};
+    CombatConfig config; config.deck = deck; config.enemy_hp = 40;
+    auto state = initial(config); Scratch scratch;
+    ASSERT_EQ(apply_power_scenario(state, state.boundary, {PowerId::artifact, 1, true}).status, StepStatus::awaiting_input);
+    ASSERT_EQ(play(state, find_card(state, CardId::shockwave), scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(state.enemy.weak, 0); EXPECT_EQ(state.enemy.vulnerable, 3);
+    ASSERT_EQ(state.powers.size(), 2u);
+    EXPECT_EQ(state.powers[0].definition, PowerId::artifact); EXPECT_FALSE(state.powers[0].active);
+    EXPECT_EQ(state.powers[1].definition, PowerId::vulnerable);
+    EXPECT_EQ(state.debuffs_applied, 1);
+}
+TEST(OrderedPowers, ExhaustPassContinuesToJossPaperAfterAshesKillsEnemy) {
+    const std::array deck{CardSpec{CardId::tremble}};
+    const std::array relics{RelicId::charons_ashes, RelicId::joss_paper};
+    CombatConfig config; config.deck = deck; config.enemy_hp = 3; config.relics = relics;
+    auto state = initial(config); Scratch scratch;
+    ASSERT_EQ(play(state, find_card(state, CardId::tremble), scratch).status, StepStatus::combat_won);
+    ASSERT_EQ(state.relics.size(), 2u);
+    EXPECT_EQ(state.relics[1].counter, 1);
+    EXPECT_EQ(state.damage_dealt, 3);
+    State restored; ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(restored, state);
+}
+TEST(OrderedPowers, CapturedDetachedDurationListenerResumesAfterCloneAndRestore) {
+    const std::array deck{CardSpec{CardId::defend}};
+    CombatConfig config; config.deck = deck;
+    auto state = initial(config); Scratch scratch;
+    ASSERT_EQ(apply_power_scenario(state, state.boundary, {PowerId::weak, 2, true}).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_power_scenario(state, state.boundary, {PowerId::vulnerable, 2, true}).status, StepStatus::awaiting_input);
+    ASSERT_EQ(capture_duration_scenario(state, state.boundary).status, StepStatus::awaiting_input);
+    ASSERT_EQ(remove_power_scenario(state, state.boundary, 0).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_power_scenario(state, state.boundary, {PowerId::weak, 5, true}).status, StepStatus::awaiting_input);
+    State restored; ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    auto cloned = state;
+    ASSERT_EQ(step_duration_scenario(state, state.boundary).status, StepStatus::awaiting_input);
+    ASSERT_EQ(step_duration_scenario(restored, restored.boundary).status, StepStatus::awaiting_input);
+    EXPECT_EQ(state, restored); EXPECT_EQ(state.powers[0].amount, 1);
+    EXPECT_FALSE(state.powers[0].active); EXPECT_EQ(state.powers[2].amount, 5);
+    EXPECT_EQ(cloned.powers[0].amount, 2);
+    ASSERT_EQ(Simulator{}.advance(state, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(Simulator{}.advance(restored, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(state, restored); EXPECT_EQ(state.powers[1].amount, 1);
+    EXPECT_EQ(state.powers[2].amount, 5);
+}
+TEST(OrderedPowers, CardPlayedProbeCapturesFreshLateCandidatesAndSkipsRemovedCard) {
+    const std::array deck{CardSpec{CardId::defend}, CardSpec{CardId::strike}};
+    CombatConfig config; config.deck = deck;
+    auto state = initial(config); Scratch scratch;
+    ASSERT_EQ(play(state, find_card(state, CardId::defend), scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_power_scenario(state, state.boundary, {PowerId::weak, 2, true}).status, StepStatus::awaiting_input);
+    const auto removed = find_card(state, CardId::strike);
+    ASSERT_EQ(begin_card_played_probe(state, state.boundary, 0, removed, 0).status, StepStatus::awaiting_input);
+    ASSERT_EQ(step_card_played_probe(state, state.boundary).status, StepStatus::awaiting_input);
+    State restored; ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    auto alternate = state;
+    ASSERT_EQ(Simulator{}.advance(state, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(Simulator{}.advance(restored, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(state, restored); EXPECT_TRUE(state.cards.get(removed)->removed);
+    EXPECT_EQ(state.player.strength, 1); EXPECT_EQ(alternate.player.strength, 0);
+    const auto& trace = state.card_played_dispatch;
+    EXPECT_EQ(trace.visited[0].size(), 4u); EXPECT_EQ(trace.visited[1].size(), 4u);
+    EXPECT_EQ(trace.visited[0][2].kind, ListenerKind::power);
+    EXPECT_EQ(trace.visited[0][2].index, 0u);
+    EXPECT_EQ(trace.visited[1][0].kind, ListenerKind::power);
+    EXPECT_EQ(trace.visited[1][0].index, 1u);
+    ASSERT_EQ(apply_power_scenario(alternate, alternate.boundary, {PowerId::dexterity, 3}).status, StepStatus::awaiting_input);
+    ASSERT_EQ(Simulator{}.advance(alternate, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(alternate.player.dexterity, 3); EXPECT_EQ(state.player.dexterity, 0);
+    EXPECT_EQ(alternate.card_played_dispatch.visited[0].size(), 4u);
+    EXPECT_EQ(alternate.card_played_dispatch.visited[1].size(), 5u);
+}
 TEST(GameRng, MatchesPinnedGameMixedCallsAndEntireFinalState) {
     const auto vectors = file(KERNEL_RNG_FIXTURE);
     for (const auto& sequence : vectors["sequences"]) {

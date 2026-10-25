@@ -74,7 +74,7 @@ std::uint64_t checksum(std::span<const std::byte> bytes) { return game_hash({rei
 }
 Checkpoint checkpoint(const RunState& run) {
     if (!valid_run(run)) throw std::invalid_argument("Cannot checkpoint invalid run");
-    Writer w; w.text("STS2RUN1"); w.u32(2); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
+    Writer w; w.text("STS2RUN1"); w.u32(3); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
     const auto& s = run.setup;
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed); w.u32(s.character); w.u8(s.ascension);
     w.i32(s.hp); w.i32(s.max_hp); w.i32(s.gold); w.i32(s.potion_slots); w.i32(s.orb_slots);
@@ -93,7 +93,7 @@ Checkpoint checkpoint(const RunState& run) {
     for (const auto& map : run.maps) { w.u8(map.has_value()); if (map) w.map(*map); }
     w.u32(run.current); w.ids(run.visited); w.rng(run.event_rng.state());
     for (auto option : run.neow_options) w.u32(option);
-    w.u32(run.selected_neow); w.i32(run.initial_heal); w.i32(run.gold_gained); w.u8(run.direct_combat); w.ids(run.discarded_potions);
+    w.u32(run.selected_neow); w.i32(run.initial_heal); w.i32(run.gold_gained); w.u8(run.direct_combat); w.u8(run.complete_run_lifecycle); w.ids(run.discarded_potions);
     w.u8(run.combat.has_value());
     if (run.combat) { const auto combat = checkpoint(*run.combat); w.u32(static_cast<std::uint32_t>(combat.bytes.size())); w.bytes.insert(w.bytes.end(), combat.bytes.begin(), combat.bytes.end()); }
     w.u8(run.rewards.has_value());
@@ -121,7 +121,7 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         Reader trailer{bytes.last(8)}; if (trailer.u64() != checksum(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
         for (char c : std::string_view("STS2RUN1")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 2 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        if (r.u32() != 3 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (const auto identity : {game_digest, SetupRules::fingerprint()}) for (char c : identity)
             if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
@@ -146,7 +146,7 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         for (auto& map : run.maps) if (r.boolean()) { map.emplace(); r.map(*map); }
         run.current = r.id(); r.ids(run.visited); r.random(run.event_rng);
         for (auto& option : run.neow_options) option = r.id();
-        run.selected_neow = r.id(); run.initial_heal = r.i32(); run.gold_gained = r.i32(); run.direct_combat = r.boolean(); r.ids(run.discarded_potions);
+        run.selected_neow = r.id(); run.initial_heal = r.i32(); run.gold_gained = r.i32(); run.direct_combat = r.boolean(); run.complete_run_lifecycle = r.boolean(); r.ids(run.discarded_potions);
         Scratch temporary;
         if (r.boolean()) {
             const auto size = r.count(1, 64 * 1024 * 1024); run.combat.emplace();

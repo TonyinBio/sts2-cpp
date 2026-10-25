@@ -29,35 +29,161 @@ void history(State& s, HistoryKind kind, bool enemy_side = false, bool actor_ene
              CardHandle card = {}, std::uint32_t object = 0, int amount = 0, HitResult hit = {}) {
     s.history.push_back({kind, s.turn, enemy_side, actor_enemy, card, object, amount, hit});
 }
-std::uint32_t apply_power(State& s, PowerId id, int amount, bool enemy, bool enemy_side, CardHandle source = {}, bool has_applier = true, bool applier_enemy = false) {
-    // A killed creature cannot receive the later instructions of Uppercut/Bash.
-    if ((enemy ? s.enemy.hp : s.player.hp) <= 0) return UINT32_MAX;
-    auto found = std::find_if(s.powers.begin(), s.powers.end(), [&](const auto& p) { return p.active && p.definition == id && p.enemy_owner == enemy; });
-    std::uint32_t index;
-    if (found == s.powers.end()) {
-        if (!amount) return UINT32_MAX;
-        index = static_cast<std::uint32_t>(s.powers.size());
-        PowerRecord power{id, amount, 0, enemy, true, !enemy && ((id != PowerId::strength && id != PowerId::dexterity) || amount < 0)};
-        power.applier_enemy = applier_enemy; power.has_applier = has_applier; power.source = source;
-        s.powers.push_back(power);
-    } else {
-        index = static_cast<std::uint32_t>(found - s.powers.begin());
-        found->amount = static_cast<int>(std::clamp(std::int64_t(found->amount) + amount, std::int64_t(-999999999), std::int64_t(999999999)));
-        found->active = (id == PowerId::strength || id == PowerId::dexterity) ? found->amount != 0 : found->amount > 0;
-    }
+void refresh_power_stat(State& s, bool enemy, PowerId id) {
+    const auto found = std::find_if(s.powers.begin(), s.powers.end(), [&](const auto& p) { return p.active && p.enemy_owner == enemy && p.definition == id; });
+    const auto value = found == s.powers.end() ? 0 : found->amount;
     auto& creature = enemy ? s.enemy : s.player;
-    const int value = s.powers[index].active ? s.powers[index].amount : 0;
     switch (id) {
     case PowerId::vulnerable: creature.vulnerable = value; break;
     case PowerId::strength: creature.strength = value; break;
     case PowerId::dexterity: creature.dexterity = value; break;
     case PowerId::weak: creature.weak = value; break;
-    case PowerId::shrink: creature.shrink = true; break;
+    case PowerId::shrink: creature.shrink = found != s.powers.end(); break;
+    case PowerId::artifact: break;
     }
-    history(s, HistoryKind::power_received, enemy_side, enemy, {}, index, amount);
-    s.history.back().has_applier = has_applier; s.history.back().applier_enemy = applier_enemy;
-    if (enemy && amount > 0 && (id == PowerId::weak || id == PowerId::vulnerable)) ++s.debuffs_applied;
+}
+std::uint32_t apply_power(State& s, PowerId id, int amount, bool enemy, bool enemy_side, CardHandle source = {}, bool has_applier = true, bool applier_enemy = false, std::uint32_t retained_index = UINT32_MAX) {
+    // A killed creature cannot receive the later instructions of Uppercut/Bash.
+    if ((enemy ? s.enemy.hp : s.player.hp) <= 0) return UINT32_MAX;
+    auto found = std::find_if(s.powers.begin(), s.powers.end(), [&](const auto& p) { return p.active && p.definition == id && p.enemy_owner == enemy; });
+    if (retained_index != UINT32_MAX) found = s.powers.begin() + retained_index;
+    const bool existing = found != s.powers.end();
+    const auto found_index = existing ? static_cast<std::uint32_t>(found - s.powers.begin()) : UINT32_MAX;
+    if (!existing && !amount) return UINT32_MAX;
+    const auto operation_index = s.power_operations.size();
+    PowerAmountOperation captured{}; captured.definition = id; captured.requested = amount; captured.accepted = amount;
+    captured.enemy_owner = enemy; captured.has_applier = has_applier; captured.applier_enemy = applier_enemy; captured.source = source;
+    s.power_operations.push_back(std::move(captured));
+    // Received modifiers capture the current native power order once. Only
+    // Artifact contributes among this slice's concrete models.
+    auto& operation = s.power_operations[operation_index];
+    for (bool candidate_enemy : {false, true})
+        for (std::size_t i = 0; i < s.powers.size(); ++i)
+            if (s.powers[i].active && s.powers[i].enemy_owner == candidate_enemy)
+                operation.received_candidates.push_back(static_cast<std::uint32_t>(i));
+    while (operation.cursor < operation.received_candidates.size()) {
+        const auto candidate = operation.received_candidates[operation.cursor++];
+        const auto& listener = s.powers[candidate];
+        const bool debuff = (id == PowerId::strength || id == PowerId::dexterity) ? operation.accepted < 0 :
+            id == PowerId::shrink || ((id == PowerId::weak || id == PowerId::vulnerable) && operation.accepted >= 0);
+        if (listener.definition == PowerId::artifact && listener.enemy_owner == enemy && debuff) {
+            operation.accepted = 0; operation.contributed.push_back(candidate);
+        }
+    }
+    amount = operation.accepted;
+    std::uint32_t index = found_index;
+    if (!existing && amount != 0) {
+        index = static_cast<std::uint32_t>(s.powers.size());
+        const bool debuff = id == PowerId::weak || id == PowerId::vulnerable || id == PowerId::shrink;
+        PowerRecord power{}; power.definition = id; power.amount = amount; power.enemy_owner = enemy; power.skip_next_tick = !enemy && debuff;
+        power.applier_enemy = applier_enemy; power.has_applier = has_applier; power.source = source;
+        s.powers.push_back(power);
+    } else if (existing) {
+        auto& power = s.powers[index];
+        power.amount = static_cast<int>(std::clamp(std::int64_t(power.amount) + amount, std::int64_t(-999999999), std::int64_t(999999999)));
+    }
+    if (existing || amount != 0) {
+        refresh_power_stat(s, enemy, id);
+        history(s, HistoryKind::power_received, enemy_side, enemy, {}, index, amount);
+        s.history.back().has_applier = has_applier; s.history.back().applier_enemy = applier_enemy;
+        if (enemy && amount > 0 && (id == PowerId::weak || id == PowerId::vulnerable)) ++s.debuffs_applied;
+    }
+    // After-modifier callbacks use a fresh eligible pass intersected with the
+    // identities which actually contributed; additions cannot inherit a callback.
+    const auto contributed = s.power_operations[operation_index].contributed;
+    for (std::size_t candidate = 0; candidate < s.powers.size(); ++candidate) {
+        if (!s.powers[candidate].active || std::find(contributed.begin(), contributed.end(), candidate) == contributed.end()) continue;
+        const auto owner = s.powers[candidate].enemy_owner;
+        (void)apply_power(s, PowerId::artifact, -1, owner, enemy_side, {}, false);
+    }
+    if (index != UINT32_MAX) {
+        auto& power = s.powers[index];
+        if ((id == PowerId::strength || id == PowerId::dexterity || id == PowerId::shrink) ? power.amount == 0 : power.amount <= 0) power.active = false;
+        refresh_power_stat(s, enemy, id);
+    }
+    s.power_operations.pop_back();
     return index;
+}
+void capture_duration(State& state, bool enemy_side = true) {
+    auto& pass = state.power_dispatch;
+    pass.candidates.clear(); pass.cursor = 0; pass.active = true; pass.enemy_side = enemy_side;
+    for (bool enemy_owner : {false, true})
+        for (std::size_t i = 0; i < state.powers.size(); ++i)
+            if (state.powers[i].active && state.powers[i].enemy_owner == enemy_owner)
+                pass.candidates.push_back(static_cast<std::uint32_t>(i));
+    if (pass.candidates.empty()) pass.active = false;
+}
+void step_duration(State& state) {
+    auto& pass = state.power_dispatch;
+    if (!pass.active) return;
+    const auto index = pass.candidates[pass.cursor++];
+    auto& p = state.powers[index];
+    // Removed powers keep their owner association and remain eligible. Their
+    // amount changes the retained instance, never a newly stacked replacement.
+    if (((p.enemy_owner && state.enemy.hp > 0) || (!p.enemy_owner && state.player.hp > 0)) &&
+        (p.definition == PowerId::vulnerable || p.definition == PowerId::weak)) {
+        if (p.skip_next_tick) p.skip_next_tick = false;
+        else {
+            const auto id = p.definition; const auto owner = p.enemy_owner;
+            (void)apply_power(state, id, -1, owner, pass.enemy_side, {}, false, false, index);
+        }
+    }
+    if (pass.cursor == pass.candidates.size()) { pass.active = false; pass.candidates.clear(); pass.cursor = 0; }
+}
+void capture_card_played_listeners(State& state) {
+    auto& pass = state.card_played_dispatch;
+    pass.candidates.clear(); pass.cursor = 0;
+    for (std::size_t i = 0; i < state.powers.size(); ++i)
+        if (state.powers[i].active && !state.powers[i].enemy_owner) pass.candidates.push_back({ListenerKind::power, static_cast<std::uint32_t>(i)});
+    if (state.player.hp > 0) {
+        for (std::size_t i = 0; i < state.relics.size(); ++i)
+            if (state.relics[i].active) pass.candidates.push_back({ListenerKind::relic, static_cast<std::uint32_t>(i)});
+        for (const auto& zone : state.zones) for (auto card : zone)
+            pass.candidates.push_back({ListenerKind::card, card.slot, card.generation});
+    }
+    for (std::size_t i = 0; i < state.powers.size(); ++i)
+        if (state.powers[i].active && state.powers[i].enemy_owner) pass.candidates.push_back({ListenerKind::power, static_cast<std::uint32_t>(i)});
+    pass.candidates.push_back({ListenerKind::monster});
+}
+bool listener_eligible(const State& state, ListenerRef listener) {
+    switch (listener.kind) {
+    case ListenerKind::power: return state.powers[listener.index].enemy_owner || state.player.hp > 0;
+    case ListenerKind::relic: return state.relics[listener.index].active && state.player.hp > 0;
+    case ListenerKind::card: {
+        const auto* card = state.cards.get({listener.index, listener.generation});
+        return card && !card->removed && state.player.hp > 0;
+    }
+    case ListenerKind::monster: return true;
+    }
+    return false;
+}
+void step_card_played(State& state) {
+    auto& pass = state.card_played_dispatch;
+    if (pass.stage == 0) return;
+    const auto listener = pass.candidates[pass.cursor++];
+    if (listener_eligible(state, listener)) {
+        pass.visited[pass.stage - 1].push_back(listener);
+        // The probe perturbs real models, never installs fake listeners. The
+        // supported concrete models inherit default AfterCardPlayed callbacks.
+        if (pass.perturb && pass.stage == 1 && pass.visited[0].size() == 1) {
+            state.powers[pass.remove_power].active = false;
+            refresh_power_stat(state, state.powers[pass.remove_power].enemy_owner, state.powers[pass.remove_power].definition);
+            for (auto& zone : state.zones) std::erase(zone, pass.remove_card);
+            state.cards.get(pass.remove_card)->removed = true;
+        }
+    }
+    if (pass.cursor == pass.candidates.size()) {
+        if (pass.stage == 1) {
+            if (pass.perturb) (void)apply_power(state, PowerId::strength, 1, false, false);
+            pass.stage = 2; capture_card_played_listeners(state);
+        } else { pass.stage = 0; pass.cursor = 0; pass.candidates.clear(); }
+    }
+}
+void begin_card_played(State& state, std::uint32_t play, bool perturb = false, CardHandle removed = {}, std::uint32_t power = UINT32_MAX) {
+    auto& pass = state.card_played_dispatch;
+    pass.play = play; pass.stage = 1; pass.perturb = perturb; pass.remove_card = removed; pass.remove_power = power;
+    for (auto& visits : pass.visited) visits.clear();
+    capture_card_played_listeners(state);
 }
 void move_card(State& state, Zone from, Zone to, CardHandle card) {
     auto& source = state.zone(from);
@@ -92,9 +218,39 @@ HitResult damage(CreatureState& target, int base, const CreatureState& source) n
     target.block -= blocked; target.hp -= unblocked;
     return hit;
 }
+void after_card_exhausted(State& state, CardHandle card, const Ruleset& rules) {
+    // Ordinary hook guards once at entry; lethal listener damage does not abort
+    // the captured pass. Combat cleanup waits until the outer card effect ends.
+    if (state.enemy.hp <= 0 || state.player.hp <= 0) return;
+    auto& pass = state.exhaust_dispatch;
+    pass.card = card; pass.candidates.clear(); pass.cursor = 0; pass.active = true;
+    for (std::size_t i = 0; i < state.relics.size(); ++i)
+        if (state.relics[i].active) pass.candidates.push_back(static_cast<std::uint32_t>(i));
+    while (pass.cursor < pass.candidates.size()) {
+        const auto index = pass.candidates[pass.cursor++];
+        auto& relic = state.relics[index];
+        if (!relic.active || state.player.hp == 0) continue;
+        if (relic.definition == RelicId::charons_ashes && state.enemy.hp > 0) {
+            CreatureState unpowered;
+            auto target = state.enemy; target.vulnerable = 0;
+            const auto hit = damage(target, 3, unpowered);
+            state.enemy.hp = target.hp; state.enemy.block = target.block;
+            state.damage_dealt += hit.unblocked;
+            history(state, HistoryKind::damaged, false, true, {}, 0, 0, hit);
+            state.history.back().props = 4;
+        } else if (relic.definition == RelicId::joss_paper) {
+            ++relic.counter;
+            if (relic.counter >= 5) {
+                if (state.enemy.hp > 0) draw(state, relic.counter / 5, rules);
+                relic.counter %= 5;
+            }
+        }
+    }
+    pass.active = false; pass.candidates.clear(); pass.cursor = 0; pass.card = {};
+}
 void end_combat(State& state, bool won) noexcept {
     state.phase = won ? Phase::combat_won : Phase::player_died;
-    state.execution.clear();
+    state.execution.clear(); state.card_played_dispatch = {};
     if (won) {
         state.history.clear(); state.plays.clear(); state.powers.clear();
         for (auto& zone : state.zones) zone.clear();
@@ -108,11 +264,54 @@ void end_combat(State& state, bool won) noexcept {
     }
 }
 }
+StepResult begin_card_played_probe(State& state, BoundaryId boundary, std::uint32_t play, CardHandle removed, std::uint32_t power) noexcept try {
+    if (!valid_state(state)) return {StepStatus::engine_error, state.boundary, Restriction::invalid_state};
+    if (boundary != state.boundary) return result(state, Restriction::stale_boundary);
+    if (state.phase != Phase::play || state.power_dispatch.active || state.card_played_dispatch.stage) return result(state, Restriction::wrong_phase);
+    if (play >= state.plays.size() || power >= state.powers.size() || !state.cards.get(removed) || state.cards.get(removed)->removed)
+        return result(state, Restriction::malformed_action);
+    begin_card_played(state, play, true, removed, power); return result(state);
+} catch (...) { return fail(state, Restriction::capacity); }
+StepResult step_card_played_probe(State& state, BoundaryId boundary) noexcept try {
+    if (!valid_state(state)) return {StepStatus::engine_error, state.boundary, Restriction::invalid_state};
+    if (boundary != state.boundary) return result(state, Restriction::stale_boundary);
+    if (state.phase != Phase::play || !state.card_played_dispatch.stage) return result(state, Restriction::wrong_phase);
+    step_card_played(state); return result(state);
+} catch (...) { return fail(state, Restriction::capacity); }
+StepResult capture_duration_scenario(State& state, BoundaryId boundary) noexcept try {
+    if (!valid_state(state)) return {StepStatus::engine_error, state.boundary, Restriction::invalid_state};
+    if (boundary != state.boundary) return result(state, Restriction::stale_boundary);
+    if (state.phase != Phase::play || state.power_dispatch.active) return result(state, Restriction::wrong_phase);
+    capture_duration(state, false); return result(state);
+} catch (...) { return fail(state, Restriction::capacity); }
+StepResult step_duration_scenario(State& state, BoundaryId boundary) noexcept try {
+    if (!valid_state(state)) return {StepStatus::engine_error, state.boundary, Restriction::invalid_state};
+    if (boundary != state.boundary) return result(state, Restriction::stale_boundary);
+    if (state.phase != Phase::play || !state.power_dispatch.active) return result(state, Restriction::wrong_phase);
+    step_duration(state); return result(state);
+} catch (...) { return fail(state, Restriction::capacity); }
+StepResult remove_power_scenario(State& state, BoundaryId boundary, std::uint32_t index) noexcept {
+    if (!valid_state(state)) return {StepStatus::engine_error, state.boundary, Restriction::invalid_state};
+    if (boundary != state.boundary) return result(state, Restriction::stale_boundary);
+    if (state.phase != Phase::play) return result(state, Restriction::wrong_phase);
+    if (index >= state.powers.size()) return result(state, Restriction::malformed_action);
+    auto& power = state.powers[index]; power.active = false;
+    auto& owner = power.enemy_owner ? state.enemy : state.player;
+    switch (power.definition) {
+    case PowerId::strength: owner.strength = 0; break;
+    case PowerId::dexterity: owner.dexterity = 0; break;
+    case PowerId::vulnerable: owner.vulnerable = 0; break;
+    case PowerId::weak: owner.weak = 0; break;
+    case PowerId::shrink: owner.shrink = false; break;
+    case PowerId::artifact: break;
+    }
+    return result(state);
+}
 StepResult apply_power_scenario(State& state, BoundaryId boundary, const PowerScenario& operation) noexcept try {
     if (!valid_state(state)) return {StepStatus::engine_error, state.boundary, Restriction::invalid_state};
     if (boundary != state.boundary) return result(state, Restriction::stale_boundary);
     if (state.phase != Phase::play) return result(state, Restriction::wrong_phase);
-    if (static_cast<unsigned>(operation.definition) > static_cast<unsigned>(PowerId::weak) ||
+    if (static_cast<unsigned>(operation.definition) > static_cast<unsigned>(PowerId::artifact) ||
         operation.amount < -999999999 || operation.amount > 999999999 ||
         (operation.source.present() && !state.cards.get(operation.source))) return result(state, Restriction::malformed_action);
     (void)apply_power(state, operation.definition, operation.amount, operation.enemy_owner, false,
@@ -124,14 +323,17 @@ StepResult apply_power_scenario(State& state, BoundaryId boundary, const PowerSc
 void State::reserve(std::size_t card_count) {
     cards.reserve(card_count);
     for (auto& zone : zones) zone.reserve(card_count);
-    execution.reserve(8); history.reserve(128); plays.reserve(32); powers.reserve(8); power_dispatch.candidates.reserve(8);
+    execution.reserve(8); history.reserve(128); plays.reserve(32); powers.reserve(8); relics.reserve(8); exhaust_dispatch.candidates.reserve(8); power_operations.reserve(8); power_dispatch.candidates.reserve(8);
 }
 std::size_t State::retained_bytes() const noexcept {
     const auto text_address = reinterpret_cast<std::uintptr_t>(seed.data());
     const auto root_address = reinterpret_cast<std::uintptr_t>(this);
     const auto seed_bytes = text_address >= root_address && text_address < root_address + sizeof(State) ? 0 : seed.capacity() + 1;
-    auto bytes = sizeof(State) + seed_bytes + cards.retained_bytes() + execution.capacity() * sizeof(EffectFrame);
-    bytes += history.capacity() * sizeof(CombatHistoryEntry) + plays.capacity() * sizeof(CardPlayRecord) + powers.capacity() * sizeof(PowerRecord) + power_dispatch.candidates.capacity() * sizeof(std::uint32_t);
+    auto bytes = relics.capacity() * sizeof(CombatRelic) + exhaust_dispatch.candidates.capacity() * sizeof(std::uint32_t) + sizeof(State) + seed_bytes + cards.retained_bytes() + execution.capacity() * sizeof(EffectFrame);
+    bytes += history.capacity() * sizeof(CombatHistoryEntry) + plays.capacity() * sizeof(CardPlayRecord) + powers.capacity() * sizeof(PowerRecord) + power_operations.capacity() * sizeof(PowerAmountOperation) + power_dispatch.candidates.capacity() * sizeof(std::uint32_t);
+    bytes += card_played_dispatch.candidates.capacity() * sizeof(ListenerRef);
+    for (const auto& visits : card_played_dispatch.visited) bytes += visits.capacity() * sizeof(ListenerRef);
+    for (const auto& operation : power_operations) bytes += (operation.received_candidates.capacity() + operation.contributed.capacity()) * sizeof(std::uint32_t);
     for (const auto& zone : zones) bytes += zone.capacity() * sizeof(CardHandle);
     return bytes;
 }
@@ -160,6 +362,16 @@ StepResult Simulator::initialize(State& state, const CombatConfig& config, Scrat
         int enemy_hp = config.enemy_hp;
         if (enemy_hp == 0) (void)next.rng.get(RunStream::niche).next_int(38, 41, enemy_hp);
         next.enemy = {enemy_hp, enemy_hp}; next.energy = 3; next.turn = 1; next.burning_blood = config.burning_blood;
+        if (config.relics.empty()) {
+            if (config.burning_blood) next.relics.push_back({RelicId::burning_blood});
+        } else {
+            next.burning_blood = false;
+            for (auto id : config.relics) {
+                if (id > RelicId::joss_paper) return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
+                next.relics.push_back({id});
+                if (id == RelicId::burning_blood) next.burning_blood = true;
+            }
+        }
         for (const auto& card : deck) {
             auto handle = next.cards.create({card.definition, card.upgraded, next.next_creation_order++, card.deck_instance}, limits_.cards, config.card_generation);
             if (!handle.present()) return {StepStatus::resource_limit, state.boundary, Restriction::capacity};
@@ -174,6 +386,7 @@ StepResult Simulator::initialize(State& state, const CombatConfig& config, Scrat
 Restriction Simulator::validate(const State& state, const Input& input) const noexcept {
     if (state.phase == Phase::uninitialized || state.phase == Phase::invalid || state.rules != rules_revision)
         return Restriction::invalid_state;
+    if (state.power_dispatch.active || state.card_played_dispatch.stage) return Restriction::wrong_phase;
     if (input.expected_boundary != state.boundary) return Restriction::stale_boundary;
     if (state.phase == Phase::combat_won || state.phase == Phase::player_died) return Restriction::wrong_phase;
     if (input.kind == InputKind::end_turn) {
@@ -196,7 +409,10 @@ Restriction Simulator::validate(const State& state, const Input& input) const no
     return Restriction::none;
 }
 StepResult Simulator::advance(State& state, Scratch& scratch) const noexcept try {
-    if (state.phase != Phase::play || state.execution.empty()) return result(state);
+    if (state.phase != Phase::play) return result(state);
+    while (state.power_dispatch.active) step_duration(state);
+    while (state.card_played_dispatch.stage) step_card_played(state);
+    if (state.execution.empty()) return result(state);
     while (!state.execution.empty()) {
         if (!consume(scratch)) return fail(state, Restriction::execution_budget);
         auto& frame = state.execution.back(); const auto* source = state.cards.get(frame.source);
@@ -232,12 +448,19 @@ StepResult Simulator::advance(State& state, Scratch& scratch) const noexcept try
             break;
         case Opcode::finish: {
             const auto card = frame.source; const auto play = frame.play; state.execution.pop_back();
+            history(state, HistoryKind::play_finished, false, false, card, play);
+            begin_card_played(state, play);
+            while (state.card_played_dispatch.stage) step_card_played(state);
             const auto id = state.cards.get(card)->definition;
             const auto destination = id == CardId::shockwave || id == CardId::tremble ? Zone::exhaust : Zone::discard;
             if (id != CardId::inflame) move_card(state, Zone::play, destination, card);
             else { state.cards.get(card)->removed = true; state.zone(Zone::play).erase(std::find(state.zone(Zone::play).begin(), state.zone(Zone::play).end(), card)); }
+            if (destination == Zone::exhaust) {
+                history(state, HistoryKind::exhausted, false, false, card);
+                after_card_exhausted(state, card, rules_);
+            }
             if (state.enemy.hp == 0) { end_combat(state, true); return result(state); }
-            history(state, HistoryKind::play_finished, false, false, card, play); break;
+            break;
         }
         }
     }
@@ -270,24 +493,8 @@ StepResult Simulator::apply(State& state, const Input& input, Scratch& scratch) 
         if (state.player.hp == 0) end_combat(state, false);
         else {
             // Weak and Vulnerable tick at enemy-side end for either owner.
-            auto& pass = state.power_dispatch;
-            pass.candidates.clear(); pass.cursor = 0; pass.active = true;
-            // Native creature order is allies, then enemies; collection order inside each owner.
-            for (bool enemy_owner : {false, true})
-                for (std::size_t i = 0; i < state.powers.size(); ++i)
-                    if (state.powers[i].active && state.powers[i].enemy_owner == enemy_owner)
-                        pass.candidates.push_back(static_cast<std::uint32_t>(i));
-            while (pass.cursor < pass.candidates.size()) {
-                const auto index = pass.candidates[pass.cursor++];
-                auto& p = state.powers[index];
-                // Native power eligibility tests owner/combat association, not collection membership.
-                if ((!p.enemy_owner && state.player.hp == 0) || (p.enemy_owner && state.enemy.hp == 0)) continue;
-                if (p.definition != PowerId::vulnerable && p.definition != PowerId::weak) continue;
-                if (p.skip_next_tick) { p.skip_next_tick = false; continue; }
-                const auto id = p.definition; const auto owner = p.enemy_owner;
-                (void)apply_power(state, id, -1, owner, true, {}, false);
-            }
-            pass.active = false; pass.candidates.clear(); pass.cursor = 0;
+            capture_duration(state);
+            while (state.power_dispatch.active) step_duration(state);
             for (auto& p : state.powers) if (p.active && !p.enemy_owner) p.amount_on_turn_start = p.amount;
             state.player.block = 0;
             if (state.turn == std::numeric_limits<int>::max()) return fail(state, Restriction::capacity);
@@ -346,15 +553,34 @@ bool valid_state(const State& state, const Ruleset& rules) noexcept {
     if (state.damage_dealt < 0 || state.damage_taken < 0 || state.debuffs_applied < 0 || state.healing < 0) return false;
     for (const auto& play : state.plays) if (!state.cards.get(play.card) || play.energy < 0) return false;
     for (const auto& p : state.powers) {
-        if (static_cast<unsigned>(p.definition) > static_cast<unsigned>(PowerId::weak) ||
+        if (static_cast<unsigned>(p.definition) > static_cast<unsigned>(PowerId::artifact) ||
             p.amount < -999999999 || p.amount > 999999999 ||
             (p.source.present() && !state.cards.get(p.source))) return false;
     }
+    const auto valid_listener = [&](ListenerRef listener) {
+        switch (listener.kind) {
+        case ListenerKind::power: return listener.index < state.powers.size() && listener.generation == 0;
+        case ListenerKind::relic: return listener.index < state.relics.size() && listener.generation == 0;
+        case ListenerKind::card: return state.cards.get({listener.index, listener.generation}) != nullptr;
+        case ListenerKind::monster: return listener.index == 0 && listener.generation == 0;
+        }
+        return false;
+    };
+    const auto& card_pass = state.card_played_dispatch;
+    if (card_pass.stage > 2 || card_pass.cursor > card_pass.candidates.size() ||
+        (card_pass.stage && card_pass.cursor == card_pass.candidates.size()) ||
+        (!card_pass.stage && (!card_pass.candidates.empty() || card_pass.cursor)) ||
+        (card_pass.play != UINT32_MAX && card_pass.play >= state.plays.size()) ||
+        (card_pass.perturb && (!state.cards.get(card_pass.remove_card) || card_pass.remove_power >= state.powers.size()))) return false;
+    for (const auto& listener : card_pass.candidates) if (!valid_listener(listener)) return false;
+    for (const auto& visits : card_pass.visited) for (const auto& listener : visits) if (!valid_listener(listener)) return false;
+    if (!state.power_operations.empty() || state.exhaust_dispatch.active || !state.exhaust_dispatch.candidates.empty() || state.exhaust_dispatch.cursor || state.exhaust_dispatch.card.present()) return false;
+    for (const auto& relic : state.relics) if (relic.definition > RelicId::joss_paper || relic.counter < 0 || relic.counter >= 5) return false;
     if (state.power_dispatch.cursor > state.power_dispatch.candidates.size() ||
         (!state.power_dispatch.active && (!state.power_dispatch.candidates.empty() || state.power_dispatch.cursor))) return false;
     for (auto index : state.power_dispatch.candidates) if (index >= state.powers.size()) return false;
     for (const auto& entry : state.history) {
-        if (static_cast<unsigned>(entry.kind) > static_cast<unsigned>(HistoryKind::power_received) || entry.turn < 1 || entry.turn > state.turn) return false;
+        if (static_cast<unsigned>(entry.kind) > static_cast<unsigned>(HistoryKind::exhausted) || entry.turn < 1 || entry.turn > state.turn) return false;
         if (entry.card.present() && !state.cards.get(entry.card)) return false;
         if ((entry.kind == HistoryKind::play_started || entry.kind == HistoryKind::play_finished || entry.kind == HistoryKind::block_gained) && entry.object >= state.plays.size()) return false;
         if (entry.kind == HistoryKind::power_received && entry.object >= state.powers.size()) return false;

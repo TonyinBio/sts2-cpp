@@ -13,7 +13,7 @@ struct RunInput {
 [[nodiscard]] bool valid_run(const RunState&) noexcept;
 [[nodiscard]] StepResult initialize_run(RunState&, const SeededConfig&);
 [[nodiscard]] StepResult initialize_seeded_combat(RunState&, const SeededConfig&);
-[[nodiscard]] StepResult initialize_combat_scenario(RunState&, const SeededConfig&, std::span<const CardSpec> deck);
+[[nodiscard]] StepResult initialize_combat_scenario(RunState&, const SeededConfig&, std::span<const CardSpec> deck, std::span<const RelicId> relics = {});
 // Declared scenario operation: enter a supported native room without changing
 // generated encounter queues or map topology. Gameplay still uses apply_player.
 [[nodiscard]] StepResult enter_combat_scenario(RunState&, BoundaryId, std::string_view encounter);

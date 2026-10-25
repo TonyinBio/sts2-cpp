@@ -39,8 +39,46 @@ struct EffectFrame {
 struct PowerDispatch {
     std::vector<std::uint32_t> candidates;
     std::uint32_t cursor = 0;
-    bool active = false;
+    bool active = false, enemy_side = true;
     friend bool operator==(const PowerDispatch&, const PowerDispatch&) = default;
+};
+struct PowerAmountOperation {
+    PowerId definition;
+    std::int32_t requested = 0, accepted = 0;
+    bool enemy_owner = false, has_applier = false, applier_enemy = false;
+    CardHandle source;
+    std::vector<std::uint32_t> received_candidates, contributed;
+    std::uint32_t cursor = 0;
+    friend bool operator==(const PowerAmountOperation&, const PowerAmountOperation&) = default;
+};
+enum class ListenerKind : std::uint8_t { power, relic, card, monster };
+struct ListenerRef {
+    ListenerKind kind = ListenerKind::power;
+    std::uint32_t index = 0, generation = 0;
+    friend bool operator==(const ListenerRef&, const ListenerRef&) = default;
+};
+struct CardPlayedDispatch {
+    std::uint32_t play = UINT32_MAX, cursor = 0, remove_power = UINT32_MAX;
+    std::uint8_t stage = 0; // 1 ordinary, 2 late; each pass captures independently.
+    bool perturb = false;
+    CardHandle remove_card;
+    std::vector<ListenerRef> candidates;
+    std::array<std::vector<ListenerRef>, 2> visited;
+    friend bool operator==(const CardPlayedDispatch&, const CardPlayedDispatch&) = default;
+};
+enum class RelicId : std::uint8_t { burning_blood, golden_pearl, charons_ashes, joss_paper };
+struct CombatRelic {
+    RelicId definition = RelicId::burning_blood;
+    std::int32_t counter = 0;
+    bool active = true;
+    friend bool operator==(const CombatRelic&, const CombatRelic&) = default;
+};
+struct ExhaustDispatch {
+    CardHandle card;
+    std::vector<std::uint32_t> candidates;
+    std::uint32_t cursor = 0;
+    bool active = false;
+    friend bool operator==(const ExhaustDispatch&, const ExhaustDispatch&) = default;
 };
 struct State {
     std::uint32_t rules = rules_revision;
@@ -61,6 +99,10 @@ struct State {
     std::vector<CardPlayRecord> plays;
     std::vector<PowerRecord> powers;
     PowerDispatch power_dispatch;
+    std::vector<PowerAmountOperation> power_operations;
+    std::vector<CombatRelic> relics;
+    ExhaustDispatch exhaust_dispatch;
+    CardPlayedDispatch card_played_dispatch;
     std::int32_t damage_dealt = 0, damage_taken = 0, debuffs_applied = 0, healing = 0;
     std::uint32_t next_creation_order = 0;
     std::uint64_t cards_played = 0, cards_drawn = 0, shuffles = 0;
@@ -84,6 +126,7 @@ struct CombatConfig {
     std::string_view seed = "ORACLECHECK01";
     ClockConfig clock;
     const RngBank* initial_rng = nullptr;
+    std::span<const RelicId> relics;
     std::span<const CardSpec> deck; // Empty selects the Ironclad starting deck.
     std::int32_t player_hp = 80;
     std::int32_t player_max_hp = 80;

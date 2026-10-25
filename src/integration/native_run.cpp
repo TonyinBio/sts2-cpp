@@ -85,7 +85,14 @@ Json NativeRunExporter::snapshot(const RunState& s) const {
     }
     for (auto id : setup.relics) {
         auto value = defaults_.at("relics").at(std::string(SetupRules::name(id)));
-        value["floor_added_to_deck"] = 1; relics.push_back(std::move(value));
+        value["floor_added_to_deck"] = 1;
+        if (SetupRules::name(id) == "RELIC.JOSS_PAPER" && s.combat) {
+            const auto found = std::find_if(s.combat->relics.begin(), s.combat->relics.end(), [](const auto& relic) { return relic.definition == RelicId::joss_paper; });
+            if (found != s.combat->relics.end() && found->counter != 0)
+                value["props"] = {{"bools", nullptr}, {"card_arrays", nullptr}, {"cards", nullptr}, {"int_arrays", nullptr},
+                    {"ints", Json::array({{{"name", "CardsExhausted"}, {"value", found->counter}}})}, {"model_ids", nullptr}, {"strings", nullptr}};
+        }
+        relics.push_back(std::move(value));
     }
     Json player_streams = Json::object(), run_streams = Json::object();
     constexpr std::array<const char*, 3> player_names{"rewards", "shops", "transformations"};

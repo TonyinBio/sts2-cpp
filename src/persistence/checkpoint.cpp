@@ -72,13 +72,22 @@ Checkpoint checkpoint(const State& s) {
     for (const auto& p : s.plays) { w.handle(p.card); w.i32(p.energy); w.u8(p.enemy_target); }
     w.u32(static_cast<std::uint32_t>(s.powers.size()));
     for (const auto& p : s.powers) { w.u8(static_cast<std::uint8_t>(p.definition)); w.i32(p.amount); w.i32(p.amount_on_turn_start); w.u8(p.enemy_owner); w.u8(p.active); w.u8(p.skip_next_tick); w.u8(p.applier_enemy); w.u8(p.has_applier); w.handle(p.source); }
-    w.u8(s.power_dispatch.active); w.u32(s.power_dispatch.cursor);
+    w.u32(static_cast<std::uint32_t>(s.relics.size()));
+    for (const auto& relic : s.relics) { w.u8(static_cast<std::uint8_t>(relic.definition)); w.i32(relic.counter); w.u8(relic.active); }
+    w.u8(s.power_dispatch.active); w.u8(s.power_dispatch.enemy_side); w.u32(s.power_dispatch.cursor);
     w.u32(static_cast<std::uint32_t>(s.power_dispatch.candidates.size()));
     for (auto index : s.power_dispatch.candidates) w.u32(index);
+    const auto& card_pass = s.card_played_dispatch;
+    w.u32(card_pass.play); w.u32(card_pass.cursor); w.u32(card_pass.remove_power); w.u8(card_pass.stage); w.u8(card_pass.perturb); w.handle(card_pass.remove_card);
+    const auto listeners = [&](const std::vector<ListenerRef>& list) {
+        w.u32(static_cast<std::uint32_t>(list.size()));
+        for (auto listener : list) { w.u8(static_cast<std::uint8_t>(listener.kind)); w.u32(listener.index); w.u32(listener.generation); }
+    };
+    listeners(card_pass.candidates); for (const auto& visits : card_pass.visited) listeners(visits);
     w.u32(static_cast<std::uint32_t>(s.history.size()));
     for (const auto& e : s.history) {
         w.u8(static_cast<std::uint8_t>(e.kind)); w.i32(e.turn); w.u8(e.enemy_side); w.u8(e.actor_enemy); w.handle(e.card); w.u32(e.object); w.i32(e.amount);
-        w.i32(e.hit.blocked); w.i32(e.hit.unblocked); w.i32(e.hit.overkill); w.u8(e.hit.block_broken); w.u8(e.hit.fully_blocked); w.u8(e.hit.killed); w.u8(e.has_applier); w.u8(e.applier_enemy);
+        w.i32(e.hit.blocked); w.i32(e.hit.unblocked); w.i32(e.hit.overkill); w.u8(e.hit.block_broken); w.u8(e.hit.fully_blocked); w.u8(e.hit.killed); w.u8(e.has_applier); w.u8(e.applier_enemy); w.i32(e.props);
     }
     w.u64(digest(w.data));
     return {std::move(w.data)};
@@ -140,14 +149,25 @@ RestoreStatus restore(State& destination, std::span<const std::byte> bytes, Scra
             PowerRecord p; p.definition = static_cast<PowerId>(r.u8()); p.amount = r.i32(); p.amount_on_turn_start = r.i32();
             p.enemy_owner = r.boolean(); p.active = r.boolean(); p.skip_next_tick = r.boolean(); p.applier_enemy = r.boolean(); p.has_applier = r.boolean(); p.source = r.handle(); s.powers.push_back(p);
         }
-        s.power_dispatch.active = r.boolean(); s.power_dispatch.cursor = r.u32();
+        const auto relic_count = bounded_count(6);
+        for (std::uint32_t i = 0; i < relic_count; ++i) { const auto definition = static_cast<RelicId>(r.u8()); const auto counter = r.i32(); s.relics.push_back({definition, counter, r.boolean()}); }
+        s.power_dispatch.active = r.boolean(); s.power_dispatch.enemy_side = r.boolean(); s.power_dispatch.cursor = r.u32();
         const auto candidates = bounded_count(4);
         for (std::uint32_t i = 0; i < candidates; ++i) s.power_dispatch.candidates.push_back(r.u32());
-        const auto entries = bounded_count(40); s.history.reserve(entries);
+        auto& card_pass = s.card_played_dispatch;
+        card_pass.play = r.u32(); card_pass.cursor = r.u32(); card_pass.remove_power = r.u32(); card_pass.stage = r.u8(); card_pass.perturb = r.boolean(); card_pass.remove_card = r.handle();
+        const auto listeners = [&](std::vector<ListenerRef>& list) {
+            const auto size = bounded_count(9);
+            for (std::uint32_t i = 0; i < size; ++i) {
+                const auto kind = static_cast<ListenerKind>(r.u8()); const auto index = r.u32(); list.push_back({kind, index, r.u32()});
+            }
+        };
+        listeners(card_pass.candidates); for (auto& visits : card_pass.visited) listeners(visits);
+        const auto entries = bounded_count(44); s.history.reserve(entries);
         for (std::uint32_t i = 0; i < entries; ++i) {
             CombatHistoryEntry e; e.kind = static_cast<HistoryKind>(r.u8()); e.turn = r.i32(); e.enemy_side = r.boolean(); e.actor_enemy = r.boolean();
             e.card = r.handle(); e.object = r.u32(); e.amount = r.i32(); e.hit.blocked = r.i32(); e.hit.unblocked = r.i32(); e.hit.overkill = r.i32();
-            e.hit.block_broken = r.boolean(); e.hit.fully_blocked = r.boolean(); e.hit.killed = r.boolean(); e.has_applier = r.boolean(); e.applier_enemy = r.boolean(); s.history.push_back(e);
+            e.hit.block_broken = r.boolean(); e.hit.fully_blocked = r.boolean(); e.hit.killed = r.boolean(); e.has_applier = r.boolean(); e.applier_enemy = r.boolean(); e.props = r.i32(); s.history.push_back(e);
         }
         if (r.at != r.bytes.size() || !valid_state(s)) return RestoreStatus::malformed;
         destination = std::move(s); scratch.steps = 0;

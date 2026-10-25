@@ -30,6 +30,7 @@ struct RunState {
     SetupState setup;
     std::optional<State> combat;
     bool direct_combat = false;
+    bool complete_run_lifecycle = false; // Run recorder releases the terminal isolated room.
     std::vector<EncounterRecord> encounters;
     std::optional<CombatRewards> rewards;
     std::vector<ContentId> discarded_potions;

@@ -23,11 +23,12 @@ std::optional<CardView> inspect_card(const State& s, CardHandle h, const Ruleset
     if (!visible) return std::nullopt;
     const auto* instance = s.cards.get(h); if (!instance) return std::nullopt;
     const auto* def = rules.card(instance->definition); if (!def) return std::nullopt;
+    const bool active_preview = std::find(s.zone(Zone::hand).begin(), s.zone(Zone::hand).end(), h) != s.zone(Zone::hand).end();
     CardView view{h, def->model_id, def->name, def->cost, 0, 0, 0, instance->upgraded, def->enemy_target};
     for (const auto& op : def->program) {
         const auto value = op.base + (instance->upgraded ? op.upgrade : 0);
-        if (op.opcode == Opcode::damage) view.damage = static_cast<int>(std::int64_t(std::max(0, value + s.player.strength)) * (s.player.shrink ? 70 : 100) * (s.player.weak > 0 ? 75 : 100) * (s.enemy.vulnerable ? 150 : 100) / 1000000);
-        else if (op.opcode == Opcode::block) view.block = std::max(0, value + s.player.dexterity);
+        if (op.opcode == Opcode::damage) view.damage = active_preview ? static_cast<int>(std::int64_t(std::max(0, value + s.player.strength)) * (s.player.shrink ? 70 : 100) * (s.player.weak > 0 ? 75 : 100) * (s.enemy.vulnerable ? 150 : 100) / 1000000) : value;
+        else if (op.opcode == Opcode::block) view.block = active_preview ? std::max(0, value + s.player.dexterity) : value;
         else if (op.opcode == Opcode::vulnerable) view.vulnerable = value;
         else if (op.opcode == Opcode::strength) view.strength = value;
         else if (op.opcode == Opcode::weak) view.weak = value;
@@ -48,6 +49,7 @@ std::string describe(const CardView& card) {
     return text;
 }
 std::size_t ActionSpaceView::size() const noexcept {
+    if (state_.power_dispatch.active || state_.card_played_dispatch.stage) return 0;
     if (state_.phase == Phase::play) return state_.zone(Zone::hand).size() + 1;
     if (state_.phase == Phase::discard_choice) return state_.zone(Zone::hand).size();
     return 0;

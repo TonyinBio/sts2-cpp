@@ -191,12 +191,57 @@ public partial class RunSimulator
         // First-time EnsureModelDbInitialized installs sts2-cli's automatic reward
         // selector. Bind our explicit decision boundary after that initialization.
         RewardsSet.testSelector = OfferRunRewards;
+        if (command.TryGetProperty("scenario_relics", out var scenarioRelics)) {
+            var player = _runState!.Players[0];
+            var ids = scenarioRelics.EnumerateArray().Select(relic => relic.GetString()!.Replace("RELIC.", "")).ToArray();
+            CheckResponse(SetPlayer(new Dictionary<string, JsonElement> { ["relics"] = JsonSerializer.SerializeToElement(ids) }));
+            foreach (var relic in player.Relics) { relic.Owner = player; relic.FloorAddedToDeck = 1; }
+        }
         if (setup.TryGetProperty("kind", out var setupKind) && setupKind.GetString() == "seeded_combat")
             CheckResponse(EnterRoom("combat", setup.GetProperty("encounter").GetString(), null));
+        if (command.TryGetProperty("scenario_enemy_hp", out var enemyHp)) {
+            var enemy = CombatManager.Instance.DebugOnlyGetState()!.Enemies.Single();
+            enemy.SetMaxHpInternal(enemyHp.GetInt32()); enemy.SetCurrentHpInternal(enemyHp.GetInt32());
+        }
         _runState!.Players[0].Creature.Died += _ => _runDeathObserved = true;
         AwaitRunBoundary();
         RegisterCombatIdentities();
         return OracleRunResponse(command);
+    }
+
+    private IEnumerator<AbstractModel>? _durationScenarioEnumerator;
+    private AbstractModel? _durationScenarioCurrent;
+    private PowerModel[] _durationScenarioPowers = Array.Empty<PowerModel>();
+
+    // Infrastructure probe: capture the unmodified native listener iterator,
+    // remove an actual captured model, then invoke its real duration callback.
+    public Dictionary<string, object?> OracleDurationScenario(JsonElement command)
+    {
+        AwaitRunBoundary();
+        var state = CombatManager.Instance.DebugOnlyGetState()!;
+        var operation = command.GetProperty("operation").GetString();
+        if (operation == "capture") {
+            Require(_durationScenarioEnumerator == null, "A duration probe is already captured");
+            _durationScenarioPowers = state.Allies.Concat(state.Enemies).SelectMany(c => c.Powers).ToArray();
+            _durationScenarioEnumerator = state.IterateHookListeners().GetEnumerator();
+            _durationScenarioCurrent = _durationScenarioEnumerator.MoveNext() ? _durationScenarioEnumerator.Current : null;
+        } else if (operation == "remove") {
+            var power = _durationScenarioPowers[command.GetProperty("index").GetInt32()];
+            BeginRunOperation("scenario_remove_power", null, () => PowerCmd.Remove(power));
+        } else if (operation == "step") {
+            Require(_durationScenarioEnumerator != null, "No captured duration probe");
+            while (_durationScenarioCurrent != null && _durationScenarioCurrent is not PowerModel)
+                _durationScenarioCurrent = _durationScenarioEnumerator!.MoveNext() ? _durationScenarioEnumerator.Current : null;
+            Require(_durationScenarioCurrent is PowerModel, "No remaining power callback");
+            var listener = _durationScenarioCurrent!;
+            BeginRunOperation("scenario_duration_callback", null, () => listener.AfterSideTurnEnd(new ThrowingPlayerChoiceContext(), MegaCrit.Sts2.Core.Combat.CombatSide.Enemy, state.Enemies));
+            AwaitRunBoundary();
+            _durationScenarioCurrent = _durationScenarioEnumerator!.MoveNext() ? _durationScenarioEnumerator.Current : null;
+            while (_durationScenarioCurrent != null && _durationScenarioCurrent is not PowerModel)
+                _durationScenarioCurrent = _durationScenarioEnumerator.MoveNext() ? _durationScenarioEnumerator.Current : null;
+            if (_durationScenarioCurrent == null) { _durationScenarioEnumerator.Dispose(); _durationScenarioEnumerator = null; }
+        } else throw new InvalidOperationException("Unsupported duration probe operation");
+        AwaitRunBoundary(); RegisterCombatIdentities(); return OracleRunResponse(command);
     }
 
     // Declared native scenario control; never an actions-v1 gameplay input.
@@ -213,7 +258,11 @@ public partial class RunSimulator
         var canonical = ModelDb.GetById<PowerModel>(new ModelId("POWER", entry));
         var power = canonical.ToMutable();
         var amount = command.GetProperty("amount").GetDecimal();
-        BeginRunOperation("scenario_power", null, () => PowerCmd.Apply(new ThrowingPlayerChoiceContext(), power, target, amount, applier, null));
+        var existing = target.Powers.FirstOrDefault(p => p.Id == canonical.Id);
+        BeginRunOperation("scenario_power", null, async () => {
+            if (existing != null) await PowerCmd.ModifyAmount(new ThrowingPlayerChoiceContext(), existing, amount, applier, null);
+            else await PowerCmd.Apply(new ThrowingPlayerChoiceContext(), power, target, amount, applier, null);
+        });
         AwaitRunBoundary();
         RegisterCombatIdentities();
         return OracleRunResponse(command);
