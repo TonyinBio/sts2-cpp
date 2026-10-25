@@ -17,6 +17,7 @@ struct CardInstance {
     CardId definition = CardId::strike;
     bool upgraded = false;
     std::uint32_t creation_order = 0;
+    std::uint32_t deck_instance = UINT32_MAX;
     friend bool operator==(const CardInstance&, const CardInstance&) = default;
 };
 using CardPool = Pool<CardInstance, CardInstanceTag>;
@@ -65,7 +66,7 @@ struct Scratch {
     std::uint32_t steps = 0;
 };
 struct Limits { std::uint32_t cards = 4096; };
-struct CardSpec { CardId definition; bool upgraded = false; };
+struct CardSpec { CardId definition; bool upgraded = false; std::uint32_t deck_instance = UINT32_MAX; };
 // Isolated combat setup. Seeded run integration supplies the generated RNG bank;
 // a standalone scenario starts fresh streams and does not generate run content.
 struct CombatConfig {
@@ -78,6 +79,7 @@ struct CombatConfig {
     std::int32_t player_max_hp = 80;
     std::int32_t enemy_hp = 0; // Zero rolls the native A0 38..40 range.
     bool burning_blood = true;
+    std::uint32_t card_generation = 1;
     std::uint8_t ascension = 0;
     std::string_view encounter = "ENCOUNTER.SHRINKER_BEETLE_WEAK";
 };

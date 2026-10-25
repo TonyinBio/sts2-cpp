@@ -112,7 +112,7 @@ void clone_into(State& destination, const State& source) {
 StepResult Simulator::initialize(State& state, const CombatConfig& config, Scratch& scratch) const {
     if (config.build != game_build || config.ascension != 0 || config.encounter != "ENCOUNTER.SHRINKER_BEETLE_WEAK" ||
         config.seed.empty() || config.seed.size() > 4096 || config.player_max_hp < 1 || config.player_hp < 1 || config.player_hp > config.player_max_hp ||
-        config.enemy_hp < 0 || config.enemy_hp > 40 ||
+        config.card_generation == 0 || config.enemy_hp < 0 || config.enemy_hp > 40 ||
         (config.seed.starts_with("old") && std::any_of(config.seed.begin(), config.seed.end(), [](unsigned char c) { return c >= 128; })))
         return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
     const auto deck = config.deck.empty() ? std::span<const CardSpec>(starting_deck) : config.deck;
@@ -128,7 +128,7 @@ StepResult Simulator::initialize(State& state, const CombatConfig& config, Scrat
         if (enemy_hp == 0) (void)next.rng.get(RunStream::niche).next_int(38, 41, enemy_hp);
         next.enemy = {enemy_hp, enemy_hp}; next.energy = 3; next.turn = 1; next.burning_blood = config.burning_blood;
         for (const auto& card : deck) {
-            auto handle = next.cards.create({card.definition, card.upgraded, next.next_creation_order++}, limits_.cards);
+            auto handle = next.cards.create({card.definition, card.upgraded, next.next_creation_order++, card.deck_instance}, limits_.cards, config.card_generation);
             if (!handle.present()) return {StepStatus::resource_limit, state.boundary, Restriction::capacity};
             next.zone(Zone::draw).push_back(handle);
         }

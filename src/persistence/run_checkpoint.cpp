@@ -74,7 +74,7 @@ std::uint64_t checksum(std::span<const std::byte> bytes) { return game_hash({rei
 }
 Checkpoint checkpoint(const RunState& run) {
     if (!valid_run(run)) throw std::invalid_argument("Cannot checkpoint invalid run");
-    Writer w; w.text("STS2RUN1"); w.u32(1); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
+    Writer w; w.text("STS2RUN1"); w.u32(2); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
     const auto& s = run.setup;
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed); w.u32(s.character); w.u8(s.ascension);
     w.i32(s.hp); w.i32(s.max_hp); w.i32(s.gold); w.i32(s.potion_slots); w.i32(s.orb_slots);
@@ -101,6 +101,18 @@ Checkpoint checkpoint(const RunState& run) {
         const auto& rewards = *run.rewards; w.i32(rewards.gold); w.u32(rewards.potion); for (const auto& card : rewards.cards) w.card(card);
         w.u8(rewards.gold_taken); w.u8(rewards.potion_taken); w.u8(rewards.card_taken); w.u8(rewards.selecting_card); w.u8(rewards.resolved); w.u8(rewards.skipped); w.u8(rewards.selected_card);
     }
+    w.u32(static_cast<std::uint32_t>(run.encounters.size()));
+    for (const auto& entry : run.encounters) {
+        const auto combat = checkpoint(entry.combat); w.u32(static_cast<std::uint32_t>(combat.bytes.size()));
+        w.bytes.insert(w.bytes.end(), combat.bytes.begin(), combat.bytes.end());
+        w.u32(static_cast<std::uint32_t>(entry.deck.size())); for (const auto& card : entry.deck) w.card(card);
+        w.ids(entry.discarded_potions); w.u32(entry.node); w.u32(entry.floor);
+        w.u8(entry.rewards.has_value());
+        if (entry.rewards) {
+            const auto& rewards = *entry.rewards; w.i32(rewards.gold); w.u32(rewards.potion); for (const auto& card : rewards.cards) w.card(card);
+            w.u8(rewards.gold_taken); w.u8(rewards.potion_taken); w.u8(rewards.card_taken); w.u8(rewards.selecting_card); w.u8(rewards.resolved); w.u8(rewards.skipped); w.u8(rewards.selected_card);
+        }
+    }
     w.u64(checksum(w.bytes)); return {std::move(w.bytes)};
 }
 RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, Scratch& scratch, Limits limits) noexcept {
@@ -109,7 +121,7 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         Reader trailer{bytes.last(8)}; if (trailer.u64() != checksum(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
         for (char c : std::string_view("STS2RUN1")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 1 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        if (r.u32() != 2 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (const auto identity : {game_digest, SetupRules::fingerprint()}) for (char c : identity)
             if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
@@ -145,6 +157,23 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
             for (auto& card : rewards.cards) card = r.card();
             rewards.gold_taken = r.boolean(); rewards.potion_taken = r.boolean(); rewards.card_taken = r.boolean(); rewards.selecting_card = r.boolean();
             rewards.resolved = r.boolean(); rewards.skipped = r.boolean(); rewards.selected_card = r.u8();
+        }
+        const auto encounters = r.count(1, max_retained_encounters); run.encounters.reserve(encounters);
+        for (std::size_t i = 0; i < encounters; ++i) {
+            EncounterRecord entry; const auto size = r.count(1, 64 * 1024 * 1024);
+            const auto status = restore(entry.combat, r.bytes.subspan(r.at, size), temporary, limits);
+            if (status != RestoreStatus::restored) return status;
+            r.at += size;
+            const auto cards = r.count(16, limits.cards); entry.deck.reserve(cards);
+            for (std::size_t j = 0; j < cards; ++j) entry.deck.push_back(r.card());
+            r.ids(entry.discarded_potions); entry.node = r.id(); entry.floor = r.u32();
+            if (r.boolean()) {
+                entry.rewards.emplace(); auto& rewards = *entry.rewards; rewards.gold = r.i32(); rewards.potion = r.id();
+                for (auto& card : rewards.cards) card = r.card();
+                rewards.gold_taken = r.boolean(); rewards.potion_taken = r.boolean(); rewards.card_taken = r.boolean(); rewards.selecting_card = r.boolean();
+                rewards.resolved = r.boolean(); rewards.skipped = r.boolean(); rewards.selected_card = r.u8();
+            }
+            run.encounters.push_back(std::move(entry));
         }
         if (r.at != r.bytes.size() || !valid_run(run)) return RestoreStatus::malformed;
         destination = std::move(run); scratch.steps = 0; return RestoreStatus::restored;

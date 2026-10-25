@@ -47,7 +47,7 @@ std::uint64_t content_fingerprint() {
 Checkpoint checkpoint(const State& s) {
     if (!valid_state(s)) throw std::invalid_argument("Cannot checkpoint invalid simulation");
     Writer w;
-    w.text("STS2CP02"); w.u32(2); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
+    w.text("STS2CP03"); w.u32(3); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed);
     w.u32(s.boundary.value); w.u8(static_cast<std::uint8_t>(s.phase));
     const auto config = s.clock.config();
@@ -60,7 +60,7 @@ Checkpoint checkpoint(const State& s) {
     w.u32(static_cast<std::uint32_t>(s.cards.slots().size()));
     for (const auto& slot : s.cards.slots()) {
         w.u32(slot.generation); w.u8(slot.live); w.u8(static_cast<std::uint8_t>(slot.value.definition));
-        w.u8(slot.value.upgraded); w.u32(slot.value.creation_order);
+        w.u8(slot.value.upgraded); w.u32(slot.value.creation_order); w.u32(slot.value.deck_instance);
     }
     w.u32(static_cast<std::uint32_t>(s.cards.free_slots().size()));
     for (auto slot : s.cards.free_slots()) w.u32(slot);
@@ -86,8 +86,8 @@ RestoreStatus restore(State& destination, std::span<const std::byte> bytes, Scra
         Reader trailer{bytes.last(8)};
         if (trailer.u64() != digest(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
-        for (char c : std::string_view("STS2CP02")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 2 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        for (char c : std::string_view("STS2CP03")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
+        if (r.u32() != 3 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (char c : game_digest) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
         State s;
@@ -110,7 +110,7 @@ RestoreStatus restore(State& destination, std::span<const std::byte> bytes, Scra
         std::vector<CardPool::Slot> slots(count);
         for (auto& slot : slots) {
             slot.generation = r.u32(); slot.live = r.boolean(); slot.value.definition = static_cast<CardId>(r.u8());
-            slot.value.upgraded = r.boolean(); slot.value.creation_order = r.u32();
+            slot.value.upgraded = r.boolean(); slot.value.creation_order = r.u32(); slot.value.deck_instance = r.u32();
         }
         const auto free_count = r.u32(); if (free_count > count) return RestoreStatus::malformed;
         std::vector<std::uint32_t> free(free_count); for (auto& index : free) index = r.u32();

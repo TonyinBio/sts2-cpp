@@ -1,0 +1,128 @@
+{
+  "issue": 17,
+  "parent_issue": 15,
+  "game_build": "0.111.0+41cef1ea",
+  "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+  "scope": "Consecutive supported combat ownership through declared native room entry; no natural second-encounter or victory claim",
+  "fixture": "tests/parity/fixtures/reference/consecutive-shrinker-scenarios",
+  "verification_report": "tests/parity/fixtures/reference/consecutive-shrinker-scenarios/verification.json",
+  "sources": [
+    {
+      "path": "MegaCrit.Sts2.Core.Entities.Players/Player.cs",
+      "lines": "806-815",
+      "finding": "Fresh combat copies retain explicit DeckVersion links to permanent cards",
+      "sha256": "9fa253c367c1f2d709cee662c49a9579dd32ab989073a3dfdf4be53e073eda6d"
+    },
+    {
+      "path": "MegaCrit.Sts2.Core.Runs/RunManager.cs",
+      "lines": "1192-1260",
+      "finding": "EnterRoom exits current rooms; EnterRoomInternal enters the new room and marks its native visit",
+      "sha256": "1e00a9480697d85f15fa12011749d38752b6c4c9c775d76d2ed793281c98d76d"
+    },
+    {
+      "path": "MegaCrit.Sts2.Core.Runs/RunManager.cs",
+      "lines": "1262-1300",
+      "finding": "EnterRoomWithoutExitingCurrentRoom is a separate nested-room operation that appends room history",
+      "sha256": "1e00a9480697d85f15fa12011749d38752b6c4c9c775d76d2ed793281c98d76d"
+    },
+    {
+      "path": "MegaCrit.Sts2.Core.Combat/CombatManager.cs",
+      "lines": "1299-1333",
+      "finding": "Native combat cleanup and after-victory work have ordered lifecycle ownership",
+      "sha256": "590b7a9b013b5f72cfc90330330f3eca7e7fd2adaed180872b521549e654d1ad"
+    },
+    {
+      "path": "MegaCrit.Sts2.Core.Models.Acts/Overgrowth.cs",
+      "lines": "78-96",
+      "finding": "Native normal encounter pool contains Shrinker once; scenarios must not alter that pool",
+      "sha256": "9becfaa069afe2d97d66aa39a4a045e5eb4d0fc8b0d289de1354e0d6eba3abe8"
+    },
+    {
+      "path": "MegaCrit.Sts2.Core.Models.Potions/PotionOfBinding.cs",
+      "lines": "25-29",
+      "finding": "Canonical active potion metadata has VulnerablePower and WeakPower values of one; use remains unsupported in this slice",
+      "sha256": "61cbf688a03ddaaf616bdec4e7da9310cc51787f0ec75c1230507e69ab0c8f47"
+    }
+  ],
+  "cases": [
+    {
+      "id": "consecutive-combat/retained-ownership",
+      "implementation": "Run-owned complete encounter graphs with independent clones and codecs",
+      "reference_verification": "28 logical boundaries passed final pinned native capture, independent fresh-process native self-replay and exact public C++ comparison",
+      "interaction_verification": "Two combat completions, retained potion, reward generation, aggregate statistics and replacement-room history",
+      "evidence": [
+        "kernel_consecutive_scenarios",
+        "PublicRun.ConsecutiveScenarioCombatsPreserveHistoryAndRejectOldCards"
+      ]
+    },
+    {
+      "id": "consecutive-combat/permanent-links",
+      "implementation": "Explicit permanent-card instance link independent of combat slot/deck ordering",
+      "reference_verification": "Native DeckVersion source finding and bounded scenario state comparison",
+      "interaction_verification": "Permanent-deck permutation regression; general card removal/transformation remains pending",
+      "evidence": [
+        "PublicRun.PermanentCardLinksSurviveDeckReordering"
+      ]
+    },
+    {
+      "id": "consecutive-combat/checkpoint-and-purity",
+      "implementation": "Combat checkpoint v3 and run checkpoint v2; temporary restore and retained-domain validation",
+      "reference_verification": "Native exported semantic state comparison; native exports do not certify hidden retained graph ownership",
+      "interaction_verification": "Every scenario operation resumes clone/restore identically; alternative futures and malformed retained state are unit regressions",
+      "evidence": [
+        "kernel_consecutive_scenarios",
+        "PublicRun.ConsecutiveScenarioCombatsPreserveHistoryAndRejectOldCards",
+        "PublicRun.ScenarioEntryRejectsUnsupportedAndPrematureRequestsWithoutMutation"
+      ]
+    },
+    {
+      "id": "POTION.POTION_OF_BINDING/retention-metadata",
+      "implementation": "Persistent inventory and source-backed active-domain export metadata only",
+      "reference_verification": "Bounded consecutive scenario comparison",
+      "interaction_verification": "Retention across combat entry verified; use and child effects remain owned by issue 31",
+      "evidence": [
+        "kernel_consecutive_scenarios"
+      ]
+    }
+  ],
+  "limits": [
+    "Complete previous combat pools retained; no retirement or slot recycling",
+    "Declared scenario entry is separate from player actions and natural map travel",
+    "Natural unsupported encounters and inventory effects remain explicit stops",
+    "Potion retention metadata does not certify potion use",
+    "No queue manipulation, route hard-coding, new excluded fields, English certification or throughput claim",
+    "General nested room returns, selection callbacks and broader interaction cases remain pending"
+  ],
+  "executed_verification": {
+    "boundaries": 28,
+    "native_self_replay": "passed",
+    "cpp_exact_comparison": "passed",
+    "checkpoint_clone_resume": "every C++ boundary",
+    "sha256": {
+      "scenario.json": "026a1351e63a257667d3ba84f75baeec7f2ed5feb5b0c06091db6933fb1ec7c5",
+      "states.json": "6cf5852a82a01953a75b24f2055a9ca37ca17d1d425c3a884b5af7a17c7a9bd8",
+      "reference.json": "b6e7a079e71015b672960f214626b7046ceec6591d8cee361cd58094ae39dfec"
+    }
+  },
+  "provenance": {
+    "revision": "084d1aa3d8e118ca7ce8d8774ad16d6be9c92367",
+    "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+    "adapter_sha256": "260879e5ff061fab41e52654b5032fa6ca523ef05cf740a1724e301a5870534c",
+    "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e",
+    "runtime_version": "9.0.4"
+  },
+  "validation": {
+    "build": "cmake --build build/debug -j 4: passed without compiler warnings",
+    "targeted_checks": "5/5 passed, including the registered exact scenario replay",
+    "registered_checks": {
+      "command": "ctest --test-dir build/debug --output-on-failure -j 4",
+      "passed": 161,
+      "initial_environment_failure": "interactive_recorder_unit could not read the uninitialized worktree sts2-cli/python/play.py",
+      "correction": "Initialized the unchanged pinned submodule from the local checkout",
+      "failed_check_rerun": "ctest --test-dir build/debug -R ^interactive_recorder_unit$ --output-on-failure: 1/1 passed",
+      "final_result": "All 162 registered checks passed across the full run and corrected-environment rerun"
+    },
+    "development_regression": "The existing sparse permanent-ID scenario now relabels its explicit combat-copy link too; a dangling link is asserted invalid before the original allocation behavior is verified.",
+    "format_and_fixture_integrity": "git diff --check, Python compile and all preserved fixture hashes passed"
+  }
+}

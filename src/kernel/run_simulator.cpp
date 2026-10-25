@@ -53,18 +53,70 @@ StepResult initialize_run(RunState& destination, const SeededConfig& config) {
 StepResult initialize_seeded_combat(RunState& destination, const SeededConfig& config) {
     if (config.character != "CHARACTER.IRONCLAD" || config.ascension != 0)
         return {StepStatus::unsupported_content, destination.boundary, Restriction::unsupported_setup};
-    RunState next;
-    const auto result = initialize_run(next, config);
-    if (result.status != StepStatus::awaiting_input) return result;
-    next.combat.emplace(); CombatConfig combat;
-    combat.seed = config.seed; combat.clock = config.clock; combat.initial_rng = &next.setup.rng;
-    combat.player_hp = next.setup.hp; combat.player_max_hp = next.setup.max_hp;
-    Scratch scratch;
-    const auto initialized = Simulator{}.initialize(*next.combat, combat, scratch);
-    if (initialized.status != StepStatus::awaiting_input) return initialized;
-    next.setup.rng = next.combat->rng; next.setup.acts[0].normal_visited = 1;
-    next.phase = RunPhase::combat; next.direct_combat = true;
-    destination = std::move(next); return initialized;
+    try {
+        RunState next;
+        const auto result = initialize_run(next, config);
+        if (result.status != StepStatus::awaiting_input) return result;
+        next.combat.emplace(); CombatConfig combat;
+        std::vector<CardSpec> deck;
+        for (const auto& card : next.setup.deck) {
+            CardId definition = CardId::count;
+            for (unsigned i = 0; i < static_cast<unsigned>(CardId::count); ++i)
+                if (Ruleset::pinned().card(static_cast<CardId>(i))->model_id == SetupRules::name(card.definition)) definition = static_cast<CardId>(i);
+            if (definition == CardId::count) return {StepStatus::unsupported_content, destination.boundary, Restriction::unsupported_setup};
+            deck.push_back({definition, card.upgrade == 1, card.instance});
+        }
+        combat.deck = deck;
+        combat.seed = config.seed; combat.clock = config.clock; combat.initial_rng = &next.setup.rng;
+        combat.player_hp = next.setup.hp; combat.player_max_hp = next.setup.max_hp;
+        Scratch scratch;
+        const auto initialized = Simulator{}.initialize(*next.combat, combat, scratch);
+        if (initialized.status != StepStatus::awaiting_input) return initialized;
+        next.setup.rng = next.combat->rng; next.setup.acts[0].normal_visited = 1;
+        next.phase = RunPhase::combat; next.direct_combat = true;
+        destination = std::move(next); return initialized;
+    } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, destination.boundary, Restriction::capacity}; }
+}
+StepResult enter_combat_scenario(RunState& state, BoundaryId boundary, std::string_view encounter) {
+    if (!valid_run(state)) return {StepStatus::engine_error, state.boundary, Restriction::invalid_state};
+    if (boundary != state.boundary) return {StepStatus::invalid_action, state.boundary, Restriction::stale_boundary};
+    if (state.phase != RunPhase::map || !state.combat || !state.rewards || !state.rewards->resolved)
+        return {StepStatus::invalid_action, state.boundary, Restriction::wrong_phase};
+    if (encounter != "ENCOUNTER.SHRINKER_BEETLE_WEAK" || state.setup.ascension != 0 ||
+        SetupRules::name(state.setup.character) != "CHARACTER.IRONCLAD")
+        return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
+    for (auto potion : state.setup.potions) if (potion != no_content && SetupRules::name(potion) != "POTION.POTION_OF_BINDING")
+        return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
+    for (auto relic : state.setup.relics) if (SetupRules::name(relic) != "RELIC.BURNING_BLOOD" && SetupRules::name(relic) != "RELIC.GOLDEN_PEARL")
+        return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
+    if (state.encounters.size() >= max_retained_encounters || state.setup.acts[state.act_index].normal_visited >= state.setup.acts[state.act_index].normal.size()) return {StepStatus::resource_limit, state.boundary, Restriction::capacity};
+    try {
+        RunState next = state;
+        std::vector<CardSpec> deck;
+        for (const auto& card : next.setup.deck) {
+            CardId definition = CardId::count;
+            for (unsigned i = 0; i < static_cast<unsigned>(CardId::count); ++i)
+                if (Ruleset::pinned().card(static_cast<CardId>(i))->model_id == SetupRules::name(card.definition)) definition = static_cast<CardId>(i);
+            if (definition == CardId::count || card.upgrade > 1) return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
+            deck.push_back({definition, card.upgrade == 1, card.instance});
+        }
+        State combat; CombatConfig config;
+        config.seed = next.setup.seed; config.clock = next.clock.config(); config.initial_rng = &next.setup.rng;
+        config.deck = deck; config.player_hp = next.setup.hp; config.player_max_hp = next.setup.max_hp;
+        config.card_generation = static_cast<std::uint32_t>(next.encounters.size() + (next.combat ? 2 : 1));
+        Scratch scratch; const auto result = Simulator{}.initialize(combat, config, scratch);
+        if (result.status != StepStatus::awaiting_input) return result;
+        if (next.combat) next.encounters.push_back({std::move(*next.combat), next.rewards, next.setup.deck,
+            next.discarded_potions, next.current, static_cast<std::uint32_t>(next.visited.size())});
+        next.rewards.reset(); next.discarded_potions.clear();
+        next.combat = std::move(combat); next.setup.rng = next.combat->rng;
+        // Scenario entry is not a player action and does not consume the clock.
+        next.combat->clock = next.clock; next.combat->boundary = next.boundary;
+        ++next.setup.acts[next.act_index].normal_visited;
+        next.phase = RunPhase::combat; next.direct_combat = false;
+        state = std::move(next);
+        return {StepStatus::awaiting_input, state.boundary};
+    } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, state.boundary, Restriction::capacity}; }
 }
 StepResult apply_combat(RunState& state, const Input& input, Scratch& scratch) {
     if (state.phase != RunPhase::combat || !state.combat)
@@ -83,6 +135,7 @@ StepResult apply_run(RunState& state, const RunInput& input) {
         return {StepStatus::engine_error, state.boundary, Restriction::invalid_state};
     if (input.expected_boundary != state.boundary) return {StepStatus::invalid_action, state.boundary, Restriction::stale_boundary};
     std::optional<State> entering_combat;
+    std::optional<EncounterRecord> completed_encounter;
     std::optional<CombatRewards> generated_rewards;
     std::optional<SetupState> rewarded_setup;
     MapNodeId destination = no_node;
@@ -148,10 +201,12 @@ StepResult apply_run(RunState& state, const RunInput& input) {
         if (map.nodes[next].kind != MapKind::monster || state.setup.ascension != 0 ||
             SetupRules::name(state.setup.character) != "CHARACTER.IRONCLAD")
             return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
-        if (state.combat || std::any_of(state.setup.potions.begin(), state.setup.potions.end(), [](auto id) { return id != no_content; }))
-            return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
+        if (state.combat && state.encounters.size() >= max_retained_encounters)
+            return {StepStatus::resource_limit, state.boundary, Restriction::capacity};
         const auto& rooms = state.setup.acts[state.act_index];
         if (rooms.normal_visited >= rooms.normal.size() || SetupRules::name(rooms.normal[rooms.normal_visited]) != "ENCOUNTER.SHRINKER_BEETLE_WEAK")
+            return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
+        for (auto potion : state.setup.potions) if (potion != no_content && SetupRules::name(potion) != "POTION.POTION_OF_BINDING")
             return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
         // Inventory hooks are supported only for the starting relic and Golden Pearl.
         for (auto relic : state.setup.relics) if (SetupRules::name(relic) != "RELIC.BURNING_BLOOD" && SetupRules::name(relic) != "RELIC.GOLDEN_PEARL")
@@ -163,10 +218,11 @@ StepResult apply_run(RunState& state, const RunInput& input) {
                 for (unsigned i = 0; i < static_cast<unsigned>(CardId::count); ++i)
                     if (Ruleset::pinned().card(static_cast<CardId>(i))->model_id == SetupRules::name(card.definition)) id = static_cast<CardId>(i);
                 if (id == CardId::count || card.upgrade > 1) return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
-                deck.push_back({id, card.upgrade == 1});
+                deck.push_back({id, card.upgrade == 1, card.instance});
             }
             entering_combat.emplace(); CombatConfig config;
             config.seed = state.setup.seed; config.clock = state.clock.config(); config.initial_rng = &state.setup.rng;
+            config.card_generation = static_cast<std::uint32_t>(state.encounters.size() + (state.combat ? 2 : 1));
             config.deck = deck; config.player_hp = state.setup.hp; config.player_max_hp = state.setup.max_hp;
             Scratch scratch; const auto initialized = Simulator{}.initialize(*entering_combat, config, scratch);
             if (initialized.status != StepStatus::awaiting_input) return initialized;
@@ -177,7 +233,11 @@ StepResult apply_run(RunState& state, const RunInput& input) {
     try {
         // All validation precedes mutation. Prepare owning growth before time/payment.
         if (input.kind == RunInputKind::choose_option) state.setup.relics.reserve(state.setup.relics.size() + 1);
-        if (entering_combat) state.visited.reserve(state.visited.size() + 1);
+        if (entering_combat) {
+            state.visited.reserve(state.visited.size() + 1); state.encounters.reserve(state.encounters.size() + 1);
+            if (state.combat) completed_encounter.emplace(EncounterRecord{State{}, state.rewards, state.setup.deck,
+                state.discarded_potions, state.current, static_cast<std::uint32_t>(state.visited.size())});
+        }
         if (input.kind == RunInputKind::choose_reward_card) state.setup.deck.reserve(state.setup.deck.size() + 1);
         if (input.kind == RunInputKind::take_reward) state.setup.potions.reserve(static_cast<std::size_t>(state.setup.potion_slots));
         if (input.kind == RunInputKind::discard_potion) state.discarded_potions.reserve(state.discarded_potions.size() + 1);
@@ -209,6 +269,11 @@ StepResult apply_run(RunState& state, const RunInput& input) {
         } else if (generated_rewards) {
             state.setup = std::move(*rewarded_setup); state.rewards = *generated_rewards; state.phase = RunPhase::rewards;
         } else if (entering_combat) {
+            if (completed_encounter) {
+                completed_encounter->combat = std::move(*state.combat);
+                state.encounters.push_back(std::move(*completed_encounter));
+            }
+            state.rewards.reset(); state.discarded_potions.clear();
             state.current = destination; state.visited.push_back(destination);
             ++state.setup.acts[state.act_index].normal_visited;
             state.combat = std::move(entering_combat); state.setup.rng = state.combat->rng;

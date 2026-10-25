@@ -16,6 +16,8 @@ Upstream interface problems are tracked locally in the [sts2-cli issue tracker](
 - `oracle/check_seeded_setup.py`: captures 30 full starting-run snapshots.
 - `oracle/check_run_prefix.py`: records and independently replays Neow/Golden Pearl/map boundaries.
 - `oracle/check_combat_corpus.py`: records dense combat victory and block/death cases and independently replays each.
+- `oracle/check_consecutive_combats.py`: captures and independently replays declared consecutive native room scenarios, checks every public C++ logical boundary, and replays the preserved scenario fixture offline.
+- `parity/run_scenario_main.cpp`: diagnostic scenario transport; player choices use the typed public API, while declared room entry remains separate from player actions.
 - `oracle/check_run_combat.py`: records a naturally entered Shrinker fight, explicit reward collection/skip/re-entry, potion discard and map return, plus natural run death; independently replays both.
 - `oracle/check_clock_inputs.py`: captures and replays zero, non-unit and maximum timestamp clock inputs.
 - `oracle/check_recording_replay.py`: regenerates and twice replays the initial live reference corpus.

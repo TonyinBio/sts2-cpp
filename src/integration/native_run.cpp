@@ -2,6 +2,7 @@
 #include "sts2/kernel/run_simulator.hpp"
 #include <stdexcept>
 #include <charconv>
+#include <algorithm>
 
 namespace sts2::engine {
 void export_native_combat(nlohmann::json&, const RunState&);
@@ -145,6 +146,55 @@ Json NativeRunExporter::snapshot(const RunState& s) const {
         {"current_room", native_room}, {"native_model_state", Json::object()}, {"combat", nullptr}, {"pending_choice", nullptr},
         {"run_flow", {{"room", room}, {"pending_choice", nullptr}, {"reward_sets", Json::array()}, {"operations", Json::array()}, {"combat_rewards_offered", false}}}};
     if (s.combat) export_native_combat(out, s);
+    if (!s.encounters.empty()) {
+        // Completed combat graphs retain live aliases for diagnostic history;
+        // the native floor history contains captured value descriptors instead.
+        Json history = Json::array({out["map_point_history"][0][0]});
+        std::uint32_t floor = 0;
+        auto append = [&](const Json& entry, std::uint32_t entry_floor) {
+            if (entry_floor != floor) { history.push_back(entry); floor = entry_floor; return; }
+            auto& target = history.back();
+            // Native EnterRoom replaces the active room without adding a new
+            // floor/room-history record. Spawn IDs append; terminal turns replace
+            // the previous room's value, while an unfinished fight preserves it.
+            for (const auto& room : entry["rooms"]) {
+                auto& retained = target["rooms"].back();
+                for (const auto& monster : room["monster_ids"]) retained["monster_ids"].push_back(monster);
+                if (room["turns_taken"] != 0) retained["turns_taken"] = room["turns_taken"];
+            }
+            auto& stats = target["player_stats"][0];
+            for (const auto& [key, value] : entry["player_stats"][0].items()) {
+                if (value.is_array()) for (const auto& item : value) stats[key].push_back(item);
+                else if (value.is_number() && key != "player_id") stats[key] = stats[key].get<std::int64_t>() + value.get<std::int64_t>();
+            }
+        };
+        auto& player = out["players"][0];
+        for (const auto& entry : s.encounters) {
+            RunState historical = s; historical.encounters.clear();
+            historical.combat = entry.combat; historical.rewards = entry.rewards; historical.discarded_potions = entry.discarded_potions;
+            historical.setup.deck = entry.deck; historical.setup.hp = entry.combat.player.hp;
+            historical.setup.rng = entry.combat.rng; historical.current = entry.node; historical.visited.resize(entry.floor);
+            historical.boundary = entry.combat.boundary; historical.clock = entry.combat.clock;
+            historical.phase = RunPhase::map; historical.direct_combat = false;
+            Json previous = out;
+            previous["map_point_history"] = Json::array({Json::array({out["map_point_history"][0][0], {
+                {"map_point_type", map_names[static_cast<std::size_t>(map.nodes[entry.node].kind)]},
+                {"player_stats", Json::array({stats(historical, false)})},
+                {"rooms", Json::array({{{"model_id", "ENCOUNTER.SHRINKER_BEETLE_WEAK"},
+                    {"monster_ids", Json::array()}, {"room_type", "monster"}, {"turns_taken", 0}}})}
+            }})});
+            previous["players"][0]["discovered_enemies"] = Json::array();
+            previous["players"][0]["discovered_potions"] = Json::array();
+            export_native_combat(previous, historical);
+            append(previous["map_point_history"][0].back(), entry.floor);
+            for (const auto* field : {"discovered_enemies", "discovered_potions"}) for (const auto& item : previous["players"][0][field])
+                if (std::find(player[field].begin(), player[field].end(), item) == player[field].end()) player[field].push_back(item);
+            for (const auto* field : {"damage_dealt", "debuffs_applied"})
+                player["extra_fields"][field] = player["extra_fields"][field].get<std::int32_t>() + previous["players"][0]["extra_fields"][field].get<std::int32_t>();
+        }
+        if (s.combat) append(out["map_point_history"][0].back(), static_cast<std::uint32_t>(s.visited.size()));
+        out["map_point_history"] = Json::array({std::move(history)});
+    }
     return out;
 }
 } // namespace sts2::engine

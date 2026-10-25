@@ -22,6 +22,121 @@ Session until(std::size_t actions) {
     }
     return session;
 }
+TEST(PublicRun, ConsecutiveScenarioCombatsPreserveHistoryAndRejectOldCards) {
+    auto state = until(13).state();
+    Scratch scratch;
+    ASSERT_EQ(apply_run(state, {state.boundary, RunInputKind::skip_rewards}).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_run(state, {state.boundary, RunInputKind::proceed}).status, StepStatus::awaiting_input);
+    const auto first = *state.combat;
+    const auto old_card = first.cards.slots().empty() ? CardHandle{} : CardHandle{0, first.cards.slots()[0].generation};
+    const auto saved = checkpoint(state).bytes;
+    const auto result = enter_combat_scenario(state, state.boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK");
+    ASSERT_EQ(result.status, StepStatus::awaiting_input);
+    ASSERT_EQ(state.encounters.size(), 1u);
+    EXPECT_EQ(state.encounters[0].combat, first);
+    EXPECT_EQ(state.setup.deck.size(), 10u);
+    EXPECT_FALSE(state.combat->cards.get(old_card));
+    EXPECT_EQ(apply_player(state, Input{state.boundary, InputKind::play_card, old_card, true}, scratch).status, StepStatus::invalid_action);
+    RunState restored;
+    ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(restored, state);
+    EXPECT_EQ(apply_player(restored, Input{restored.boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_NE(restored, state);
+    RunState before;
+    ASSERT_EQ(restore(before, saved, scratch), RestoreStatus::restored);
+    EXPECT_EQ(enter_combat_scenario(before, before.boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK").status, StepStatus::awaiting_input);
+    EXPECT_EQ(before, state);
+    const auto exported = NativeRunExporter{}.snapshot(state);
+    ASSERT_EQ(exported["map_point_history"][0].size(), 2u);
+    EXPECT_EQ(exported["map_point_history"][0][1]["rooms"].size(), 1u);
+    EXPECT_EQ(exported["map_point_history"][0][1]["rooms"][0]["monster_ids"].size(), 2u);
+    EXPECT_EQ(exported["map_point_history"][0][1]["rooms"][0]["turns_taken"], first.turn);
+    EXPECT_EQ(exported["map_point_history"][0][1]["player_stats"][0]["damage_taken"], first.damage_taken);
+    auto bad = checkpoint(state).bytes;
+    bad[bad.size() - 9] = std::byte{254}; // retained reward selection, not checksum damage
+    const auto hash = game_hash({reinterpret_cast<const char*>(bad.data()), bad.size() - 8});
+    for (unsigned i = 0; i < 8; ++i) bad[bad.size() - 8 + i] = std::byte(hash >> (8 * i));
+    const auto unchanged = restored;
+    EXPECT_EQ(restore(restored, bad, scratch), RestoreStatus::malformed);
+    EXPECT_EQ(restored, unchanged);
+    for (unsigned turn = 0; turn < 50 && state.phase == RunPhase::combat; ++turn) {
+        const auto offered = actions(state);
+        auto attack = std::find_if(offered.begin(), offered.end(), [&](const auto& a) {
+            const auto* input = std::get_if<Input>(&a.input);
+            return a.restriction == Restriction::none && input && input->kind == InputKind::play_card && input->target_enemy;
+        });
+        if (attack != offered.end()) (void)apply_player(state, attack->input, scratch);
+        else (void)apply_player(state, Input{state.boundary, InputKind::end_turn}, scratch);
+    }
+    ASSERT_EQ(state.phase, RunPhase::rewards);
+    EXPECT_EQ(state.encounters[0].combat, first);
+    ASSERT_EQ(apply_player(state, RunInput{state.boundary, RunInputKind::skip_rewards}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(state.phase, RunPhase::map);
+    ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(restored, state);
+    EXPECT_EQ(enter_combat_scenario(restored, restored.boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK").status, StepStatus::awaiting_input);
+    EXPECT_EQ(restored.encounters.size(), 2u);
+    EXPECT_EQ(state.encounters.size(), 1u);
+    EXPECT_EQ(NativeRunExporter{}.snapshot(restored)["map_point_history"][0][1]["rooms"][0]["monster_ids"].size(), 3u);
+    const auto original = restored;
+    const auto replace_nested = [&](const State& replacement, std::size_t ordinal) {
+        auto bytes = checkpoint(original).bytes;
+        const auto inner = checkpoint(replacement).bytes;
+        std::vector<std::byte> magic;
+        for (const char c : std::string_view("STS2CP03")) magic.push_back(std::byte(c));
+        auto at = bytes.begin();
+        for (std::size_t i = 0; i <= ordinal; ++i) {
+            at = std::search(at, bytes.end(), magic.begin(), magic.end());
+            if (i != ordinal && at != bytes.end()) ++at;
+        }
+        EXPECT_NE(at, bytes.end());
+        if (at == bytes.end()) return bytes;
+        std::copy(inner.begin(), inner.end(), at);
+        const auto hash = game_hash({reinterpret_cast<const char*>(bytes.data()), bytes.size() - 8});
+        for (unsigned i = 0; i < 8; ++i) bytes[bytes.size() - 8 + i] = std::byte(hash >> (8 * i));
+        return bytes;
+    };
+    auto aliased = *original.combat;
+    std::vector<CardPool::Slot> slots(aliased.cards.slots().begin(), aliased.cards.slots().end());
+    for (auto& slot : slots) slot.generation = 1;
+    ASSERT_TRUE(aliased.cards.restore(std::move(slots), {}));
+    for (auto& zone : aliased.zones) for (auto& card : zone) card.generation = 1;
+    for (auto& entry : aliased.history) if (entry.card.present()) entry.card.generation = 1;
+    ASSERT_TRUE(valid_state(aliased));
+    EXPECT_EQ(restore(restored, replace_nested(aliased, 0), scratch), RestoreStatus::malformed);
+    EXPECT_EQ(restored, original);
+    auto clock_mismatch = original.encounters[0].combat;
+    auto config = clock_mismatch.clock.config(); ++config.epoch_seconds;
+    ASSERT_TRUE(clock_mismatch.clock.restore(config, clock_mismatch.clock.elapsed_seconds()));
+    EXPECT_EQ(restore(restored, replace_nested(clock_mismatch, 1), scratch), RestoreStatus::malformed);
+    EXPECT_EQ(restored, original);
+    auto future = original.encounters[0].combat;
+    future.boundary.value = original.boundary.value + 1;
+    ASSERT_TRUE(future.clock.restore(future.clock.config(), std::int64_t(future.boundary.value - 1) * future.clock.config().seconds_per_action));
+    EXPECT_EQ(restore(restored, replace_nested(future, 1), scratch), RestoreStatus::malformed);
+    EXPECT_EQ(restored, original);
+}
+TEST(PublicRun, PermanentCardLinksSurviveDeckReordering) {
+    auto state = until(3).state();
+    // Declared scenario permutation of existing permanent objects; combat
+    // aliases still point at those objects, not at their old deck indices.
+    std::swap(state.setup.deck.front(), state.setup.deck.back());
+    ASSERT_TRUE(valid_run(state));
+    const auto native = NativeRunExporter{}.snapshot(state);
+    EXPECT_EQ(native["combat"]["cards"]["card_0"]["deck_version"], "/players/0/deck/9");
+    EXPECT_EQ(native["combat"]["cards"]["card_0"]["saved"]["id"], "CARD.STRIKE_IRONCLAD");
+    Scratch scratch; RunState restored;
+    ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(NativeRunExporter{}.snapshot(restored), native);
+}
+TEST(PublicRun, ScenarioEntryRejectsUnsupportedAndPrematureRequestsWithoutMutation) {
+    auto before_combat = until(2).state(); const auto unchanged = before_combat;
+    EXPECT_EQ(enter_combat_scenario(before_combat, before_combat.boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK").status, StepStatus::invalid_action);
+    EXPECT_EQ(before_combat, unchanged);
+    auto state = until(recording()["actions"].size()).state(); const auto before = state;
+    EXPECT_EQ(enter_combat_scenario(state, state.boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK").status, StepStatus::unsupported_content);
+    EXPECT_EQ(state, before); // Acquired True Grit is retained, but not playable yet.
+}
 TEST(PublicRun, StartingChoicesAreVisiblePureAndForcedProgressIsAutomatic) {
     RunState state;
     ASSERT_EQ(initialize_run(state, {}).status, StepStatus::awaiting_input);
@@ -209,6 +324,11 @@ TEST(RunCheckpoint, RestoredRewardSelectionBranchesIndependentlyAndKeepsRandomPo
     EXPECT_EQ(a.setup.deck.size(), b.setup.deck.size() + 1); EXPECT_EQ(a.setup.player_rng, random); EXPECT_EQ(b.setup.player_rng, random);
     EXPECT_EQ(checkpoint(session.state()).bytes, encoded.bytes); EXPECT_TRUE(valid_run(a)); EXPECT_TRUE(valid_run(b));
     auto sparse_ids = session.state(); sparse_ids.setup.deck[0].instance = 100;
+    EXPECT_FALSE(valid_run(sparse_ids)); // Relabel the entire permanent/copy relationship in this scenario.
+    for (const auto& slot : sparse_ids.combat->cards.slots()) if (slot.live && slot.value.deck_instance == 0) {
+        const auto index = static_cast<std::uint32_t>(&slot - sparse_ids.combat->cards.slots().data());
+        sparse_ids.combat->cards.get({index, slot.generation})->deck_instance = 100;
+    }
     ASSERT_TRUE(valid_run(sparse_ids));
     EXPECT_EQ(apply_run(sparse_ids, {sparse_ids.boundary, RunInputKind::choose_reward_card, 0}).status, StepStatus::awaiting_input);
     EXPECT_EQ(sparse_ids.setup.deck.back().instance, 101u); EXPECT_TRUE(valid_run(sparse_ids));

@@ -30,7 +30,8 @@ public:
     };
     using HandleType = Handle<Tag>;
     void reserve(std::size_t count) { slots_.reserve(count); free_.reserve(count); }
-    [[nodiscard]] HandleType create(const T& value, std::size_t limit) {
+    [[nodiscard]] HandleType create(const T& value, std::size_t limit, std::uint32_t generation = 1) {
+        if (generation == 0) return {};
         std::uint32_t index;
         if (!free_.empty()) { index = free_.back(); free_.pop_back(); }
         else {
@@ -38,7 +39,7 @@ public:
             index = static_cast<std::uint32_t>(slots_.size());
             // Keep free-list capacity sufficient for allocation-free deletion.
             if (free_.capacity() < slots_.size() + 1) free_.reserve(slots_.size() + 1);
-            slots_.push_back({});
+            slots_.push_back({{}, generation, false});
         }
         auto& slot = slots_[index]; slot.value = value; slot.live = true;
         return {index, slot.generation};

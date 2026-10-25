@@ -95,10 +95,12 @@ capture. There are no new native input shapes requiring a partial-selector probe
 this slice. Native partial/multi-selection instrumentation remains required with its
 first implementing feature.
 
-The existing first-encounter guard, unsupported Neow effects, and unsupported reward
-card play remain explicit. Complete native reward pools are unchanged. This does not
-implement consecutive encounters, natural victory, finite-duration Shrink callers,
-general listener ordering, or the remainder of #15. Known unsupported input is rejected
+Unsupported Neow effects and unsupported reward card play remain explicit. Complete
+native reward pools are unchanged. [Consecutive combat ownership](consecutive-run-loop.md)
+now retains prior encounter graphs and verifies a second supported fight through a
+declared native scenario operation. Natural travel still checks the generated queue;
+other encounters remain unsupported. This does not establish natural victory,
+finite-duration Shrink callers, general listener ordering, or the remainder of #15. Known unsupported input is rejected
 before mutation. Failure after an accepted input invalidates the simulation rather
 than publishing a valid partial result. Restore/reinitialize is required to recover.
 
