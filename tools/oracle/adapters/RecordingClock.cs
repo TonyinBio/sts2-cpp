@@ -10,6 +10,7 @@ public partial class RunSimulator
 {
     private static long? _recordingClockSeconds;
     private static long _recordingClockStep;
+    private static bool _recordingClockPatched;
 
     public static DateTimeOffset RecordingUtcNow() =>
         DateTimeOffset.FromUnixTimeSeconds(_recordingClockSeconds
@@ -40,9 +41,11 @@ public partial class RunSimulator
         var epoch = clock.GetProperty("epoch_seconds").GetInt64();
         var step = clock.GetProperty("seconds_per_action").GetInt64();
         Require(epoch >= 0 && epoch <= 253402300799 && step >= 0 && step <= 86400, "Invalid recording clock");
-        Require(_recordingClockSeconds == null, "Clock already configured");
+
         _recordingClockSeconds = epoch;
         _recordingClockStep = step;
+        if (_recordingClockPatched) return;
+        _recordingClockPatched = true;
         var harmony = new Harmony("sts2.recording.clock");
         foreach (var name in new[] { "SetUpTest", "SetUpNewSingleplayer", "InitializeShared", "get_RunTime", "set_IsPaused", "ToSave" }) {
             var method = typeof(RunManager).GetMethod(name,

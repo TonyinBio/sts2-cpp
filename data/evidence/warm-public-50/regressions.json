@@ -1,0 +1,39 @@
+{
+  "native_profile_discovery_red": {
+    "profile": "native-warm-lifecycle-v1",
+    "status": "failed",
+    "configuration": "Release",
+    "sequence": [
+      "A",
+      "A",
+      "B",
+      "A",
+      "B",
+      "B",
+      "A"
+    ],
+    "fixture_sha256": {
+      "scenario.json": "026a1351e63a257667d3ba84f75baeec7f2ed5feb5b0c06091db6933fb1ec7c5",
+      "states.json": "6cf5852a82a01953a75b24f2055a9ca37ca17d1d425c3a884b5af7a17c7a9bd8",
+      "reference.json": "b6e7a079e71015b672960f214626b7046ceec6591d8cee361cd58094ae39dfec"
+    },
+    "limits": [
+      "same seed with two clock epochs; different-seed isolation unverified",
+      "no public output throughput or victory claim",
+      "pending choices/rewards/operations reject reset"
+    ],
+    "comparisons": 57,
+    "reference": {
+      "revision": "084d1aa3d8e118ca7ce8d8774ad16d6be9c92367",
+      "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+      "adapter_sha256": "4de0223064d622338a9c90e8f2ae6caefbffd4473f82a3a2247c8818b159882e",
+      "configuration": "Release"
+    },
+    "completed_cycles": 1,
+    "error": "lifecycle boundary 1: {'difference': {'actual': [], 'expected': ['RELIC.GOLDEN_PEARL'], 'path': '/players/0/discovered_relics'}, 'equal': False, 'valid': True}"
+  },
+  "inactive_pile_preview_red": "0 None\n1 None\n2 None\n3 None\n4 None\n5 None\n6 ('/discard_cards/0/damage', 6, 4)\n",
+  "reward_continuation_red": "0 None\n1 None\n2 None\n3 None\n4 None\n5 None\n6 None\n7 None\n8 None\n9 None\n10 None\n11 None\n12 None\n13 None\n14 ('/can_skip_rewards', True, False)\n",
+  "typed_preview_test_red": "Running main() from /home/sun/code/sts2-cpp/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc\nNote: Google Test filter = PublicRun.InactivePilePreviewsKeepBaseDamageAfterShrink\n[==========] Running 1 test from 1 test suite.\n[----------] Global test environment set-up.\n[----------] 1 test from PublicRun\n[ RUN      ] PublicRun.InactivePilePreviewsKeepBaseDamageAfterShrink\n/tmp/sts2-ticket50/tests/unit/run_test.cpp:280: Failure\nExpected equality of these values:\n  discarded->damage\n    Which is: 4\n  6\n\n[  FAILED  ] PublicRun.InactivePilePreviewsKeepBaseDamageAfterShrink (34 ms)\n[----------] 1 test from PublicRun (34 ms total)\n\n[----------] Global test environment tear-down\n[==========] 1 test from 1 test suite ran. (34 ms total)\n[  PASSED  ] 0 tests.\n[  FAILED  ] 1 test, listed below:\n[  FAILED  ] PublicRun.InactivePilePreviewsKeepBaseDamageAfterShrink\n\n 1 FAILED TEST\n",
+  "typed_preview_test_green": "Running main() from /home/sun/code/sts2-cpp/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc\nNote: Google Test filter = PublicRun.InactivePilePreviewsKeepBaseDamageAfterShrink\n[==========] Running 1 test from 1 test suite.\n[----------] Global test environment set-up.\n[----------] 1 test from PublicRun\n[ RUN      ] PublicRun.InactivePilePreviewsKeepBaseDamageAfterShrink\n[       OK ] PublicRun.InactivePilePreviewsKeepBaseDamageAfterShrink (35 ms)\n[----------] 1 test from PublicRun (35 ms total)\n\n[----------] Global test environment tear-down\n[==========] 1 test from 1 test suite ran. (35 ms total)\n[  PASSED  ] 1 test.\n"
+}

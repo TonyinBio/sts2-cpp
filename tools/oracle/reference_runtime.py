@@ -115,6 +115,7 @@ class JsonProcess:
                     self.stderr_log.write(value['stack_trace'] + '\n')
                     self.stderr_log.flush()
                 raise RuntimeError(f'Reference error: {value.get("message", value)}')
+            self.last_response_line = line
             return value
 
     def send(self, command):
@@ -250,18 +251,42 @@ def inject(source):
         'public class GodotObject\n{\n'
         '    public Error Connect(StringName signal, Callable callable, uint flags = 0) => Error.Ok;', 1))
 
+    simulator = source / 'RunSimulator.cs'
+    original = simulator.read_text()
+    require(original.count('CombatManager.Instance.TurnStarted += _ => _turnStarted.Set();') == 2,
+            'Pinned turn listener source changed')
+    original = original.replace('CombatManager.Instance.TurnStarted += _ => _turnStarted.Set();',
+                                'CombatManager.Instance.TurnStarted += WarmTurnStarted;')
+    original = original.replace('CombatManager.Instance.CombatEnded += _ => _combatEnded.Set();',
+                                'CombatManager.Instance.CombatEnded += WarmCombatEnded;')
+    original = original.replace('CardSelectCmd.UseSelector(',
+                                '_warmSelectorScope = CardSelectCmd.UseSelector(')
+    require(original.count('private static void Log(string message)\n    {') == 1,
+            'Pinned diagnostic logger source changed')
+    original = original.replace('private static void Log(string message)\n    {',
+                                'private static void Log(string message)\n    {\n        if (_warmSuppressLogs) return;')
+    simulator.write_text(original)
+
     program = source / 'Program.cs'
     text = program.read_text()
+    require(text.count('WriteIndented = false,') == 1, 'Pinned JSON options changed')
+    text = text.replace('WriteIndented = false,',
+        'WriteIndented = false,\n        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,')
+    text = text.replace('result = HandleCommand(sim, cmd);', 'result = HandleCommand(sim, cmd);\n                if (cmd.GetProperty("cmd").GetString() == "oracle_reset") sim = new RunSimulator();')
     require(text.count('case "start_run":') == 1, 'Unexpected command dispatcher')
     program.write_text(text.replace('case "start_run":',
-        'case "oracle_display": return sim.OracleDisplay(cmd);\n'
+        'case "benchmark_runtime_info": return sim.WarmRuntimeInfo(cmd);\n'
+        '            case "benchmark_query_audit": return sim.WarmQueryAudit(cmd);\n'
+        '            case "benchmark_operation": return sim.WarmBenchmark(cmd);\n'
+        '            case "oracle_reset": return sim.OracleReset(cmd);\n'
+        '            case "oracle_display": return sim.OracleDisplay(cmd);\n'
         '            case "oracle_start": return sim.OracleStart(cmd);\n'
         '            case "oracle_action": return sim.OracleAction(cmd);\n'
         '            case "oracle_run_start": return sim.OracleRunStart(cmd);\n'
         '            case "oracle_run_action": return sim.OracleRunAction(cmd);\n'
         '            case "oracle_run_state": return sim.OracleRunState(cmd);\n'
         '            case "start_run":', 1))
-    for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs', 'RunRecordingSession.cs', 'CombatModelFields.cs', 'RecordingDisplay.cs', 'RecordingClock.cs'):
+    for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs', 'RunRecordingSession.cs', 'CombatModelFields.cs', 'RecordingDisplay.cs', 'RecordingClock.cs', 'WarmLifecycle.cs', 'WarmPublic.cs'):
         shutil.copy2(Path(__file__).parent / 'adapters' / name, source)
 
     contract = strict_json((Path(__file__).parent / 'combat-field-contract.json').read_bytes())
@@ -275,7 +300,8 @@ def inject(source):
 
 
 @contextlib.contextmanager
-def reference_build(game_dir, log_dir, extra_sources=()):
+def reference_build(game_dir, log_dir, extra_sources=(), *, configuration="Debug"):
+    require(configuration in ("Debug", "Release"), "Unknown reference build configuration")
     game = game_dir.resolve()
     if not (game / 'sts2.dll').is_file():
         candidates = list(game.glob('data_*/sts2.dll'))
@@ -283,7 +309,7 @@ def reference_build(game_dir, log_dir, extra_sources=()):
         game = candidates[0].parent
     require(hashlib.sha256((game / 'sts2.dll').read_bytes()).hexdigest() == GAME_SHA256,
             'Unsupported game DLL hash; exporter must be audited before accepting another build')
-    submodule = REPO / 'sts2-cli'
+    submodule = Path(os.environ.get('STS2_REFERENCE_SUBMODULE', REPO / 'sts2-cli')).resolve()
     revision = subprocess.check_output(['git', '-C', str(submodule), 'rev-parse', 'HEAD'], text=True).strip()
     require(revision == REFERENCE_REVISION, 'Unsupported sts2-cli revision')
     require(not subprocess.check_output(
@@ -311,12 +337,15 @@ def reference_build(game_dir, log_dir, extra_sources=()):
         env = dict(os.environ, DOTNET_CLI_TELEMETRY_OPTOUT='1',
                    DOTNET_CLI_HOME=str(log_dir / 'dotnet-home'), STS2_LIB=str(lib),
                    STS2_GAME_DIR=str(lib))
-        build = subprocess.run(['dotnet', 'build', str(source / 'Sts2Headless.csproj'), '--nologo'],
+        build = subprocess.run(['dotnet', 'build', str(source / 'Sts2Headless.csproj'), '--nologo', '-c', configuration],
                                capture_output=True, text=True, env=env, timeout=120)
         (log_dir / 'build.log').write_text(build.stdout + build.stderr)
         require(build.returncode == 0, f'Reference build failed; see {log_dir / "build.log"}')
-        yield (['dotnet', str(source / 'bin/Debug/net9.0/Sts2Headless.dll')], env,
-               {'revision': revision, 'game_dll_sha256': GAME_SHA256, 'adapter_sha256': digest.hexdigest()})
+        yield (['dotnet', str(source / f'bin/{configuration}/net9.0/Sts2Headless.dll')], env,
+               {'revision': revision, 'game_dll_sha256': GAME_SHA256, 'adapter_sha256': digest.hexdigest(), 'configuration': configuration,
+                'assembly_sha256': hashlib.sha256((source / f'bin/{configuration}/net9.0/Sts2Headless.dll').read_bytes()).hexdigest(),
+                'runtime_config': strict_json((source / f'bin/{configuration}/net9.0/Sts2Headless.runtimeconfig.json').read_bytes()),
+                'dotnet_sdk': subprocess.check_output(['dotnet', '--version'], text=True, env=env).strip()})
 
 
 def start_request(actions):

@@ -138,8 +138,12 @@ public partial class RunSimulator
         __result = -1;
         return false;
     }
+    private static bool _debugAudioPatched;
+    private static bool _runChoicesPatched;
     private static void PatchRecordingDebugAudio()
     {
+        if (_debugAudioPatched) return;
+        _debugAudioPatched = true;
         var type = typeof(MegaCrit.Sts2.Core.Audio.Debug.NDebugAudioManager);
         var harmony = new Harmony("sts2.oracle.debugaudio");
         harmony.Patch(type.GetProperty("Instance")!.GetMethod!,
@@ -157,19 +161,23 @@ public partial class RunSimulator
         var seed = setup.GetProperty("seed").GetString()!;
         Require(new[] { "Ironclad", "Silent", "Defect", "Regent", "Necrobinder" }.Contains(character), "Unknown character");
         Require(ascension >= 0 && ascension <= 10 && !string.IsNullOrEmpty(seed), "Invalid ascension or seed");
+        WarmCaptureProgress();
         ConfigureRecordingClock(command.GetProperty("setup"));
         PatchRecordingDebugAudio();
         _oracleActive = _oracleRunMode = true;
         _runSelector = new RunSelector(this);
         var harmony = new Harmony("sts2.oracle.runchoices");
-        foreach (var method in typeof(CardSelectCmd).GetMethods(BindingFlags.Static | BindingFlags.Public))
-            if (method.GetParameters().Any(p => p.ParameterType == typeof(CardSelectorPrefs)) || method.Name == "FromChooseACardScreen")
-                harmony.Patch(method, prefix: new HarmonyMethod(typeof(RunChoiceContextCapture).GetMethod(nameof(RunChoiceContextCapture.Capture))!));
+        if (!_runChoicesPatched) {
+            foreach (var method in typeof(CardSelectCmd).GetMethods(BindingFlags.Static | BindingFlags.Public))
+                if (method.GetParameters().Any(p => p.ParameterType == typeof(CardSelectorPrefs)) || method.Name == "FromChooseACardScreen")
+                    harmony.Patch(method, prefix: new HarmonyMethod(typeof(RunChoiceContextCapture).GetMethod(nameof(RunChoiceContextCapture.Capture))!));
+            harmony.Patch(typeof(RunManager).GetMethod(nameof(RunManager.WinRun))!,
+                prefix: new HarmonyMethod(typeof(RunChoiceContextCapture).GetMethod(nameof(RunChoiceContextCapture.BeforeWin))!));
+            _runChoicesPatched = true;
+        }
         RunEndingSession = this;
-        harmony.Patch(typeof(RunManager).GetMethod(nameof(RunManager.WinRun))!,
-            prefix: new HarmonyMethod(typeof(RunChoiceContextCapture).GetMethod(nameof(RunChoiceContextCapture.BeforeWin))!));
-        CombatManager.Instance.CombatWon += _ => _runCombatWon = true;
-        CombatManager.Instance.CombatEnded += _ => { if (!_runCombatWon && _oracleRunEndingReason == null) _runDeathObserved = true; };
+        CombatManager.Instance.CombatWon += WarmCombatWon;
+        CombatManager.Instance.CombatEnded += WarmRunCombatEnded;
         // StartRun performs the real seeded setup and enters the initial act/Neow;
         // recorder mode bypasses its UI-oriented decision detection.
         CheckResponse(StartRun(character, ascension, seed, "en"));
@@ -201,7 +209,9 @@ public partial class RunSimulator
         try { await frame.Done.Task; }
         finally { lock (_runGate) _runRewards.Remove(frame); }
     }
-    private RunRewards[] RewardFrames() { lock (_runGate) return _runRewards.ToArray(); }
+    // A completed selector task is no longer a player-input stop. Its owner must
+    // finish the real continuation before publishing the next boundary.
+    private RunRewards[] RewardFrames() { lock (_runGate) return _runRewards.Where(frame => !frame.Done.Task.IsCompleted).ToArray(); }
     private bool Blocked(RunOperation owner) => ReferenceEquals(_runSelector.Pending?.Owner, owner) ||
         RewardFrames().Any(f => ReferenceEquals(f.Owner, owner)) ||
         (_pendingBundles != null && ReferenceEquals(_runBundleOwner, owner));
@@ -481,7 +491,7 @@ public partial class RunSimulator
     private Dictionary<string, object?> OracleRunResponse(JsonElement command) => new() {
         ["type"] = "oracle_state", ["request_id"] = command.GetProperty("request_id").GetString(),
         ["assembly_mvid"] = typeof(CardModel).Assembly.ManifestModule.ModuleVersionId.ToString(),
-        ["runtime_version"] = Environment.Version.ToString(), ["state"] = ExportRunFlowState()
+        ["runtime_version"] = Environment.Version.ToString(), ["state"] = _warmPublic ? null : ExportRunFlowState()
     };
     private static JsonNode? Saved(object? value) => NativeRunRoundTrip.Capture(value);
     private static object[] SavedCards(IEnumerable<CardModel> cards) => cards.Select(c => (object)Saved(c.ToSerializable())!).ToArray();
