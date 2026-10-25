@@ -32,10 +32,15 @@ this API does not certify replacement/removal identity policies for future mecha
 
 Combat observations include card costs, upgrades, previews, targets (through typed
 inputs), HP, energy, visible Shrink/Vulnerable and intent values. Discard/exhaust
-handles preserve visible pile order. Draw inspection is not yet exposed; only its
-count is available. Permanent deck metadata and reward model descriptors are
+card descriptors preserve visible pile order. Passive draw inspection uses the native
+rarity/model comparator and existing .NET sort implementation, with no backing draw
+sequence exposed. All four executable combat definitions currently have Basic rarity.
+Differently modified equal-key ties retain the native comparator behavior; unrestricted
+permutation equivalence is not claimed. Permanent deck metadata and reward model descriptors are
 available even when acquisition or later play is unsupported. Exact English and
-broader model preview support are not certified. Text is generated on demand.
+broader model preview support are not certified. Text is generated on demand. Starter/reward cards, Golden Pearl, Burning Blood and
+Potion of Binding have source-backed effect summaries; other definitions return an
+explicit unsupported-description status independently of acquisition/play support.
 
 Reward cards are revealed only at the card-reward prompt. The prompt declares an
 exact-one immediate submission with a separate Skip alternative; Skip returns to
@@ -53,7 +58,9 @@ Each underlying transition retains its existing action-clock increment and bound
 increment. Thus one public input can span two historical actions; boundary numbers
 can jump. Intermediate historical diagnostic boundaries remain replayable.
 `advance_player` at an input boundary is pure. Repeated queries and validation use
-no authoritative RNG or clock. Validation uses an isolated complete-state copy;
+no authoritative RNG or clock. Travel validation checks visible adjacency only; unrevealed encounter capability is
+checked by execution before mutation, so querying routes cannot identify hidden rooms.
+Other validation uses an isolated complete-state copy;
 this is deliberately conservative, and no throughput claim is made.
 
 The public replay regression runs all nine existing dense/sparse loop fixtures and the three fresh native captures.
@@ -103,3 +110,11 @@ records their hashes. Direct live replay of the historical fixture correctly sto
 at the adapter provenance guard; its expected adapter hash differs from today's tool.
 No provenance guard was relaxed, and fresh captures were not substituted for historical
 expectations. Both generations are exercised by C++ replay.
+
+Validation for this change: `cmake --build --preset debug -j 4` succeeded;
+`ctest --preset debug -j 4 --output-on-failure` passed all 158 tests. The earlier
+focused engine/replay run passed all 68 checks before the additional native corpus
+and review regressions were added. `sts2_play` was smoke-tested through Neow to map.
+Standards review found no rule violations and one optional base-preview deduplication
+suggestion; spec review reported no remaining findings after the inspection, text,
+ledger, reward-cost and hidden-travel fixes.

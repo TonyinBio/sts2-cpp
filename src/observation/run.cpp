@@ -1,8 +1,16 @@
 #include "sts2/observation/run.hpp"
 #include <algorithm>
+#include "sts2/core/sort.hpp"
 
 namespace sts2::engine {
 namespace {
+std::optional<std::int32_t> card_cost(std::string_view model) {
+    for (const auto& definition : Ruleset::pinned().cards())
+        if (definition.model_id == model) return definition.cost;
+    if (model == "CARD.TRUE_GRIT" || model == "CARD.JUGGLING") return 1;
+    if (model == "CARD.RAGE") return 0;
+    return std::nullopt;
+}
 bool forced(const RunState& state) {
     return state.phase == RunPhase::neow_done ||
         (state.phase == RunPhase::combat_done && !state.direct_combat) ||
@@ -35,7 +43,7 @@ RunObservation observe(const RunState& state) {
     view.ascension = state.setup.ascension; view.act = state.act_index + 1;
     view.hp = state.setup.hp; view.max_hp = state.setup.max_hp; view.gold = state.setup.gold;
     view.potion_capacity = state.setup.potion_slots;
-    for (const auto& card : state.setup.deck) view.deck.push_back({card.instance, SetupRules::name(card.definition), card.upgrade});
+    for (const auto& card : state.setup.deck) view.deck.push_back({card.instance, SetupRules::name(card.definition), card.upgrade, card_cost(SetupRules::name(card.definition))});
     for (std::size_t i = 0; i < state.setup.relics.size(); ++i) view.relics.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state.setup.relics[i])});
     for (std::size_t i = 0; i < state.setup.potions.size(); ++i) view.potions.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state.setup.potions[i])});
     if (state.phase == RunPhase::neow)
@@ -75,7 +83,7 @@ RunObservation observe(const RunState& state) {
         if (rewards.potion != no_content) view.rewards.push_back({1, RewardKind::potion, 0, SetupRules::name(rewards.potion), rewards.potion_taken});
         view.rewards.push_back({static_cast<std::uint32_t>(view.rewards.size()), RewardKind::cards, 0, {}, rewards.card_taken});
         if (rewards.selecting_card)
-            for (std::size_t i = 0; i < rewards.cards.size(); ++i) view.reward_cards.push_back({static_cast<std::uint32_t>(i), SetupRules::name(rewards.cards[i].definition), rewards.cards[i].upgrade});
+            for (std::size_t i = 0; i < rewards.cards.size(); ++i) view.reward_cards.push_back({static_cast<std::uint32_t>(i), SetupRules::name(rewards.cards[i].definition), rewards.cards[i].upgrade, card_cost(SetupRules::name(rewards.cards[i].definition))});
     }
     if (state.phase == RunPhase::combat && state.combat) {
         view.combat = observe(*state.combat);
@@ -86,11 +94,30 @@ RunObservation observe(const RunState& state) {
             view.prompt = PublicPrompt::discard;
             view.minimum_selection = view.maximum_selection = 1;
         }
-        view.discard = state.combat->zone(Zone::discard); view.exhaust = state.combat->zone(Zone::exhaust);
+        const auto project_pile = [&](Zone zone, std::vector<CardView>& pile) {
+            for (const auto handle : state.combat->zone(zone))
+                if (const auto card = inspect_card(*state.combat, handle)) pile.push_back(*card);
+        };
+        project_pile(Zone::draw, view.draw); project_pile(Zone::discard, view.discard); project_pile(Zone::exhaust, view.exhaust);
+        // NCardPileScreen: raw rarity then ordinal model entry. All four
+        // currently executable combat definitions have native Basic rarity.
+        // Match .NET equal-key sorting rather than exposing backing draw order.
+        game_sort(std::span(view.draw), [](const auto& a, const auto& b) { return a.model_id < b.model_id; });
     }
     return view;
 }
 Restriction validate_player(const RunState& state, const PlayerInput& input) {
+    if (const auto* run = std::get_if<RunInput>(&input); run && run->kind == RunInputKind::travel) {
+        if (run->expected_boundary != state.boundary) return Restriction::stale_boundary;
+        if (!canonical(*run)) return Restriction::malformed_action;
+        if (state.phase != RunPhase::map) return Restriction::wrong_phase;
+        const auto& map = *state.maps[state.act_index];
+        const auto destination = map.at(run->col, run->row);
+        if (destination == no_node || !map.nodes[state.current].children.contains(destination)) return Restriction::invalid_selection;
+        // Encounter assignments are hidden until entry. Public validation
+        // reports visible legality; execution checks capability before mutation.
+        return Restriction::none;
+    }
     // Reuse authoritative validation, including native unsuccessful attempts.
     // Speculative work is isolated from complete state, clocks and RNG streams.
     auto candidate = state; Scratch scratch;
@@ -160,6 +187,34 @@ std::string describe(const RunObservation& view) {
     if (view.prompt == PublicPrompt::discard) return "Choose one card to discard.";
     if (view.combat) return "Play a card or end your turn.";
     return "Combat won.";
+}
+DefinitionText describe(const VisibleCard& card) {
+    DefinitionText text;
+    for (const auto& definition : Ruleset::pinned().cards()) {
+        if (definition.model_id != card.model_id) continue;
+        CardView preview{{}, definition.model_id, definition.name, definition.cost, 0, 0, 0, card.upgrade != 0, definition.enemy_target};
+        for (const auto& op : definition.program) {
+            const auto value = op.base + (card.upgrade ? op.upgrade : 0);
+            if (op.opcode == Opcode::damage) preview.damage = value;
+            if (op.opcode == Opcode::block) preview.block = value;
+            if (op.opcode == Opcode::vulnerable) preview.vulnerable = value;
+        }
+        return {std::string(definition.name), describe(preview), true};
+    }
+    if (card.model_id == "CARD.TRUE_GRIT")
+        return {"True Grit", "Gain " + std::to_string(card.upgrade ? 9 : 7) + " Block. Exhaust " +
+            (card.upgrade ? "a card from your hand." : "a random card from your hand."), true};
+    if (card.model_id == "CARD.JUGGLING")
+        return {"Juggling", std::string(card.upgrade ? "Innate. " : "") + "Each turn, add a copy of the third Attack you play to your hand.", true};
+    if (card.model_id == "CARD.RAGE")
+        return {"Rage", "Whenever you play an Attack this turn, gain " + std::to_string(card.upgrade ? 5 : 3) + " Block.", true};
+    return describe(VisibleOption{card.instance, card.model_id});
+}
+DefinitionText describe(const VisibleOption& option) {
+    if (option.model_id == "RELIC.GOLDEN_PEARL") return {"Golden Pearl", "Gain 150 Gold.", true};
+    if (option.model_id == "RELIC.BURNING_BLOOD") return {"Burning Blood", "At the end of combat, heal 6 HP.", true};
+    if (option.model_id == "POTION.POTION_OF_BINDING") return {"Potion of Binding", "Apply 1 Weak and 1 Vulnerable to all enemies.", true};
+    return {std::string(option.model_id), "Description unavailable for this definition.", false};
 }
 std::string describe(Restriction restriction) {
     switch (restriction) {

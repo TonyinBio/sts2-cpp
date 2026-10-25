@@ -11,6 +11,15 @@ ObservationView observe(const State& s) noexcept {
 std::optional<CardView> observe_card(const State& s, CardHandle h, const Ruleset& rules) noexcept {
     const auto& hand = s.zone(Zone::hand);
     if (std::find(hand.begin(), hand.end(), h) == hand.end()) return std::nullopt;
+    return inspect_card(s, h, rules);
+}
+std::optional<CardView> inspect_card(const State& s, CardHandle h, const Ruleset& rules) noexcept {
+    bool visible = false;
+    for (const auto zone : {Zone::hand, Zone::draw, Zone::discard, Zone::exhaust}) {
+        const auto& cards = s.zone(zone);
+        visible = visible || std::find(cards.begin(), cards.end(), h) != cards.end();
+    }
+    if (!visible) return std::nullopt;
     const auto* instance = s.cards.get(h); if (!instance) return std::nullopt;
     const auto* def = rules.card(instance->definition); if (!def) return std::nullopt;
     CardView view{h, def->model_id, def->name, def->cost, 0, 0, 0, instance->upgraded, def->enemy_target};

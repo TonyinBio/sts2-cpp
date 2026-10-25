@@ -25,6 +25,8 @@ struct CardView {
     bool upgraded, enemy_target;
 };
 [[nodiscard]] std::optional<CardView> observe_card(const State&, CardHandle, const Ruleset& = Ruleset::pinned()) noexcept;
+// Metadata for inspectable hand/draw/discard/exhaust cards; never pile position.
+[[nodiscard]] std::optional<CardView> inspect_card(const State&, CardHandle, const Ruleset& = Ruleset::pinned()) noexcept;
 // English rendering is outside the kernel; callers pay for it only on demand.
 [[nodiscard]] std::string describe(const CardView&);
 struct ActionView { Input input; Restriction restriction; };

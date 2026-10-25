@@ -50,13 +50,14 @@ TEST(PublicRun, RewardsRevealOnlyTheActiveOffersAndResumeIndependentAlternatives
     auto session = until(13); auto state = session.state(); Scratch scratch;
     const auto rewards = observe(state);
     ASSERT_EQ(rewards.rewards.size(), 3u);
-    EXPECT_EQ(rewards.rewards[0].gold, state.rewards->gold);
+    EXPECT_EQ(rewards.rewards[0].gold, 17);
     EXPECT_TRUE(rewards.reward_cards.empty());
     ASSERT_EQ(apply_player(state, RunInput{state.boundary, RunInputKind::take_reward, 2}, scratch).status, StepStatus::awaiting_input);
     const auto selection = observe(state);
     ASSERT_TRUE(selection.selecting_reward_card);
     ASSERT_EQ(selection.reward_cards.size(), 3u);
     EXPECT_EQ(selection.reward_cards[0].model_id, "CARD.TRUE_GRIT");
+    EXPECT_EQ(selection.reward_cards[0].energy_cost, 1);
     EXPECT_TRUE(selection.can_skip_card_reward);
     EXPECT_FALSE(selection.can_skip_rewards);
     const auto saved = checkpoint(state).bytes;
@@ -142,6 +143,43 @@ TEST(PublicRun, StarterVariantsExposeAndExecuteSourceBackedPreviews) {
         const auto hp = observe(state).combat->enemy_hp;
         play("CARD.STRIKE_IRONCLAD"); EXPECT_EQ(observe(state).combat->enemy_hp, hp - (upgraded ? 9 : 6));
     }
+}
+TEST(PublicRun, InspectablePilesExposeMetadataAndDrawInspectionHidesSequence) {
+    auto state = until(4).state();
+    const auto before = checkpoint(state).bytes;
+    const auto view = observe(state);
+    ASSERT_FALSE(view.draw.empty()); ASSERT_FALSE(view.discard.empty());
+    EXPECT_TRUE(std::is_sorted(view.draw.begin(), view.draw.end(), [](const auto& a, const auto& b) { return a.model_id < b.model_id; }));
+    for (const auto& card : view.draw) { EXPECT_FALSE(card.name.empty()); EXPECT_FALSE(describe(card).empty()); }
+    for (const auto& card : view.discard) EXPECT_FALSE(card.model_id.empty());
+    EXPECT_EQ(checkpoint(state).bytes, before);
+    auto other = state;
+    std::reverse(other.combat->zone(Zone::draw).begin(), other.combat->zone(Zone::draw).end());
+    const auto reversed = observe(other);
+    ASSERT_EQ(view.draw.size(), reversed.draw.size());
+    for (std::size_t i = 0; i < view.draw.size(); ++i) EXPECT_EQ(view.draw[i].model_id, reversed.draw[i].model_id);
+    const auto gift = describe(VisibleOption{0, "RELIC.GOLDEN_PEARL"});
+    EXPECT_TRUE(gift.supported); EXPECT_EQ(gift.name, "Golden Pearl"); EXPECT_EQ(gift.description, "Gain 150 Gold.");
+    const auto reward = describe(VisibleCard{0, "CARD.TRUE_GRIT", 0});
+    EXPECT_TRUE(reward.supported); EXPECT_EQ(reward.description, "Gain 7 Block. Exhaust a random card from your hand.");
+    EXPECT_FALSE(describe(VisibleOption{0, "RELIC.UNKNOWN"}).supported);
+}
+TEST(PublicRun, HiddenEncounterSupportIsNotDisclosedByTravelQueries) {
+    auto a = until(2).state(), b = a;
+    const auto different = std::find_if(b.setup.acts[0].normal.begin(), b.setup.acts[0].normal.end(),
+        [&](auto encounter) { return encounter != b.setup.acts[0].normal[0]; });
+    ASSERT_NE(different, b.setup.acts[0].normal.end());
+    b.setup.acts[0].normal[0] = *different;
+    ASSERT_TRUE(valid_run(b));
+    const auto aa = actions(a), ba = actions(b);
+    ASSERT_FALSE(aa.empty()); ASSERT_EQ(aa.size(), ba.size());
+    for (std::size_t i = 0; i < aa.size(); ++i) {
+        EXPECT_EQ(aa[i].restriction, ba[i].restriction);
+        EXPECT_EQ(validate_player(a, aa[i].input), validate_player(b, ba[i].input));
+    }
+    const auto before = b; Scratch scratch;
+    EXPECT_EQ(apply_player(b, ba[0].input, scratch).status, StepStatus::unsupported_content);
+    EXPECT_EQ(b, before);
 }
 TEST(RunCheckpoint, EveryLifecycleBoundaryRoundTripsAllFieldsAndNativeExport) {
     const auto fixture = recording(); Session session; session.initialize(fixture["setup"]); Scratch scratch;

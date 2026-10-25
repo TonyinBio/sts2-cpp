@@ -12,6 +12,7 @@ struct VisibleCard {
     std::uint32_t instance;
     std::string_view model_id;
     std::uint32_t upgrade;
+    std::optional<std::int32_t> energy_cost;
     friend bool operator==(const VisibleCard&, const VisibleCard&) = default;
 };
 struct VisibleOption {
@@ -59,14 +60,22 @@ struct RunObservation {
     std::optional<ObservationView> combat;
     std::vector<CardView> hand_cards;
     // Inspectable piles only; draw order and hidden assignments are excluded.
-    std::vector<CardHandle> discard, exhaust;
+    std::vector<CardView> draw, discard, exhaust;
 };
 // Owns projected containers, borrows seed and combat hand until state mutation.
 [[nodiscard]] RunObservation observe(const RunState&);
 [[nodiscard]] std::vector<PlayerAction> actions(const RunState&);
+// Travel validation checks visible legality; hidden capability is checked on apply.
 [[nodiscard]] Restriction validate_player(const RunState&, const PlayerInput&);
 [[nodiscard]] StepResult apply_player(RunState&, const PlayerInput&, Scratch&);
 [[nodiscard]] StepResult advance_player(RunState&, Scratch&);
 [[nodiscard]] std::string describe(const RunObservation&);
 [[nodiscard]] std::string describe(Restriction);
+struct DefinitionText {
+    std::string name, description;
+    bool supported = false;
+};
+// Description support is independent of acquisition/play support.
+[[nodiscard]] DefinitionText describe(const VisibleOption&);
+[[nodiscard]] DefinitionText describe(const VisibleCard&);
 } // namespace sts2::engine

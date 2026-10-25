@@ -14,7 +14,10 @@ int main(int argc, char** argv) {
         std::cout << describe(view) << "\nHP " << view.hp << '/' << view.max_hp << "  Gold " << view.gold << '\n';
         for (const auto& card : view.hand_cards)
             std::cout << "  " << card.name << " (" << card.cost << " Energy): " << describe(card) << '\n';
-        for (const auto& option : view.options) std::cout << "  Gift " << option.id << ": " << option.model_id << '\n';
+        for (const auto& option : view.options) {
+            const auto text = describe(option);
+            std::cout << "  Gift " << option.id << ": " << text.name << " — " << text.description << '\n';
+        }
         for (const auto& reward : view.rewards) {
             std::cout << "  Reward " << reward.id << ": ";
             if (reward.kind == RewardKind::gold) std::cout << reward.gold << " gold";
@@ -22,7 +25,10 @@ int main(int argc, char** argv) {
             else std::cout << "card choice";
             std::cout << (reward.claimed ? " (claimed)\n" : "\n");
         }
-        for (const auto& card : view.reward_cards) std::cout << "  Card " << card.instance << ": " << card.model_id << '\n';
+        for (const auto& card : view.reward_cards) {
+            const auto text = describe(card);
+            std::cout << "  Card " << card.instance << ": " << text.name << " (" << card.energy_cost.value_or(-1) << " Energy) — " << text.description << '\n';
+        }
         const auto offered = actions(run);
         if (offered.empty()) return view.valid ? 0 : 1;
         for (std::size_t i = 0; i < offered.size(); ++i) {

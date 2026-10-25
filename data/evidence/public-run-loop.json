@@ -54,10 +54,119 @@
           ]
         },
         {
-          "id": "CARD.BASH/full-authored-semantics",
-          "implementation": "not certified by this slice",
-          "reference_verification": "pending cases beyond bounded loop",
-          "interaction_verification": "pending wider callers",
+          "id": "CARD.BASH/base",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bash.cs",
+            "sha256": "ccd5cd825109781b14607f89329ff59213d4a9ceb4c44f70954d62e4465bc738",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/3"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.BASH/upgraded",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bash.cs",
+            "sha256": "ccd5cd825109781b14607f89329ff59213d4a9ceb4c44f70954d62e4465bc738",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/3"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.BASH/lethal-hit-before-power",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bash.cs",
+            "sha256": "ccd5cd825109781b14607f89329ff59213d4a9ceb4c44f70954d62e4465bc738",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/3"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "CARD.BASH/nonlethal-hit-before-power",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bash.cs",
+            "sha256": "ccd5cd825109781b14607f89329ff59213d4a9ceb4c44f70954d62e4465bc738",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/3"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "CARD.BASH/already-vulnerable",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bash.cs",
+            "sha256": "ccd5cd825109781b14607f89329ff59213d4a9ceb4c44f70954d62e4465bc738",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/3"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "CARD.BASH/insufficient-energy",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bash.cs",
+            "sha256": "ccd5cd825109781b14607f89329ff59213d4a9ceb4c44f70954d62e4465bc738",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/3"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.BASH/wrong-target",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bash.cs",
+            "sha256": "ccd5cd825109781b14607f89329ff59213d4a9ceb4c44f70954d62e4465bc738",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/3"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.BASH/played-card-identity-and-history",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bash.cs",
+            "sha256": "ccd5cd825109781b14607f89329ff59213d4a9ceb4c44f70954d62e4465bc738",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/3"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
           "evidence": []
         }
       ]
@@ -110,10 +219,103 @@
           ]
         },
         {
-          "id": "CARD.DEFEND_IRONCLAD/full-authored-semantics",
-          "implementation": "not certified by this slice",
-          "reference_verification": "pending cases beyond bounded loop",
-          "interaction_verification": "pending wider callers",
+          "id": "CARD.DEFEND_IRONCLAD/base",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/DefendIronclad.cs",
+            "sha256": "08ba8e1d038f6b2fed46217d974154f4d9deea82a235bedc0efb1c1459c509ef",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/21"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.DEFEND_IRONCLAD/upgraded",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/DefendIronclad.cs",
+            "sha256": "08ba8e1d038f6b2fed46217d974154f4d9deea82a235bedc0efb1c1459c509ef",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/21"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.DEFEND_IRONCLAD/existing-block",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/DefendIronclad.cs",
+            "sha256": "08ba8e1d038f6b2fed46217d974154f4d9deea82a235bedc0efb1c1459c509ef",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/21"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "CARD.DEFEND_IRONCLAD/block-turn-reset",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/DefendIronclad.cs",
+            "sha256": "08ba8e1d038f6b2fed46217d974154f4d9deea82a235bedc0efb1c1459c509ef",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/21"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "CARD.DEFEND_IRONCLAD/insufficient-energy",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/DefendIronclad.cs",
+            "sha256": "08ba8e1d038f6b2fed46217d974154f4d9deea82a235bedc0efb1c1459c509ef",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/21"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.DEFEND_IRONCLAD/self-target-only",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/DefendIronclad.cs",
+            "sha256": "08ba8e1d038f6b2fed46217d974154f4d9deea82a235bedc0efb1c1459c509ef",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/21"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "CARD.DEFEND_IRONCLAD/played-card-identity-and-history",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/DefendIronclad.cs",
+            "sha256": "08ba8e1d038f6b2fed46217d974154f4d9deea82a235bedc0efb1c1459c509ef",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/21"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
           "evidence": []
         }
       ]
@@ -166,10 +368,132 @@
           ]
         },
         {
-          "id": "CARD.STRIKE_IRONCLAD/full-authored-semantics",
-          "implementation": "not certified by this slice",
-          "reference_verification": "pending cases beyond bounded loop",
-          "interaction_verification": "pending wider callers",
+          "id": "CARD.STRIKE_IRONCLAD/base",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs",
+            "sha256": "c0e918b41b91b1d85ec20fe87d34d37b8a3dade11fbf301e8465a7d12be2bcdf",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/57"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.STRIKE_IRONCLAD/upgraded",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs",
+            "sha256": "c0e918b41b91b1d85ec20fe87d34d37b8a3dade11fbf301e8465a7d12be2bcdf",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/57"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.STRIKE_IRONCLAD/shrink-only",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs",
+            "sha256": "c0e918b41b91b1d85ec20fe87d34d37b8a3dade11fbf301e8465a7d12be2bcdf",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/57"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "CARD.STRIKE_IRONCLAD/vulnerable-only",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs",
+            "sha256": "c0e918b41b91b1d85ec20fe87d34d37b8a3dade11fbf301e8465a7d12be2bcdf",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/57"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "CARD.STRIKE_IRONCLAD/shrink-and-vulnerable-rounding",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs",
+            "sha256": "c0e918b41b91b1d85ec20fe87d34d37b8a3dade11fbf301e8465a7d12be2bcdf",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/57"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.STRIKE_IRONCLAD/lethal",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs",
+            "sha256": "c0e918b41b91b1d85ec20fe87d34d37b8a3dade11fbf301e8465a7d12be2bcdf",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/57"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "CARD.STRIKE_IRONCLAD/blocked-target",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs",
+            "sha256": "c0e918b41b91b1d85ec20fe87d34d37b8a3dade11fbf301e8465a7d12be2bcdf",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/57"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "CARD.STRIKE_IRONCLAD/wrong-target",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs",
+            "sha256": "c0e918b41b91b1d85ec20fe87d34d37b8a3dade11fbf301e8465a7d12be2bcdf",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/57"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.STRIKE_IRONCLAD/played-card-identity-and-history",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs",
+            "sha256": "c0e918b41b91b1d85ec20fe87d34d37b8a3dade11fbf301e8465a7d12be2bcdf",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/57"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
           "evidence": []
         }
       ]
@@ -251,10 +575,136 @@
           ]
         },
         {
-          "id": "POWER.SHRINK_POWER/full-authored-semantics",
-          "implementation": "not certified by this slice",
-          "reference_verification": "pending cases beyond bounded loop",
-          "interaction_verification": "pending wider callers",
+          "id": "POWER.SHRINK_POWER/infinite-shrinker-application",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs",
+            "sha256": "c5d922d4e2fd20804939ca73a9ccbd527587d28d262c664c5c84ea8c52f9ba6c",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/30"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "POWER.SHRINK_POWER/timed-application",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs",
+            "sha256": "c5d922d4e2fd20804939ca73a9ccbd527587d28d262c664c5c84ea8c52f9ba6c",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/30"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.SHRINK_POWER/timed-turn-decrement",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs",
+            "sha256": "c5d922d4e2fd20804939ca73a9ccbd527587d28d262c664c5c84ea8c52f9ba6c",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/30"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.SHRINK_POWER/stack-or-modify",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs",
+            "sha256": "c5d922d4e2fd20804939ca73a9ccbd527587d28d262c664c5c84ea8c52f9ba6c",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/30"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.SHRINK_POWER/powered-attack-owner",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs",
+            "sha256": "c5d922d4e2fd20804939ca73a9ccbd527587d28d262c664c5c84ea8c52f9ba6c",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/30"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.SHRINK_POWER/unpowered-damage",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs",
+            "sha256": "c5d922d4e2fd20804939ca73a9ccbd527587d28d262c664c5c84ea8c52f9ba6c",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/30"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.SHRINK_POWER/different-dealer",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs",
+            "sha256": "c5d922d4e2fd20804939ca73a9ccbd527587d28d262c664c5c84ea8c52f9ba6c",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/30"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.SHRINK_POWER/applier-death-removal",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs",
+            "sha256": "c5d922d4e2fd20804939ca73a9ccbd527587d28d262c664c5c84ea8c52f9ba6c",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/30"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.SHRINK_POWER/visible-single-stack-label",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs",
+            "sha256": "c5d922d4e2fd20804939ca73a9ccbd527587d28d262c664c5c84ea8c52f9ba6c",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/30"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.SHRINK_POWER/clone-restore-source-identity",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs",
+            "sha256": "c5d922d4e2fd20804939ca73a9ccbd527587d28d262c664c5c84ea8c52f9ba6c",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/30"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
           "evidence": []
         }
       ]
@@ -332,10 +782,142 @@
           ]
         },
         {
-          "id": "POWER.VULNERABLE_POWER/full-authored-semantics",
-          "implementation": "not certified by this slice",
-          "reference_verification": "pending cases beyond bounded loop",
-          "interaction_verification": "pending wider callers",
+          "id": "POWER.VULNERABLE_POWER/new-application",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs",
+            "sha256": "836ae57ad21b7663130b13a02b1acbfb9d7201bf64b6eb3e222b78a09b75936a",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/37"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "POWER.VULNERABLE_POWER/stack-existing",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs",
+            "sha256": "836ae57ad21b7663130b13a02b1acbfb9d7201bf64b6eb3e222b78a09b75936a",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/37"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.VULNERABLE_POWER/owner-turn-decrement",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs",
+            "sha256": "836ae57ad21b7663130b13a02b1acbfb9d7201bf64b6eb3e222b78a09b75936a",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/37"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "POWER.VULNERABLE_POWER/expiry-removal",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs",
+            "sha256": "836ae57ad21b7663130b13a02b1acbfb9d7201bf64b6eb3e222b78a09b75936a",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/37"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.VULNERABLE_POWER/powered-attack-only",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs",
+            "sha256": "836ae57ad21b7663130b13a02b1acbfb9d7201bf64b6eb3e222b78a09b75936a",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/37"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.VULNERABLE_POWER/multiplicative-rounding",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs",
+            "sha256": "836ae57ad21b7663130b13a02b1acbfb9d7201bf64b6eb3e222b78a09b75936a",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/37"
+          },
+          "implementation": "bounded C++ regression",
+          "reference_verification": "bounded route only; upgraded/alternate native case pending",
+          "interaction_verification": "bounded starter/Shrinker caller",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "POWER.VULNERABLE_POWER/paper-phrog-compatibility",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs",
+            "sha256": "836ae57ad21b7663130b13a02b1acbfb9d7201bf64b6eb3e222b78a09b75936a",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/37"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.VULNERABLE_POWER/debilitate-compatibility",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs",
+            "sha256": "836ae57ad21b7663130b13a02b1acbfb9d7201bf64b6eb3e222b78a09b75936a",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/37"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.VULNERABLE_POWER/visible-counter",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs",
+            "sha256": "836ae57ad21b7663130b13a02b1acbfb9d7201bf64b6eb3e222b78a09b75936a",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/37"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
+          "evidence": []
+        },
+        {
+          "id": "POWER.VULNERABLE_POWER/clone-restore-source-identity",
+          "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+          "source": {
+            "path": "MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs",
+            "sha256": "836ae57ad21b7663130b13a02b1acbfb9d7201bf64b6eb3e222b78a09b75936a",
+            "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/37"
+          },
+          "implementation": "pending individual case verification",
+          "reference_verification": "pending individual native case",
+          "interaction_verification": "pending individual interaction case",
           "evidence": []
         }
       ]
