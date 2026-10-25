@@ -4,6 +4,7 @@
 #include <optional>
 
 namespace sts2::engine {
+inline constexpr std::uint32_t max_retained_encounters = 4096;
 enum class RunPhase : std::uint8_t { uninitialized, neow, neow_done, map, combat, combat_done, rewards, complete, invalid };
 struct CombatRewards {
     std::int32_t gold = 0;
@@ -14,10 +15,22 @@ struct CombatRewards {
     std::uint8_t selected_card = UINT8_MAX;
     friend bool operator==(const CombatRewards&, const CombatRewards&) = default;
 };
+// A completed encounter owns its combat graph and captured inventory descriptors.
+// Handles inside history remain aliases into that graph, never the next combat.
+struct EncounterRecord {
+    State combat;
+    std::optional<CombatRewards> rewards;
+    std::vector<PersistentCard> deck;
+    std::vector<ContentId> discarded_potions;
+    MapNodeId node = no_node;
+    std::uint32_t floor = 0;
+    friend bool operator==(const EncounterRecord&, const EncounterRecord&) = default;
+};
 struct RunState {
     SetupState setup;
     std::optional<State> combat;
     bool direct_combat = false;
+    std::vector<EncounterRecord> encounters;
     std::optional<CombatRewards> rewards;
     std::vector<ContentId> discarded_potions;
     RunClock clock;

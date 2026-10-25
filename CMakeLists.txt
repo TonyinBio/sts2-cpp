@@ -54,6 +54,8 @@ if(BUILD_TESTING OR STS2_BUILD_INTEGRATION OR STS2_BUILD_PARITY_TOOLS)
   target_link_libraries(sts2_integration PUBLIC sts2_observation sts2_persistence nlohmann_json::nlohmann_json)
   add_executable(sts2_run apps/run/main.cpp)
   target_link_libraries(sts2_run PRIVATE sts2_integration)
+  add_executable(sts2_run_scenario tools/parity/run_scenario_main.cpp)
+  target_link_libraries(sts2_run_scenario PRIVATE sts2_integration)
 endif()
 # Recording contracts are shared by tools and tests, independent of GoogleTest.
 if(BUILD_TESTING OR STS2_BUILD_PARITY_TOOLS)
@@ -150,6 +152,11 @@ if(BUILD_TESTING)
   endforeach()
   find_package(Python3 COMPONENTS Interpreter QUIET)
   if(Python3_Interpreter_FOUND)
+    add_test(NAME kernel_consecutive_scenarios COMMAND "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tools/oracle/check_consecutive_combats.py"
+      --recording-dir "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/fixtures/reference/consecutive-shrinker-scenarios"
+      --simulator "$<TARGET_FILE:sts2_run_scenario>" --validator "$<TARGET_FILE:parity_validate>")
+    set_tests_properties(kernel_consecutive_scenarios PROPERTIES LABELS "engine;replay_parity")
     add_test(NAME setup_rules_generated COMMAND "${Python3_EXECUTABLE}"
       "${CMAKE_CURRENT_SOURCE_DIR}/tools/rules_compiler/setup.py" --check)
     set_tests_properties(setup_rules_generated PROPERTIES LABELS "engine")

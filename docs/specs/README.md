@@ -17,6 +17,7 @@ These sheets retain detailed requirements, schemas and source evidence.
 | Intended system | [Full-game design](engine/full-game-simulator-design.md) and [architecture](engine/full-game-simulator-architecture.md); targets and proposed structure, not proof of implementation |
 | Normative contracts | [Matching target](engine/matching-contract.md), [decision contract](engine/decision-contract.md), [state inventory](engine/state-inventory.md), and format sheets below |
 | Public bounded run loop | [Public C++ run loop](engine/public-run-loop.md); observations, actions, forced-transition correspondence and evidence limits |
+| Consecutive combat ownership | [Consecutive supported combat](engine/consecutive-run-loop.md); retained graphs, permanent links and declared native scenario evidence |
 | Current coverage | [Implementation status](engine/implementation-status.md); implemented subsets and remaining work |
 | Reference evidence | Runtime/model audits and state-access probe; limited to their inspected builds and scenarios |
 | Future work | GitHub Issues as configured in [issue-tracker.md](../agents/issue-tracker.md); link relevant contracts rather than copying them |

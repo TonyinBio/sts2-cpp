@@ -85,8 +85,11 @@ or speed/memory improvement over `sts2-cli`; rerun after changes.
 ## Remaining work
 
 The complete-run acceptance requirement is still open. One native map/combat/reward
-loop works, including natural death. Subsequent room history and encounters, events
-beyond Neow/Golden Pearl, shops, rest sites, potion use, treasure, act continuations
+loop works, including natural death. [Consecutive combat ownership](consecutive-run-loop.md)
+retains completed encounter graphs, permanent-card links and native replacement-room
+history, with two supported fights verified through a declared scenario operation.
+Natural subsequent encounters, events beyond Neow/Golden Pearl, shops, rest sites,
+potion use, treasure, act continuations
 and naturally reached run victory remain unfinished. The older recorded Slimes
 run-death scenario verifies the reference backend only; the kernel rejects that
 unsupported encounter.
@@ -94,8 +97,11 @@ unsupported encounter.
 Reward generation uses all native Ironclad reward definitions, but that does not
 implement those cards' combat effects. Acquisition is currently admitted for True
 Grit, Juggling and Rage; other offers can be skipped. Owned potions can be discarded;
-potion effects and passive potion hooks remain unsupported. The next encounter is
-explicitly rejected while the run retains its first combat/history domain.
+potion use and passive potion hooks remain unsupported. Potion of Binding can remain
+in inventory during supported scenario combat with source-backed model metadata;
+other active potion metadata is unsupported. Natural travel no longer rejects a room
+solely because it retains a previous combat; unsupported generated encounters and
+inventory effects still stop explicitly.
 
 General multi-enemy/entity domains, trigger subscriptions, other character combat
 mechanics and remaining content are not implemented. Native complete-state imports,

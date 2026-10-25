@@ -1,5 +1,6 @@
 #include "sts2/integration/native_run.hpp"
 #include <bit>
+#include <algorithm>
 #include <stdexcept>
 
 namespace sts2::engine {
@@ -72,7 +73,10 @@ void export_native_combat(Json& out, const RunState& run) {
     }
     for (std::size_t i = 0; i < s.cards.slots().size(); ++i) {
         const auto& slot = s.cards.slots()[i]; if (!slot.live) continue;
-        const auto& card = slot.value; const auto deck_index = card.creation_order;
+        const auto& card = slot.value;
+        const auto linked = std::find_if(run.setup.deck.begin(), run.setup.deck.end(), [&](const auto& c) { return c.instance == card.deck_instance; });
+        const auto deck_index = card.deck_instance == UINT32_MAX ? card.creation_order : static_cast<std::uint32_t>(linked - run.setup.deck.begin());
+        if (deck_index >= run.setup.deck.size()) throw std::invalid_argument("Missing permanent card relationship");
         const auto vars = variables(card);
         out["native_model_state"]["/players/0/deck/" + std::to_string(deck_index)] = {{"model_fields", Json::object()}, {"dynamic_vars", vars}};
         if (won) continue;
@@ -87,6 +91,12 @@ void export_native_combat(Json& out, const RunState& run) {
         const auto name = SetupRules::name(run.setup.relics[i]);
         const auto vars = name == "RELIC.BURNING_BLOOD" ? Json{{"Heal", 6}} : name == "RELIC.GOLDEN_PEARL" ? Json{{"Gold", 150}} : Json::object();
         out["native_model_state"]["/players/0/relics/" + std::to_string(i)] = {{"model_fields", Json::object()}, {"dynamic_vars", vars}};
+    }
+    if (!terminal) for (std::size_t i = 0; i < run.setup.potions.size(); ++i) {
+        if (run.setup.potions[i] == no_content) continue;
+        if (SetupRules::name(run.setup.potions[i]) != "POTION.POTION_OF_BINDING") throw std::invalid_argument("Unsupported active potion metadata");
+        out["native_model_state"]["/players/0/potions/" + std::to_string(i)] = {
+            {"model_fields", Json::object()}, {"dynamic_vars", {{"VulnerablePower", 1}, {"WeakPower", 1}}}};
     }
     for (std::size_t i = 0; i < s.powers.size(); ++i) {
         const auto& p = s.powers[i]; const bool shrink = p.definition == PowerId::shrink;
@@ -136,7 +146,7 @@ void export_native_combat(Json& out, const RunState& run) {
     const auto history_index = run.direct_combat ? 0 : out["map_point_history"][0].size() - 1;
     auto& stats = out["map_point_history"][0][history_index]["player_stats"][0];
     stats["damage_taken"] = s.damage_taken; stats["hp_healed"] = (run.direct_combat ? run.initial_heal : 0) + s.healing;
-    auto& room = out["map_point_history"][0][history_index]["rooms"][0];
+    auto& room = out["map_point_history"][0][history_index]["rooms"].back();
     room["monster_ids"] = Json::array({"MONSTER.SHRINKER_BEETLE"}); room["turns_taken"] = (won || (!run.direct_combat && died)) ? s.turn : 0;
     out["players"][0]["extra_fields"]["damage_dealt"] = s.damage_dealt;
     out["players"][0]["extra_fields"]["debuffs_applied"] = s.debuffs_applied;

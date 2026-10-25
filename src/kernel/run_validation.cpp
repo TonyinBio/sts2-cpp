@@ -7,6 +7,15 @@ namespace {
 bool id(ContentId value, std::string_view prefix) noexcept { return SetupRules::name(value).starts_with(prefix); }
 bool random(const RngState& state) noexcept { return (state.words[0] | state.words[1] | state.words[2] | state.words[3]) != 0; }
 bool card(const PersistentCard& value) noexcept { return id(value.definition, "CARD.") && value.upgrade <= 1 && value.floor_added >= -1; }
+bool rewards_valid(const CombatRewards& rewards) noexcept {
+    if (rewards.gold < 0 || (rewards.potion != no_content && !id(rewards.potion, "POTION.")) ||
+        (rewards.potion_taken && rewards.potion == no_content) || rewards.card_taken != (rewards.selected_card < rewards.cards.size()) ||
+        (rewards.selected_card != UINT8_MAX && rewards.selected_card >= rewards.cards.size()) ||
+        (rewards.selecting_card && (rewards.resolved || rewards.card_taken))) return false;
+    for (const auto& offered : rewards.cards) if (!card(offered) || offered.floor_added != -1) return false;
+    const bool all_taken = rewards.gold_taken && (rewards.potion == no_content || rewards.potion_taken) && rewards.card_taken;
+    return rewards.resolved == (rewards.skipped || all_taken);
+}
 bool bag(const RelicBag& value) noexcept {
     if (value.order.size() > value.tiers.size()) return false;
     for (std::size_t i = 0; i < value.order.size(); ++i) {
@@ -51,9 +60,38 @@ bool valid_run(const RunState& state) noexcept {
     for (auto node : state.visited) if (node >= state.maps[0]->count || !state.maps[0]->nodes[node].active) return false;
     for (auto relic : state.neow_options) if (!id(relic, "RELIC.")) return false;
     if (state.selected_neow != no_content && std::find(state.neow_options.begin(), state.neow_options.end(), state.selected_neow) == state.neow_options.end()) return false;
+    auto linked_cards = [](const State& combat, const std::vector<PersistentCard>& deck) noexcept {
+        for (const auto& slot : combat.cards.slots()) {
+            if (!slot.live || slot.value.deck_instance == UINT32_MAX) continue;
+            const auto found = std::find_if(deck.begin(), deck.end(), [&](const auto& c) { return c.instance == slot.value.deck_instance; });
+            if (found == deck.end() || SetupRules::name(found->definition) != Ruleset::pinned().card(slot.value.definition)->model_id) return false;
+        }
+        return true;
+    };
+    if (state.encounters.size() > max_retained_encounters || (!state.encounters.empty() && !state.combat)) return false;
+    for (std::size_t i = 0; i < state.encounters.size(); ++i) {
+        const auto& entry = state.encounters[i];
+        if (!valid_state(entry.combat) || entry.combat.phase != Phase::combat_won || entry.combat.seed != setup.seed ||
+            entry.node >= state.maps[0]->count || entry.floor == 0 || entry.floor > state.visited.size() ||
+            state.visited[entry.floor - 1] != entry.node || !linked_cards(entry.combat, entry.deck) ||
+            (i && entry.floor < state.encounters[i - 1].floor)) return false;
+        for (std::size_t j = 0; j < entry.deck.size(); ++j) {
+            if (!card(entry.deck[j])) return false;
+            for (std::size_t k = 0; k < j; ++k) if (entry.deck[j].instance == entry.deck[k].instance) return false;
+        }
+        for (auto potion : entry.discarded_potions) if (!id(potion, "POTION.")) return false;
+        if (entry.rewards && (!rewards_valid(*entry.rewards) || !entry.rewards->resolved || entry.rewards->selecting_card)) return false;
+        if (entry.combat.boundary.value > state.boundary.value || entry.combat.clock.config() != state.clock.config() ||
+            entry.combat.clock.elapsed_seconds() > state.clock.elapsed_seconds() ||
+            (i && entry.combat.boundary.value < state.encounters[i - 1].combat.boundary.value)) return false;
+        // This slice retains complete pools and never recycles a combat slot.
+        // Each published encounter therefore owns one distinct generation.
+        for (const auto& slot : entry.combat.cards.slots()) if (slot.generation != i + 1) return false;
+    }
     if (state.combat) {
         const auto& combat = *state.combat;
-        if (!valid_state(combat) || combat.seed != setup.seed || combat.player.hp != setup.hp || combat.player.max_hp != setup.max_hp || combat.rng != setup.rng) return false;
+        for (const auto& slot : combat.cards.slots()) if (slot.generation != state.encounters.size() + 1) return false;
+        if (!valid_state(combat) || !linked_cards(combat, setup.deck) || combat.seed != setup.seed || combat.player.hp != setup.hp || combat.player.max_hp != setup.max_hp || combat.rng != setup.rng) return false;
         if (state.phase == RunPhase::combat) {
             if ((combat.phase != Phase::play && combat.phase != Phase::discard_choice) || combat.clock != state.clock || combat.boundary != state.boundary) return false;
         } else if (state.phase == RunPhase::complete) {
@@ -65,13 +103,7 @@ bool valid_run(const RunState& state) noexcept {
     } else if (state.phase == RunPhase::combat || state.phase == RunPhase::combat_done || state.phase == RunPhase::rewards || state.phase == RunPhase::complete || state.direct_combat) return false;
     if (state.rewards) {
         const auto& rewards = *state.rewards;
-        if (!state.combat || rewards.gold < 0 || (rewards.potion != no_content && !id(rewards.potion, "POTION.")) ||
-            (rewards.potion_taken && rewards.potion == no_content) || rewards.card_taken != (rewards.selected_card < rewards.cards.size()) ||
-            (rewards.selected_card != UINT8_MAX && rewards.selected_card >= rewards.cards.size()) ||
-            (rewards.selecting_card && (rewards.resolved || rewards.card_taken))) return false;
-        for (const auto& offered : rewards.cards) if (!card(offered) || offered.floor_added != -1) return false;
-        const bool all_taken = rewards.gold_taken && (rewards.potion == no_content || rewards.potion_taken) && rewards.card_taken;
-        if (rewards.resolved != (rewards.skipped || all_taken) || (state.phase != RunPhase::rewards && state.phase != RunPhase::map)) return false;
+        if (!state.combat || !rewards_valid(rewards) || (state.phase != RunPhase::rewards && state.phase != RunPhase::map)) return false;
     } else if (state.phase == RunPhase::rewards) return false;
     return true;
 }
