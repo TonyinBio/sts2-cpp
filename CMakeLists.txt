@@ -16,7 +16,7 @@ target_include_directories(sts2_rules PUBLIC include)
 target_compile_features(sts2_rules PUBLIC cxx_std_23)
 add_library(sts2_kernel src/state/rng.cpp src/kernel/simulator.cpp src/kernel/systems/map.cpp src/kernel/systems/setup.cpp src/kernel/systems/rewards.cpp src/kernel/run_simulator.cpp src/kernel/run_validation.cpp)
 target_link_libraries(sts2_kernel PUBLIC sts2_rules)
-add_library(sts2_observation src/observation/observe.cpp)
+add_library(sts2_observation src/observation/observe.cpp src/observation/run.cpp)
 target_link_libraries(sts2_observation PUBLIC sts2_kernel)
 add_library(sts2_persistence src/persistence/checkpoint.cpp src/persistence/run_checkpoint.cpp)
 target_link_libraries(sts2_persistence PUBLIC sts2_kernel)
@@ -28,6 +28,9 @@ foreach(engine_target sts2_rules sts2_kernel sts2_observation sts2_persistence)
 endforeach()
 add_executable(sts2_combat apps/combat/main.cpp)
 target_link_libraries(sts2_combat PRIVATE sts2_observation sts2_persistence)
+
+add_executable(sts2_play apps/play/main.cpp)
+target_link_libraries(sts2_play PRIVATE sts2_observation)
 
 add_executable(sts2_cli src/main.cpp)
 target_link_libraries(sts2_cli PRIVATE sts2_simulator)
@@ -138,7 +141,7 @@ if(BUILD_TESTING)
   target_compile_definitions(replay_parity_test PRIVATE
     ACTION_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/examples/starter.actions.json"
     STATE_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/fixtures/starter.states.json")
-  foreach(scenario combat-victory combat-victory-dense combat-block-death neow-map clock-zero clock-step clock-limit run-shrinker-victory run-shrinker-death)
+  foreach(scenario combat-victory combat-victory-dense combat-block-death neow-map clock-zero clock-step clock-limit run-shrinker-victory run-shrinker-death run-shrinker-victory-public run-shrinker-death-public run-shrinker-interface-skip-public)
     add_test(NAME kernel_replay_${scenario} COMMAND sts2_replay
       --actions "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/fixtures/reference/${scenario}/actions.json"
       --states "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/fixtures/reference/${scenario}/states.json"

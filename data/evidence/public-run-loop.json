@@ -1,0 +1,344 @@
+{
+  "issue": 16,
+  "game_build": "0.111.0+41cef1ea",
+  "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+  "scope": "Existing bounded run loop, not full victory or all authored power callers",
+  "models": [
+    {
+      "model_id": "CARD.BASH",
+      "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+      "source": {
+        "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/Bash.cs",
+        "sha256": "ccd5cd825109781b14607f89329ff59213d4a9ceb4c44f70954d62e4465bc738",
+        "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/3"
+      },
+      "requirements": {
+        "effect_order": "Attack selected target8, then apply Vulnerable2 to same target without card-local alive guard.",
+        "upgrade": "Damage+2; Vulnerable+1.",
+        "legal_branches": "Lethal hit still reaches PowerCmd application; shared command determines resulting applicability.",
+        "regression_scenarios": "Nonlethal/lethal, Artifact, application hooks after attack.",
+        "fixed_model_dependencies": [
+          "VulnerablePower"
+        ],
+        "mutable_state": "base card state only",
+        "random_outcomes": "none",
+        "constructor_parameters": "2, CardType.Attack, CardRarity.Basic, TargetType.AnyEnemy",
+        "variant_members": [
+          {
+            "line": 38,
+            "member": "protected override void OnUpgrade()"
+          }
+        ]
+      },
+      "implementation": "existing bounded starter/Shrinker mechanics; public projections and actions added",
+      "reference_verification": "bounded existing exact-state corpus only; full authored branches not certified",
+      "interaction_verification": "bounded Bash/Vulnerable/Shrink damage ordering; general dispatch and other callers pending",
+      "cases": [
+        {
+          "id": "CARD.BASH/public",
+          "implementation": "tested",
+          "reference_verification": "source-backed projection; no rendered-English certification",
+          "interaction_verification": "bounded",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.BASH/checkpoint",
+          "implementation": "tested at existing supported route stops",
+          "reference_verification": "native exported fields compared; complete hidden graph checked internally",
+          "interaction_verification": "same-future clone/restore tested",
+          "evidence": [
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.BASH/full-authored-semantics",
+          "implementation": "not certified by this slice",
+          "reference_verification": "pending cases beyond bounded loop",
+          "interaction_verification": "pending wider callers",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "model_id": "CARD.DEFEND_IRONCLAD",
+      "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+      "source": {
+        "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/DefendIronclad.cs",
+        "sha256": "08ba8e1d038f6b2fed46217d974154f4d9deea82a235bedc0efb1c1459c509ef",
+        "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/21"
+      },
+      "requirements": {
+        "effect_order": "Gain block5; Defend tag.",
+        "upgrade": "Block+3.",
+        "legal_branches": "Shared block modifiers.",
+        "regression_scenarios": "Dexterity, Block hooks, Defend-tag consumers.",
+        "fixed_model_dependencies": [],
+        "mutable_state": "base card state only",
+        "random_outcomes": "none",
+        "constructor_parameters": "1, CardType.Skill, CardRarity.Basic, TargetType.Self",
+        "variant_members": [
+          {
+            "line": 29,
+            "member": "protected override void OnUpgrade()"
+          }
+        ]
+      },
+      "implementation": "existing bounded starter/Shrinker mechanics; public projections and actions added",
+      "reference_verification": "bounded existing exact-state corpus only; full authored branches not certified",
+      "interaction_verification": "bounded Bash/Vulnerable/Shrink damage ordering; general dispatch and other callers pending",
+      "cases": [
+        {
+          "id": "CARD.DEFEND_IRONCLAD/public",
+          "implementation": "tested",
+          "reference_verification": "source-backed projection; no rendered-English certification",
+          "interaction_verification": "bounded",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.DEFEND_IRONCLAD/checkpoint",
+          "implementation": "tested at existing supported route stops",
+          "reference_verification": "native exported fields compared; complete hidden graph checked internally",
+          "interaction_verification": "same-future clone/restore tested",
+          "evidence": [
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.DEFEND_IRONCLAD/full-authored-semantics",
+          "implementation": "not certified by this slice",
+          "reference_verification": "pending cases beyond bounded loop",
+          "interaction_verification": "pending wider callers",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "model_id": "CARD.STRIKE_IRONCLAD",
+      "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+      "source": {
+        "path": "build/combat-state-audit/decompiled/MegaCrit.Sts2.Core.Models.Cards/StrikeIronclad.cs",
+        "sha256": "c0e918b41b91b1d85ec20fe87d34d37b8a3dade11fbf301e8465a7d12be2bcdf",
+        "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/cards.json#/records/57"
+      },
+      "requirements": {
+        "effect_order": "Attack target6. Strike tag.",
+        "upgrade": "Damage+3.",
+        "legal_branches": "Shared attack pipeline.",
+        "regression_scenarios": "Tag consumers and general damage/target legality.",
+        "fixed_model_dependencies": [],
+        "mutable_state": "base card state only",
+        "random_outcomes": "none",
+        "constructor_parameters": "1, CardType.Attack, CardRarity.Basic, TargetType.AnyEnemy",
+        "variant_members": [
+          {
+            "line": 37,
+            "member": "protected override void OnUpgrade()"
+          }
+        ]
+      },
+      "implementation": "existing bounded starter/Shrinker mechanics; public projections and actions added",
+      "reference_verification": "bounded existing exact-state corpus only; full authored branches not certified",
+      "interaction_verification": "bounded Bash/Vulnerable/Shrink damage ordering; general dispatch and other callers pending",
+      "cases": [
+        {
+          "id": "CARD.STRIKE_IRONCLAD/public",
+          "implementation": "tested",
+          "reference_verification": "source-backed projection; no rendered-English certification",
+          "interaction_verification": "bounded",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.STRIKE_IRONCLAD/checkpoint",
+          "implementation": "tested at existing supported route stops",
+          "reference_verification": "native exported fields compared; complete hidden graph checked internally",
+          "interaction_verification": "same-future clone/restore tested",
+          "evidence": [
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "CARD.STRIKE_IRONCLAD/full-authored-semantics",
+          "implementation": "not certified by this slice",
+          "reference_verification": "pending cases beyond bounded loop",
+          "interaction_verification": "pending wider callers",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "model_id": "POWER.SHRINK_POWER",
+      "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+      "source": {
+        "path": "MegaCrit.Sts2.Core.Models.Powers/ShrinkPower.cs",
+        "sha256": "c5d922d4e2fd20804939ca73a9ccbd527587d28d262c664c5c84ea8c52f9ba6c",
+        "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/30"
+      },
+      "requirements": {
+        "semantic_summary": "Powered attack damage by owner multiplied by 0.7; negative Amount means infinite single stack, finite durations decrement owner turn-end; applier death not prevented removes; captures applier title.",
+        "required_dependency_types": [],
+        "state_branch_citations": [
+          {
+            "line": 31,
+            "expression": "if (!IsInfinite)"
+          },
+          {
+            "line": 51,
+            "expression": "if (base.Owner.Monster is Vantom vantom)"
+          },
+          {
+            "line": 60,
+            "expression": "if (applier2 != null && applier2.IsMonster)"
+          },
+          {
+            "line": 69,
+            "expression": "if (oldOwner.Monster is Vantom vantom)"
+          },
+          {
+            "line": 82,
+            "expression": "if (!IsInfinite && participants.Contains(base.Owner))"
+          },
+          {
+            "line": 90,
+            "expression": "if (!wasRemovalPrevented && creature == base.Applier)"
+          },
+          {
+            "line": 98,
+            "expression": "if (base.Owner != dealer)"
+          },
+          {
+            "line": 102,
+            "expression": "if (!props.IsPoweredAttack())"
+          }
+        ],
+        "declared_mutable_storage": [],
+        "hp_and_parameter_citations": [],
+        "rng_citations": [],
+        "regression_requirements": [
+          "Exercise each declared semantic hook/move/option and both sides of every cited reachable predicate.",
+          "Compare native operation order, state and RNG after each published boundary; clone/restore pending state and resume alternate branch."
+        ]
+      },
+      "implementation": "existing bounded starter/Shrinker mechanics; public projections and actions added",
+      "reference_verification": "bounded existing exact-state corpus only; full authored branches not certified",
+      "interaction_verification": "bounded Bash/Vulnerable/Shrink damage ordering; general dispatch and other callers pending",
+      "cases": [
+        {
+          "id": "POWER.SHRINK_POWER/public",
+          "implementation": "tested",
+          "reference_verification": "source-backed projection; no rendered-English certification",
+          "interaction_verification": "bounded",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "POWER.SHRINK_POWER/checkpoint",
+          "implementation": "tested at existing supported route stops",
+          "reference_verification": "native exported fields compared; complete hidden graph checked internally",
+          "interaction_verification": "same-future clone/restore tested",
+          "evidence": [
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "POWER.SHRINK_POWER/full-authored-semantics",
+          "implementation": "not certified by this slice",
+          "reference_verification": "pending cases beyond bounded loop",
+          "interaction_verification": "pending wider callers",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "model_id": "POWER.VULNERABLE_POWER",
+      "owner": "https://github.com/TonyinBio/sts2-cpp/issues/16",
+      "source": {
+        "path": "MegaCrit.Sts2.Core.Models.Powers/VulnerablePower.cs",
+        "sha256": "836ae57ad21b7663130b13a02b1acbfb9d7201bf64b6eb3e222b78a09b75936a",
+        "semantic_inventory": "https://github.com/TonyinBio/sts2-cpp/blob/8baebc33321681bc170ebf9aef2e51bdfed043e0/docs/planning/victory-semantics/encounters.json#/models/37"
+      },
+      "requirements": {
+        "semantic_summary": "Powered incoming attack multiplier 1.5, modified by optional PaperPhrog/Cruelty/Debilitate compatibility; ticks duration at enemy turn end.",
+        "required_dependency_types": [],
+        "state_branch_citations": [
+          {
+            "line": 30,
+            "expression": "if (target != base.Owner)"
+          },
+          {
+            "line": 34,
+            "expression": "if (!props.IsPoweredAttack())"
+          },
+          {
+            "line": 39,
+            "expression": "if (dealer != null)"
+          },
+          {
+            "line": 42,
+            "expression": "if (paperPhrog != null)"
+          },
+          {
+            "line": 47,
+            "expression": "if (crueltyPower != null)"
+          },
+          {
+            "line": 53,
+            "expression": "if (power != null)"
+          },
+          {
+            "line": 62,
+            "expression": "if (side == CombatSide.Enemy)"
+          }
+        ],
+        "declared_mutable_storage": [],
+        "hp_and_parameter_citations": [],
+        "rng_citations": [],
+        "regression_requirements": [
+          "Exercise each declared semantic hook/move/option and both sides of every cited reachable predicate.",
+          "Compare native operation order, state and RNG after each published boundary; clone/restore pending state and resume alternate branch."
+        ]
+      },
+      "implementation": "existing bounded starter/Shrinker mechanics; public projections and actions added",
+      "reference_verification": "bounded existing exact-state corpus only; full authored branches not certified",
+      "interaction_verification": "bounded Bash/Vulnerable/Shrink damage ordering; general dispatch and other callers pending",
+      "cases": [
+        {
+          "id": "POWER.VULNERABLE_POWER/public",
+          "implementation": "tested",
+          "reference_verification": "source-backed projection; no rendered-English certification",
+          "interaction_verification": "bounded",
+          "evidence": [
+            "PublicRun.StarterVariantsExposeAndExecuteSourceBackedPreviews",
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "POWER.VULNERABLE_POWER/checkpoint",
+          "implementation": "tested at existing supported route stops",
+          "reference_verification": "native exported fields compared; complete hidden graph checked internally",
+          "interaction_verification": "same-future clone/restore tested",
+          "evidence": [
+            "PublicRunParity.ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions"
+          ]
+        },
+        {
+          "id": "POWER.VULNERABLE_POWER/full-authored-semantics",
+          "implementation": "not certified by this slice",
+          "reference_verification": "pending cases beyond bounded loop",
+          "interaction_verification": "pending wider callers",
+          "evidence": []
+        }
+      ]
+    }
+  ]
+}

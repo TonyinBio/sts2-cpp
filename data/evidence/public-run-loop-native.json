@@ -1,0 +1,55 @@
+{
+  "game_build": "0.111.0+41cef1ea",
+  "tool": "tools/oracle/check_run_combat.py",
+  "native_self_replay": true,
+  "scenarios": [
+    {
+      "directory": "tests/parity/fixtures/reference/run-shrinker-victory-public",
+      "actions": 23,
+      "compared_native_boundaries": 24,
+      "sha256": {
+        "actions.json": "aea2e851a3b080e823b0cab022c00ae6ddb4d015471742f1748e243492d7432b",
+        "states.json": "d227b59803617f8b92af7f685125fe3914af4d91e75e27643ead7c3487b1a5ae"
+      },
+      "reference": {
+        "revision": "084d1aa3d8e118ca7ce8d8774ad16d6be9c92367",
+        "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+        "adapter_sha256": "260879e5ff061fab41e52654b5032fa6ca523ef05cf740a1724e301a5870534c",
+        "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e",
+        "runtime_version": "9.0.4"
+      }
+    },
+    {
+      "directory": "tests/parity/fixtures/reference/run-shrinker-death-public",
+      "actions": 12,
+      "compared_native_boundaries": 13,
+      "sha256": {
+        "actions.json": "9eb733fb1bbcc2dae5ef67495e41b3cb0262c0d46a8883ea85348477f2511e84",
+        "states.json": "8f80def93142d68266926348d4bb2874939e98ea047f474fdeb8bf4d4ce6e173"
+      },
+      "reference": {
+        "revision": "084d1aa3d8e118ca7ce8d8774ad16d6be9c92367",
+        "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+        "adapter_sha256": "260879e5ff061fab41e52654b5032fa6ca523ef05cf740a1724e301a5870534c",
+        "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e",
+        "runtime_version": "9.0.4"
+      }
+    },
+    {
+      "directory": "tests/parity/fixtures/reference/run-shrinker-interface-skip-public",
+      "actions": 19,
+      "compared_native_boundaries": 20,
+      "sha256": {
+        "actions.json": "ed396e59006dfc9456e285815e7f696940cd02fd85a86018aa54a57ce840f34d",
+        "states.json": "3bc32d6f45241e9b4d4873d4eef5c01b01494c5e2ad7c5c2416ce398b2c2a1b9"
+      },
+      "reference": {
+        "revision": "084d1aa3d8e118ca7ce8d8774ad16d6be9c92367",
+        "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+        "adapter_sha256": "260879e5ff061fab41e52654b5032fa6ca523ef05cf740a1724e301a5870534c",
+        "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e",
+        "runtime_version": "9.0.4"
+      }
+    }
+  ]
+}

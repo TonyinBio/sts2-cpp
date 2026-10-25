@@ -1,4 +1,5 @@
 #include "sts2/kernel/run_simulator.hpp"
+#include "sts2/observation/run.hpp"
 #include "sts2/integration/native_run.hpp"
 #include "sts2/integration/session.hpp"
 #include "sts2/persistence/checkpoint.hpp"
@@ -15,6 +16,88 @@ void compare_all(const Json& expected, const Json& actual) {
     for (std::size_t i = 0; i < std::min<std::size_t>(differences.size(), 15); ++i)
         ADD_FAILURE() << differences[i].path << " expected=" << differences[i].expected << " actual=" << differences[i].actual;
     EXPECT_TRUE(differences.empty()) << differences.size() << " full-state differences";
+}
+TEST(PublicRunParity, ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisions) {
+    const auto root = std::filesystem::path(KERNEL_RUN_PREFIX_FIXTURE).parent_path().parent_path();
+    for (const auto scenario : {"neow-map", "combat-victory", "combat-victory-dense", "combat-block-death",
+            "clock-zero", "clock-step", "clock-limit", "run-shrinker-victory", "run-shrinker-death",
+            "run-shrinker-victory-public", "run-shrinker-death-public", "run-shrinker-interface-skip-public"}) {
+        SCOPED_TRACE(scenario);
+        std::ifstream action_stream(root / scenario / "actions.json"); const auto fixture = Json::parse(action_stream);
+        std::ifstream state_stream(root / scenario / "states.json"); const auto expected = Json::parse(state_stream);
+        Session historical; historical.initialize(fixture["setup"]);
+        auto player = historical.state(); Scratch scratch;
+        std::vector<CardHandle> labels;
+        const auto capture_labels = [&] {
+            if (player.combat && labels.empty())
+                for (const auto& zone : player.combat->zones) labels.insert(labels.end(), zone.begin(), zone.end());
+        };
+        // Recording aliases are diagnostic identity correspondence derived from
+        // independently initialized objects, never from expected checkpoints.
+        capture_labels();
+        std::size_t next = 0;
+        compare_all(expected["initial"], NativeRunExporter{}.snapshot(player));
+        for (const auto& entry : fixture["actions"]) {
+            SCOPED_TRACE(entry["id"].get<std::string>());
+            const auto& a = entry["action"]; const auto kind = a["kind"].get<std::string>();
+            if (kind != "proceed") {
+                const auto before = checkpoint(player).bytes;
+                (void)observe(player); (void)actions(player); (void)describe(observe(player));
+                EXPECT_EQ(advance_player(player, scratch).boundary, player.boundary);
+                EXPECT_EQ(checkpoint(player).bytes, before);
+                PlayerInput input = RunInput{player.boundary, RunInputKind::skip_rewards};
+                if (kind == "play_card") input = Input{player.boundary, InputKind::play_card,
+                    labels.at(std::stoul(a["card_instance"].get<std::string>().substr(5))), a.contains("target")};
+                else if (kind == "end_turn") input = Input{player.boundary, InputKind::end_turn};
+                else {
+                    RunInput run{player.boundary, RunInputKind::skip_rewards};
+                    if (kind == "choose_option") { run.kind = RunInputKind::choose_option; run.option = a["option_index"]; }
+                    else if (kind == "select_map_node") { run.kind = RunInputKind::travel; run.col = a["col"]; run.row = a["row"]; }
+                    else if (kind == "take_reward") { run.kind = RunInputKind::take_reward; run.option = a["index"]; }
+                    else if (kind == "select_card_reward") { run.kind = RunInputKind::choose_reward_card; run.option = a["card_index"]; }
+                    else if (kind == "discard_potion") { run.kind = RunInputKind::discard_potion; run.option = a["potion_index"]; }
+                    else if (kind == "skip_card_reward" || kind == "reward_alternative") { run.kind = RunInputKind::reward_alternative; run.option = a.value("index", 0u); }
+                    else ASSERT_EQ(kind, "skip_rewards");
+                    input = run;
+                }
+                const auto offered = actions(player);
+                const auto offered_input = std::find_if(offered.begin(), offered.end(), [&](const PlayerAction& action) {
+                    if (action.input.index() != input.index()) return false;
+                    if (const auto* a = std::get_if<RunInput>(&input)) {
+                        const auto& b = std::get<RunInput>(action.input);
+                        return a->kind == b.kind && a->option == b.option && a->col == b.col && a->row == b.row;
+                    }
+                    const auto& a = std::get<Input>(input); const auto& b = std::get<Input>(action.input);
+                    return a.kind == b.kind && a.card == b.card && a.target_enemy == b.target_enemy;
+                });
+                ASSERT_NE(offered_input, offered.end());
+                input = offered_input->input;
+                EXPECT_EQ(validate_player(player, input), Restriction::none);
+                EXPECT_EQ(checkpoint(player).bytes, before);
+                RunState restored; ASSERT_EQ(restore(restored, before, scratch), RestoreStatus::restored);
+                auto cloned = player;
+                const auto result = apply_player(player, input, scratch);
+                ASSERT_TRUE(result.status == StepStatus::awaiting_input || result.status == StepStatus::combat_won || result.status == StepStatus::player_died);
+                EXPECT_EQ(apply_player(restored, input, scratch).status, result.status);
+                EXPECT_EQ(apply_player(cloned, input, scratch).status, result.status);
+                EXPECT_EQ(restored, player); EXPECT_EQ(cloned, player);
+                capture_labels();
+            }
+            (void)historical.apply(a);
+            if (next < expected["transitions"].size() && expected["transitions"][next]["action_id"] == entry["id"]) {
+                compare_all(expected["transitions"][next]["state"], historical.snapshot());
+                if (historical.state().boundary == player.boundary)
+                    compare_all(expected["transitions"][next]["state"], NativeRunExporter{}.snapshot(player));
+                ++next;
+            }
+            if (historical.state().boundary == player.boundary) {
+                EXPECT_EQ(historical.state(), player);
+                compare_all(historical.snapshot(), NativeRunExporter{}.snapshot(player));
+            }
+        }
+        EXPECT_EQ(next, expected["transitions"].size());
+        EXPECT_EQ(player, historical.state());
+    }
 }
 TEST(SeededRunParity, AllThirtyNativeStartingStatesMatchEveryField) {
     std::ifstream stream(KERNEL_SEEDED_SETUP_FIXTURE); const auto fixture = Json::parse(stream);
