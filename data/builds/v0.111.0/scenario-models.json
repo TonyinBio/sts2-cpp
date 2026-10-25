@@ -1,0 +1,49 @@
+{
+  "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+  "scope": "Explicit diagnostic model roots excluded from audited generated gameplay pools. No pool additions.",
+  "sources": [
+    "MegaCrit.Sts2.Core.Models.Cards/Shockwave.cs",
+    "MegaCrit.Sts2.Core.Saves.Runs/SerializableCard.cs",
+    "MegaCrit.Sts2.Core.Models.Relics/CharonsAshes.cs",
+    "MegaCrit.Sts2.Core.Models.Relics/JossPaper.cs",
+    "selection-defaults.json: native ToSerializable provenance for CARD.PURITY"
+  ],
+  "cards": {
+    "CARD.SHOCKWAVE": {
+      "current_upgrade_level": 0,
+      "enchantment": null,
+      "floor_added_to_deck": null,
+      "id": "CARD.SHOCKWAVE",
+      "props": null
+    },
+    "CARD.PURITY": {
+      "current_upgrade_level": 0,
+      "enchantment": null,
+      "floor_added_to_deck": null,
+      "id": "CARD.PURITY",
+      "props": null
+    }
+  },
+  "relics": {
+    "RELIC.CHARONS_ASHES": {
+      "floor_added_to_deck": 0,
+      "id": "RELIC.CHARONS_ASHES",
+      "props": null
+    },
+    "RELIC.JOSS_PAPER": {
+      "floor_added_to_deck": 0,
+      "id": "RELIC.JOSS_PAPER",
+      "props": null
+    }
+  },
+  "native_verification": {
+    "reference": {
+      "revision": "084d1aa3d8e118ca7ce8d8774ad16d6be9c92367",
+      "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+      "adapter_sha256": "5f381d28cafa92d4db59c998050f497ec2ca329d23289989260dc1c7d788bfb4",
+      "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e",
+      "runtime_version": "9.0.4"
+    },
+    "scope": "Shockwave saved defaults from artifact-prevention initial; relic saved defaults from ashes-joss-ending initial. Native independently self-replayed; exact C++ matched these cases. Purity provenance is retained in selection-defaults.json by #18."
+  }
+}

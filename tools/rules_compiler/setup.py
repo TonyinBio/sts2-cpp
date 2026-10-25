@@ -31,6 +31,18 @@ def compile_tables(source):
     for key in ('acts', 'characters', 'shared_events', 'shared_ancients', 'shared_relics', 'neow_positive', 'neow_curses', 'neow_all', 'native_defaults', 'shared_potions'):
         add(data[key])
     names = sorted(names)
+    supplemental_raw = (source.parent / 'scenario-models.json').read_bytes()
+    supplemental = json.loads(supplemental_raw)
+    if supplemental['game_dll_sha256'] != GAME_SHA:
+        raise ValueError('Scenario definitions target another build')
+    # Preserve audited pool membership and existing compact IDs. These additional
+    # roots are instantiated only by explicit diagnostic scenarios.
+    for category in ('cards', 'relics'):
+        for name, saved in supplemental[category].items():
+            if name not in names:
+                names.append(name)
+            data['native_defaults'][category][name] = saved
+    identity = hashlib.sha256(raw + supplemental_raw).hexdigest()
     ids = {name: index for index, name in enumerate(names)}
     tagbits = {tag: 1 << index for index, tag in enumerate(sorted(tags))}
     if len(ids) >= 65535 or len(tagbits) > 64:
@@ -83,7 +95,7 @@ def compile_tables(source):
         characters.append('CharacterDefinition{' + ','.join([str(ids[char['id']]), str(char['hp']), str(char['gold']), str(char['orb_slots']), str(char['energy']), symbol+'_deck', symbol+'_relics', symbol+'_pool', str(ids[char['card_pool_id']]), symbol+'_cards', symbol+'_potions']) + '}')
     lines += [f'constexpr std::array<CharacterDefinition, {len(characters)}> character_table = {{' + ','.join(characters) + '};',
         '}',
-        'std::string_view SetupRules::fingerprint() noexcept { return "' + hashlib.sha256(raw).hexdigest() + '"; }',
+        'std::string_view SetupRules::fingerprint() noexcept { return "' + identity + '"; }',
         'std::string_view SetupRules::native_defaults() noexcept { return native_defaults_table; }',
         'std::span<const ContentId> SetupRules::neow_positive() noexcept { return neow_positive_table; }',
         'std::span<const ContentId> SetupRules::neow_curses() noexcept { return neow_curses_table; }',
