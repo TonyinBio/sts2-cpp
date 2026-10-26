@@ -26,7 +26,8 @@ struct MapEdges {
 struct MapNode {
     std::int32_t col = 0, row = 0;
     MapKind kind = MapKind::unassigned;
-    bool can_modify = true, active = false;
+    bool can_modify : 1 = true;
+    bool active : 1 = false;
     MapEdges children, parents;
     friend bool operator==(const MapNode&, const MapNode&) = default;
 };

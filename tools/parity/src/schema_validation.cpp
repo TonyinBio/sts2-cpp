@@ -51,9 +51,11 @@ Evaluated check(const Json& value, const Json& rule, const Json& root, const std
         if (!document.empty()) {
             static const auto run = Json::parse(run_parity_schema);
             static const auto native = Json::parse(native_run_schema);
+            static const auto gameplay = Json::parse(gameplay_parity_schema);
             static const auto actions = Json::parse(actions_schema);
             static const auto states = Json::parse(states_schema);
             if (document.ends_with("run-parity-v1.schema.json")) target = &run;
+            else if (document.ends_with("run-parity-v2.schema.json")) target = &gameplay;
             else if (document.ends_with("serializable-run-v20.schema.json")) target = &native;
             else if (document.ends_with("actions-v1.json")) target = &actions;
             else if (document.ends_with("states-v1.json")) target = &states;

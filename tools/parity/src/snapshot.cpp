@@ -197,7 +197,9 @@ Aligned align(const Snapshot& expected, const Snapshot& actual) {
 } // namespace
 
 Snapshot Snapshot::parse(const Json& value) {
-    static const auto schema = Json::parse(run_parity_schema);
+    static const auto historical = Json::parse(run_parity_schema);
+    static const auto gameplay = Json::parse(gameplay_parity_schema);
+    const auto& schema = value.contains("comparison_revision") ? gameplay : historical;
     validate(value, schema, schema, "");
     auto resolve = [&](const std::string& ref, const std::string& path) -> const Json& {
         try {
@@ -209,29 +211,31 @@ Snapshot Snapshot::parse(const Json& value) {
     std::set<std::string> references;
     // Only Ref definitions are pointers; native strings, IDs and model fields can
     // legitimately contain slashes. Walk the contract to distinguish them.
-    auto refs = [&](auto&& self, const Json& node, const Json& rule, const std::string& path) -> void {
+    auto refs = [&](auto&& self, const Json& node, const Json& rule, const Json& root, const std::string& path) -> void {
         if (rule.contains("$ref")) {
             const auto ref = rule["$ref"].get<std::string>();
             if (ref == "#/$defs/Ref") { (void)resolve(node.get<std::string>(), path); references.insert(path); return; }
-            if (ref.starts_with("#")) self(self, node, schema.at(Json::json_pointer(ref.substr(1))), path);
+            if (ref.starts_with("#")) self(self, node, root.at(Json::json_pointer(ref.substr(1))), root, path);
+            else if (ref.starts_with("run-parity-v1.schema.json#"))
+                self(self, node, historical.at(Json::json_pointer(ref.substr(ref.find('#') + 1))), historical, path);
             return;
         }
         for (const auto* keyword : {"anyOf", "oneOf", "allOf"})
             if (rule.contains(keyword)) for (const auto& branch : rule[keyword]) {
-                try { validate(node, branch, schema, path); }
+                try { validate(node, branch, root, path); }
                 catch (const std::invalid_argument&) { continue; }
-                self(self, node, branch, path);
+                self(self, node, branch, root, path);
             }
         if (node.is_object()) for (const auto& [key, item] : node.items()) {
             if (rule.contains("properties") && rule["properties"].contains(key))
-                self(self, item, rule["properties"][key], path + "/" + pointer_token(key));
+                self(self, item, rule["properties"][key], root, path + "/" + pointer_token(key));
             else if (rule.contains("additionalProperties") && rule["additionalProperties"].is_object())
-                self(self, item, rule["additionalProperties"], path + "/" + pointer_token(key));
+                self(self, item, rule["additionalProperties"], root, path + "/" + pointer_token(key));
         }
         if (node.is_array() && rule.contains("items"))
-            for (std::size_t i = 0; i < node.size(); ++i) self(self, node[i], rule["items"], path + "/" + std::to_string(i));
+            for (std::size_t i = 0; i < node.size(); ++i) self(self, node[i], rule["items"], root, path + "/" + std::to_string(i));
     };
-    refs(refs, value, schema, "");
+    refs(refs, value, schema, schema, "");
     for (const auto& [ref, state] : value["native_model_state"].items()) {
         (void)state;
         if (ref.starts_with("/combat/") || ref.starts_with("/native_model_state/"))
@@ -340,7 +344,27 @@ Snapshot Snapshot::parse_text(std::string_view text) {
     result.numbers_ = std::move(document.numbers);
     return result;
 }
+Snapshot Snapshot::gameplay_projection() const {
+    if (value_.contains("comparison_revision")) return *this;
+    auto value = value_;
+    value.erase("map_point_history");
+    for (auto& player : value.at("players")) {
+        player.erase("discovered_enemies");
+        player.erase("discovered_potions");
+        player.at("extra_fields").erase("damage_dealt");
+        player.at("extra_fields").erase("debuffs_applied");
+    }
+    value["comparison_revision"] = 2;
+    auto result = parse(value);
+    // parse() validates the revised shape and its references. Preserve wire
+    // decimals rather than normalizing retained values through binary doubles.
+    for (auto& [path, number] : result.numbers_)
+        if (const auto found = numbers_.find(path); found != numbers_.end()) number = found->second;
+    return result;
+}
 std::vector<Difference> compare(const Snapshot& expected, const Snapshot& actual) {
+    if (expected.json().contains("comparison_revision") != actual.json().contains("comparison_revision"))
+        return compare(expected.gameplay_projection(), actual.gameplay_projection());
     std::vector<Difference> result;
     auto aligned = align(expected, actual);
     auto normalized_expected = expected.json();

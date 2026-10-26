@@ -44,10 +44,10 @@ std::uint64_t content_fingerprint() {
     w.text("shrinker-a0:niche:38-40:late-victory:retained-death:duration-history:shrink70:chomp7:stomp13;vulnerable150;burning-blood6;survivor1;action_clock_v1;xoshiro256ss-v1");
     return digest(w.data);
 }
-Checkpoint checkpoint(const State& s) {
+Checkpoint checkpoint(ConstStateView s) {
     if (!valid_state(s)) throw std::invalid_argument("Cannot checkpoint invalid simulation");
     Writer w;
-    w.text("STS2CP03"); w.u32(3); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
+    w.text("STS2CP04"); w.u32(4); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed);
     w.u32(s.boundary.value); w.u8(static_cast<std::uint8_t>(s.phase));
     const auto config = s.clock.config();
@@ -56,7 +56,7 @@ Checkpoint checkpoint(const State& s) {
     for (const auto& rng : s.rng.streams) { for (auto word : rng.state().words) w.u64(word); w.u32(rng.state().counter); }
     w.creature(s.player); w.creature(s.enemy); w.i32(s.energy); w.i32(s.turn);
     w.u8(static_cast<std::uint8_t>(s.move)); w.u8(s.burning_blood); w.u32(s.next_creation_order);
-    w.u64(s.cards_played); w.u64(s.cards_drawn); w.u64(s.shuffles);
+    w.u32(s.cards.record.highest_generation);
     w.u32(static_cast<std::uint32_t>(s.cards.slots().size()));
     for (const auto& slot : s.cards.slots()) {
         w.u32(slot.generation); w.u8(slot.live); w.u8(static_cast<std::uint8_t>(slot.value.definition));
@@ -64,10 +64,9 @@ Checkpoint checkpoint(const State& s) {
     }
     w.u32(static_cast<std::uint32_t>(s.cards.free_slots().size()));
     for (auto slot : s.cards.free_slots()) w.u32(slot);
-    for (const auto& zone : s.zones) { w.u32(static_cast<std::uint32_t>(zone.size())); for (auto h : zone) w.handle(h); }
+    for (const auto& zone : s.zone_views()) { w.u32(static_cast<std::uint32_t>(zone.size())); for (auto h : zone) w.handle(h); }
     w.u32(static_cast<std::uint32_t>(s.execution.size()));
     for (const auto& frame : s.execution) { w.handle(frame.source); w.u32(frame.instruction); w.u32(frame.play); }
-    w.i32(s.damage_dealt); w.i32(s.damage_taken); w.i32(s.debuffs_applied); w.i32(s.healing);
     w.u32(static_cast<std::uint32_t>(s.plays.size()));
     for (const auto& p : s.plays) { w.handle(p.card); w.i32(p.energy); w.u8(p.enemy_target); }
     w.u32(static_cast<std::uint32_t>(s.powers.size()));
@@ -80,30 +79,30 @@ Checkpoint checkpoint(const State& s) {
     w.u64(digest(w.data));
     return {std::move(w.data)};
 }
-RestoreStatus restore(State& destination, std::span<const std::byte> bytes, Scratch& scratch, Limits limits) noexcept {
+RestoreStatus restore(StateView destination, std::span<const std::byte> bytes, Scratch& scratch, Limits limits) noexcept {
     try {
         if (bytes.size() < 96 || bytes.size() > 64 * 1024 * 1024) return RestoreStatus::malformed;
         Reader trailer{bytes.last(8)};
         if (trailer.u64() != digest(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
-        for (char c : std::string_view("STS2CP03")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 3 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        for (char c : std::string_view("STS2CP04")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
+        if (r.u32() != 4 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (char c : game_digest) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
-        State s;
+        State s(destination.overflow.allocator()); auto s_view = s.view();
         const auto seed_size = r.u32(); if (seed_size == 0 || seed_size > 4096) return RestoreStatus::malformed;
-        for (std::uint32_t i = 0; i < seed_size; ++i) s.seed.push_back(static_cast<char>(r.u8()));
-        s.numeric_seed = r.u64(); s.boundary.value = r.u32(); s.phase = static_cast<Phase>(r.u8());
+        for (std::uint32_t i = 0; i < seed_size; ++i) s_view.seed.push_back(static_cast<char>(r.u8()));
+        s_view.numeric_seed = r.u64(); s_view.boundary.value = r.u32(); s_view.phase = static_cast<Phase>(r.u8());
         const auto epoch = r.u64(), step = r.u64(), elapsed = r.u64();
         if (epoch > RunClock::max_seconds || step > 86400 || elapsed > RunClock::max_seconds ||
-            !s.clock.restore({static_cast<std::int64_t>(epoch), static_cast<std::int64_t>(step)}, static_cast<std::int64_t>(elapsed))) return RestoreStatus::malformed;
-        for (auto& rng : s.rng.streams) {
+            !s_view.clock.restore({static_cast<std::int64_t>(epoch), static_cast<std::int64_t>(step)}, static_cast<std::int64_t>(elapsed))) return RestoreStatus::malformed;
+        for (auto& rng : s_view.rng.streams) {
             RngState state; for (auto& word : state.words) word = r.u64(); state.counter = r.u32();
             if (!rng.restore(state)) return RestoreStatus::malformed;
         }
-        s.player = r.creature(); s.enemy = r.creature(); s.energy = r.i32(); s.turn = r.i32();
-        s.move = static_cast<BeetleMove>(r.u8()); s.burning_blood = r.boolean(); s.next_creation_order = r.u32();
-        s.cards_played = r.u64(); s.cards_drawn = r.u64(); s.shuffles = r.u64();
+        s_view.player = r.creature(); s_view.enemy = r.creature(); s_view.energy = r.i32(); s_view.turn = r.i32();
+        s_view.move = static_cast<BeetleMove>(r.u8()); s_view.burning_blood = r.boolean(); s_view.next_creation_order = r.u32();
+        const auto highest_generation = r.u32();
         const auto count = r.u32();
         if (count > limits.cards) return RestoreStatus::resource_limit;
         if (count > (r.bytes.size() - r.at) / 11) return RestoreStatus::malformed;
@@ -114,39 +113,40 @@ RestoreStatus restore(State& destination, std::span<const std::byte> bytes, Scra
         }
         const auto free_count = r.u32(); if (free_count > count) return RestoreStatus::malformed;
         std::vector<std::uint32_t> free(free_count); for (auto& index : free) index = r.u32();
-        if (!s.cards.restore(std::move(slots), std::move(free))) return RestoreStatus::malformed;
-        s.reserve(count);
+        if (!s_view.cards.restore(std::move(slots), std::move(free))) return RestoreStatus::malformed;
+        if (s_view.cards.record.highest_generation > highest_generation) return RestoreStatus::malformed;
+        s_view.cards.record.highest_generation = highest_generation;
+        s_view.reserve(count);
         std::uint64_t total = 0;
-        for (auto& zone : s.zones) {
+        for (auto& zone : s_view.zone_views()) {
             const auto n = r.u32(); total += n;
             if (total > count) return RestoreStatus::malformed;
             for (std::uint32_t i = 0; i < n; ++i) zone.push_back(r.handle());
         }
         const auto frames = r.u32(); if (frames > 1) return RestoreStatus::malformed;
-        for (std::uint32_t i = 0; i < frames; ++i) { auto source = r.handle(); const auto instruction = r.u32(); s.execution.push_back({source, instruction, r.u32()}); }
-        s.damage_dealt = r.i32(); s.damage_taken = r.i32(); s.debuffs_applied = r.i32(); s.healing = r.i32();
+        for (std::uint32_t i = 0; i < frames; ++i) { auto source = r.handle(); const auto instruction = r.u32(); s_view.execution.push_back({source, instruction, r.u32()}); }
         const auto bounded_count = [&](std::size_t width) {
             const auto n = r.u32();
             if (n > (r.bytes.size() - r.at) / width) throw std::invalid_argument("truncated record table");
             return n;
         };
-        const auto plays = bounded_count(13); s.plays.reserve(plays);
-        for (std::uint32_t i = 0; i < plays; ++i) { const auto card = r.handle(); const auto energy = r.i32(); s.plays.push_back({card, energy, r.boolean()}); }
-        const auto powers = bounded_count(12); s.powers.reserve(powers);
+        const auto plays = bounded_count(13); s_view.plays.reserve(plays);
+        for (std::uint32_t i = 0; i < plays; ++i) { const auto card = r.handle(); const auto energy = r.i32(); s_view.plays.push_back({card, energy, r.boolean()}); }
+        const auto powers = bounded_count(12); s_view.powers.reserve(powers);
         for (std::uint32_t i = 0; i < powers; ++i) {
             PowerRecord p; p.definition = static_cast<PowerId>(r.u8()); p.amount = r.i32(); p.amount_on_turn_start = r.i32();
-            p.enemy_owner = r.boolean(); p.active = r.boolean(); p.skip_next_tick = r.boolean(); s.powers.push_back(p);
+            p.enemy_owner = r.boolean(); p.active = r.boolean(); p.skip_next_tick = r.boolean(); s_view.powers.push_back(p);
         }
-        const auto entries = bounded_count(38); s.history.reserve(entries);
+        const auto entries = bounded_count(38); s_view.history.reserve(entries);
         for (std::uint32_t i = 0; i < entries; ++i) {
             CombatHistoryEntry e; e.kind = static_cast<HistoryKind>(r.u8()); e.turn = r.i32(); e.enemy_side = r.boolean(); e.actor_enemy = r.boolean();
             e.card = r.handle(); e.object = r.u32(); e.amount = r.i32(); e.hit.blocked = r.i32(); e.hit.unblocked = r.i32(); e.hit.overkill = r.i32();
-            e.hit.block_broken = r.boolean(); e.hit.fully_blocked = r.boolean(); e.hit.killed = r.boolean(); s.history.push_back(e);
+            e.hit.block_broken = r.boolean(); e.hit.fully_blocked = r.boolean(); e.hit.killed = r.boolean(); s_view.history.push_back(e);
         }
         if (r.at != r.bytes.size() || !valid_state(s)) return RestoreStatus::malformed;
-        destination = std::move(s); scratch.steps = 0;
+        destination.replace(std::move(s)); scratch.steps = 0;
         return RestoreStatus::restored;
-    } catch (const std::bad_alloc&) { return RestoreStatus::resource_limit; }
+    } catch (const std::bad_alloc&) { return RestoreStatus::resource_limit; } catch (const std::length_error&) { return RestoreStatus::resource_limit; }
     catch (...) { return RestoreStatus::malformed; }
 }
 } // namespace sts2::engine

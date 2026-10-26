@@ -1,0 +1,383 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sts2-simulator.local/schema/run-parity-v2.schema.json",
+  "title": "Gameplay comparison with active combat state, revision 2",
+  "description": "Explicit diagnostic export removal; all retained fields compare exactly. Historical v1 fixtures and validation remain unchanged.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/$defs/NativeRunFields"
+    },
+    {
+      "if": {
+        "properties": {
+          "boundary_kind": {
+            "const": "run_complete"
+          }
+        },
+        "required": [
+          "boundary_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "run_ending_reason": {
+            "enum": [
+              "victory",
+              "death",
+              "abandoned"
+            ]
+          },
+          "pending_choice": {
+            "type": "null"
+          },
+          "run_flow": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "run_ending_reason": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "combat": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "combat"
+        ]
+      },
+      "then": {
+        "properties": {
+          "pending_choice": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "combat": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "combat"
+        ]
+      },
+      "then": {
+        "properties": {
+          "current_room": {
+            "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRoom"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "boundary_kind": {
+      "enum": [
+        "awaiting_input",
+        "run_complete"
+      ]
+    },
+    "run_ending_reason": {
+      "enum": [
+        null,
+        "victory",
+        "death",
+        "abandoned"
+      ]
+    },
+    "current_room": {
+      "anyOf": [
+        {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRoom"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "native_model_state": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^/"
+      },
+      "additionalProperties": {
+        "$ref": "run-parity-v1.schema.json#/$defs/NativeModelState"
+      },
+      "description": "Additional model-specific combat fields for objects already represented in native run data, keyed by JSON Pointer to that object. Omit entries without additional fields."
+    },
+    "combat": {
+      "anyOf": [
+        {
+          "$ref": "run-parity-v1.schema.json#/$defs/Combat"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "pending_choice": {
+      "anyOf": [
+        {
+          "$ref": "run-parity-v1.schema.json#/$defs/PendingChoice"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "run_flow": {
+      "anyOf": [
+        {
+          "$ref": "run-parity-v1.schema.json#/$defs/RunFlow"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "comparison_revision": {
+      "const": 2
+    }
+  },
+  "required": [
+    "boundary_kind",
+    "run_ending_reason",
+    "current_room",
+    "native_model_state",
+    "combat",
+    "pending_choice",
+    "run_flow",
+    "comparison_revision"
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "NativeRunFields": {
+      "type": "object",
+      "properties": {
+        "acts": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/acts"
+        },
+        "ascension": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/ascension"
+        },
+        "current_act_index": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/current_act_index"
+        },
+        "dailyTime": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/dailyTime"
+        },
+        "events_seen": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/events_seen"
+        },
+        "extra_fields": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/extra_fields"
+        },
+        "game_mode": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/game_mode"
+        },
+        "map_drawings": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/map_drawings"
+        },
+        "modifiers": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/modifiers"
+        },
+        "num_reloads": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/num_reloads"
+        },
+        "odds": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/odds"
+        },
+        "platform_type": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/platform_type"
+        },
+        "players": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GameplayPlayer"
+          }
+        },
+        "pre_finished_room": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/pre_finished_room"
+        },
+        "rng": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/rng"
+        },
+        "run_time": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/run_time"
+        },
+        "save_time": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/save_time"
+        },
+        "schema_version": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/schema_version"
+        },
+        "shared_relic_grab_bag": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/shared_relic_grab_bag"
+        },
+        "start_time": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/start_time"
+        },
+        "visited_map_coords": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/visited_map_coords"
+        },
+        "win_time": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRun/properties/win_time"
+        }
+      },
+      "required": [
+        "ascension",
+        "current_act_index",
+        "extra_fields",
+        "game_mode",
+        "map_drawings",
+        "modifiers",
+        "num_reloads",
+        "odds",
+        "platform_type",
+        "players",
+        "pre_finished_room",
+        "rng",
+        "run_time",
+        "save_time",
+        "schema_version",
+        "shared_relic_grab_bag",
+        "start_time",
+        "win_time"
+      ],
+      "$comment": "Open projection of native root fields only. Nested native objects retain native closure. Root closure is enforced by unevaluatedProperties in this extension."
+    },
+    "GameplayPlayer": {
+      "type": "object",
+      "properties": {
+        "base_orb_slot_count": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "character_id": {
+          "anyOf": [
+            {
+              "$ref": "serializable-run-v20.schema.json#/$defs/ModelId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "current_hp": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "deck": {
+          "type": "array",
+          "items": {
+            "$ref": "serializable-run-v20.schema.json#/$defs/SerializableCard"
+          }
+        },
+        "discovered_cards": {
+          "type": "array",
+          "items": {
+            "$ref": "serializable-run-v20.schema.json#/$defs/ModelId"
+          }
+        },
+        "discovered_epochs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "discovered_relics": {
+          "type": "array",
+          "items": {
+            "$ref": "serializable-run-v20.schema.json#/$defs/ModelId"
+          }
+        },
+        "extra_fields": {
+          "$ref": "#/$defs/GameplayExtraPlayerFields"
+        },
+        "gold": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "max_energy": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "max_hp": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "max_potion_slot_count": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "net_id": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/UInt64"
+        },
+        "odds": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializablePlayerOddsSet"
+        },
+        "potions": {
+          "type": "array",
+          "items": {
+            "$ref": "serializable-run-v20.schema.json#/$defs/SerializablePotion"
+          }
+        },
+        "relic_grab_bag": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRelicGrabBag"
+        },
+        "relics": {
+          "type": "array",
+          "items": {
+            "$ref": "serializable-run-v20.schema.json#/$defs/SerializableRelic"
+          }
+        },
+        "rng": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializablePlayerRngSet"
+        },
+        "unlock_state": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/SerializableUnlockState"
+        }
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.Runs.SerializablePlayer",
+      "required": [
+        "base_orb_slot_count",
+        "character_id",
+        "current_hp",
+        "extra_fields",
+        "gold",
+        "max_energy",
+        "max_hp",
+        "max_potion_slot_count",
+        "net_id",
+        "odds",
+        "relic_grab_bag",
+        "rng",
+        "unlock_state"
+      ]
+    },
+    "GameplayExtraPlayerFields": {
+      "type": "object",
+      "properties": {
+        "card_shop_removals_used": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        },
+        "ccccombo_badge_unlocked": {
+          "type": "boolean"
+        },
+        "wongo_points": {
+          "$ref": "serializable-run-v20.schema.json#/$defs/Int32"
+        }
+      },
+      "additionalProperties": false,
+      "$comment": "Native type: MegaCrit.Sts2.Core.Saves.SerializableExtraPlayerFields"
+    }
+  }
+}

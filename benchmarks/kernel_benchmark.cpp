@@ -28,14 +28,14 @@ int main(int argc, char** argv) {
     } else if (argc > 2) return 1;
     Simulator simulator; State baseline, state; Scratch scratch;
     if (simulator.initialize(baseline, {}, scratch).status != StepStatus::awaiting_input) return 1;
-    clone_into(state, baseline); // Warm destination capacities outside the measurement.
+    if (clone_into(state, baseline) != CloneStatus::cloned) throw std::bad_alloc{};
     std::uint64_t transitions = 0, checksum = 0;
     const auto start = std::chrono::steady_clock::now();
     count_allocations = true;
     for (std::uint64_t battle = 0; battle < battles; ++battle) {
-        clone_into(state, baseline);
-        while (state.phase == Phase::play) {
-            Input input{state.boundary, InputKind::end_turn};
+        if (clone_into(state, baseline) != CloneStatus::cloned) throw std::bad_alloc{};
+        while (state.view().phase == Phase::play) {
+            Input input{state.view().boundary, InputKind::end_turn};
             ActionSpaceView actions(state);
             for (std::size_t i = 0; i < state.zone(Zone::hand).size(); ++i) {
                 const auto action = *actions.at(i);
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
             ++transitions;
             if (result.status == StepStatus::engine_error || result.status == StepStatus::invalid_action || result.status == StepStatus::resource_limit) return 2;
         }
-        checksum += std::uint64_t(state.player.hp) + state.cards_drawn + state.cards_played;
+        checksum += std::uint64_t(state.view().player.hp) + state.view().history.size() + state.view().plays.size();
     }
     count_allocations = false;
     const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();

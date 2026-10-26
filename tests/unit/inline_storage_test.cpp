@@ -1,33 +1,17 @@
 #include "sts2/core/inline_storage.hpp"
+#include "storage_allocator.hpp"
 #include <gtest/gtest.h>
 #include <array>
 #include <cstring>
 
 namespace sts2::engine {
 namespace {
-struct AllocationCounter {
-    std::size_t allocations = 0;
-    std::size_t outstanding = 0;
-    std::size_t fail_after = SIZE_MAX;
-    StorageAllocator allocator() noexcept {
-        return {this,
-            [](void* context, std::size_t size, std::size_t alignment) -> void* {
-                auto& counter = *static_cast<AllocationCounter*>(context);
-                if (counter.allocations >= counter.fail_after) throw std::bad_alloc{};
-                auto* result = StorageAllocator{}.allocate(nullptr, size, alignment);
-                ++counter.allocations; ++counter.outstanding;
-                return result;
-            },
-            [](void* context, void* pointer, std::size_t size, std::size_t alignment) {
-                --static_cast<AllocationCounter*>(context)->outstanding;
-                StorageAllocator{}.deallocate(nullptr, pointer, size, alignment);
-            }};
-    }
-};
+using test::AllocationCounter;
 struct TestRecord {
     InlineSequence<int, 2> deck;
     InlineSequence<int, 1> history;
     std::uint32_t generation = 1;
+    template<class Visit> void for_each_sequence(Visit visit) const noexcept { visit(deck); }
 };
 static_assert(std::is_trivially_copyable_v<TestRecord>);
 
@@ -181,6 +165,16 @@ TEST(InlineStorage, FailedPromotionAndGrowthPreserveValuesAndOwnership) {
     }
 }
 
+TEST(InlineStorage, AddedOverflowHistoryIsCopiedEvenIfValidationRegistrationIsMissing) {
+    InlineState<TestRecord> source, copy;
+    source.record.history.push_back(source.overflow, 44);
+    source.record.history.push_back(source.overflow, 55);
+    EXPECT_FALSE(valid_record_storage(source.record, source.overflow));
+    clone_into(copy, source);
+    EXPECT_EQ(copy.record.history.values(copy.overflow)[1], 55);
+    copy.record.history.values(copy.overflow)[0] = 66;
+    EXPECT_EQ(source.record.history.values(source.overflow)[0], 44);
+}
 TEST(InlineStorage, LargeDeckUsesOverflowWithoutAnInlineCapacityLimit) {
     InlineState<TestRecord> state, destination;
     for (int i = 0; i < 200; ++i) state.record.deck.push_back(state.overflow, i);

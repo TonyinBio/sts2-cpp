@@ -29,8 +29,8 @@ TEST(PublicRunParity, ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisi
         auto player = historical.state(); Scratch scratch;
         std::vector<CardHandle> labels;
         const auto capture_labels = [&] {
-            if (player.combat && labels.empty())
-                for (const auto& zone : player.combat->zones) labels.insert(labels.end(), zone.begin(), zone.end());
+            if (player.view().combat && labels.empty())
+                for (const auto& zone : player.view().combat->zone_views()) labels.insert(labels.end(), zone.begin(), zone.end());
         };
         // Recording aliases are diagnostic identity correspondence derived from
         // independently initialized objects, never from expected checkpoints.
@@ -43,14 +43,14 @@ TEST(PublicRunParity, ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisi
             if (kind != "proceed") {
                 const auto before = checkpoint(player).bytes;
                 (void)observe(player); (void)actions(player); (void)describe(observe(player));
-                EXPECT_EQ(advance_player(player, scratch).boundary, player.boundary);
+                EXPECT_EQ(advance_player(player, scratch).boundary, player.view().boundary);
                 EXPECT_EQ(checkpoint(player).bytes, before);
-                PlayerInput input = RunInput{player.boundary, RunInputKind::skip_rewards};
-                if (kind == "play_card") input = Input{player.boundary, InputKind::play_card,
+                PlayerInput input = RunInput{player.view().boundary, RunInputKind::skip_rewards};
+                if (kind == "play_card") input = Input{player.view().boundary, InputKind::play_card,
                     labels.at(std::stoul(a["card_instance"].get<std::string>().substr(5))), a.contains("target")};
-                else if (kind == "end_turn") input = Input{player.boundary, InputKind::end_turn};
+                else if (kind == "end_turn") input = Input{player.view().boundary, InputKind::end_turn};
                 else {
-                    RunInput run{player.boundary, RunInputKind::skip_rewards};
+                    RunInput run{player.view().boundary, RunInputKind::skip_rewards};
                     if (kind == "choose_option") { run.kind = RunInputKind::choose_option; run.option = a["option_index"]; }
                     else if (kind == "select_map_node") { run.kind = RunInputKind::travel; run.col = a["col"]; run.row = a["row"]; }
                     else if (kind == "take_reward") { run.kind = RunInputKind::take_reward; run.option = a["index"]; }
@@ -86,11 +86,11 @@ TEST(PublicRunParity, ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisi
             (void)historical.apply(a);
             if (next < expected["transitions"].size() && expected["transitions"][next]["action_id"] == entry["id"]) {
                 compare_all(expected["transitions"][next]["state"], historical.snapshot());
-                if (historical.state().boundary == player.boundary)
+                if (historical.state().view().boundary == player.view().boundary)
                     compare_all(expected["transitions"][next]["state"], NativeRunExporter{}.snapshot(player));
                 ++next;
             }
-            if (historical.state().boundary == player.boundary) {
+            if (historical.state().view().boundary == player.view().boundary) {
                 EXPECT_EQ(historical.state(), player);
                 compare_all(historical.snapshot(), NativeRunExporter{}.snapshot(player));
             }
@@ -114,9 +114,9 @@ TEST(SeededRunParity, CanonicalNeowMapPrefixMatchesEveryFieldAtEveryAction) {
     std::ifstream stream(KERNEL_RUN_PREFIX_FIXTURE); const auto states = Json::parse(stream);
     RunState state; ASSERT_EQ(initialize_run(state, {}).status, StepStatus::awaiting_input); NativeRunExporter exporter;
     compare_all(states["initial"], exporter.snapshot(state));
-    ASSERT_EQ(apply_run(state, {state.boundary, RunInputKind::choose_option, 0}).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_run(state, {state.view().boundary, RunInputKind::choose_option, 0}).status, StepStatus::awaiting_input);
     compare_all(states["transitions"][0]["state"], exporter.snapshot(state));
-    ASSERT_EQ(apply_run(state, {state.boundary, RunInputKind::proceed}).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_run(state, {state.view().boundary, RunInputKind::proceed}).status, StepStatus::awaiting_input);
     compare_all(states["transitions"][1]["state"], exporter.snapshot(state));
 }
 TEST(SeededRunParity, CanonicalCombatReproducesEveryFieldThroughVictory) {
@@ -129,12 +129,12 @@ TEST(SeededRunParity, CanonicalCombatReproducesEveryFieldThroughVictory) {
     // Native recording labels are assigned in first-export pile traversal order.
     // Derive this relation from our generated state, without reading a checkpoint.
     std::vector<CardHandle> labels;
-    for (const auto& zone : state.combat->zones) labels.insert(labels.end(), zone.begin(), zone.end());
+    for (const auto& zone : state.view().combat->zone_views()) labels.insert(labels.end(), zone.begin(), zone.end());
     compare_all(states["initial"], exporter.snapshot(state));
     std::size_t next = 0;
     for (const auto& recorded : actions["actions"]) {
         SCOPED_TRACE(recorded["id"].get<std::string>());
-        const auto& a = recorded["action"]; Input input{state.boundary, InputKind::end_turn};
+        const auto& a = recorded["action"]; Input input{state.view().boundary, InputKind::end_turn};
         if (a["kind"] == "play_card") {
             const auto label = a["card_instance"].get<std::string>();
             input.kind = InputKind::play_card; input.card = labels.at(std::stoul(label.substr(5)));
@@ -145,7 +145,7 @@ TEST(SeededRunParity, CanonicalCombatReproducesEveryFieldThroughVictory) {
         if (next < states["transitions"].size() && states["transitions"][next]["action_id"] == recorded["id"])
             compare_all(states["transitions"][next++]["state"], exporter.snapshot(state));
     }
-    EXPECT_EQ(next, states["transitions"].size()); EXPECT_EQ(state.phase, RunPhase::combat_done);
+    EXPECT_EQ(next, states["transitions"].size()); EXPECT_EQ(state.view().phase, RunPhase::combat_done);
 }
 TEST(SeededRunParity, SurvivorScenarioMatchesEntireNativeStateAcrossSuspensionAndRestore) {
     std::ifstream stream(KERNEL_SURVIVOR_FIXTURE); const auto fixture = Json::parse(stream);
@@ -153,34 +153,35 @@ TEST(SeededRunParity, SurvivorScenarioMatchesEntireNativeStateAcrossSuspensionAn
         SCOPED_TRACE(scenario["deck"].dump());
         const auto seed = scenario["seed"].get<std::string>(); SeededConfig config; config.seed = seed;
         RunState state; ASSERT_EQ(initialize_run(state, config).status, StepStatus::awaiting_input);
-        std::vector<CardSpec> deck; state.setup.deck.clear();
+        std::vector<CardSpec> deck; state.view().setup.deck.clear();
         for (const auto& model : scenario["deck"]) {
             const auto name = "CARD." + model.get<std::string>();
             CardId id = CardId::count;
             for (unsigned i = 0; i < static_cast<unsigned>(CardId::count); ++i)
                 if (Ruleset::pinned().card(static_cast<CardId>(i))->model_id == name) id = static_cast<CardId>(i);
             ASSERT_NE(id, CardId::count); deck.push_back({id});
-            state.setup.deck.push_back({SetupRules::find(name), static_cast<std::uint32_t>(deck.size() - 1), 0, -1});
+            state.view().setup.deck.push_back({SetupRules::find(name), static_cast<std::uint32_t>(deck.size() - 1), 0, -1});
         }
         // Match the documented scenario operations: set deck, enter combat (HP
         // roll consumes Niche), then explicitly override enemy HP before play.
-        CombatConfig combat; combat.seed = seed; combat.deck = deck; combat.initial_rng = &state.setup.rng;
-        state.combat.emplace(); Scratch scratch;
-        ASSERT_EQ(Simulator{}.initialize(*state.combat, combat, scratch).status, StepStatus::awaiting_input);
-        state.combat->enemy.hp = state.combat->enemy.max_hp = scenario["enemy_hp"].get<int>();
-        state.setup.rng = state.combat->rng; state.setup.acts[0].normal_visited = 1;
-        state.phase = RunPhase::combat; state.direct_combat = true;
+        CombatConfig combat; combat.seed = seed; combat.deck = deck; combat.initial_rng = &state.view().setup.rng;
+        state.view().combat.emplace(); Scratch scratch;
+        ASSERT_EQ(Simulator{}.initialize(*state.view().combat, combat, scratch).status, StepStatus::awaiting_input);
+        state.view().combat->enemy.hp = state.view().combat->enemy.max_hp = scenario["enemy_hp"].get<int>();
+        state.view().setup.rng = state.view().combat->rng; state.view().setup.acts[0].normal_visited = 1;
+        state.view().phase = RunPhase::combat; state.view().direct_combat = true; state.view().combat_generation = 1;
         NativeRunExporter exporter; compare_all(scenario["states"][0], exporter.snapshot(state));
-        std::vector<CardHandle> labels = state.combat->zone(Zone::hand);
+        const auto hand = state.view().combat->zone(Zone::hand);
+        std::vector<CardHandle> labels(hand.begin(), hand.end());
         const auto card = labels.at(std::stoul(scenario["survivor"].get<std::string>().substr(5)));
-        ASSERT_EQ(apply_combat(state, {state.boundary, InputKind::play_card, card}, scratch).status, StepStatus::awaiting_input);
+        ASSERT_EQ(apply_combat(state, {state.view().boundary, InputKind::play_card, card}, scratch).status, StepStatus::awaiting_input);
         compare_all(scenario["states"][1], exporter.snapshot(state));
         if (!scenario["selection"].is_null()) {
-            const auto saved = checkpoint(*state.combat); State restored;
+            const auto saved = checkpoint(*state.view().combat); State restored;
             ASSERT_EQ(restore(restored, saved.bytes, scratch), RestoreStatus::restored);
-            state.combat = std::move(restored);
+            state.view().combat = std::move(restored);
             const auto selected = labels.at(std::stoul(scenario["selection"].get<std::string>().substr(5)));
-            ASSERT_EQ(apply_combat(state, {state.boundary, InputKind::select_card, selected}, scratch).status, StepStatus::awaiting_input);
+            ASSERT_EQ(apply_combat(state, {state.view().boundary, InputKind::select_card, selected}, scratch).status, StepStatus::awaiting_input);
             compare_all(scenario["states"][2], exporter.snapshot(state));
         }
     }
@@ -213,9 +214,9 @@ TEST(SeededRunParity, InvalidAndUnsupportedDecisionsLeaveAllRunStateUnchanged) {
     RunState state; ASSERT_EQ(initialize_run(state, {}).status, StepStatus::awaiting_input); const auto before = state;
     EXPECT_EQ(apply_run(state, {{0}, RunInputKind::choose_option, 0}).reason, Restriction::stale_boundary);
     EXPECT_EQ(state, before);
-    EXPECT_EQ(apply_run(state, {state.boundary, RunInputKind::choose_option, 999}).status, StepStatus::invalid_action);
+    EXPECT_EQ(apply_run(state, {state.view().boundary, RunInputKind::choose_option, 999}).status, StepStatus::invalid_action);
     EXPECT_EQ(state, before);
-    EXPECT_EQ(apply_run(state, {state.boundary, RunInputKind::choose_option, 1}).status, StepStatus::unsupported_content);
+    EXPECT_EQ(apply_run(state, {state.view().boundary, RunInputKind::choose_option, 1}).status, StepStatus::unsupported_content);
     EXPECT_EQ(state, before);
 }
 }

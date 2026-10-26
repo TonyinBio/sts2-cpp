@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
                 std::cerr << failure.checkpoint << ' ' << difference.path << " expected=" << difference.expected << " actual=" << difference.actual << '\n';
             return 2;
         }
-        std::cout << "Full-state simulator replay passed: " << Json::parse(actions).at("actions").size() << " actions\n";
+        std::cout << "Gameplay comparison revision 2 replay passed: " << Json::parse(actions).at("actions").size() << " actions\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "Simulator replay failed: " << error.what() << '\n'; return 1;

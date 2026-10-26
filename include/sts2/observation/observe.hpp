@@ -17,25 +17,25 @@ struct ObservationView {
 };
 // Borrows hand storage; invalidated by state mutation. Hidden draw order, RNG,
 // execution frames and unrevealed data are never part of the public projection.
-[[nodiscard]] ObservationView observe(const State&) noexcept;
+[[nodiscard]] ObservationView observe(ConstStateView) noexcept;
 struct CardView {
     CardHandle handle;
     std::string_view model_id, name;
     std::int32_t cost, damage, block, vulnerable;
     bool upgraded, enemy_target;
 };
-[[nodiscard]] std::optional<CardView> observe_card(const State&, CardHandle, const Ruleset& = Ruleset::pinned()) noexcept;
+[[nodiscard]] std::optional<CardView> observe_card(ConstStateView, CardHandle, const Ruleset& = Ruleset::pinned()) noexcept;
 // Metadata for inspectable hand/draw/discard/exhaust cards; never pile position.
-[[nodiscard]] std::optional<CardView> inspect_card(const State&, CardHandle, const Ruleset& = Ruleset::pinned()) noexcept;
+[[nodiscard]] std::optional<CardView> inspect_card(ConstStateView, CardHandle, const Ruleset& = Ruleset::pinned()) noexcept;
 // English rendering is outside the kernel; callers pay for it only on demand.
 [[nodiscard]] std::string describe(const CardView&);
 struct ActionView { Input input; Restriction restriction; };
 class ActionSpaceView {
 public:
-    explicit ActionSpaceView(const State& state) noexcept : state_(state) {}
+    explicit ActionSpaceView(ConstStateView state) noexcept : state_(state) {}
     [[nodiscard]] std::size_t size() const noexcept;
     [[nodiscard]] std::optional<ActionView> at(std::size_t index) const noexcept;
 private:
-    const State& state_;
+    ConstStateView state_;
 };
 } // namespace sts2::engine

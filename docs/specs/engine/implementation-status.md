@@ -6,11 +6,33 @@ reference checks. A naturally entered combat now continues through explicit rewa
 and returns to the map, or reaches a natural run death. Complete runs remain unfinished. The original
 `sts2::CombatState` demo and its diagnostic adapter remain separate.
 
+## Complete-state inline storage and owning clones
+
+[Issue #55](https://github.com/TonyinBio/sts2-cpp/issues/55) implements byte-copyable
+complete run/combat records with separately owned collection overflow. The public
+initialization, observation, action, clone and semantic checkpoint paths now use
+that representation. Completed encounter graphs and export-only statistics are
+removed; generation identity, RNG/queues, inventory, gameplay histories and pending
+work remain. See [the implementation contract](inline-storage.md) and
+[field/export classification](inline-state-retention.md).
+
+Engine exports now declare comparison revision 2. Original v1 fixtures and schemas
+remain historical evidence; v1/v1 comparison stays exact, and crossing to v2 removes
+only the enumerated diagnostic surface. Previously passing native comparisons below
+do not retroactively certify the revised surface. Checkpoints explicitly reject the
+superseded combat v3 and run v2 formats. New tests cover allocation-free common
+clones, 200-card overflow, independent futures, pending choices, detached sources,
+allocation failures, reused destinations and generation exhaustion. Executed
+commands and results are recorded in the
+[verification section](inline-storage.md#executed-verification). Older retained-graph
+descriptions below remain historical evidence of the former storage/comparison
+contract, not the current implementation.
+
 ## Implemented and checked
 
 | Area | Behavior | Evidence |
 | --- | --- | --- |
-| Rules and storage | Immutable indexed effect programs; generation-tagged card handles; owning contiguous storage and checked growth | Stale handles, relocation, independent clone, large-deck and codec tests |
+| Rules and storage | Immutable indexed programs; trivial complete records, inline collections and independent overflow; explicit generation identity; atomic owning memcpy clones | Allocation-free common clones, stale handles, overflow/relocation, allocation failure, large decks and semantic codecs |
 | RNG | Native xoshiro256**, SplitMix64, UTF-8 xxHash64, legacy ASCII seed hash, all 12 run and 3 player streams, bounded draws, shuffles and .NET equal-key sort | Independent game-derived mixed-call vectors and complete RNG word/counter comparison |
 | Setup | All five characters, A0..A10; starting inventory; shared/player relic bags; all act encounter/event/ancient/boss queues | Exact bags/queues/UpFront RNG; 30 complete initial native states across five characters, two seeds and A0/A4/A10 |
 | Maps | All four standard acts, native paths, room assignments, pruning/repair and edge enumeration order | 36 native cases, every coordinate/kind/ordered edge and final map RNG; full initial-state comparisons also cover saved start-coordinate order |
@@ -86,8 +108,9 @@ or speed/memory improvement over `sts2-cli`; rerun after changes.
 
 The complete-run acceptance requirement is still open. One native map/combat/reward
 loop works, including natural death. [Consecutive combat ownership](consecutive-run-loop.md)
-retains completed encounter graphs, permanent-card links and native replacement-room
-history, with two supported fights verified through a declared scenario operation.
+now preserves permanent-card links and explicit generation metadata without completed
+graphs. The original two-fight recording remains preserved; revision-2 acceptance is
+verified separately by the checks above.
 Natural subsequent encounters, events beyond Neow/Golden Pearl, shops, rest sites,
 potion use, treasure, act continuations
 and naturally reached run victory remain unfinished. The older recorded Slimes
@@ -99,8 +122,8 @@ implement those cards' combat effects. Acquisition is currently admitted for Tru
 Grit, Juggling and Rage; other offers can be skipped. Owned potions can be discarded;
 potion use and passive potion hooks remain unsupported. Potion of Binding can remain
 in inventory during supported scenario combat with source-backed model metadata;
-other active potion metadata is unsupported. Natural travel no longer rejects a room
-solely because it retains a previous combat; unsupported generated encounters and
+other active potion metadata is unsupported. Natural travel supports continuation
+after a previous combat; unsupported generated encounters and
 inventory effects still stop explicitly.
 
 General multi-enemy/entity domains, trigger subscriptions, other character combat

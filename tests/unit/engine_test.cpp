@@ -21,11 +21,11 @@ State initial(CombatConfig config = {}) {
     return state;
 }
 CardHandle find_card(const State& state, CardId id) {
-    for (auto h : state.zone(Zone::hand)) if (state.cards.get(h)->definition == id) return h;
+    for (auto h : state.zone(Zone::hand)) if (state.view().cards.get(h)->definition == id) return h;
     return {};
 }
 StepResult play(State& s, CardHandle card, Scratch& scratch) {
-    return Simulator{}.apply(s, {s.boundary, InputKind::play_card, card, Ruleset::pinned().card(s.cards.get(card)->definition)->enemy_target}, scratch);
+    return Simulator{}.apply(s, {s.view().boundary, InputKind::play_card, card, Ruleset::pinned().card(s.view().cards.get(card)->definition)->enemy_target}, scratch);
 }
 TEST(GameRng, MatchesPinnedGameMixedCallsAndEntireFinalState) {
     const auto vectors = file(KERNEL_RNG_FIXTURE);
@@ -79,7 +79,8 @@ TEST(GameSort, EqualKeyIdentityOrderingMatchesDotnetAtPartitionBoundaries) {
     }
 }
 TEST(Storage, HandlesSurviveGrowthRejectStaleObjectsAndPreserveFreeMetadata) {
-    Pool<int, struct TestTag> pool; pool.reserve(2);
+    InlineState<PoolRecord<int, struct TestTag, 2>> pool_owner;
+    PoolView<int, TestTag, 2> pool{pool_owner.record, pool_owner.overflow}; pool.reserve(2);
     const auto first = pool.create(42, 100), other = pool.create(99, 100);
     for (int i = 0; i < 50; ++i) ASSERT_TRUE(pool.create(i, 100).present());
     ASSERT_NE(pool.get(first), nullptr); EXPECT_EQ(*pool.get(first), 42);
@@ -87,61 +88,74 @@ TEST(Storage, HandlesSurviveGrowthRejectStaleObjectsAndPreserveFreeMetadata) {
     const auto replacement = pool.create(7, 100);
     EXPECT_EQ(replacement.slot, first.slot); EXPECT_NE(replacement.generation, first.generation);
     EXPECT_EQ(*pool.get(other), 99); EXPECT_FALSE(pool.erase(first));
-    auto copy = pool; *copy.get(replacement) = -1; EXPECT_EQ(*pool.get(replacement), 7);
+    InlineState<PoolRecord<int, TestTag, 2>> copy_owner; clone_into(copy_owner, pool_owner);
+    PoolView<int, TestTag, 2> copy{copy_owner.record, copy_owner.overflow}; *copy.get(replacement) = -1; EXPECT_EQ(*pool.get(replacement), 7);
     EXPECT_FALSE(pool.create(0, 0).present());
+}
+TEST(Storage, PoolGrowthCapturesAliasedValuesAndPreservesFreeSlotOrder) {
+    InlineState<PoolRecord<int, struct GrowthTag, 2>> storage;
+    PoolView<int, GrowthTag, 2> pool{storage.record, storage.overflow};
+    const auto first = pool.create(11, 100), second = pool.create(22, 100);
+    const auto copied = pool.create(*pool.get(first), 100);
+    ASSERT_TRUE(copied.present()); EXPECT_EQ(*pool.get(copied), 11);
+    ASSERT_TRUE(pool.erase(first)); ASSERT_TRUE(pool.erase(second));
+    EXPECT_EQ(pool.create(33, 100).slot, second.slot);
+    EXPECT_EQ(pool.create(44, 100).slot, first.slot);
+    EXPECT_FALSE(pool.get(first)); EXPECT_FALSE(pool.get(second));
+    EXPECT_TRUE(pool.valid());
 }
 TEST(Engine, RejectsInvalidAndStaleInputWithoutChangingAnyState) {
     auto state = initial(); Scratch scratch;
     const auto before = checkpoint(state).bytes;
     for (auto input : {Input{{0}, InputKind::end_turn},
-                       Input{state.boundary, InputKind::play_card, {999, 1}, true},
-                       Input{state.boundary, InputKind::select_card, state.zone(Zone::hand)[0]}}) {
+                       Input{state.view().boundary, InputKind::play_card, {999, 1}, true},
+                       Input{state.view().boundary, InputKind::select_card, state.zone(Zone::hand)[0]}}) {
         EXPECT_EQ(Simulator{}.apply(state, input, scratch).status, StepStatus::invalid_action);
         EXPECT_EQ(checkpoint(state).bytes, before);
     }
     const auto h = find_card(state, CardId::strike); ASSERT_TRUE(h.present());
-    EXPECT_EQ(Simulator{}.apply(state, {state.boundary, InputKind::play_card, h, false}, scratch).reason, Restriction::invalid_target);
+    EXPECT_EQ(Simulator{}.apply(state, {state.view().boundary, InputKind::play_card, h, false}, scratch).reason, Restriction::invalid_target);
     EXPECT_EQ(checkpoint(state).bytes, before);
     EXPECT_EQ(play(state, h, scratch).status, StepStatus::awaiting_input);
-    EXPECT_EQ(state.boundary.value, 2u); EXPECT_EQ(state.clock.elapsed_seconds(), 1);
+    EXPECT_EQ(state.view().boundary.value, 2u); EXPECT_EQ(state.view().clock.elapsed_seconds(), 1);
     const auto after = state;
-    EXPECT_EQ(Simulator{}.advance(state, scratch).boundary, after.boundary); EXPECT_EQ(state, after);
+    EXPECT_EQ(Simulator{}.advance(state, scratch).boundary, after.view().boundary); EXPECT_EQ(state, after);
 }
 TEST(Engine, UsesRealCostsAndDamageModifiersWithoutIntermediateRounding) {
     const std::array deck{CardSpec{CardId::bash}, CardSpec{CardId::strike}, CardSpec{CardId::defend}};
     CombatConfig config; config.deck = deck; config.enemy_hp = 40;
     auto s = initial(config); Scratch scratch;
     ASSERT_EQ(play(s, find_card(s, CardId::bash), scratch).status, StepStatus::awaiting_input);
-    EXPECT_EQ(s.enemy.hp, 32); EXPECT_EQ(s.enemy.vulnerable, 2); EXPECT_EQ(s.energy, 1);
+    EXPECT_EQ(s.view().enemy.hp, 32); EXPECT_EQ(s.view().enemy.vulnerable, 2); EXPECT_EQ(s.view().energy, 1);
     ASSERT_EQ(play(s, find_card(s, CardId::strike), scratch).status, StepStatus::awaiting_input);
-    EXPECT_EQ(s.enemy.hp, 23); EXPECT_EQ(s.energy, 0);
+    EXPECT_EQ(s.view().enemy.hp, 23); EXPECT_EQ(s.view().energy, 0);
     const auto before = checkpoint(s).bytes;
     EXPECT_EQ(play(s, find_card(s, CardId::defend), scratch).reason, Restriction::insufficient_energy);
     EXPECT_EQ(checkpoint(s).bytes, before);
-    ASSERT_EQ(Simulator{}.apply(s, {s.boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
-    EXPECT_TRUE(s.player.shrink); EXPECT_EQ(s.enemy.vulnerable, 1);
+    ASSERT_EQ(Simulator{}.apply(s, {s.view().boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_TRUE(s.view().player.shrink); EXPECT_EQ(s.view().enemy.vulnerable, 1);
     ASSERT_EQ(play(s, find_card(s, CardId::bash), scratch).status, StepStatus::awaiting_input);
-    EXPECT_EQ(s.enemy.hp, 15); // floor(8 * .7 * 1.5), not floor(8*.7)*1.5
+    EXPECT_EQ(s.view().enemy.hp, 15); // floor(8 * .7 * 1.5), not floor(8*.7)*1.5
 }
 TEST(Engine, ShrinkerAlternatesMovesBlockExpiresAndDeathIsTerminal) {
     CombatConfig config; config.player_hp = 15;
     auto s = initial(config); Scratch scratch;
-    ASSERT_EQ(Simulator{}.apply(s, {s.boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
-    EXPECT_EQ(s.player.hp, 15); EXPECT_EQ(s.move, BeetleMove::chomp);
-    ASSERT_EQ(Simulator{}.apply(s, {s.boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
-    EXPECT_EQ(s.player.hp, 8); EXPECT_EQ(s.move, BeetleMove::stomp);
-    ASSERT_EQ(Simulator{}.apply(s, {s.boundary, InputKind::end_turn}, scratch).status, StepStatus::player_died);
-    EXPECT_EQ(s.player.hp, 0); EXPECT_TRUE(valid_state(s));
+    ASSERT_EQ(Simulator{}.apply(s, {s.view().boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(s.view().player.hp, 15); EXPECT_EQ(s.view().move, BeetleMove::chomp);
+    ASSERT_EQ(Simulator{}.apply(s, {s.view().boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(s.view().player.hp, 8); EXPECT_EQ(s.view().move, BeetleMove::stomp);
+    ASSERT_EQ(Simulator{}.apply(s, {s.view().boundary, InputKind::end_turn}, scratch).status, StepStatus::player_died);
+    EXPECT_EQ(s.view().player.hp, 0); EXPECT_TRUE(valid_state(s));
     const auto before = checkpoint(s).bytes;
-    EXPECT_EQ(Simulator{}.apply(s, {s.boundary, InputKind::end_turn}, scratch).status, StepStatus::invalid_action);
+    EXPECT_EQ(Simulator{}.apply(s, {s.view().boundary, InputKind::end_turn}, scratch).status, StepStatus::invalid_action);
     EXPECT_EQ(checkpoint(s).bytes, before);
 }
 TEST(Engine, VictoryHealsBurningBloodAndClearsCombatPiles) {
     CombatConfig config; config.enemy_hp = 1; config.player_hp = 78;
     auto s = initial(config); Scratch scratch;
     EXPECT_EQ(play(s, find_card(s, CardId::strike), scratch).status, StepStatus::combat_won);
-    EXPECT_EQ(s.player.hp, 80); EXPECT_FALSE(s.player.shrink);
-    for (const auto& zone : s.zones) EXPECT_TRUE(zone.empty());
+    EXPECT_EQ(s.view().player.hp, 80); EXPECT_FALSE(s.view().player.shrink);
+    for (const auto& zone : s.view().zone_views()) EXPECT_TRUE(zone.empty());
     EXPECT_TRUE(valid_state(s));
 }
 TEST(Engine, SurvivorSuspendsInsideEffectAndCloneRestoreResumeIndependently) {
@@ -150,18 +164,18 @@ TEST(Engine, SurvivorSuspendsInsideEffectAndCloneRestoreResumeIndependently) {
     auto s = initial(config); Scratch scratch;
     const auto survivor = find_card(s, CardId::survivor);
     ASSERT_EQ(play(s, survivor, scratch).status, StepStatus::awaiting_input);
-    ASSERT_EQ(s.phase, Phase::discard_choice); EXPECT_EQ(s.player.block, 8);
-    EXPECT_EQ(s.zone(Zone::play), std::vector<CardHandle>{survivor}); EXPECT_EQ(s.execution.size(), 1u);
+    ASSERT_EQ(s.view().phase, Phase::discard_choice); EXPECT_EQ(s.view().player.block, 8);
+    EXPECT_EQ(s.zone(Zone::play), std::vector<CardHandle>{survivor}); EXPECT_EQ(s.view().execution.size(), 1u);
     EXPECT_TRUE(valid_state(s));
     const auto saved = checkpoint(s); State branch, restored; clone_into(branch, s);
     ASSERT_EQ(restore(restored, saved.bytes, scratch), RestoreStatus::restored);
     EXPECT_EQ(s, branch); EXPECT_EQ(s, restored);
     const auto strike = find_card(s, CardId::strike), defend = find_card(s, CardId::defend);
-    ASSERT_EQ(Simulator{}.apply(s, {s.boundary, InputKind::select_card, strike}, scratch).status, StepStatus::awaiting_input);
-    ASSERT_EQ(Simulator{}.apply(restored, {restored.boundary, InputKind::select_card, strike}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(Simulator{}.apply(s, {s.view().boundary, InputKind::select_card, strike}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(Simulator{}.apply(restored, {restored.view().boundary, InputKind::select_card, strike}, scratch).status, StepStatus::awaiting_input);
     EXPECT_EQ(s, restored);
-    ASSERT_EQ(Simulator{}.apply(branch, {branch.boundary, InputKind::select_card, defend}, scratch).status, StepStatus::awaiting_input);
-    EXPECT_NE(s, branch); EXPECT_EQ(s.player.block, 8); EXPECT_EQ(branch.player.block, 8);
+    ASSERT_EQ(Simulator{}.apply(branch, {branch.view().boundary, InputKind::select_card, defend}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_NE(s, branch); EXPECT_EQ(s.view().player.block, 8); EXPECT_EQ(branch.view().player.block, 8);
     EXPECT_EQ(s.zone(Zone::discard), (std::vector<CardHandle>{strike, survivor}));
     EXPECT_EQ(branch.zone(Zone::discard), (std::vector<CardHandle>{defend, survivor}));
 }
@@ -169,15 +183,15 @@ TEST(Engine, EmptySurvivorChoiceResolvesAutomatically) {
     const std::array deck{CardSpec{CardId::survivor, true}}; CombatConfig config; config.deck = deck;
     auto s = initial(config); Scratch scratch;
     EXPECT_EQ(play(s, find_card(s, CardId::survivor), scratch).status, StepStatus::awaiting_input);
-    EXPECT_EQ(s.phase, Phase::play); EXPECT_EQ(s.player.block, 11); EXPECT_TRUE(s.execution.empty());
+    EXPECT_EQ(s.view().phase, Phase::play); EXPECT_EQ(s.view().player.block, 11); EXPECT_TRUE(s.view().execution.empty());
 }
 TEST(Engine, SingleSurvivorCandidateDiscardsWithoutPublishingChoice) {
     const std::array deck{CardSpec{CardId::survivor}, CardSpec{CardId::strike}};
     CombatConfig config; config.deck = deck;
     auto s = initial(config); Scratch scratch;
     EXPECT_EQ(play(s, find_card(s, CardId::survivor), scratch).status, StepStatus::awaiting_input);
-    EXPECT_EQ(s.phase, Phase::play); EXPECT_TRUE(s.zone(Zone::hand).empty());
-    EXPECT_EQ(s.zone(Zone::discard).size(), 2u); EXPECT_EQ(s.boundary.value, 2u);
+    EXPECT_EQ(s.view().phase, Phase::play); EXPECT_TRUE(s.zone(Zone::hand).empty());
+    EXPECT_EQ(s.zone(Zone::discard).size(), 2u); EXPECT_EQ(s.view().boundary.value, 2u);
 }
 TEST(Engine, InvalidSetupAndCapacityLeavePriorSimulationUnchanged) {
     auto s = initial(); const auto before = checkpoint(s).bytes; Scratch scratch; CombatConfig config;
@@ -194,8 +208,8 @@ TEST(Engine, ExecutionFailureInvalidatesUntilSuccessfulRestore) {
     auto s = initial(); Scratch scratch; const auto saved = checkpoint(s);
     scratch.step_limit = 0;
     EXPECT_EQ(play(s, find_card(s, CardId::strike), scratch).status, StepStatus::engine_error);
-    EXPECT_EQ(s.phase, Phase::invalid); EXPECT_THROW((void)checkpoint(s), std::invalid_argument);
-    EXPECT_EQ(Simulator{}.apply(s, {s.boundary, InputKind::end_turn}, scratch).reason, Restriction::invalid_state);
+    EXPECT_EQ(s.view().phase, Phase::invalid); EXPECT_THROW((void)checkpoint(s), std::invalid_argument);
+    EXPECT_EQ(Simulator{}.apply(s, {s.view().boundary, InputKind::end_turn}, scratch).reason, Restriction::invalid_state);
     ASSERT_EQ(restore(s, saved.bytes, scratch), RestoreStatus::restored); EXPECT_TRUE(valid_state(s));
 }
 TEST(Observation, InspectionIsPureAndDoesNotExposeHiddenDrawSequence) {
@@ -242,25 +256,25 @@ TEST(CombatMechanics, RecordedActionsMatchEveryModeledCheckpointIncludingShuffle
     }
     auto check = [&](const Json& reference) {
         const auto& combat = reference["combat"]; const auto& player = combat["players"][0];
-        EXPECT_EQ(state.player.hp, reference["players"][0]["current_hp"]);
-        EXPECT_EQ(state.player.block, combat["creatures"]["player_0"]["block"]);
-        EXPECT_EQ(state.energy, player["energy"]); EXPECT_EQ(state.turn, player["turn_number"]);
-        EXPECT_EQ(state.clock.config().epoch_seconds, reference["start_time"]);
-        EXPECT_EQ(state.clock.now_seconds(), reference["save_time"]);
-        EXPECT_EQ(state.clock.elapsed_seconds(), reference["run_time"]);
+        EXPECT_EQ(state.view().player.hp, reference["players"][0]["current_hp"]);
+        EXPECT_EQ(state.view().player.block, combat["creatures"]["player_0"]["block"]);
+        EXPECT_EQ(state.view().energy, player["energy"]); EXPECT_EQ(state.view().turn, player["turn_number"]);
+        EXPECT_EQ(state.view().clock.config().epoch_seconds, reference["start_time"]);
+        EXPECT_EQ(state.view().clock.now_seconds(), reference["save_time"]);
+        EXPECT_EQ(state.view().clock.elapsed_seconds(), reference["run_time"]);
         bool shrink = false; int vulnerable = 0;
         for (const auto& power : combat["powers"]) {
             if (power["id"] == "POWER.SHRINK_POWER") shrink = true;
             if (power["id"] == "POWER.VULNERABLE_POWER") vulnerable = power["amount"];
         }
-        EXPECT_EQ(state.player.shrink, shrink);
+        EXPECT_EQ(state.view().player.shrink, shrink);
         if (!combat["enemies"].empty()) {
             const auto& enemy = combat["creatures"]["enemy_0"];
-            EXPECT_EQ(state.enemy.hp, enemy["monster"]["current_hp"]);
-            EXPECT_EQ(state.enemy.block, enemy["block"]); EXPECT_EQ(state.enemy.vulnerable, vulnerable);
+            EXPECT_EQ(state.view().enemy.hp, enemy["monster"]["current_hp"]);
+            EXPECT_EQ(state.view().enemy.block, enemy["block"]); EXPECT_EQ(state.view().enemy.vulnerable, vulnerable);
             const std::array<std::string, 3> moves{"SHRINKER_MOVE", "CHOMP_MOVE", "STOMP_MOVE"};
-            EXPECT_EQ(moves[static_cast<std::size_t>(state.move)], enemy["monster"]["ai"]["current_state"]);
-        } else EXPECT_EQ(state.phase, Phase::combat_won);
+            EXPECT_EQ(moves[static_cast<std::size_t>(state.view().move)], enemy["monster"]["ai"]["current_state"]);
+        } else EXPECT_EQ(state.view().phase, Phase::combat_won);
         const std::array<std::string, 5> names{"Hand", "Draw", "Discard", "Exhaust", "Play"};
         for (std::size_t i = 0; i < names.size(); ++i) {
             std::vector<CardHandle> expected;
@@ -268,9 +282,9 @@ TEST(CombatMechanics, RecordedActionsMatchEveryModeledCheckpointIncludingShuffle
                 const auto ref = ref_json.get<std::string>();
                 expected.push_back(identities.at(ref.substr(ref.rfind('/') + 1)));
             }
-            EXPECT_EQ(state.zones[i], expected) << names[i];
+            EXPECT_EQ(state.view().zone_views()[i], expected) << names[i];
         }
-        const auto& rng = state.rng.get(RunStream::shuffle).state();
+        const auto& rng = state.view().rng.get(RunStream::shuffle).state();
         const auto& expected_rng = reference["rng"]["rngs"]["shuffle"];
         EXPECT_EQ(rng.counter, expected_rng["counter"]);
         for (unsigned i = 0; i < 4; ++i) EXPECT_EQ(rng.words[i], expected_rng["s" + std::to_string(i)]);
@@ -279,7 +293,7 @@ TEST(CombatMechanics, RecordedActionsMatchEveryModeledCheckpointIncludingShuffle
     std::size_t next_checkpoint = 0;
     for (const auto& entry : actions["actions"]) {
         const auto& action = entry["action"];
-        if (action["kind"] == "end_turn") EXPECT_EQ(Simulator{}.apply(state, {state.boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+        if (action["kind"] == "end_turn") EXPECT_EQ(Simulator{}.apply(state, {state.view().boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
         else {
             const auto h = identities.at(action["card_instance"].get<std::string>());
             EXPECT_NE(play(state, h, scratch).status, StepStatus::invalid_action);
@@ -291,7 +305,7 @@ TEST(CombatMechanics, RecordedActionsMatchEveryModeledCheckpointIncludingShuffle
         ASSERT_TRUE(valid_state(state));
     }
     EXPECT_EQ(next_checkpoint, states["transitions"].size());
-    EXPECT_EQ(state.phase, Phase::combat_won);
+    EXPECT_EQ(state.view().phase, Phase::combat_won);
 }
 TEST(CombatMechanics, SurvivorBoundariesAndPileOrderingMatchLiveNativeCases) {
     const auto fixture = file(KERNEL_SURVIVOR_FIXTURE);
@@ -307,19 +321,19 @@ TEST(CombatMechanics, SurvivorBoundariesAndPileOrderingMatchLiveNativeCases) {
         }
         auto check = [&](const Json& expected) {
             const auto& pc = expected["combat"]["players"][0];
-            EXPECT_EQ(s.energy, pc["energy"]);
-            EXPECT_EQ(s.player.block, expected["combat"]["creatures"]["player_0"]["block"]);
-            EXPECT_EQ(s.clock.now_seconds(), expected["save_time"]); EXPECT_EQ(s.clock.elapsed_seconds(), expected["run_time"]);
+            EXPECT_EQ(s.view().energy, pc["energy"]);
+            EXPECT_EQ(s.view().player.block, expected["combat"]["creatures"]["player_0"]["block"]);
+            EXPECT_EQ(s.view().clock.now_seconds(), expected["save_time"]); EXPECT_EQ(s.view().clock.elapsed_seconds(), expected["run_time"]);
             const std::array<std::string, 5> names{"Hand", "Draw", "Discard", "Exhaust", "Play"};
             for (std::size_t i = 0; i < names.size(); ++i) {
                 std::vector<CardHandle> zone;
                 for (const auto& value : pc["piles"][names[i]]) {
                     const auto ref = value.get<std::string>(); zone.push_back(ids.at(ref.substr(ref.rfind('/') + 1)));
                 }
-                EXPECT_EQ(s.zones[i], zone) << names[i];
+                EXPECT_EQ(s.view().zone_views()[i], zone) << names[i];
             }
-            EXPECT_EQ(s.phase == Phase::discard_choice, !expected["pending_choice"].is_null());
-            const auto& native = expected["rng"]["rngs"]["shuffle"]; const auto& rng = s.rng.get(RunStream::shuffle).state();
+            EXPECT_EQ(s.view().phase == Phase::discard_choice, !expected["pending_choice"].is_null());
+            const auto& native = expected["rng"]["rngs"]["shuffle"]; const auto& rng = s.view().rng.get(RunStream::shuffle).state();
             EXPECT_EQ(rng.counter, native["counter"]);
             for (unsigned i = 0; i < 4; ++i) EXPECT_EQ(rng.words[i], native["s" + std::to_string(i)]);
         };
@@ -330,7 +344,7 @@ TEST(CombatMechanics, SurvivorBoundariesAndPileOrderingMatchLiveNativeCases) {
             State clone; clone_into(clone, s);
             const auto saved = checkpoint(s);
             State resumed; ASSERT_EQ(restore(resumed, saved.bytes, scratch), RestoreStatus::restored);
-            const Input input{s.boundary, InputKind::select_card, ids.at(scenario["selection"].get<std::string>())};
+            const Input input{s.view().boundary, InputKind::select_card, ids.at(scenario["selection"].get<std::string>())};
             for (auto* state : {&s, &clone, &resumed}) EXPECT_EQ(Simulator{}.apply(*state, input, scratch).status, StepStatus::awaiting_input);
             EXPECT_EQ(s, clone); EXPECT_EQ(s, resumed); check(scenario["states"][2]);
         }
@@ -339,7 +353,7 @@ TEST(CombatMechanics, SurvivorBoundariesAndPileOrderingMatchLiveNativeCases) {
 TEST(Engine, RandomizedActionsClonesAndCodecPreserveEveryStateField) {
     GameRng choices(83741); State s = initial(); Scratch scratch;
     for (unsigned step = 0; step < 1500; ++step) {
-        if (s.phase == Phase::combat_won || s.phase == Phase::player_died) s = initial();
+        if (s.view().phase == Phase::combat_won || s.view().phase == Phase::player_died) s = initial();
         ActionSpaceView space(s);
         std::int32_t index; ASSERT_TRUE(choices.next_int(0, static_cast<int>(space.size()), index));
         auto input = space.at(static_cast<std::size_t>(index))->input;
@@ -373,8 +387,8 @@ TEST(Engine, WorkersShareOnlyImmutableRulesAndProduceIdenticalCompleteStates) {
     const auto source = initial();
     auto run = [&source] {
         State state; clone_into(state, source); Scratch scratch; Simulator simulator;
-        while (state.phase == Phase::play) {
-            const auto r = simulator.apply(state, {state.boundary, InputKind::end_turn}, scratch);
+        while (state.view().phase == Phase::play) {
+            const auto r = simulator.apply(state, {state.view().boundary, InputKind::end_turn}, scratch);
             if (r.status == StepStatus::engine_error) throw std::runtime_error("worker transition failed");
         }
         return checkpoint(state).bytes;
@@ -388,8 +402,8 @@ TEST(Engine, LargeDeckUsesCheckedGrowthWithoutTruncation) {
     std::vector<CardSpec> deck(100, {CardId::defend}); CombatConfig config; config.deck = deck;
     auto s = initial(config); Scratch scratch;
     EXPECT_EQ(s.zone(Zone::draw).size(), 95u);
-    for (unsigned i = 0; i < 22 && s.phase == Phase::play; ++i) {
-        const auto r = Simulator{}.apply(s, {s.boundary, InputKind::end_turn}, scratch);
+    for (unsigned i = 0; i < 22 && s.view().phase == Phase::play; ++i) {
+        const auto r = Simulator{}.apply(s, {s.view().boundary, InputKind::end_turn}, scratch);
         EXPECT_NE(r.status, StepStatus::engine_error); EXPECT_TRUE(valid_state(s));
     }
     State copy; ASSERT_EQ(restore(copy, checkpoint(s).bytes, scratch), RestoreStatus::restored);

@@ -67,6 +67,9 @@ if(BUILD_TESTING OR STS2_BUILD_PARITY_TOOLS)
     "${PARITY_SCHEMA_DIR}/states-v1.json"
     "${PARITY_SCHEMA_DIR}/journal-v1.json")
   file(READ "${PARITY_SCHEMA_DIR}/run-parity-v1.schema.json" RUN_PARITY_SCHEMA)
+  file(READ "${PARITY_SCHEMA_DIR}/run-parity-v2.schema.json" GAMEPLAY_PARITY_SCHEMA)
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${PARITY_SCHEMA_DIR}/run-parity-v2.schema.json")
   file(READ "${PARITY_SCHEMA_DIR}/serializable-run-v20.schema.json" NATIVE_RUN_SCHEMA)
   file(READ "${PARITY_SCHEMA_DIR}/actions-v1.json" ACTIONS_SCHEMA)
   file(READ "${PARITY_SCHEMA_DIR}/states-v1.json" STATES_SCHEMA)
@@ -115,7 +118,7 @@ if(BUILD_TESTING)
   target_link_libraries(simulator_test PRIVATE sts2_simulator GTest::gtest_main)
   add_executable(inline_storage_test tests/unit/inline_storage_test.cpp)
   target_link_libraries(inline_storage_test PRIVATE sts2_kernel GTest::gtest_main)
-  add_executable(engine_test tests/unit/engine_test.cpp tests/unit/map_test.cpp tests/unit/setup_test.cpp tests/unit/run_test.cpp tests/parity/seeded_run_test.cpp)
+  add_executable(engine_test tests/unit/engine_test.cpp tests/unit/map_test.cpp tests/unit/setup_test.cpp tests/unit/run_test.cpp tests/unit/state_clone_test.cpp tests/parity/seeded_run_test.cpp)
   target_link_libraries(engine_test PRIVATE sts2_integration sts2_parity nlohmann_json::nlohmann_json GTest::gtest_main)
   target_compile_definitions(engine_test PRIVATE
     KERNEL_SEEDED_SETUP_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/seeded-setup-v1.json"

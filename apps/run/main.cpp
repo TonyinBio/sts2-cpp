@@ -19,7 +19,7 @@ int main() {
                     continue;
                 }
             } else if (command != "snapshot") throw std::invalid_argument("Expected start, action, or snapshot command");
-            std::cout << Json{{"ok", true}, {"boundary", session.state().boundary.value}, {"state", session.snapshot()}}.dump() << '\n';
+            std::cout << Json{{"ok", true}, {"boundary", session.state().view().boundary.value}, {"state", session.snapshot()}}.dump() << '\n';
         } catch (const std::exception& error) {
             std::cout << Json{{"ok", false}, {"error", error.what()}}.dump() << '\n';
         }

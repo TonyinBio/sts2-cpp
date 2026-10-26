@@ -14,10 +14,12 @@
 
 namespace sts2::engine {
 inline constexpr std::uint32_t no_overflow = UINT32_MAX;
+enum class CloneStatus : std::uint8_t { cloned, resource_limit };
 
 // Allocation is an operational boundary, not a polymorphic state object. The
 // optional context must outlive the owner. These callbacks also let tests inject
 // failure without changing the representation or the production clone path.
+// allocate may throw std::bad_alloc; deallocate must not throw.
 struct StorageAllocator {
     void* context = nullptr;
     void* (*allocate)(void*, std::size_t, std::size_t) = [](void*, std::size_t bytes, std::size_t alignment) -> void* {
@@ -35,6 +37,8 @@ struct StorageAllocator {
 // use the same failure boundary as the separately allocated collection blocks.
 template<class T> struct OverflowAllocator {
     using value_type = T;
+    using propagate_on_container_move_assignment = std::true_type;
+    using propagate_on_container_swap = std::true_type;
     StorageAllocator storage;
     OverflowAllocator(StorageAllocator allocator = {}) noexcept : storage(allocator) {}
     template<class U> OverflowAllocator(const OverflowAllocator<U>& other) noexcept : storage(other.storage) {}
@@ -57,8 +61,16 @@ public:
         : blocks_(OverflowAllocator<Block>(allocator)) {}
     OverflowStorage(const OverflowStorage&) = delete;
     OverflowStorage& operator=(const OverflowStorage&) = delete;
+    OverflowStorage(OverflowStorage&&) noexcept = default;
+    OverflowStorage& operator=(OverflowStorage&&) noexcept = default;
+    void swap(OverflowStorage& other) noexcept { blocks_.swap(other.blocks_); }
 
     [[nodiscard]] bool empty() const noexcept { return blocks_.empty(); }
+    [[nodiscard]] std::size_t block_count() const noexcept { return blocks_.size(); }
+    template<class T> [[nodiscard]] bool contains(std::uint32_t id, std::size_t count) const noexcept {
+        return id < blocks_.size() && blocks_[id].alignment == alignof(T) &&
+            blocks_[id].bytes % sizeof(T) == 0 && count <= blocks_[id].bytes / sizeof(T);
+    }
     [[nodiscard]] StorageAllocator allocator() const noexcept { return blocks_.get_allocator().storage; }
     [[nodiscard]] std::size_t retained_bytes() const noexcept {
         std::size_t bytes = blocks_.capacity() * sizeof(Block);
@@ -153,6 +165,9 @@ template<class T, std::size_t InlineCapacity> struct InlineSequence {
     [[nodiscard]] bool overflowed() const noexcept { return overflow_id != no_overflow; }
     [[nodiscard]] std::size_t size() const noexcept { return count; }
     [[nodiscard]] bool empty() const noexcept { return count == 0; }
+    [[nodiscard]] bool valid(const OverflowStorage& owner) const noexcept {
+        return overflowed() ? owner.contains<T>(overflow_id, count) : count <= InlineCapacity;
+    }
     [[nodiscard]] std::span<T> values(OverflowStorage& owner) noexcept {
         return {overflowed() ? owner.data<T>(overflow_id) : inline_values.data(), count};
     }
@@ -185,6 +200,26 @@ template<class T, std::size_t InlineCapacity> struct InlineSequence {
         return std::ranges::equal(values(owner), other.values(other_owner));
     }
 };
+
+// The record enumerates its authoritative sequences for storage validation.
+// Ownership cloning does not use that list: it copies every owned block. An
+// omitted new overflow-bearing history therefore fails validation rather than
+// silently qualifying for a fast clone with missing ownership.
+template<class Record> bool valid_record_storage(const Record& record, const OverflowStorage& owner) noexcept {
+    bool valid = true;
+    std::size_t overflow_count = 0;
+    record.for_each_sequence([&](const auto& sequence) {
+        if (!sequence.valid(owner)) valid = false;
+        if (!sequence.overflowed()) return;
+        ++overflow_count;
+        std::size_t references = 0;
+        record.for_each_sequence([&](const auto& other) {
+            if (other.overflowed() && other.overflow_id == sequence.overflow_id) ++references;
+        });
+        if (references != 1) valid = false;
+    });
+    return valid && overflow_count == owner.block_count();
+}
 
 // The record contains all authoritative scalars and inline collections; optional
 // heap ownership stays outside its memcpy image. Persistence must encode semantic

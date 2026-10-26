@@ -11,6 +11,39 @@ TEST(RunParityFormat, AcceptsExampleAndMatchesIdenticalState) {
     const auto value = parse(example());
     EXPECT_TRUE(compare(value, value).empty());
 }
+TEST(RunParityFormat, RevisedGameplaySurfaceRemovesOnlyDeclaredDiagnosticFields) {
+    const auto historical = parse(example());
+    const auto revised = historical.gameplay_projection();
+    EXPECT_EQ(revised.json()["comparison_revision"], 2);
+    EXPECT_FALSE(revised.json().contains("map_point_history"));
+    EXPECT_TRUE(compare(historical, revised).empty());
+    auto changed = example();
+    changed["players"][0]["extra_fields"]["damage_dealt"] = 999;
+    EXPECT_FALSE(compare(historical, parse(changed)).empty()); // Historical v1/v1 stays exact.
+    EXPECT_TRUE(compare(revised, parse(changed)).empty());
+    changed["players"][0]["gold"] = 999;
+    const auto differences = compare(revised, parse(changed));
+    ASSERT_EQ(differences.size(), 1u);
+    EXPECT_EQ(differences[0].path, "/players/0/gold");
+    auto malformed = revised.json(); malformed["map_point_history"] = nullptr;
+    EXPECT_THROW(parse(malformed), std::invalid_argument);
+    malformed = revised.json(); malformed["players"][0]["extra_fields"]["damage_dealt"] = nullptr;
+    EXPECT_THROW(parse(malformed), std::invalid_argument);
+    malformed = revised.json(); malformed["rng"]["rngs"].erase("up_front");
+    EXPECT_FALSE(compare(revised, parse(malformed)).empty());
+}
+TEST(RunParityFormat, RevisedProjectionPreservesExactWireDecimalTokens) {
+    auto wire = example().dump();
+    const std::string key = "\"unknown_map_point_monster_odds_value\":0.1";
+    const auto position = wire.find(key);
+    ASSERT_NE(position, std::string::npos);
+    wire.replace(position, key.size(), "\"unknown_map_point_monster_odds_value\":0.10000000000000000000000001");
+    const auto exact = Snapshot::parse_text(wire);
+    const auto revised = exact.gameplay_projection();
+    EXPECT_EQ(revised.numbers().at("/odds/unknown_map_point_monster_odds_value"), exact.numbers().at("/odds/unknown_map_point_monster_odds_value"));
+    EXPECT_TRUE(compare(exact, revised).empty());
+    EXPECT_FALSE(compare(parse(example()), revised).empty());
+}
 TEST(RunParityFormat, PreservesRemovedMonsterWithNullAIThroughHistory) {
     auto value = example();
     value["combat"]["creatures"]["dead_slime"] = {

@@ -30,15 +30,64 @@ Json damage_result(const HitResult& h, bool target_enemy) {
         {"overkill_damage", h.overkill}, {"was_block_broken", h.block_broken}, {"was_fully_blocked", h.fully_blocked}, {"was_target_killed", h.killed}};
 }
 }
+namespace {
+void export_rewards(Json& out, ConstRunView run_view) {
+    if (run_view.rewards) {
+        const auto& rewards = *run_view.rewards;
+        auto saved_reward = [](const char* type, int gold = 0) {
+            return Json{{"card_pools", Json::array()}, {"custom_description_encounter_source_id", "NONE.NONE"}, {"gold_amount", gold},
+                {"option_count", 0}, {"predetermined_model_id", "NONE.NONE"}, {"rarity_odds", "none"}, {"reward_type", type},
+                {"source", "none"}, {"special_card", nullptr}, {"was_gold_stolen_back", false}};
+        };
+        auto entry = [](const char* kind, Json saved, bool taken) {
+            return Json{{"kind", kind}, {"saved", saved}, {"taken", taken}, {"cards", Json::array()}, {"relic", nullptr}, {"potion", nullptr}, {"can_skip", false}};
+        };
+        Json entries = Json::array({entry("GoldReward", saved_reward("gold", rewards.gold), rewards.gold_taken)});
+        if (rewards.potion != no_content) {
+            auto p = entry("PotionReward", saved_reward("potion"), rewards.potion_taken);
+            p["potion"] = {{"id", SetupRules::name(rewards.potion)}, {"slot_index", -1}}; entries.push_back(std::move(p));
+        }
+        auto cards = entry("CardReward", nullptr, rewards.card_taken); cards["can_skip"] = true;
+        auto saved_card = [](const PersistentCard& c, Json floor = nullptr) {
+            return Json{{"current_upgrade_level", c.upgrade}, {"enchantment", nullptr}, {"floor_added_to_deck", floor},
+                {"id", SetupRules::name(c.definition)}, {"props", nullptr}};
+        };
+        for (std::size_t i = 0; i < rewards.cards.size(); ++i) if (i != rewards.selected_card)
+            cards["cards"].push_back(saved_card(rewards.cards[i]));
+        entries.push_back(std::move(cards));
+        Json pending = nullptr, operations = Json::array();
+        if (!rewards.resolved) operations.push_back({{"kind", "offer_combat_rewards"}, {"index", nullptr}});
+        if (rewards.selecting_card) {
+            pending = {{"kind", "card_reward"}, {"cards", entries.back()["cards"]},
+                {"alternatives", Json::array({"CardRewardAlternative"})}, {"can_skip", true}};
+            operations.push_back({{"kind", "take_reward"}, {"index", rewards.potion == no_content ? 1 : 2}});
+        }
+        out["run_flow"] = {{"room", {{"kind", "combat_end"}}}, {"pending_choice", pending},
+            {"reward_sets", rewards.resolved ? Json::array() : Json::array({{{"rewards", entries}, {"can_skip", true}}})},
+            {"operations", operations}, {"combat_rewards_offered", true}};
+    }
+}
+}
 void export_native_combat(Json& out, const RunState& run) {
-    if (!run.combat) throw std::invalid_argument("Unsupported combat export context");
+    auto run_view = run.view();
+    if (!run_view.combat) {
+        const bool died = run_view.phase == RunPhase::complete;
+        out["current_room"] = {{"encounter_id", "ENCOUNTER.SHRINKER_BEETLE_WEAK"}, {"encounter_state", Json::object()}, {"event_id", nullptr},
+            {"extra_rewards", Json::object()}, {"is_pre_finished", !died}, {"parent_event_id", nullptr}, {"reward_proportion", 1}, {"room_type", "monster"}, {"should_resume_parent_event", true}};
+        out["run_flow"] = died ? Json(nullptr) : Json{{"room", {{"kind", "combat_end"}}}, {"pending_choice", nullptr},
+            {"reward_sets", Json::array()}, {"operations", Json::array()}, {"combat_rewards_offered", false}};
+        export_rewards(out, run_view);
+        if (died) { out["boundary_kind"] = "run_complete"; out["run_ending_reason"] = "death"; }
+        return;
+    }
     const auto map_room = out["current_room"], map_flow = out["run_flow"];
-    const auto& s = *run.combat;
+    const auto& s = *run_view.combat;
     const bool won = s.phase == Phase::combat_won, died = s.phase == Phase::player_died, terminal = won || died;
     const bool choosing = s.phase == Phase::discard_choice;
     Json piles = Json::object(); constexpr std::array<const char*, 5> zone_names{"Hand", "Draw", "Discard", "Exhaust", "Play"};
-    for (std::size_t i = 0; i < s.zones.size(); ++i) {
-        Json list = Json::array(); for (auto h : s.zones[i]) list.push_back(card_ref(h)); piles[zone_names[i]] = std::move(list);
+    const auto zones = s.zone_views();
+    for (std::size_t i = 0; i < zones.size(); ++i) {
+        Json list = Json::array(); for (auto h : zones[i]) list.push_back(card_ref(h)); piles[zone_names[i]] = std::move(list);
     }
     Json combat = {{"round_number", s.turn}, {"current_side", died ? "Enemy" : "Player"}, {"turn_control", {
         {"is_in_progress", !terminal}, {"is_starting", false}, {"is_enemy_turn_started", died},
@@ -63,20 +112,29 @@ void export_native_combat(Json& out, const RunState& run) {
         Json move_states = Json::object(), log = Json::array();
         for (unsigned i = 0; i < moves.size(); ++i) move_states[moves[i]] = {{"performed_at_least_once", died && i == static_cast<unsigned>(s.move)}, {"must_perform_once_before_transitioning", false}, {"follow_up_state", moves[i == 1 ? 2 : 1]}};
         for (int turn = 1; turn <= s.turn; ++turn) log.push_back(moves[turn == 1 ? 0 : (turn % 2 == 0 ? 1 : 2)]);
-        const auto& map = *run.maps[run.act_index]; const auto& coord = map.nodes[run.current];
-        const GameRng monster_rng(s.numeric_seed + static_cast<std::uint64_t>(coord.col + coord.row + run.act_index + 1));
+        const auto& map = *run_view.maps[run_view.act_index]; const auto& coord = map.nodes[run_view.current];
+        const GameRng monster_rng(s.numeric_seed + static_cast<std::uint64_t>(coord.col + coord.row + run_view.act_index + 1));
         e["monster"] = {{"id", "MONSTER.SHRINKER_BEETLE"}, {"current_hp", s.enemy.hp}, {"max_hp", s.enemy.max_hp},
             {"spawned_this_turn", s.turn == 1}, {"is_performing_move", false}, {"rng", random_state(monster_rng.state())},
             {"ai", {{"current_state", moves[static_cast<std::size_t>(s.move)]}, {"initial_state", moves[0]},
                 {"next_move", moves[static_cast<std::size_t>(s.move)]}, {"state_log", log}, {"performed_first_move", s.turn > 1}, {"move_states", move_states}}}, {"model_fields", Json::object()}};
         combat["creatures"]["enemy_0"] = std::move(e);
     }
+    if (won) for (std::size_t i = 0; i < run_view.setup.deck.size(); ++i) {
+        const auto& card = run_view.setup.deck[i];
+        CardId definition = CardId::count;
+        for (unsigned j = 0; j < static_cast<unsigned>(CardId::count); ++j)
+            if (Ruleset::pinned().card(static_cast<CardId>(j))->model_id == SetupRules::name(card.definition)) definition = static_cast<CardId>(j);
+        if (definition == CardId::count) throw std::invalid_argument("Unsupported terminal card preview");
+        out["native_model_state"]["/players/0/deck/" + std::to_string(i)] = {{"model_fields", Json::object()},
+            {"dynamic_vars", variables({definition, card.upgrade != 0})}};
+    }
     for (std::size_t i = 0; i < s.cards.slots().size(); ++i) {
         const auto& slot = s.cards.slots()[i]; if (!slot.live) continue;
         const auto& card = slot.value;
-        const auto linked = std::find_if(run.setup.deck.begin(), run.setup.deck.end(), [&](const auto& c) { return c.instance == card.deck_instance; });
-        const auto deck_index = card.deck_instance == UINT32_MAX ? card.creation_order : static_cast<std::uint32_t>(linked - run.setup.deck.begin());
-        if (deck_index >= run.setup.deck.size()) throw std::invalid_argument("Missing permanent card relationship");
+        const auto linked = std::find_if(run_view.setup.deck.begin(), run_view.setup.deck.end(), [&](const auto& c) { return c.instance == card.deck_instance; });
+        const auto deck_index = card.deck_instance == UINT32_MAX ? card.creation_order : static_cast<std::uint32_t>(linked - run_view.setup.deck.begin());
+        if (deck_index >= run_view.setup.deck.size()) throw std::invalid_argument("Missing permanent card relationship");
         const auto vars = variables(card);
         out["native_model_state"]["/players/0/deck/" + std::to_string(deck_index)] = {{"model_fields", Json::object()}, {"dynamic_vars", vars}};
         if (won) continue;
@@ -87,14 +145,14 @@ void export_native_combat(Json& out, const RunState& run) {
             {"dynamic_vars", vars}, {"energy_cost", {{"base", Ruleset::pinned().card(card.definition)->cost}, {"captured_x_value", 0}, {"local_modifiers", Json::array()}}},
             {"base_star_cost", -1}, {"temporary_star_costs", Json::array()}, {"last_stars_spent", 0}, {"affliction", nullptr}, {"enchantment_runtime", nullptr}, {"model_fields", Json::object()}};
     }
-    for (std::size_t i = 0; i < run.setup.relics.size(); ++i) {
-        const auto name = SetupRules::name(run.setup.relics[i]);
+    for (std::size_t i = 0; i < run_view.setup.relics.size(); ++i) {
+        const auto name = SetupRules::name(run_view.setup.relics[i]);
         const auto vars = name == "RELIC.BURNING_BLOOD" ? Json{{"Heal", 6}} : name == "RELIC.GOLDEN_PEARL" ? Json{{"Gold", 150}} : Json::object();
         out["native_model_state"]["/players/0/relics/" + std::to_string(i)] = {{"model_fields", Json::object()}, {"dynamic_vars", vars}};
     }
-    if (!terminal) for (std::size_t i = 0; i < run.setup.potions.size(); ++i) {
-        if (run.setup.potions[i] == no_content) continue;
-        if (SetupRules::name(run.setup.potions[i]) != "POTION.POTION_OF_BINDING") throw std::invalid_argument("Unsupported active potion metadata");
+    if (!terminal) for (std::size_t i = 0; i < run_view.setup.potions.size(); ++i) {
+        if (run_view.setup.potions[i] == no_content) continue;
+        if (SetupRules::name(run_view.setup.potions[i]) != "POTION.POTION_OF_BINDING") throw std::invalid_argument("Unsupported active potion metadata");
         out["native_model_state"]["/players/0/potions/" + std::to_string(i)] = {
             {"model_fields", Json::object()}, {"dynamic_vars", {{"VulnerablePower", 1}, {"WeakPower", 1}}}};
     }
@@ -143,67 +201,14 @@ void export_native_combat(Json& out, const RunState& run) {
     out["combat"] = std::move(combat); out["run_flow"] = nullptr;
     out["current_room"] = {{"encounter_id", "ENCOUNTER.SHRINKER_BEETLE_WEAK"}, {"encounter_state", Json::object()}, {"event_id", nullptr},
         {"extra_rewards", Json::object()}, {"is_pre_finished", won}, {"parent_event_id", nullptr}, {"reward_proportion", 1}, {"room_type", "monster"}, {"should_resume_parent_event", true}};
-    const auto history_index = run.direct_combat ? 0 : out["map_point_history"][0].size() - 1;
-    auto& stats = out["map_point_history"][0][history_index]["player_stats"][0];
-    stats["damage_taken"] = s.damage_taken; stats["hp_healed"] = (run.direct_combat ? run.initial_heal : 0) + s.healing;
-    auto& room = out["map_point_history"][0][history_index]["rooms"].back();
-    room["monster_ids"] = Json::array({"MONSTER.SHRINKER_BEETLE"}); room["turns_taken"] = (won || (!run.direct_combat && died)) ? s.turn : 0;
-    out["players"][0]["extra_fields"]["damage_dealt"] = s.damage_dealt;
-    out["players"][0]["extra_fields"]["debuffs_applied"] = s.debuffs_applied;
-    if (won || (!run.direct_combat && died)) out["players"][0]["discovered_enemies"].push_back("MONSTER.SHRINKER_BEETLE");
 
-    if (!run.direct_combat && terminal) {
+    if (!run_view.direct_combat && terminal) {
         out["combat"] = nullptr; out["native_model_state"] = Json::object();
         out["run_flow"] = died ? Json(nullptr) : Json{{"room", {{"kind", "combat_end"}}}, {"pending_choice", nullptr},
             {"reward_sets", Json::array()}, {"operations", Json::array()}, {"combat_rewards_offered", false}};
     }
-    if (run.rewards) {
-        const auto& rewards = *run.rewards;
-        auto saved_reward = [](const char* type, int gold = 0) {
-            return Json{{"card_pools", Json::array()}, {"custom_description_encounter_source_id", "NONE.NONE"}, {"gold_amount", gold},
-                {"option_count", 0}, {"predetermined_model_id", "NONE.NONE"}, {"rarity_odds", "none"}, {"reward_type", type},
-                {"source", "none"}, {"special_card", nullptr}, {"was_gold_stolen_back", false}};
-        };
-        auto entry = [](const char* kind, Json saved, bool taken) {
-            return Json{{"kind", kind}, {"saved", saved}, {"taken", taken}, {"cards", Json::array()}, {"relic", nullptr}, {"potion", nullptr}, {"can_skip", false}};
-        };
-        Json entries = Json::array({entry("GoldReward", saved_reward("gold", rewards.gold), rewards.gold_taken)});
-        if (rewards.potion != no_content) {
-            auto p = entry("PotionReward", saved_reward("potion"), rewards.potion_taken);
-            p["potion"] = {{"id", SetupRules::name(rewards.potion)}, {"slot_index", -1}}; entries.push_back(std::move(p));
-        }
-        auto cards = entry("CardReward", nullptr, rewards.card_taken); cards["can_skip"] = true;
-        auto saved_card = [](const PersistentCard& c, Json floor = nullptr) {
-            return Json{{"current_upgrade_level", c.upgrade}, {"enchantment", nullptr}, {"floor_added_to_deck", floor},
-                {"id", SetupRules::name(c.definition)}, {"props", nullptr}};
-        };
-        for (std::size_t i = 0; i < rewards.cards.size(); ++i) if (i != rewards.selected_card)
-            cards["cards"].push_back(saved_card(rewards.cards[i]));
-        entries.push_back(std::move(cards));
-        Json pending = nullptr, operations = Json::array();
-        if (!rewards.resolved) operations.push_back({{"kind", "offer_combat_rewards"}, {"index", nullptr}});
-        if (rewards.selecting_card) {
-            pending = {{"kind", "card_reward"}, {"cards", entries.back()["cards"]},
-                {"alternatives", Json::array({"CardRewardAlternative"})}, {"can_skip", true}};
-            operations.push_back({{"kind", "take_reward"}, {"index", rewards.potion == no_content ? 1 : 2}});
-        }
-        out["run_flow"] = {{"room", {{"kind", "combat_end"}}}, {"pending_choice", pending},
-            {"reward_sets", rewards.resolved ? Json::array() : Json::array({{{"rewards", entries}, {"can_skip", true}}})},
-            {"operations", operations}, {"combat_rewards_offered", true}};
-        stats["gold_gained"] = rewards.gold_taken ? rewards.gold : 0;
-        if (rewards.potion_taken || (rewards.skipped && rewards.potion != no_content))
-            stats["potion_choices"].push_back({{"choice", SetupRules::name(rewards.potion)}, {"was_picked", rewards.potion_taken}});
-        if (rewards.potion_taken) out["players"][0]["discovered_potions"].push_back(SetupRules::name(rewards.potion));
-        for (auto potion : run.discarded_potions) stats["potion_discarded"].push_back(SetupRules::name(potion));
-        if (rewards.selected_card != UINT8_MAX) {
-            const auto& selected = rewards.cards[rewards.selected_card];
-            stats["cards_gained"].push_back(saved_card(selected));
-            stats["card_choices"].push_back({{"card", saved_card(selected, run.visited.size())}, {"was_picked", true}});
-        }
-        if (rewards.card_taken || rewards.skipped) for (std::size_t i = 0; i < rewards.cards.size(); ++i)
-            if (i != rewards.selected_card) stats["card_choices"].push_back({{"card", saved_card(rewards.cards[i])}, {"was_picked", false}});
-    }
-    if (run.phase == RunPhase::map) {
+    export_rewards(out, run_view);
+    if (run_view.phase == RunPhase::map) {
         out["current_room"] = map_room; out["run_flow"] = map_flow; out["combat"] = nullptr; out["native_model_state"] = Json::object(); out["pending_choice"] = nullptr;
     }
     if (died) { out["boundary_kind"] = "run_complete"; out["run_ending_reason"] = "death"; }

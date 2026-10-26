@@ -10,7 +10,7 @@ PlayerRngBank::PlayerRngBank(std::string_view seed) noexcept {
     for (std::size_t i = 0; i < streams.size(); ++i) streams[i] = GameRng(game_hash(seed) + game_hash(names[i]));
 }
 namespace {
-void populate(RelicBag& bag, std::span<const RelicEntry> shared, std::span<const RelicEntry> local, bool filter, GameRng& rng) {
+void populate(RelicBag bag, std::span<const RelicEntry> shared, std::span<const RelicEntry> local, bool filter, GameRng& rng) {
     auto add = [&](auto pool) {
         for (const auto& relic : pool) {
             const auto tier = static_cast<std::size_t>(relic.tier);
@@ -32,7 +32,7 @@ ContentId select(std::span<const EncounterEntry> values, GameRng& rng, ContentId
     for (const auto& value : values) if (value.id != excluded) ids.push_back(value.id);
     return select(ids, rng);
 }
-void fill_encounters(std::vector<ContentId>& output, std::span<const EncounterEntry> definitions, std::size_t target, GameRng& rng,
+void fill_encounters(SequenceView<ContentId, 32> output, std::span<const EncounterEntry> definitions, std::size_t target, GameRng& rng,
                      std::uint64_t& previous_tags) {
     std::vector<EncounterEntry> bag;
     while (output.size() < target) {
@@ -53,7 +53,7 @@ void fill_encounters(std::vector<ContentId>& output, std::span<const EncounterEn
     }
 }
 }
-StepResult initialize_setup(SetupState& destination, const SeededConfig& config) {
+StepResult initialize_setup(SetupView destination, const SeededConfig& config) {
     RunClock clock;
     const auto* character = SetupRules::character(SetupRules::find(config.character));
     std::array<const ActDefinition*, 3> definitions{};
@@ -65,24 +65,24 @@ StepResult initialize_setup(SetupState& destination, const SeededConfig& config)
         if (!definitions[i] || definitions[i]->index != i) return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
     }
     try {
-        SetupState state; state.seed = config.seed; state.numeric_seed = game_seed(config.seed);
-        state.character = character->id; state.ascension = config.ascension;
-        state.hp = state.max_hp = character->hp; state.gold = character->gold; state.orb_slots = character->orb_slots;
-        state.potion_slots = config.ascension >= 4 ? 2 : 3;
-        state.rng = RngBank(config.seed); state.player_rng = PlayerRngBank(config.seed);
-        for (auto id : character->deck) state.deck.push_back({id, static_cast<std::uint32_t>(state.deck.size()), 0, 1});
-        if (config.ascension >= 5) state.deck.push_back({SetupRules::find("CARD.ASCENDERS_BANE"), static_cast<std::uint32_t>(state.deck.size()), 0, 1});
-        state.relics.assign(character->relics.begin(), character->relics.end());
-        auto& rng = state.rng.get(RunStream::up_front);
-        populate(state.shared_relics, SetupRules::shared_relics(), {}, false, rng);
-        populate(state.player_relics, SetupRules::shared_relics(), character->relic_pool, true, rng);
+        SetupState state(destination.overflow.allocator()); auto state_view = state.view(); state_view.seed = config.seed; state_view.numeric_seed = game_seed(config.seed);
+        state_view.character = character->id; state_view.ascension = config.ascension;
+        state_view.hp = state_view.max_hp = character->hp; state_view.gold = character->gold; state_view.orb_slots = character->orb_slots;
+        state_view.potion_slots = config.ascension >= 4 ? 2 : 3;
+        state_view.rng = RngBank(config.seed); state_view.player_rng = PlayerRngBank(config.seed);
+        for (auto id : character->deck) state_view.deck.push_back({id, static_cast<std::uint32_t>(state_view.deck.size()), 0, 1});
+        if (config.ascension >= 5) state_view.deck.push_back({SetupRules::find("CARD.ASCENDERS_BANE"), static_cast<std::uint32_t>(state_view.deck.size()), 0, 1});
+        state_view.relics.assign(character->relics.begin(), character->relics.end());
+        auto& rng = state_view.rng.get(RunStream::up_front);
+        populate(state_view.shared_relics, SetupRules::shared_relics(), {}, false, rng);
+        populate(state_view.player_relics, SetupRules::shared_relics(), character->relic_pool, true, rng);
         std::vector<ContentId> shared(SetupRules::shared_ancients().begin(), SetupRules::shared_ancients().end()); rng.shuffle<ContentId>(shared);
-        for (std::size_t i = 1; i < state.acts.size(); ++i) {
+        for (std::size_t i = 1; i < state_view.acts.size(); ++i) {
             int count; (void)rng.next_int(0, static_cast<int>(shared.size() + 1), count);
-            state.acts[i].shared_ancients.assign(shared.begin(), shared.begin() + count); shared.erase(shared.begin(), shared.begin() + count);
+            state_view.acts[i].shared_ancients.assign(shared.begin(), shared.begin() + count); shared.erase(shared.begin(), shared.begin() + count);
         }
-        for (std::size_t i = 0; i < state.acts.size(); ++i) {
-            auto& act = state.acts[i]; const auto& def = *definitions[i]; act.act = def.id;
+        for (std::size_t i = 0; i < state_view.acts.size(); ++i) {
+            auto act = state_view.acts[i]; const auto& def = *definitions[i]; act.act = def.id;
             act.events.assign(def.events.begin(), def.events.end());
             act.events.insert(act.events.end(), SetupRules::shared_events().begin(), SetupRules::shared_events().end());
             rng.shuffle<ContentId>(act.events);
@@ -94,9 +94,9 @@ StepResult initialize_setup(SetupState& destination, const SeededConfig& config)
             std::vector<ContentId> ancients(def.ancients.begin(), def.ancients.end());
             ancients.insert(ancients.end(), act.shared_ancients.begin(), act.shared_ancients.end());
             act.ancient = select(ancients, rng);
-            if (i == state.acts.size() - 1 && config.ascension >= 10) act.second_boss = select(def.bosses, rng, act.boss);
+            if (i == state_view.acts.size() - 1 && config.ascension >= 10) act.second_boss = select(def.bosses, rng, act.boss);
         }
-        destination = std::move(state);
+        destination.replace(std::move(state));
         return {StepStatus::awaiting_input, {1}};
     } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, {}, Restriction::capacity}; }
     catch (...) { return {StepStatus::engine_error, {}, Restriction::execution_budget}; }

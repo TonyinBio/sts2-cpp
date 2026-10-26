@@ -2,6 +2,7 @@
 #include <string_view>
 namespace sts2::parity {
 inline constexpr std::string_view run_parity_schema = R"schema(@RUN_PARITY_SCHEMA@)schema";
+inline constexpr std::string_view gameplay_parity_schema = R"schema(@GAMEPLAY_PARITY_SCHEMA@)schema";
 inline constexpr std::string_view native_run_schema = R"schema(@NATIVE_RUN_SCHEMA@)schema";
 inline constexpr std::string_view actions_schema = R"schema(@ACTIONS_SCHEMA@)schema";
 inline constexpr std::string_view states_schema = R"schema(@STATES_SCHEMA@)schema";

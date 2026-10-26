@@ -12,9 +12,10 @@ std::optional<std::int32_t> card_cost(std::string_view model) {
     return std::nullopt;
 }
 bool forced(const RunState& state) {
-    return state.phase == RunPhase::neow_done ||
-        (state.phase == RunPhase::combat_done && !state.direct_combat) ||
-        (state.phase == RunPhase::rewards && state.rewards && state.rewards->resolved);
+    auto state_view = state.view();
+    return state_view.phase == RunPhase::neow_done ||
+        (state_view.phase == RunPhase::combat_done && !state_view.direct_combat) ||
+        (state_view.phase == RunPhase::rewards && state_view.rewards && state_view.rewards->resolved);
 }
 bool canonical(const RunInput& input) {
     if (input.kind > RunInputKind::discard_potion) return false;
@@ -25,30 +26,32 @@ bool canonical(const RunInput& input) {
     return true;
 }
 StepResult submit(RunState& state, const PlayerInput& input, Scratch& scratch) {
+    auto state_view = state.view();
     if (const auto* run = std::get_if<RunInput>(&input)) {
-        if (run->expected_boundary != state.boundary) return {StepStatus::invalid_action, state.boundary, Restriction::stale_boundary};
-        if (!canonical(*run)) return {StepStatus::invalid_action, state.boundary, Restriction::malformed_action};
-        if (run->kind == RunInputKind::proceed || forced(state)) return {StepStatus::invalid_action, state.boundary, Restriction::wrong_phase};
+        if (run->expected_boundary != state_view.boundary) return {StepStatus::invalid_action, state_view.boundary, Restriction::stale_boundary};
+        if (!canonical(*run)) return {StepStatus::invalid_action, state_view.boundary, Restriction::malformed_action};
+        if (run->kind == RunInputKind::proceed || forced(state)) return {StepStatus::invalid_action, state_view.boundary, Restriction::wrong_phase};
         return apply_run(state, *run);
     }
     return apply_combat(state, std::get<Input>(input), scratch);
 }
 }
 RunObservation observe(const RunState& state) {
+    auto state_view = state.view();
     RunObservation view{};
-    view.boundary = state.boundary; view.phase = state.phase;
-    view.valid = state.phase != RunPhase::invalid && state.phase != RunPhase::uninitialized;
+    view.boundary = state_view.boundary; view.phase = state_view.phase;
+    view.valid = state_view.phase != RunPhase::invalid && state_view.phase != RunPhase::uninitialized;
     if (!view.valid) return view;
-    view.character = SetupRules::name(state.setup.character); view.seed = state.setup.seed;
-    view.ascension = state.setup.ascension; view.act = state.act_index + 1;
-    view.hp = state.setup.hp; view.max_hp = state.setup.max_hp; view.gold = state.setup.gold;
-    view.potion_capacity = state.setup.potion_slots;
-    for (const auto& card : state.setup.deck) view.deck.push_back({card.instance, SetupRules::name(card.definition), card.upgrade, card_cost(SetupRules::name(card.definition))});
-    for (std::size_t i = 0; i < state.setup.relics.size(); ++i) view.relics.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state.setup.relics[i])});
-    for (std::size_t i = 0; i < state.setup.potions.size(); ++i) view.potions.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state.setup.potions[i])});
-    if (state.phase == RunPhase::neow)
-        for (std::size_t i = 0; i < state.neow_options.size(); ++i) view.options.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state.neow_options[i])});
-    switch (state.phase) {
+    view.character = SetupRules::name(state_view.setup.character); view.seed = state_view.setup.seed;
+    view.ascension = state_view.setup.ascension; view.act = state_view.act_index + 1;
+    view.hp = state_view.setup.hp; view.max_hp = state_view.setup.max_hp; view.gold = state_view.setup.gold;
+    view.potion_capacity = state_view.setup.potion_slots;
+    for (const auto& card : state_view.setup.deck) view.deck.push_back({card.instance, SetupRules::name(card.definition), card.upgrade, card_cost(SetupRules::name(card.definition))});
+    for (std::size_t i = 0; i < state_view.setup.relics.size(); ++i) view.relics.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state_view.setup.relics[i])});
+    for (std::size_t i = 0; i < state_view.setup.potions.size(); ++i) view.potions.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state_view.setup.potions[i])});
+    if (state_view.phase == RunPhase::neow)
+        for (std::size_t i = 0; i < state_view.neow_options.size(); ++i) view.options.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state_view.neow_options[i])});
+    switch (state_view.phase) {
     case RunPhase::neow: view.prompt = PublicPrompt::neow; break;
     case RunPhase::map: view.prompt = PublicPrompt::map; break;
     case RunPhase::combat: view.prompt = PublicPrompt::combat; break;
@@ -56,8 +59,8 @@ RunObservation observe(const RunState& state) {
     default: break;
     }
     // Only the generated current map is public. No room assignment or RNG fields.
-    if (state.maps[state.act_index]) {
-        const auto& map = *state.maps[state.act_index];
+    if (state_view.maps[state_view.act_index]) {
+        const auto& map = *state_view.maps[state_view.act_index];
         auto nodes = map.points();
         nodes.insert(nodes.begin(), map.start);
         if (map.boss != no_node) nodes.push_back(map.boss);
@@ -65,13 +68,13 @@ RunObservation observe(const RunState& state) {
         for (const auto id : nodes) {
             const auto& node = map.nodes[id];
             view.map.push_back({id, node.col, node.row, node.kind, node.children.values(),
-                std::find(state.visited.begin(), state.visited.end(), id) != state.visited.end(),
-                id == state.current, state.phase == RunPhase::map && map.nodes[state.current].children.contains(id)});
+                std::find(state_view.visited.begin(), state_view.visited.end(), id) != state_view.visited.end(),
+                id == state_view.current, state_view.phase == RunPhase::map && map.nodes[state_view.current].children.contains(id)});
         }
-        view.path = state.visited;
+        view.path.assign(state_view.visited.begin(), state_view.visited.end());
     }
-    if (state.phase == RunPhase::rewards && state.rewards) {
-        const auto& rewards = *state.rewards;
+    if (state_view.phase == RunPhase::rewards && state_view.rewards) {
+        const auto& rewards = *state_view.rewards;
         view.selecting_reward_card = rewards.selecting_card;
         view.can_skip_rewards = !rewards.selecting_card && !rewards.resolved;
         view.can_skip_card_reward = rewards.selecting_card;
@@ -85,18 +88,18 @@ RunObservation observe(const RunState& state) {
         if (rewards.selecting_card)
             for (std::size_t i = 0; i < rewards.cards.size(); ++i) view.reward_cards.push_back({static_cast<std::uint32_t>(i), SetupRules::name(rewards.cards[i].definition), rewards.cards[i].upgrade, card_cost(SetupRules::name(rewards.cards[i].definition))});
     }
-    if (state.phase == RunPhase::combat && state.combat) {
-        view.combat = observe(*state.combat);
+    if (state_view.phase == RunPhase::combat && state_view.combat) {
+        view.combat = observe(*state_view.combat);
         for (auto handle : view.combat->hand) {
-            if (auto card = observe_card(*state.combat, handle)) view.hand_cards.push_back(*card);
+            if (auto card = observe_card(*state_view.combat, handle)) view.hand_cards.push_back(*card);
         }
-        if (state.combat->phase == Phase::discard_choice) {
+        if (state_view.combat->phase == Phase::discard_choice) {
             view.prompt = PublicPrompt::discard;
             view.minimum_selection = view.maximum_selection = 1;
         }
         const auto project_pile = [&](Zone zone, std::vector<CardView>& pile) {
-            for (const auto handle : state.combat->zone(zone))
-                if (const auto card = inspect_card(*state.combat, handle)) pile.push_back(*card);
+            for (const auto handle : state_view.combat->zone(zone))
+                if (const auto card = inspect_card(*state_view.combat, handle)) pile.push_back(*card);
         };
         project_pile(Zone::draw, view.draw); project_pile(Zone::discard, view.discard); project_pile(Zone::exhaust, view.exhaust);
         // NCardPileScreen: raw rarity then ordinal model entry. All four
@@ -107,13 +110,14 @@ RunObservation observe(const RunState& state) {
     return view;
 }
 Restriction validate_player(const RunState& state, const PlayerInput& input) {
+    auto state_view = state.view();
     if (const auto* run = std::get_if<RunInput>(&input); run && run->kind == RunInputKind::travel) {
-        if (run->expected_boundary != state.boundary) return Restriction::stale_boundary;
+        if (run->expected_boundary != state_view.boundary) return Restriction::stale_boundary;
         if (!canonical(*run)) return Restriction::malformed_action;
-        if (state.phase != RunPhase::map) return Restriction::wrong_phase;
-        const auto& map = *state.maps[state.act_index];
+        if (state_view.phase != RunPhase::map) return Restriction::wrong_phase;
+        const auto& map = *state_view.maps[state_view.act_index];
         const auto destination = map.at(run->col, run->row);
-        if (destination == no_node || !map.nodes[state.current].children.contains(destination)) return Restriction::invalid_selection;
+        if (destination == no_node || !map.nodes[state_view.current].children.contains(destination)) return Restriction::invalid_selection;
         // Encounter assignments are hidden until entry. Public validation
         // reports visible legality; execution checks capability before mutation.
         return Restriction::none;
@@ -124,18 +128,19 @@ Restriction validate_player(const RunState& state, const PlayerInput& input) {
     return submit(candidate, input, scratch).reason;
 }
 std::vector<PlayerAction> actions(const RunState& state) {
+    auto state_view = state.view();
     std::vector<PlayerAction> result;
     const auto add = [&](RunInputKind kind, std::uint32_t option = 0, int col = 0, int row = 0) {
-        PlayerInput input = RunInput{state.boundary, kind, option, col, row};
+        PlayerInput input = RunInput{state_view.boundary, kind, option, col, row};
         result.push_back({input, validate_player(state, input)});
     };
-    if (state.phase == RunPhase::neow) {
-        for (std::uint32_t i = 0; i < state.neow_options.size(); ++i) add(RunInputKind::choose_option, i);
-    } else if (state.phase == RunPhase::map) {
-        const auto& map = *state.maps[state.act_index];
-        for (auto id : map.nodes[state.current].children.values()) add(RunInputKind::travel, 0, map.nodes[id].col, map.nodes[id].row);
-    } else if (state.phase == RunPhase::rewards && state.rewards && !state.rewards->resolved) {
-        const auto& rewards = *state.rewards;
+    if (state_view.phase == RunPhase::neow) {
+        for (std::uint32_t i = 0; i < state_view.neow_options.size(); ++i) add(RunInputKind::choose_option, i);
+    } else if (state_view.phase == RunPhase::map) {
+        const auto& map = *state_view.maps[state_view.act_index];
+        for (auto id : map.nodes[state_view.current].children.values()) add(RunInputKind::travel, 0, map.nodes[id].col, map.nodes[id].row);
+    } else if (state_view.phase == RunPhase::rewards && state_view.rewards && !state_view.rewards->resolved) {
+        const auto& rewards = *state_view.rewards;
         if (rewards.selecting_card) {
             for (std::uint32_t i = 0; i < rewards.cards.size(); ++i) add(RunInputKind::choose_reward_card, i);
             add(RunInputKind::reward_alternative);
@@ -145,32 +150,33 @@ std::vector<PlayerAction> actions(const RunState& state) {
             if (!rewards.card_taken) add(RunInputKind::take_reward, rewards.potion == no_content ? 1 : 2);
             add(RunInputKind::skip_rewards);
         }
-    } else if (state.phase == RunPhase::combat && state.combat) {
-        const ActionSpaceView combat(*state.combat);
+    } else if (state_view.phase == RunPhase::combat && state_view.combat) {
+        const ActionSpaceView combat(*state_view.combat);
         for (std::size_t i = 0; i < combat.size(); ++i) {
             const auto action = *combat.at(i); result.push_back({action.input, action.restriction});
         }
     }
-    if ((state.phase == RunPhase::map || state.phase == RunPhase::rewards) && !(state.rewards && state.rewards->selecting_card))
-        for (std::uint32_t i = 0; i < state.setup.potions.size(); ++i)
-            if (state.setup.potions[i] != no_content) add(RunInputKind::discard_potion, i);
+    if ((state_view.phase == RunPhase::map || state_view.phase == RunPhase::rewards) && !(state_view.rewards && state_view.rewards->selecting_card))
+        for (std::uint32_t i = 0; i < state_view.setup.potions.size(); ++i)
+            if (state_view.setup.potions[i] != no_content) add(RunInputKind::discard_potion, i);
     return result;
 }
 StepResult advance_player(RunState& state, Scratch&) {
+    auto state_view = state.view();
     while (forced(state)) {
-        const auto result = apply_run(state, {state.boundary, RunInputKind::proceed});
+        const auto result = apply_run(state, {state_view.boundary, RunInputKind::proceed});
         if (result.status != StepStatus::awaiting_input) {
             // The initiating player input has already executed. A missing
             // automatic capability cannot be published as a valid partial stop.
-            state.phase = RunPhase::invalid;
-            return {StepStatus::engine_error, state.boundary, result.reason};
+            state_view.phase = RunPhase::invalid;
+            return {StepStatus::engine_error, state_view.boundary, result.reason};
         }
     }
-    if (state.phase == RunPhase::invalid || state.phase == RunPhase::uninitialized)
-        return {StepStatus::engine_error, state.boundary, Restriction::invalid_state};
-    if (state.phase == RunPhase::complete) return {StepStatus::player_died, state.boundary};
-    if (state.phase == RunPhase::combat_done) return {StepStatus::combat_won, state.boundary};
-    return {StepStatus::awaiting_input, state.boundary};
+    if (state_view.phase == RunPhase::invalid || state_view.phase == RunPhase::uninitialized)
+        return {StepStatus::engine_error, state_view.boundary, Restriction::invalid_state};
+    if (state_view.phase == RunPhase::complete) return {StepStatus::player_died, state_view.boundary};
+    if (state_view.phase == RunPhase::combat_done) return {StepStatus::combat_won, state_view.boundary};
+    return {StepStatus::awaiting_input, state_view.boundary};
 }
 StepResult apply_player(RunState& state, const PlayerInput& input, Scratch& scratch) {
     const auto result = submit(state, input, scratch);

@@ -13,15 +13,14 @@ class Simulator {
 public:
     explicit Simulator(const Ruleset& rules = Ruleset::pinned(), Limits limits = {}) noexcept
         : rules_(rules), limits_(limits) {}
-    [[nodiscard]] StepResult initialize(State&, const CombatConfig&, Scratch&) const;
-    [[nodiscard]] StepResult advance(State&, Scratch&) const noexcept;
-    [[nodiscard]] StepResult apply(State&, const Input&, Scratch&) const noexcept;
-    [[nodiscard]] Restriction validate(const State&, const Input&) const noexcept;
+    [[nodiscard]] StepResult initialize(StateView, const CombatConfig&, Scratch&) const;
+    [[nodiscard]] StepResult advance(StateView, Scratch&) const noexcept;
+    [[nodiscard]] StepResult apply(StateView, const Input&, Scratch&) const noexcept;
+    [[nodiscard]] Restriction validate(ConstStateView, const Input&) const noexcept;
 private:
     const Ruleset& rules_;
     Limits limits_;
 };
 // Complete owning copy; all handles remain local to the destination's storage.
-void clone_into(State& destination, const State& source);
-[[nodiscard]] bool valid_state(const State&, const Ruleset& = Ruleset::pinned()) noexcept;
+[[nodiscard]] bool valid_state(ConstStateView, const Ruleset& = Ruleset::pinned()) noexcept;
 } // namespace sts2::engine

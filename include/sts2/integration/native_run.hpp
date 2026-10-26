@@ -3,7 +3,7 @@
 #include <nlohmann/json.hpp>
 
 namespace sts2::engine {
-// Privileged full native comparison export, not a public observation. Immutable
+// Privileged versioned gameplay comparison export, not a public observation. Immutable
 // canonical model defaults come from the audited rules, never expected states.
 class NativeRunExporter {
 public:

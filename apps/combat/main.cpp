@@ -41,8 +41,8 @@ int main(int argc, char** argv) try {
               << "Commands: play INDEX, end, select INDEX, save PATH, load PATH, quit\n";
     for (unsigned steps = 0; steps < 10000; ++steps) {
         display(state);
-        if (state.phase == Phase::combat_won || state.phase == Phase::player_died) return 0;
-        Input input{state.boundary, InputKind::end_turn};
+        if (state.view().phase == Phase::combat_won || state.view().phase == Phase::player_died) return 0;
+        Input input{state.view().boundary, InputKind::end_turn};
         if (autoplay) {
             ActionSpaceView actions(state);
             // Prefer damage, then any playable card. This is a fixed example

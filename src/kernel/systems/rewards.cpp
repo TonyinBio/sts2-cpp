@@ -12,7 +12,7 @@ std::size_t index(GameRng& rng, std::size_t count) {
     return static_cast<std::size_t>(value);
 }
 }
-StepResult generate_combat_rewards(SetupState& setup, CombatRewards& destination, std::uint8_t act_index) {
+StepResult generate_combat_rewards(SetupView setup, CombatRewards& destination, std::uint8_t act_index) {
     if (setup.ascension != 0 || act_index != 0) return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
     const auto* character = SetupRules::character(setup.character);
     if (!character) return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
