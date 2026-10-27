@@ -2,21 +2,21 @@
 #include <algorithm>
 
 namespace sts2::engine {
-ObservationView observe(ConstStateView s) noexcept {
-    if (!valid_record_storage(s.record, s.overflow)) { ObservationView invalid{}; invalid.phase = Phase::invalid; return invalid; }
+CombatObservationView observe(ConstCombatView s) noexcept {
+    if (!valid_data_storage(s.data, s.overflow)) { CombatObservationView invalid{}; invalid.phase = CombatPhase::invalid; return invalid; }
     const auto attack = s.move == BeetleMove::chomp ? 7 : s.move == BeetleMove::stomp ? 13 : 0;
     return {game_build, s.boundary, s.phase, s.player.hp, s.player.max_hp, s.player.block, s.energy,
         s.turn, s.enemy.hp, s.enemy.max_hp, s.enemy.vulnerable, attack, s.player.shrink, s.move,
         s.zone(Zone::hand), s.zone(Zone::draw).size(), s.zone(Zone::discard).size(), s.zone(Zone::exhaust).size()};
 }
-std::optional<CardView> observe_card(ConstStateView s, CardHandle h, const Ruleset& rules) noexcept {
-    if (!valid_record_storage(s.record, s.overflow)) return std::nullopt;
+std::optional<CardView> observe_card(ConstCombatView s, CardHandle h, const Ruleset& rules) noexcept {
+    if (!valid_data_storage(s.data, s.overflow)) return std::nullopt;
     const auto& hand = s.zone(Zone::hand);
     if (std::find(hand.begin(), hand.end(), h) == hand.end()) return std::nullopt;
     return inspect_card(s, h, rules);
 }
-std::optional<CardView> inspect_card(ConstStateView s, CardHandle h, const Ruleset& rules) noexcept {
-    if (!valid_record_storage(s.record, s.overflow)) return std::nullopt;
+std::optional<CardView> inspect_card(ConstCombatView s, CardHandle h, const Ruleset& rules) noexcept {
+    if (!valid_data_storage(s.data, s.overflow)) return std::nullopt;
     bool visible = false;
     for (const auto zone : {Zone::hand, Zone::draw, Zone::discard, Zone::exhaust}) {
         const auto& cards = s.zone(zone);
@@ -48,25 +48,25 @@ std::string describe(const CardView& card) {
     return text;
 }
 std::size_t ActionSpaceView::size() const noexcept {
-    if (!valid_record_storage(state_.record, state_.overflow)) return 0;
-    if (state_.phase == Phase::play) return state_.zone(Zone::hand).size() + 1;
-    if (state_.phase == Phase::discard_choice) return state_.zone(Zone::hand).size();
+    if (!valid_data_storage(state_.data, state_.overflow)) return 0;
+    if (state_.phase == CombatPhase::play) return state_.zone(Zone::hand).size() + 1;
+    if (state_.phase == CombatPhase::discard_choice) return state_.zone(Zone::hand).size();
     return 0;
 }
 std::optional<ActionView> ActionSpaceView::at(std::size_t index) const noexcept {
     if (index >= size()) return std::nullopt;
     const auto& hand = state_.zone(Zone::hand);
-    Input input{state_.boundary, InputKind::end_turn};
+    CombatInput input{state_.boundary, CombatInputKind::end_turn};
     if (index < hand.size()) {
         input.card = hand[index];
-        if (state_.phase == Phase::discard_choice) input.kind = InputKind::select_card;
+        if (state_.phase == CombatPhase::discard_choice) input.kind = CombatInputKind::select_card;
         else {
-            input.kind = InputKind::play_card;
+            input.kind = CombatInputKind::play_card;
             const auto* instance = state_.cards.get(input.card);
             const auto* def = instance ? Ruleset::pinned().card(instance->definition) : nullptr;
             input.target_enemy = def && def->enemy_target;
         }
     }
-    return ActionView{input, Simulator{}.validate(state_, input)};
+    return ActionView{input, validate_combat(state_, input)};
 }
 } // namespace sts2::engine

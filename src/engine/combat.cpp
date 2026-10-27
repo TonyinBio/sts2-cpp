@@ -1,4 +1,4 @@
-#include "sts2/kernel/simulator.hpp"
+#include "sts2/engine/combat.hpp"
 #include "sts2/core/sort.hpp"
 #include <algorithm>
 #include <limits>
@@ -11,25 +11,25 @@ constexpr std::array starting_deck = {
     CardSpec{CardId::strike}, CardSpec{CardId::strike}, CardSpec{CardId::strike},
     CardSpec{CardId::strike}, CardSpec{CardId::strike}, CardSpec{CardId::defend},
     CardSpec{CardId::defend}, CardSpec{CardId::defend}, CardSpec{CardId::defend}, CardSpec{CardId::bash}};
-StepResult result(ConstStateView state, Restriction reason = Restriction::none) noexcept {
+StepResult result(ConstCombatView state, Restriction reason = Restriction::none) noexcept {
     if (reason != Restriction::none) return {StepStatus::invalid_action, state.boundary, reason};
     switch (state.phase) {
-    case Phase::combat_won: return {StepStatus::combat_won, state.boundary};
-    case Phase::player_died: return {StepStatus::player_died, state.boundary};
-    case Phase::uninitialized: case Phase::invalid: return {StepStatus::engine_error, state.boundary, Restriction::invalid_state};
+    case CombatPhase::combat_won: return {StepStatus::combat_won, state.boundary};
+    case CombatPhase::player_died: return {StepStatus::player_died, state.boundary};
+    case CombatPhase::uninitialized: case CombatPhase::invalid: return {StepStatus::engine_error, state.boundary, Restriction::invalid_state};
     default: return {StepStatus::awaiting_input, state.boundary};
     }
 }
-StepResult fail(StateView state, Restriction reason) noexcept {
-    state.phase = Phase::invalid;
+StepResult fail(CombatView state, Restriction reason) noexcept {
+    state.phase = CombatPhase::invalid;
     return {StepStatus::engine_error, state.boundary, reason};
 }
 bool consume(Scratch& scratch) noexcept { return ++scratch.steps <= scratch.step_limit; }
-void history(StateView s, HistoryKind kind, bool enemy_side = false, bool actor_enemy = false,
+void history(CombatView s, HistoryKind kind, bool enemy_side = false, bool actor_enemy = false,
              CardHandle card = {}, std::uint32_t object = 0, int amount = 0, HitResult hit = {}) {
     s.history.push_back({kind, s.turn, enemy_side, actor_enemy, card, object, amount, hit});
 }
-std::uint32_t apply_power(StateView s, PowerId id, int amount, bool enemy, bool enemy_side) {
+std::uint32_t apply_power(CombatView s, PowerId id, int amount, bool enemy, bool enemy_side) {
     auto found = std::find_if(s.powers.begin(), s.powers.end(), [&](const auto& p) { return p.active && p.definition == id && p.enemy_owner == enemy; });
     std::uint32_t index;
     if (found == s.powers.end()) {
@@ -38,12 +38,12 @@ std::uint32_t apply_power(StateView s, PowerId id, int amount, bool enemy, bool 
     history(s, HistoryKind::power_received, enemy_side, enemy, {}, index, amount);
     return index;
 }
-void move_card(StateView state, Zone from, Zone to, CardHandle card) {
+void move_card(CombatView state, Zone from, Zone to, CardHandle card) {
     auto source = state.zone(from);
     source.erase(std::find(source.begin(), source.end(), card));
     state.zone(to).push_back(card);
 }
-void draw(StateView state, int count, const Ruleset& rules) {
+void draw(CombatView state, int count, const Ruleset& rules) {
     auto hand = state.zone(Zone::hand); auto pile = state.zone(Zone::draw);
     auto discard = state.zone(Zone::discard);
     while (count-- > 0 && hand.size() < 10) {
@@ -71,8 +71,8 @@ HitResult damage(CreatureState& target, int base, const CreatureState& source) n
     target.block -= blocked; target.hp -= unblocked;
     return hit;
 }
-void end_combat(StateView state, bool won) {
-    state.phase = won ? Phase::combat_won : Phase::player_died;
+void end_combat(CombatView state, bool won) {
+    state.phase = won ? CombatPhase::combat_won : CombatPhase::player_died;
     state.execution.clear();
     if (won) {
         state.history.clear(); state.plays.clear(); state.powers.clear();
@@ -88,25 +88,25 @@ void end_combat(StateView state, bool won) {
     if (won) {
         // Terminal combat has no suspended work or visible piles. Preserve all
         // scalars/identity progress, but release its completed collection graph.
-        State terminal(state.overflow.allocator());
-        std::memcpy(&terminal.record, &state.record, sizeof(StateRecord));
-        terminal.record.for_each_sequence([](auto& sequence) { sequence = std::remove_reference_t<decltype(sequence)>{}; });
+        CombatState terminal(state.overflow.allocator());
+        std::memcpy(&terminal.data, &state.data, sizeof(CombatData));
+        terminal.data.for_each_sequence([](auto& sequence) { sequence = std::remove_reference_t<decltype(sequence)>{}; });
         terminal.view().seed = std::string_view(state.seed);
         state.replace(std::move(terminal));
     }
 }
 }
-StepResult Simulator::initialize(StateView state, const CombatConfig& config, Scratch& scratch) const {
+StepResult initialize_combat(CombatView state, const CombatConfig& config, Scratch& scratch, const Ruleset& rules, Limits limits) {
     if (config.build != game_build || config.ascension != 0 || config.encounter != "ENCOUNTER.SHRINKER_BEETLE_WEAK" ||
         config.seed.empty() || config.seed.size() > 4096 || config.player_max_hp < 1 || config.player_hp < 1 || config.player_hp > config.player_max_hp ||
         config.card_generation == 0 || config.enemy_hp < 0 || config.enemy_hp > 40 ||
         (config.seed.starts_with("old") && std::any_of(config.seed.begin(), config.seed.end(), [](unsigned char c) { return c >= 128; })))
         return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
     const auto deck = config.deck.empty() ? std::span<const CardSpec>(starting_deck) : config.deck;
-    if (deck.size() > limits_.cards) return {StepStatus::resource_limit, state.boundary, Restriction::capacity};
-    for (const auto& card : deck) if (!rules_.card(card.definition))
+    if (deck.size() > limits.cards) return {StepStatus::resource_limit, state.boundary, Restriction::capacity};
+    for (const auto& card : deck) if (!rules.card(card.definition))
         return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
-    State next(state.overflow.allocator()); auto next_view = next.view();
+    CombatState next(state.overflow.allocator()); auto next_view = next.view();
     if (!next_view.clock.initialize(config.clock)) return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
     try {
         next_view.reserve(deck.size()); next_view.seed = config.seed; next_view.numeric_seed = game_seed(config.seed); next_view.rng = config.initial_rng ? *config.initial_rng : RngBank(config.seed);
@@ -115,49 +115,49 @@ StepResult Simulator::initialize(StateView state, const CombatConfig& config, Sc
         if (enemy_hp == 0) (void)next_view.rng.get(RunStream::niche).next_int(38, 41, enemy_hp);
         next_view.enemy = {enemy_hp, enemy_hp}; next_view.energy = 3; next_view.turn = 1; next_view.burning_blood = config.burning_blood;
         for (const auto& card : deck) {
-            auto handle = next_view.cards.create({card.definition, card.upgraded, next_view.next_creation_order++, card.deck_instance}, limits_.cards, config.card_generation);
+            auto handle = next_view.cards.create({card.definition, card.upgraded, next_view.next_creation_order++, card.deck_instance}, limits.cards, config.card_generation);
             if (!handle.present()) return {StepStatus::resource_limit, state.boundary, Restriction::capacity};
             next_view.zone(Zone::draw).push_back(handle);
         }
         next_view.rng.get(RunStream::shuffle).shuffle<CardHandle>(next_view.zone(Zone::draw));
-        draw(next, 5, rules_); next_view.phase = Phase::play; next_view.boundary.value = 1;
+        draw(next, 5, rules); next_view.phase = CombatPhase::play; next_view.boundary.value = 1;
     } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, state.boundary, Restriction::capacity}; } catch (const std::length_error&) { return {StepStatus::resource_limit, state.boundary, Restriction::capacity}; }
     state.replace(std::move(next)); scratch.steps = 0;
     return result(state);
 }
-Restriction Simulator::validate(ConstStateView state, const Input& input) const noexcept {
-    if (!valid_record_storage(state.record, state.overflow) ||
-        state.phase == Phase::uninitialized || state.phase == Phase::invalid || state.rules != rules_revision)
+Restriction validate_combat(ConstCombatView state, const CombatInput& input, const Ruleset& rules) noexcept {
+    if (!valid_data_storage(state.data, state.overflow) ||
+        state.phase == CombatPhase::uninitialized || state.phase == CombatPhase::invalid || state.rules != rules_revision)
         return Restriction::invalid_state;
     if (input.expected_boundary != state.boundary) return Restriction::stale_boundary;
-    if (state.phase == Phase::combat_won || state.phase == Phase::player_died) return Restriction::wrong_phase;
-    if (input.kind == InputKind::end_turn) {
+    if (state.phase == CombatPhase::combat_won || state.phase == CombatPhase::player_died) return Restriction::wrong_phase;
+    if (input.kind == CombatInputKind::end_turn) {
         if (input.card != CardHandle{} || input.target_enemy) return Restriction::malformed_action;
-        return state.phase == Phase::play ? Restriction::none : Restriction::wrong_phase;
+        return state.phase == CombatPhase::play ? Restriction::none : Restriction::wrong_phase;
     }
-    if (input.kind != InputKind::play_card && input.kind != InputKind::select_card) return Restriction::malformed_action;
-    if (input.kind == InputKind::select_card) {
-        if (state.phase != Phase::discard_choice) return Restriction::wrong_phase;
+    if (input.kind != CombatInputKind::play_card && input.kind != CombatInputKind::select_card) return Restriction::malformed_action;
+    if (input.kind == CombatInputKind::select_card) {
+        if (state.phase != CombatPhase::discard_choice) return Restriction::wrong_phase;
         if (input.target_enemy) return Restriction::malformed_action;
-    } else if (state.phase != Phase::play) return Restriction::wrong_phase;
+    } else if (state.phase != CombatPhase::play) return Restriction::wrong_phase;
     const auto* card = state.cards.get(input.card);
     const auto hand = state.zone(Zone::hand);
     if (!card || std::find(hand.begin(), hand.end(), input.card) == hand.end()) return Restriction::stale_card;
-    if (input.kind == InputKind::select_card) return Restriction::none;
-    const auto* definition = rules_.card(card->definition);
+    if (input.kind == CombatInputKind::select_card) return Restriction::none;
+    const auto* definition = rules.card(card->definition);
     if (!definition) return Restriction::invalid_state;
     if (definition->enemy_target != input.target_enemy || (input.target_enemy && state.enemy.hp <= 0)) return Restriction::invalid_target;
     if (state.energy < definition->cost) return Restriction::insufficient_energy;
     return Restriction::none;
 }
-StepResult Simulator::advance(StateView state, Scratch& scratch) const noexcept try {
-    if (!valid_record_storage(state.record, state.overflow)) return fail(state, Restriction::invalid_state);
-    if (state.phase != Phase::play || state.execution.empty()) return result(state);
+StepResult advance_combat(CombatView state, Scratch& scratch, const Ruleset& rules) noexcept try {
+    if (!valid_data_storage(state.data, state.overflow)) return fail(state, Restriction::invalid_state);
+    if (state.phase != CombatPhase::play || state.execution.empty()) return result(state);
     while (!state.execution.empty()) {
         if (!consume(scratch)) return fail(state, Restriction::execution_budget);
         auto& frame = state.execution.back(); const auto* source = state.cards.get(frame.source);
         if (!source) return fail(state, Restriction::invalid_state);
-        const auto* definition = rules_.card(source->definition);
+        const auto* definition = rules.card(source->definition);
         if (!definition || frame.instruction >= definition->program.size()) return fail(state, Restriction::invalid_state);
         const auto instruction = definition->program[frame.instruction++];
         const int amount = instruction.base + (source->upgraded ? instruction.upgrade : 0);
@@ -179,7 +179,7 @@ StepResult Simulator::advance(StateView state, Scratch& scratch) const noexcept 
                 const auto discarded = state.zone(Zone::hand).front();
                 move_card(state, Zone::hand, Zone::discard, discarded);
                 history(state, HistoryKind::discarded, false, false, discarded);
-            } else if (!state.zone(Zone::hand).empty()) { state.phase = Phase::discard_choice; return result(state); }
+            } else if (!state.zone(Zone::hand).empty()) { state.phase = CombatPhase::discard_choice; return result(state); }
             break;
         case Opcode::finish: {
             const auto card = frame.source; const auto play = frame.play; state.execution.pop_back();
@@ -190,15 +190,15 @@ StepResult Simulator::advance(StateView state, Scratch& scratch) const noexcept 
         }
     }
     return result(state);
-} catch (const std::bad_alloc&) { state.phase = Phase::invalid; return {StepStatus::resource_limit, state.boundary, Restriction::capacity}; } catch (const std::length_error&) { state.phase = Phase::invalid; return {StepStatus::resource_limit, state.boundary, Restriction::capacity}; }
+} catch (const std::bad_alloc&) { state.phase = CombatPhase::invalid; return {StepStatus::resource_limit, state.boundary, Restriction::capacity}; } catch (const std::length_error&) { state.phase = CombatPhase::invalid; return {StepStatus::resource_limit, state.boundary, Restriction::capacity}; }
 catch (...) { return fail(state, Restriction::invalid_state); }
-StepResult Simulator::apply(StateView state, const Input& input, Scratch& scratch) const noexcept try {
-    const auto restriction = validate(state, input);
+StepResult apply_combat(CombatView state, const CombatInput& input, Scratch& scratch, const Ruleset& rules) noexcept try {
+    const auto restriction = validate_combat(state, input, rules);
     if (restriction != Restriction::none) return result(state, restriction);
     if (state.boundary.value == std::numeric_limits<std::uint32_t>::max()) return fail(state, Restriction::capacity);
     if (!state.clock.advance_action()) return fail(state, Restriction::clock_exhausted);
     scratch.steps = 0;
-    if (input.kind == InputKind::end_turn) {
+    if (input.kind == CombatInputKind::end_turn) {
         if (!consume(scratch)) return fail(state, Restriction::execution_budget);
         auto hand = state.zone(Zone::hand); auto discard = state.zone(Zone::discard);
         discard.insert(discard.end(), hand.begin(), hand.end()); hand.clear();
@@ -229,43 +229,43 @@ StepResult Simulator::apply(StateView state, const Input& input, Scratch& scratc
             for (auto& p : state.powers) if (p.active && !p.enemy_owner) p.amount_on_turn_start = p.amount;
             state.player.block = 0;
             if (state.turn == std::numeric_limits<int>::max()) return fail(state, Restriction::capacity);
-            ++state.turn; state.energy = 3; draw(state, 5, rules_);
+            ++state.turn; state.energy = 3; draw(state, 5, rules);
         }
-    } else if (input.kind == InputKind::play_card) {
+    } else if (input.kind == CombatInputKind::play_card) {
         const auto* card = state.cards.get(input.card);
-        state.energy -= rules_.card(card->definition)->cost;
+        state.energy -= rules.card(card->definition)->cost;
         move_card(state, Zone::hand, Zone::play, input.card);
         const auto play_id = static_cast<std::uint32_t>(state.plays.size());
-        const auto cost = rules_.card(card->definition)->cost;
+        const auto cost = rules.card(card->definition)->cost;
         state.plays.push_back({input.card, cost, input.target_enemy});
         history(state, HistoryKind::energy_spent, false, false, {}, 0, cost);
         history(state, HistoryKind::play_started, false, false, input.card, play_id);
         state.execution.push_back({input.card, 0, play_id});
-        const auto advanced = advance(state, scratch);
+        const auto advanced = advance_combat(state, scratch, rules);
         if (advanced.status == StepStatus::engine_error || advanced.status == StepStatus::resource_limit) return advanced;
     } else {
         move_card(state, Zone::hand, Zone::discard, input.card);
         history(state, HistoryKind::discarded, false, false, input.card);
-        state.phase = Phase::play;
-        const auto advanced = advance(state, scratch);
+        state.phase = CombatPhase::play;
+        const auto advanced = advance_combat(state, scratch, rules);
         if (advanced.status == StepStatus::engine_error || advanced.status == StepStatus::resource_limit) return advanced;
     }
-    if (state.phase == Phase::invalid) return {StepStatus::engine_error, state.boundary, Restriction::execution_budget};
+    if (state.phase == CombatPhase::invalid) return {StepStatus::engine_error, state.boundary, Restriction::execution_budget};
     ++state.boundary.value;
     return result(state);
 } catch (const std::bad_alloc&) {
-    state.phase = Phase::invalid;
+    state.phase = CombatPhase::invalid;
     return {StepStatus::resource_limit, state.boundary, Restriction::capacity};
 } catch (const std::length_error&) {
-    state.phase = Phase::invalid;
+    state.phase = CombatPhase::invalid;
     return {StepStatus::resource_limit, state.boundary, Restriction::capacity};
 } catch (...) { return fail(state, Restriction::invalid_state); }
-bool valid_state(ConstStateView state, const Ruleset& rules) noexcept {
-    if (!valid_record_storage(state.record, state.overflow) || !state.cards.valid()) return false;
-    if (static_cast<unsigned>(state.phase) > static_cast<unsigned>(Phase::invalid) ||
+bool valid_combat(ConstCombatView state, const Ruleset& rules) noexcept {
+    if (!valid_data_storage(state.data, state.overflow) || !state.cards.valid()) return false;
+    if (static_cast<unsigned>(state.phase) > static_cast<unsigned>(CombatPhase::invalid) ||
         static_cast<unsigned>(state.move) > static_cast<unsigned>(BeetleMove::stomp) ||
         state.seed.empty() || state.seed.size() > 4096 || state.numeric_seed != game_seed(state.seed) ||
-        state.rules != rules_revision || state.phase == Phase::uninitialized || state.phase == Phase::invalid ||
+        state.rules != rules_revision || state.phase == CombatPhase::uninitialized || state.phase == CombatPhase::invalid ||
         state.boundary.value == 0 || state.player.max_hp < 1 || state.player.hp < 0 || state.player.hp > state.player.max_hp ||
         state.enemy.max_hp < 1 || state.enemy.hp < 0 || state.enemy.hp > state.enemy.max_hp ||
         state.player.block < 0 || state.enemy.block < 0 || state.enemy.vulnerable < 0 || state.player.vulnerable < 0 ||
@@ -275,16 +275,16 @@ bool valid_state(ConstStateView state, const Ruleset& rules) noexcept {
         const auto& s = stream.state().words;
         if ((s[0] | s[1] | s[2] | s[3]) == 0) return false;
     }
-    const bool terminal = state.phase == Phase::combat_won || state.phase == Phase::player_died;
-    if ((state.phase == Phase::combat_won && (state.enemy.hp != 0 || state.player.hp == 0)) ||
-        (state.phase == Phase::player_died && state.player.hp != 0) ||
+    const bool terminal = state.phase == CombatPhase::combat_won || state.phase == CombatPhase::player_died;
+    if ((state.phase == CombatPhase::combat_won && (state.enemy.hp != 0 || state.player.hp == 0)) ||
+        (state.phase == CombatPhase::player_died && state.player.hp != 0) ||
         (!terminal && (state.enemy.hp == 0 || state.player.hp == 0))) return false;
-    if (state.phase == Phase::discard_choice) {
+    if (state.phase == CombatPhase::discard_choice) {
         if (state.execution.size() != 1 || state.zone(Zone::play).size() != 1 || state.zone(Zone::hand).empty()) return false;
         const auto& frame = state.execution.back(); const auto* card = state.cards.get(frame.source);
         if (!card || card->definition != CardId::survivor || frame.instruction != 2 || state.zone(Zone::play)[0] != frame.source) return false;
     } else if (!state.execution.empty() || !state.zone(Zone::play).empty()) return false;
-    if (state.phase == Phase::combat_won && (!state.history.empty() || !state.plays.empty() || !state.powers.empty())) return false;
+    if (state.phase == CombatPhase::combat_won && (!state.history.empty() || !state.plays.empty() || !state.powers.empty())) return false;
     for (const auto& play : state.plays) if (!state.cards.get(play.card) || play.energy < 0) return false;
     for (const auto& p : state.powers) if (static_cast<unsigned>(p.definition) > 1) return false;
     for (const auto& entry : state.history) {
@@ -305,7 +305,7 @@ bool valid_state(ConstStateView state, const Ruleset& rules) noexcept {
     const auto zones = state.zone_views();
     for (std::size_t a = 0; a < zones.size(); ++a) {
         const auto& zone = zones[a]; membership += zone.size();
-        if (state.phase == Phase::combat_won && !zone.empty()) return false;
+        if (state.phase == CombatPhase::combat_won && !zone.empty()) return false;
         for (std::size_t i = 0; i < zone.size(); ++i) {
             if (!state.cards.get(zone[i])) return false;
             for (std::size_t b = 0; b <= a; ++b) {
@@ -314,7 +314,7 @@ bool valid_state(ConstStateView state, const Ruleset& rules) noexcept {
             }
         }
     }
-    if (state.phase == Phase::combat_won) return membership == 0;
+    if (state.phase == CombatPhase::combat_won) return membership == 0;
     if (membership > live) return false;
     for (std::size_t i = 0; i < state.cards.slots().size(); ++i) {
         const auto& slot = state.cards.slots()[i];

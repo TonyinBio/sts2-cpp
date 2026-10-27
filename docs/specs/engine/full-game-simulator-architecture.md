@@ -46,8 +46,9 @@ include/sts2/
     execution.hpp           Frames, pending operations, dispatch cursors
     decision.hpp            Phase, prompt state, selection constraints
     clone.hpp               Deep clone and capacity reuse
-  kernel/
-    simulator.hpp           initialize / advance / apply
+  engine/
+    combat.hpp              Combat initialization, validation, application and advance
+    run.hpp                 Run initialization and unified apply_input dispatch
     action.hpp              Tagged input payloads and borrowed selection spans
     validation.hpp          Boundary and legality checks, prepared action
     effects.hpp             Interpreter and native-handler execution context
@@ -67,7 +68,7 @@ include/sts2/
       lifecycle.hpp         Completion, loss, score and current-run history
   observation/
     schema.hpp              Versioned public records and restriction codes
-    observe.hpp             ObservationView and visibility projection
+    observe.hpp             CombatObservationView and visibility projection
     actions.hpp             ActionSpaceView and lazy selection iterator
     text.hpp                English rendering and dynamic substitutions
     events.hpp              Optional ordered public gameplay event stream
@@ -119,7 +120,7 @@ Build targets follow these boundaries:
 | Target | Depends on | Responsibility |
 | --- | --- | --- |
 | `sts2_rules` | core | Load and expose validated immutable content |
-| `sts2_kernel` | core, rules | Own state and execute deterministic transitions |
+| `sts2_engine` | core, rules | Own state and execute deterministic transitions |
 | `sts2_observation` | kernel, rules | Project visible state and describe choices |
 | `sts2_persistence` | kernel, rules | Save, restore and compare complete state |
 | `sts2_integration` | observation, persistence | Import, replay, JSON and external interfaces |
@@ -135,19 +136,19 @@ link from the simulator to game assemblies. Test fixtures are not runtime conten
 | Type | Owns or describes | Lifetime and access |
 | --- | --- | --- |
 | `Ruleset` | Definitions, programs, dispatch tables, English templates, build/content digests | Loaded once; shared read-only across simulations |
-| `State` | Root records and its mutable backing storage | One simulation; no pointers into another state's mutable storage |
-| `StateArena` | Reusable contiguous slabs for pools and variable-length state | Owned by `State`; capacity grows through explicit checked operations |
+| `CombatState` | Root records and its mutable backing storage | One simulation; no pointers into another state's mutable storage |
+| `StateArena` | Reusable contiguous slabs for pools and variable-length state | Owned by `CombatState`; capacity grows through explicit checked operations |
 | `Scratch` | Validation workspace, projection buffers, temporary targets and diagnostics | One simulation/worker; never needed to resume gameplay |
-| `Simulator` | Non-owning rules reference and transition entry points | Stateless facade; receives `State` and `Scratch` explicitly |
+| Combat and run functions | Authoritative transition entry points | Receive state/views and scratch explicitly; combat functions accept rules and initialization limits |
 | `ExecutionContext` | References to state, rules, scratch and current operation | Exists during execution only; native handlers cannot retain it |
-| `ObservationView` | Public records/spans produced by projection | Borrowed; invalid after state mutation or reuse of its observation workspace |
+| `CombatObservationView` | Public records/spans produced by projection | Borrowed; invalid after state mutation or reuse of its observation workspace |
 | `ActionSpaceView` | Visible choices, constraints and lazy iterators | Borrowed with the same invalidation rules |
 | `Checkpoint` | Complete state snapshot and compatibility metadata | Owns independent storage; never borrows scratch |
 | `ImportReport` | Imported/missing/unsupported fields and identity mappings | Adapter-owned; exact replay requires complete import |
 
 Use plain structs for records and small classes for ownership, storage and algorithms.
-`Simulator`, `EffectMachine`, `TriggerDispatcher`, `Observer`, `CheckpointCodec` and
-`ReplayRunner` coordinate work; they do not become owners of hidden gameplay state.
+Combat/run functions and the proposed effect, trigger, observation, checkpoint and
+replay modules coordinate work; they do not become owners of hidden gameplay state.
 No card/entity class hierarchy, per-instance vtable, RTTI, or per-effect closure is
 needed. Native handler tables use stable handler IDs and function pointers.
 
@@ -158,7 +159,7 @@ translate errors and catch exceptions before returning across the ABI.
 
 ## 3. State layout and storage
 
-`State` has a compact root plus independently sized storage regions:
+`CombatState` has a compact root plus independently sized storage regions:
 
 ```text
 State
@@ -206,7 +207,7 @@ records touched by combat. Report total state and retained arena capacity separa
 
 ## 4. Transitions, effects and choices
 
-`Simulator::apply` first checks instance validity, expected boundary ID, action shape,
+`apply_combat` first checks instance validity, expected boundary ID, action shape,
 handles, targets and all legality conditions without changing authoritative state or
 RNG. `ActionValidator` produces a transient `PreparedAction`; it does not enumerate
 every possible selection. Rejected input leaves complete state and RNG unchanged.

@@ -1,4 +1,4 @@
-#include "sts2/kernel/simulator.hpp"
+#include "sts2/engine/combat.hpp"
 #include "sts2/observation/observe.hpp"
 #include <chrono>
 #include <cstdlib>
@@ -26,26 +26,26 @@ int main(int argc, char** argv) {
         char* end = nullptr; battles = std::strtoull(argv[1], &end, 10);
         if (!end || *end != '\0' || battles == 0 || battles > 100000000) return 1;
     } else if (argc > 2) return 1;
-    Simulator simulator; State baseline, state; Scratch scratch;
-    if (simulator.initialize(baseline, {}, scratch).status != StepStatus::awaiting_input) return 1;
+    CombatState baseline, state; Scratch scratch;
+    if (initialize_combat(baseline, {}, scratch).status != StepStatus::awaiting_input) return 1;
     if (clone_into(state, baseline) != CloneStatus::cloned) throw std::bad_alloc{};
     std::uint64_t transitions = 0, checksum = 0;
     const auto start = std::chrono::steady_clock::now();
     count_allocations = true;
     for (std::uint64_t battle = 0; battle < battles; ++battle) {
         if (clone_into(state, baseline) != CloneStatus::cloned) throw std::bad_alloc{};
-        while (state.view().phase == Phase::play) {
-            Input input{state.view().boundary, InputKind::end_turn};
+        while (state.view().phase == CombatPhase::play) {
+            CombatInput input{state.view().boundary, CombatInputKind::end_turn};
             ActionSpaceView actions(state);
             for (std::size_t i = 0; i < state.zone(Zone::hand).size(); ++i) {
                 const auto action = *actions.at(i);
                 if (action.restriction == Restriction::none && action.input.target_enemy) { input = action.input; break; }
             }
-            if (input.kind == InputKind::end_turn) for (std::size_t i = 0; i < actions.size(); ++i) {
+            if (input.kind == CombatInputKind::end_turn) for (std::size_t i = 0; i < actions.size(); ++i) {
                 const auto action = *actions.at(i);
                 if (action.restriction == Restriction::none) { input = action.input; break; }
             }
-            const auto result = simulator.apply(state, input, scratch);
+            const auto result = apply_combat(state, input, scratch);
             ++transitions;
             if (result.status == StepStatus::engine_error || result.status == StepStatus::invalid_action || result.status == StepStatus::resource_limit) return 2;
         }
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
               << "battles=" << battles << " transitions=" << transitions << " seconds=" << seconds
               << " transitions_per_second=" << static_cast<double>(transitions) / seconds
               << " battles_per_second=" << static_cast<double>(battles) / seconds << '\n'
-              << "state_root_bytes=" << sizeof(State) << " retained_state_bytes=" << state.retained_bytes()
+              << "state_root_bytes=" << sizeof(CombatState) << " retained_state_bytes=" << state.retained_bytes()
               << " warmed_allocations=" << allocations << " checksum=" << checksum << '\n';
     return allocations == 0 ? 0 : 3;
 }

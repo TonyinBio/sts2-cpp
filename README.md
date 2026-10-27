@@ -10,7 +10,7 @@ reference replays cover those supported paths, including clocks, RNG and history
 Complete-run gameplay remains unfinished; see [engine status](docs/specs/engine/implementation-status.md).
 
 The older `sts2_cli` demo remains separate during migration. Its fixed hand and simple
-enemy behavior do not represent the new kernel or faithful game rules.
+enemy behavior do not represent the new engine or faithful game rules.
 
 ## Build and run
 
@@ -18,14 +18,14 @@ Requires a C++23 compiler, CMake 3.20+, Make, and Git.
 With testing enabled (the default), the first configure fetches GoogleTest v1.17.0
 from GitHub and requires network access. The shared combat state tests also fetch
 nlohmann/json v3.12.0. JSON also links into the optional native integration tools.
-The rules/kernel and combat CLI require neither dependency; disable testing and
-`STS2_BUILD_INTEGRATION` to build only those targets.
+The rules/engine and interactive run CLI require neither dependency; disable testing,
+`STS2_BUILD_INTEGRATION` and `STS2_BUILD_PARITY_TOOLS` for a dependency-free build.
 
 ```sh
 cmake --preset debug
 cmake --build --preset debug
 ctest --preset debug
-./build/debug/sts2_combat --auto
+./build/debug/sts2_play
 
 cmake --preset release
 cmake --build --preset release

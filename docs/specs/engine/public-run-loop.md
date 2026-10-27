@@ -51,7 +51,8 @@ support; it is not certification of native partial hand-selection callbacks.
 
 ## Historical correspondence and clocks
 
-`apply_run` and historical replay retain their original boundaries and bytes.
+`apply_input(RunState&, const PlayerInput&, Scratch&)` dispatches run and combat
+inputs. It and historical replay retain their original boundaries and bytes.
 `apply_player` executes the submitted input, then calls the same `proceed` transitions
 for finished Neow, finished combat, and resolved rewards until the next real choice.
 Each underlying transition retains its existing action-clock increment and boundary

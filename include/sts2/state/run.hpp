@@ -1,6 +1,6 @@
 #pragma once
 #include "sts2/state/setup.hpp"
-#include "sts2/state/state.hpp"
+#include "sts2/state/combat.hpp"
 #include <optional>
 
 namespace sts2::engine {
@@ -18,31 +18,49 @@ struct CombatRewards {
     std::uint8_t selected_card = UINT8_MAX;
     friend bool operator==(const CombatRewards&, const CombatRewards&) = default;
 };
-// Optional active combat is a trivial record, with ownership outside RunRecord.
+// Optional active combat is a trivial data, with ownership outside RunData.
 template<bool Const> struct OptionalCombatView {
-    using Record = std::conditional_t<Const, const std::optional<StateRecord>, std::optional<StateRecord>>;
+    using Data = std::conditional_t<Const, const std::optional<CombatData>, std::optional<CombatData>>;
     using Owner = std::conditional_t<Const, const OverflowStorage, OverflowStorage>;
-    Record& record;
+    Data& data;
     Owner& overflow;
-    bool has_value() const noexcept { return record.has_value(); }
+    bool has_value() const noexcept { return data.has_value(); }
     explicit operator bool() const noexcept { return has_value(); }
-    auto operator*() const noexcept { return BasicStateView<Const>(*record, overflow); }
-    auto operator->() const noexcept { return ViewArrow<BasicStateView<Const>>{**this}; }
-    auto emplace() requires (!Const) { overflow.reset(); record.emplace(); return **this; }
-    void reset() noexcept requires (!Const) { record.reset(); overflow.reset(); }
-    OptionalCombatView& operator=(State&& state) requires (!Const) {
-        record.emplace(); (**this).replace(std::move(state)); return *this;
+    auto operator*() const noexcept { return BasicCombatView<Const>(*data, overflow); }
+    auto operator->() const noexcept { return ViewArrow<BasicCombatView<Const>>{**this}; }
+    auto emplace() requires (!Const) { overflow.reset(); data.emplace(); return **this; }
+    void reset() noexcept requires (!Const) { data.reset(); overflow.reset(); }
+    OptionalCombatView& operator=(CombatState&& state) requires (!Const) {
+        data.emplace(); (**this).replace(std::move(state)); return *this;
     }
-    OptionalCombatView& operator=(std::optional<State>&& state) requires (!Const) {
+    OptionalCombatView& operator=(std::optional<CombatState>&& state) requires (!Const) {
         if (state) *this = std::move(*state); else reset(); return *this;
     }
     template<bool Other> bool operator==(const OptionalCombatView<Other>& other) const {
         return has_value() == other.has_value() && (!has_value() || **this == *other);
     }
 };
-struct RunRecord {
-    SetupRecord setup;
-    std::optional<StateRecord> combat;
+struct RunData {
+    InlineSequence<char, 32> seed {};
+    std::uint64_t numeric_seed = 0;
+    ContentId character = no_content;
+    std::uint8_t ascension = 0;
+    std::int32_t hp = 0;
+    std::int32_t max_hp = 0;
+    std::int32_t gold = 0;
+    std::int32_t potion_slots = 3;
+    std::int32_t orb_slots = 0;
+    RngBank rng {};
+    PlayerRngBank player_rng {};
+    RelicBagData shared_relics {};
+    RelicBagData player_relics {};
+    std::array<ActRoomsData, 3> acts {};
+    InlineSequence<PersistentCard, 32> deck {};
+    InlineSequence<ContentId, 16> relics {};
+    InlineSequence<ContentId, 4> potions {};
+    float card_rarity_offset = -0.05f;
+    float potion_reward_odds = 0.4f;
+    std::optional<CombatData> combat;
     bool direct_combat = false;
     std::uint32_t combat_generation = 0;
     std::optional<CombatRewards> rewards;
@@ -56,38 +74,74 @@ struct RunRecord {
     GameRng event_rng;
     std::array<ContentId, 3> neow_options{};
     ContentId selected_neow = no_content;
-    template<class Visit> void for_each_sequence(Visit visit) const noexcept { visit(visited); }
+    template<class Visit> void for_each_sequence(Visit visit) const noexcept {
+        visit(seed);
+        for (const auto* bag : {&shared_relics, &player_relics}) {
+            for (const auto& tier : bag->tiers) visit(tier);
+            visit(bag->order);
+        }
+        for (const auto& act : acts) { visit(act.events); visit(act.normal); visit(act.elites); visit(act.shared_ancients); }
+        visit(deck); visit(relics); visit(potions);
+        visit(visited);
+    }
 };
-static_assert(std::is_trivially_copyable_v<RunRecord>);
+static_assert(std::is_trivially_copyable_v<RunData>);
 template<bool Const> struct BasicRunView {
-    using Record = std::conditional_t<Const, const RunRecord, RunRecord>;
+    using Data = std::conditional_t<Const, const RunData, RunData>;
     using Owner = std::conditional_t<Const, const OverflowStorage, OverflowStorage>;
     template<class T> using Ref = std::conditional_t<Const, const T&, T&>;
-    Record& record;
+    Data& data;
     Owner& overflow;
-    BasicSetupView<Const> setup;
+    TextView<32, Const> seed{data.seed, overflow};
+    Ref<std::uint64_t> numeric_seed = data.numeric_seed;
+    Ref<ContentId> character = data.character;
+    Ref<std::uint8_t> ascension = data.ascension;
+    Ref<std::int32_t> hp = data.hp;
+    Ref<std::int32_t> max_hp = data.max_hp;
+    Ref<std::int32_t> gold = data.gold;
+    Ref<std::int32_t> potion_slots = data.potion_slots;
+    Ref<std::int32_t> orb_slots = data.orb_slots;
+    Ref<RngBank> rng = data.rng;
+    Ref<PlayerRngBank> player_rng = data.player_rng;
+    BasicRelicBagView<Const> shared_relics{data.shared_relics, overflow};
+    BasicRelicBagView<Const> player_relics{data.player_relics, overflow};
+    std::array<BasicActRoomsView<Const>, 3> acts{{{data.acts[0], overflow}, {data.acts[1], overflow}, {data.acts[2], overflow}}};
+    SequenceView<PersistentCard, 32, Const> deck{data.deck, overflow};
+    SequenceView<ContentId, 16, Const> relics{data.relics, overflow};
+    SequenceView<ContentId, 4, Const> potions{data.potions, overflow};
+    Ref<float> card_rarity_offset = data.card_rarity_offset;
+    Ref<float> potion_reward_odds = data.potion_reward_odds;
     OptionalCombatView<Const> combat;
-    Ref<bool> direct_combat = record.direct_combat;
-    Ref<std::uint32_t> combat_generation = record.combat_generation;
-    Ref<std::optional<CombatRewards>> rewards = record.rewards;
-    Ref<RunClock> clock = record.clock;
-    Ref<BoundaryId> boundary = record.boundary;
-    Ref<RunPhase> phase = record.phase;
-    Ref<std::uint8_t> act_index = record.act_index;
-    Ref<std::array<std::optional<MapState>, 3>> maps = record.maps;
-    Ref<MapNodeId> current = record.current;
-    SequenceView<MapNodeId, 64, Const> visited{record.visited, overflow};
-    Ref<GameRng> event_rng = record.event_rng;
-    Ref<std::array<ContentId, 3>> neow_options = record.neow_options;
-    Ref<ContentId> selected_neow = record.selected_neow;
-    BasicRunView(Record& r, Owner& run_owner, Owner& setup_owner, Owner& combat_owner) noexcept
-        : record(r), overflow(run_owner), setup(r.setup, setup_owner), combat{r.combat, combat_owner} {}
+    Ref<bool> direct_combat = data.direct_combat;
+    Ref<std::uint32_t> combat_generation = data.combat_generation;
+    Ref<std::optional<CombatRewards>> rewards = data.rewards;
+    Ref<RunClock> clock = data.clock;
+    Ref<BoundaryId> boundary = data.boundary;
+    Ref<RunPhase> phase = data.phase;
+    Ref<std::uint8_t> act_index = data.act_index;
+    Ref<std::array<std::optional<MapState>, 3>> maps = data.maps;
+    Ref<MapNodeId> current = data.current;
+    SequenceView<MapNodeId, 64, Const> visited{data.visited, overflow};
+    Ref<GameRng> event_rng = data.event_rng;
+    Ref<std::array<ContentId, 3>> neow_options = data.neow_options;
+    Ref<ContentId> selected_neow = data.selected_neow;
+    BasicRunView(Data& r, Owner& run_owner, Owner& combat_owner) noexcept
+        : data(r), overflow(run_owner), combat{r.combat, combat_owner} {}
     BasicRunView view() const noexcept { return *this; }
-    operator BasicRunView<true>() const noexcept requires (!Const) { return {record, overflow, setup.overflow, combat.overflow}; }
+    operator BasicRunView<true>() const noexcept requires (!Const) { return {data, overflow, combat.overflow}; }
     template<bool Other> bool operator==(const BasicRunView<Other>& other) const {
-        return setup == other.setup && combat == other.combat && direct_combat == other.direct_combat &&
-            combat_generation == other.combat_generation && rewards == other.rewards && clock == other.clock &&
-            boundary == other.boundary && phase == other.phase && act_index == other.act_index && maps == other.maps &&
+        return seed == other.seed && numeric_seed == other.numeric_seed &&
+            character == other.character && ascension == other.ascension &&
+            hp == other.hp && max_hp == other.max_hp && gold == other.gold &&
+            potion_slots == other.potion_slots && orb_slots == other.orb_slots &&
+            rng == other.rng && player_rng == other.player_rng &&
+            shared_relics == other.shared_relics && player_relics == other.player_relics &&
+            acts == other.acts && deck == other.deck && relics == other.relics &&
+            potions == other.potions && card_rarity_offset == other.card_rarity_offset &&
+            potion_reward_odds == other.potion_reward_odds && combat == other.combat &&
+            direct_combat == other.direct_combat && combat_generation == other.combat_generation &&
+            rewards == other.rewards && clock == other.clock && boundary == other.boundary &&
+            phase == other.phase && act_index == other.act_index && maps == other.maps &&
             current == other.current && visited == other.visited && event_rng == other.event_rng &&
             neow_options == other.neow_options && selected_neow == other.selected_neow;
     }
@@ -97,31 +151,31 @@ using ConstRunView = BasicRunView<true>;
 struct RunState;
 CloneStatus clone_into(RunState&, const RunState&) noexcept;
 struct RunState {
-    RunRecord record;
-    OverflowStorage overflow, setup_overflow, combat_overflow;
-    explicit RunState(StorageAllocator allocator = {}) : overflow(allocator), setup_overflow(allocator), combat_overflow(allocator) {}
+    RunData data;
+    OverflowStorage overflow, combat_overflow;
+    explicit RunState(StorageAllocator allocator = {}) : overflow(allocator), combat_overflow(allocator) {}
     RunState(const RunState& other) : RunState(other.overflow.allocator()) { if (clone_into(*this, other) != CloneStatus::cloned) throw std::bad_alloc{}; }
     RunState& operator=(const RunState& other) { if (clone_into(*this, other) != CloneStatus::cloned) throw std::bad_alloc{}; return *this; }
-    RunState(RunState&& other) noexcept : overflow(std::move(other.overflow)), setup_overflow(std::move(other.setup_overflow)), combat_overflow(std::move(other.combat_overflow)) {
-        std::memcpy(&record, &other.record, sizeof(record));
+    RunState(RunState&& other) noexcept : overflow(std::move(other.overflow)), combat_overflow(std::move(other.combat_overflow)) {
+        std::memcpy(&data, &other.data, sizeof(data));
     }
     RunState& operator=(RunState&& other) noexcept {
         if (this != &other) {
-            overflow = std::move(other.overflow); setup_overflow = std::move(other.setup_overflow); combat_overflow = std::move(other.combat_overflow);
-            std::memcpy(&record, &other.record, sizeof(record));
+            overflow = std::move(other.overflow); combat_overflow = std::move(other.combat_overflow);
+            std::memcpy(&data, &other.data, sizeof(data));
         }
         return *this;
     }
-    void reset() noexcept { record = RunRecord{}; overflow.reset(); setup_overflow.reset(); combat_overflow.reset(); }
-    RunView view() noexcept { return {record, overflow, setup_overflow, combat_overflow}; }
-    ConstRunView view() const noexcept { return {record, overflow, setup_overflow, combat_overflow}; }
+    void reset() noexcept { data = RunData{}; overflow.reset(); combat_overflow.reset(); }
+    RunView view() noexcept { return {data, overflow, combat_overflow}; }
+    ConstRunView view() const noexcept { return {data, overflow, combat_overflow}; }
     friend CloneStatus clone_into(RunState& destination, const RunState& source) noexcept try {
         if (&destination == &source) return CloneStatus::cloned;
         // Prepare all ownership before publishing any part of the complete run.
-        OverflowStorage run(destination.overflow.allocator()), setup(destination.setup_overflow.allocator()), combat(destination.combat_overflow.allocator());
-        run.clone_from(source.overflow); setup.clone_from(source.setup_overflow); combat.clone_from(source.combat_overflow);
-        destination.overflow.swap(run); destination.setup_overflow.swap(setup); destination.combat_overflow.swap(combat);
-        std::memcpy(&destination.record, &source.record, sizeof(RunRecord));
+        OverflowStorage run(destination.overflow.allocator()), combat(destination.combat_overflow.allocator());
+        run.clone_from(source.overflow); combat.clone_from(source.combat_overflow);
+        destination.overflow.swap(run); destination.combat_overflow.swap(combat);
+        std::memcpy(&destination.data, &source.data, sizeof(RunData));
         return CloneStatus::cloned;
     } catch (const std::bad_alloc&) { return CloneStatus::resource_limit; }
       catch (const std::length_error&) { return CloneStatus::resource_limit; }

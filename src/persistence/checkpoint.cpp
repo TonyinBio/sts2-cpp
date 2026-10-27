@@ -1,5 +1,5 @@
 #include "sts2/persistence/checkpoint.hpp"
-#include "sts2/kernel/simulator.hpp"
+#include "sts2/engine/combat.hpp"
 #include <bit>
 #include <new>
 #include <stdexcept>
@@ -44,8 +44,8 @@ std::uint64_t content_fingerprint() {
     w.text("shrinker-a0:niche:38-40:late-victory:retained-death:duration-history:shrink70:chomp7:stomp13;vulnerable150;burning-blood6;survivor1;action_clock_v1;xoshiro256ss-v1");
     return digest(w.data);
 }
-Checkpoint checkpoint(ConstStateView s) {
-    if (!valid_state(s)) throw std::invalid_argument("Cannot checkpoint invalid simulation");
+Checkpoint checkpoint(ConstCombatView s) {
+    if (!valid_combat(s)) throw std::invalid_argument("Cannot checkpoint invalid simulation");
     Writer w;
     w.text("STS2CP04"); w.u32(4); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed);
@@ -56,7 +56,7 @@ Checkpoint checkpoint(ConstStateView s) {
     for (const auto& rng : s.rng.streams) { for (auto word : rng.state().words) w.u64(word); w.u32(rng.state().counter); }
     w.creature(s.player); w.creature(s.enemy); w.i32(s.energy); w.i32(s.turn);
     w.u8(static_cast<std::uint8_t>(s.move)); w.u8(s.burning_blood); w.u32(s.next_creation_order);
-    w.u32(s.cards.record.highest_generation);
+    w.u32(s.cards.data.highest_generation);
     w.u32(static_cast<std::uint32_t>(s.cards.slots().size()));
     for (const auto& slot : s.cards.slots()) {
         w.u32(slot.generation); w.u8(slot.live); w.u8(static_cast<std::uint8_t>(slot.value.definition));
@@ -79,7 +79,7 @@ Checkpoint checkpoint(ConstStateView s) {
     w.u64(digest(w.data));
     return {std::move(w.data)};
 }
-RestoreStatus restore(StateView destination, std::span<const std::byte> bytes, Scratch& scratch, Limits limits) noexcept {
+RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, Scratch& scratch, Limits limits) noexcept {
     try {
         if (bytes.size() < 96 || bytes.size() > 64 * 1024 * 1024) return RestoreStatus::malformed;
         Reader trailer{bytes.last(8)};
@@ -89,10 +89,10 @@ RestoreStatus restore(StateView destination, std::span<const std::byte> bytes, S
         if (r.u32() != 4 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (char c : game_digest) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
-        State s(destination.overflow.allocator()); auto s_view = s.view();
+        CombatState s(destination.overflow.allocator()); auto s_view = s.view();
         const auto seed_size = r.u32(); if (seed_size == 0 || seed_size > 4096) return RestoreStatus::malformed;
         for (std::uint32_t i = 0; i < seed_size; ++i) s_view.seed.push_back(static_cast<char>(r.u8()));
-        s_view.numeric_seed = r.u64(); s_view.boundary.value = r.u32(); s_view.phase = static_cast<Phase>(r.u8());
+        s_view.numeric_seed = r.u64(); s_view.boundary.value = r.u32(); s_view.phase = static_cast<CombatPhase>(r.u8());
         const auto epoch = r.u64(), step = r.u64(), elapsed = r.u64();
         if (epoch > RunClock::max_seconds || step > 86400 || elapsed > RunClock::max_seconds ||
             !s_view.clock.restore({static_cast<std::int64_t>(epoch), static_cast<std::int64_t>(step)}, static_cast<std::int64_t>(elapsed))) return RestoreStatus::malformed;
@@ -114,8 +114,8 @@ RestoreStatus restore(StateView destination, std::span<const std::byte> bytes, S
         const auto free_count = r.u32(); if (free_count > count) return RestoreStatus::malformed;
         std::vector<std::uint32_t> free(free_count); for (auto& index : free) index = r.u32();
         if (!s_view.cards.restore(std::move(slots), std::move(free))) return RestoreStatus::malformed;
-        if (s_view.cards.record.highest_generation > highest_generation) return RestoreStatus::malformed;
-        s_view.cards.record.highest_generation = highest_generation;
+        if (s_view.cards.data.highest_generation > highest_generation) return RestoreStatus::malformed;
+        s_view.cards.data.highest_generation = highest_generation;
         s_view.reserve(count);
         std::uint64_t total = 0;
         for (auto& zone : s_view.zone_views()) {
@@ -127,7 +127,7 @@ RestoreStatus restore(StateView destination, std::span<const std::byte> bytes, S
         for (std::uint32_t i = 0; i < frames; ++i) { auto source = r.handle(); const auto instruction = r.u32(); s_view.execution.push_back({source, instruction, r.u32()}); }
         const auto bounded_count = [&](std::size_t width) {
             const auto n = r.u32();
-            if (n > (r.bytes.size() - r.at) / width) throw std::invalid_argument("truncated record table");
+            if (n > (r.bytes.size() - r.at) / width) throw std::invalid_argument("truncated data table");
             return n;
         };
         const auto plays = bounded_count(13); s_view.plays.reserve(plays);
@@ -143,7 +143,7 @@ RestoreStatus restore(StateView destination, std::span<const std::byte> bytes, S
             e.card = r.handle(); e.object = r.u32(); e.amount = r.i32(); e.hit.blocked = r.i32(); e.hit.unblocked = r.i32(); e.hit.overkill = r.i32();
             e.hit.block_broken = r.boolean(); e.hit.fully_blocked = r.boolean(); e.hit.killed = r.boolean(); s_view.history.push_back(e);
         }
-        if (r.at != r.bytes.size() || !valid_state(s)) return RestoreStatus::malformed;
+        if (r.at != r.bytes.size() || !valid_combat(s)) return RestoreStatus::malformed;
         destination.replace(std::move(s)); scratch.steps = 0;
         return RestoreStatus::restored;
     } catch (const std::bad_alloc&) { return RestoreStatus::resource_limit; } catch (const std::length_error&) { return RestoreStatus::resource_limit; }

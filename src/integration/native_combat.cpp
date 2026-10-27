@@ -82,8 +82,8 @@ void export_native_combat(Json& out, const RunState& run) {
     }
     const auto map_room = out["current_room"], map_flow = out["run_flow"];
     const auto& s = *run_view.combat;
-    const bool won = s.phase == Phase::combat_won, died = s.phase == Phase::player_died, terminal = won || died;
-    const bool choosing = s.phase == Phase::discard_choice;
+    const bool won = s.phase == CombatPhase::combat_won, died = s.phase == CombatPhase::player_died, terminal = won || died;
+    const bool choosing = s.phase == CombatPhase::discard_choice;
     Json piles = Json::object(); constexpr std::array<const char*, 5> zone_names{"Hand", "Draw", "Discard", "Exhaust", "Play"};
     const auto zones = s.zone_views();
     for (std::size_t i = 0; i < zones.size(); ++i) {
@@ -120,8 +120,8 @@ void export_native_combat(Json& out, const RunState& run) {
                 {"next_move", moves[static_cast<std::size_t>(s.move)]}, {"state_log", log}, {"performed_first_move", s.turn > 1}, {"move_states", move_states}}}, {"model_fields", Json::object()}};
         combat["creatures"]["enemy_0"] = std::move(e);
     }
-    if (won) for (std::size_t i = 0; i < run_view.setup.deck.size(); ++i) {
-        const auto& card = run_view.setup.deck[i];
+    if (won) for (std::size_t i = 0; i < run_view.deck.size(); ++i) {
+        const auto& card = run_view.deck[i];
         CardId definition = CardId::count;
         for (unsigned j = 0; j < static_cast<unsigned>(CardId::count); ++j)
             if (Ruleset::pinned().card(static_cast<CardId>(j))->model_id == SetupRules::name(card.definition)) definition = static_cast<CardId>(j);
@@ -132,9 +132,9 @@ void export_native_combat(Json& out, const RunState& run) {
     for (std::size_t i = 0; i < s.cards.slots().size(); ++i) {
         const auto& slot = s.cards.slots()[i]; if (!slot.live) continue;
         const auto& card = slot.value;
-        const auto linked = std::find_if(run_view.setup.deck.begin(), run_view.setup.deck.end(), [&](const auto& c) { return c.instance == card.deck_instance; });
-        const auto deck_index = card.deck_instance == UINT32_MAX ? card.creation_order : static_cast<std::uint32_t>(linked - run_view.setup.deck.begin());
-        if (deck_index >= run_view.setup.deck.size()) throw std::invalid_argument("Missing permanent card relationship");
+        const auto linked = std::find_if(run_view.deck.begin(), run_view.deck.end(), [&](const auto& c) { return c.instance == card.deck_instance; });
+        const auto deck_index = card.deck_instance == UINT32_MAX ? card.creation_order : static_cast<std::uint32_t>(linked - run_view.deck.begin());
+        if (deck_index >= run_view.deck.size()) throw std::invalid_argument("Missing permanent card relationship");
         const auto vars = variables(card);
         out["native_model_state"]["/players/0/deck/" + std::to_string(deck_index)] = {{"model_fields", Json::object()}, {"dynamic_vars", vars}};
         if (won) continue;
@@ -145,14 +145,14 @@ void export_native_combat(Json& out, const RunState& run) {
             {"dynamic_vars", vars}, {"energy_cost", {{"base", Ruleset::pinned().card(card.definition)->cost}, {"captured_x_value", 0}, {"local_modifiers", Json::array()}}},
             {"base_star_cost", -1}, {"temporary_star_costs", Json::array()}, {"last_stars_spent", 0}, {"affliction", nullptr}, {"enchantment_runtime", nullptr}, {"model_fields", Json::object()}};
     }
-    for (std::size_t i = 0; i < run_view.setup.relics.size(); ++i) {
-        const auto name = SetupRules::name(run_view.setup.relics[i]);
+    for (std::size_t i = 0; i < run_view.relics.size(); ++i) {
+        const auto name = SetupRules::name(run_view.relics[i]);
         const auto vars = name == "RELIC.BURNING_BLOOD" ? Json{{"Heal", 6}} : name == "RELIC.GOLDEN_PEARL" ? Json{{"Gold", 150}} : Json::object();
         out["native_model_state"]["/players/0/relics/" + std::to_string(i)] = {{"model_fields", Json::object()}, {"dynamic_vars", vars}};
     }
-    if (!terminal) for (std::size_t i = 0; i < run_view.setup.potions.size(); ++i) {
-        if (run_view.setup.potions[i] == no_content) continue;
-        if (SetupRules::name(run_view.setup.potions[i]) != "POTION.POTION_OF_BINDING") throw std::invalid_argument("Unsupported active potion metadata");
+    if (!terminal) for (std::size_t i = 0; i < run_view.potions.size(); ++i) {
+        if (run_view.potions[i] == no_content) continue;
+        if (SetupRules::name(run_view.potions[i]) != "POTION.POTION_OF_BINDING") throw std::invalid_argument("Unsupported active potion metadata");
         out["native_model_state"]["/players/0/potions/" + std::to_string(i)] = {
             {"model_fields", Json::object()}, {"dynamic_vars", {{"VulnerablePower", 1}, {"WeakPower", 1}}}};
     }

@@ -28,9 +28,9 @@ int main() {
                     const auto view = observe(run); const auto index = action.at("card_index").get<std::size_t>();
                     if (!view.combat || index >= view.combat->hand.size()) throw std::invalid_argument("Invalid hand index");
                     if (action.contains("target_index") && action.at("target_index") != 0) throw std::invalid_argument("Invalid target");
-                    input = Input{run.view().boundary, InputKind::play_card, view.combat->hand[index], action.contains("target_index")};
+                    input = CombatInput{run.view().boundary, CombatInputKind::play_card, view.combat->hand[index], action.contains("target_index")};
                 }
-                else if (kind == "end_turn") input = Input{run.view().boundary, InputKind::end_turn};
+                else if (kind == "end_turn") input = CombatInput{run.view().boundary, CombatInputKind::end_turn};
                 else {
                     RunInput choice{run.view().boundary, RunInputKind::skip_rewards};
                     if (kind == "choose_option") { choice.kind = RunInputKind::choose_option; choice.option = action.at("option_index"); }

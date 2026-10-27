@@ -66,7 +66,7 @@ StepResult Session::apply(const Json& action) {
         const auto index = label_index(action.at("card_instance"));
         if (index >= cards_.size()) throw std::invalid_argument("Unknown card identity");
         if (action.contains("target") && action.at("target") != "enemy_0") throw std::invalid_argument("Unsupported target");
-        return apply_combat(state_, {state_.view().boundary, InputKind::play_card, cards_[index], action.contains("target")}, scratch_);
+        return apply_input(state_, CombatInput{state_.view().boundary, CombatInputKind::play_card, cards_[index], action.contains("target")}, scratch_);
     }
     if (kind == "select_cards") {
         fields(action, {"kind", "card_instances"});
@@ -74,35 +74,35 @@ StepResult Session::apply(const Json& action) {
         if (!selected.is_array() || selected.size() != 1) return {StepStatus::invalid_action, state_.view().boundary, Restriction::invalid_selection};
         const auto index = label_index(selected[0]);
         if (index >= cards_.size()) throw std::invalid_argument("Unknown card identity");
-        return apply_combat(state_, {state_.view().boundary, InputKind::select_card, cards_[index]}, scratch_);
+        return apply_input(state_, CombatInput{state_.view().boundary, CombatInputKind::select_card, cards_[index]}, scratch_);
     }
     if (kind == "end_turn") {
-        fields(action, {"kind"}); return apply_combat(state_, {state_.view().boundary, InputKind::end_turn}, scratch_);
+        fields(action, {"kind"}); return apply_input(state_, CombatInput{state_.view().boundary, CombatInputKind::end_turn}, scratch_);
     }
     if (kind == "take_reward" || kind == "reward_alternative") {
         fields(action, {"kind", "index"});
-        return apply_run(state_, {state_.view().boundary, kind == "take_reward" ? RunInputKind::take_reward : RunInputKind::reward_alternative,
-            static_cast<std::uint32_t>(integer(action.at("index"), UINT32_MAX))});
+        return apply_input(state_, RunInput{state_.view().boundary, kind == "take_reward" ? RunInputKind::take_reward : RunInputKind::reward_alternative,
+            static_cast<std::uint32_t>(integer(action.at("index"), UINT32_MAX))}, scratch_);
     }
     if (kind == "select_card_reward") {
         fields(action, {"kind", "card_index"});
-        return apply_run(state_, {state_.view().boundary, RunInputKind::choose_reward_card, static_cast<std::uint32_t>(integer(action.at("card_index"), UINT32_MAX))});
+        return apply_input(state_, RunInput{state_.view().boundary, RunInputKind::choose_reward_card, static_cast<std::uint32_t>(integer(action.at("card_index"), UINT32_MAX))}, scratch_);
     }
-    if (kind == "skip_rewards") { fields(action, {"kind"}); return apply_run(state_, {state_.view().boundary, RunInputKind::skip_rewards}); }
-    if (kind == "skip_card_reward") { fields(action, {"kind"}); return apply_run(state_, {state_.view().boundary, RunInputKind::reward_alternative, 0}); }
+    if (kind == "skip_rewards") { fields(action, {"kind"}); return apply_input(state_, RunInput{state_.view().boundary, RunInputKind::skip_rewards}, scratch_); }
+    if (kind == "skip_card_reward") { fields(action, {"kind"}); return apply_input(state_, RunInput{state_.view().boundary, RunInputKind::reward_alternative, 0}, scratch_); }
     if (kind == "discard_potion") {
         fields(action, {"kind", "potion_index"});
-        return apply_run(state_, {state_.view().boundary, RunInputKind::discard_potion, static_cast<std::uint32_t>(integer(action.at("potion_index"), UINT32_MAX))});
+        return apply_input(state_, RunInput{state_.view().boundary, RunInputKind::discard_potion, static_cast<std::uint32_t>(integer(action.at("potion_index"), UINT32_MAX))}, scratch_);
     }
     if (kind == "choose_option") {
         fields(action, {"kind", "option_index"});
-        return apply_run(state_, {state_.view().boundary, RunInputKind::choose_option, static_cast<std::uint32_t>(integer(action.at("option_index"), UINT32_MAX))});
+        return apply_input(state_, RunInput{state_.view().boundary, RunInputKind::choose_option, static_cast<std::uint32_t>(integer(action.at("option_index"), UINT32_MAX))}, scratch_);
     }
-    if (kind == "proceed") { fields(action, {"kind"}); return apply_run(state_, {state_.view().boundary, RunInputKind::proceed}); }
+    if (kind == "proceed") { fields(action, {"kind"}); return apply_input(state_, RunInput{state_.view().boundary, RunInputKind::proceed}, scratch_); }
     if (kind == "select_map_node") {
         fields(action, {"kind", "col", "row"});
-        const auto result = apply_run(state_, {state_.view().boundary, RunInputKind::travel, 0,
-            static_cast<int>(integer(action.at("col"), INT32_MAX)), static_cast<int>(integer(action.at("row"), INT32_MAX))});
+        const auto result = apply_input(state_, RunInput{state_.view().boundary, RunInputKind::travel, 0,
+            static_cast<int>(integer(action.at("col"), INT32_MAX)), static_cast<int>(integer(action.at("row"), INT32_MAX))}, scratch_);
         if (result.status == StepStatus::awaiting_input && state_.view().combat) {
             cards_.clear();
             for (const auto& zone : state_.view().combat->zone_views()) cards_.insert(cards_.end(), zone.begin(), zone.end());

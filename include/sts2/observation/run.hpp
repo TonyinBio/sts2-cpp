@@ -1,12 +1,11 @@
 #pragma once
-#include "sts2/kernel/run_simulator.hpp"
+#include "sts2/engine/run.hpp"
 #include "sts2/observation/observe.hpp"
 #include <variant>
 #include <vector>
 
 namespace sts2::engine {
 // Inputs retain the current boundary. Forced transport continues are omitted.
-using PlayerInput = std::variant<RunInput, Input>;
 struct PlayerAction { PlayerInput input; Restriction restriction; };
 struct VisibleCard {
     std::uint32_t instance;
@@ -57,7 +56,7 @@ struct RunObservation {
     bool selecting_reward_card = false;
     bool can_skip_rewards = false;
     bool can_skip_card_reward = false;
-    std::optional<ObservationView> combat;
+    std::optional<CombatObservationView> combat;
     std::vector<CardView> hand_cards;
     // Inspectable piles only; draw order and hidden assignments are excluded.
     std::vector<CardView> draw, discard, exhaust;

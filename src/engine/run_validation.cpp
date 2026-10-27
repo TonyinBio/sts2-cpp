@@ -1,4 +1,4 @@
-#include "sts2/kernel/run_simulator.hpp"
+#include "sts2/engine/run.hpp"
 #include <algorithm>
 #include <cmath>
 
@@ -28,10 +28,9 @@ bool bag(ConstRelicBag value) noexcept {
 }
 bool valid_run(const RunState& state) noexcept {
     auto state_view = state.view();
-    if (!valid_record_storage(state.record, state.overflow) ||
-        !valid_record_storage(state.record.setup, state.setup_overflow) ||
-        (!state.record.combat && !state.combat_overflow.empty())) return false;
-    const auto& setup = state_view.setup;
+    if (!valid_data_storage(state.data, state.overflow) ||
+        (!state.data.combat && !state.combat_overflow.empty())) return false;
+    const auto& setup = state_view;
     if (state_view.phase == RunPhase::uninitialized || state_view.phase >= RunPhase::invalid || state_view.act_index != 0 ||
         state_view.boundary.value == 0 || setup.seed.empty() || setup.seed.size() > 4096 || game_seed(setup.seed) != setup.numeric_seed ||
         !SetupRules::character(setup.character) || setup.ascension > 10 || setup.max_hp < 1 || setup.hp < 0 || setup.hp > setup.max_hp ||
@@ -63,7 +62,7 @@ bool valid_run(const RunState& state) noexcept {
     for (auto node : state_view.visited) if (node >= state_view.maps[0]->count || !state_view.maps[0]->nodes[node].active) return false;
     for (auto relic : state_view.neow_options) if (!id(relic, "RELIC.")) return false;
     if (state_view.selected_neow != no_content && std::find(state_view.neow_options.begin(), state_view.neow_options.end(), state_view.selected_neow) == state_view.neow_options.end()) return false;
-    auto linked_cards = [](ConstStateView combat, std::span<const PersistentCard> deck) noexcept {
+    auto linked_cards = [](ConstCombatView combat, std::span<const PersistentCard> deck) noexcept {
         for (const auto& slot : combat.cards.slots()) {
             if (!slot.live || slot.value.deck_instance == UINT32_MAX) continue;
             const auto found = std::find_if(deck.begin(), deck.end(), [&](const auto& c) { return c.instance == slot.value.deck_instance; });
@@ -75,13 +74,13 @@ bool valid_run(const RunState& state) noexcept {
     if (state_view.combat) {
         const auto& combat = *state_view.combat;
         for (const auto& slot : combat.cards.slots()) if (slot.generation < state_view.combat_generation) return false;
-        if (!valid_state(combat) || !linked_cards(combat, setup.deck) || combat.seed != setup.seed || combat.player.hp != setup.hp || combat.player.max_hp != setup.max_hp || combat.rng != setup.rng) return false;
+        if (!valid_combat(combat) || !linked_cards(combat, setup.deck) || combat.seed != setup.seed || combat.player.hp != setup.hp || combat.player.max_hp != setup.max_hp || combat.rng != setup.rng) return false;
         if (state_view.phase == RunPhase::combat) {
-            if ((combat.phase != Phase::play && combat.phase != Phase::discard_choice) || combat.clock != state_view.clock || combat.boundary != state_view.boundary) return false;
+            if ((combat.phase != CombatPhase::play && combat.phase != CombatPhase::discard_choice) || combat.clock != state_view.clock || combat.boundary != state_view.boundary) return false;
         } else if (state_view.phase == RunPhase::complete) {
-            if (!state_view.direct_combat || combat.phase != Phase::player_died) return false;
+            if (!state_view.direct_combat || combat.phase != CombatPhase::player_died) return false;
         } else if (state_view.phase == RunPhase::combat_done) {
-            if (!state_view.direct_combat || combat.phase != Phase::combat_won) return false;
+            if (!state_view.direct_combat || combat.phase != CombatPhase::combat_won) return false;
         } else return false;
         if (state_view.direct_combat && (state_view.rewards || state_view.phase == RunPhase::map)) return false;
     } else {

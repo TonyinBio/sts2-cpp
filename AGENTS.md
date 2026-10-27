@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This is a headless C++23 Slay the Spire 2 simulator. Public headers live in `include/sts2/`; implementations live in `src/`, split into rules, state, kernel, observation, persistence, and integration layers. CLI entry points are in `apps/`; `src/main.cpp` runs the older demo. Keep that demo separate from the new engine.
+This is a headless C++23 Slay the Spire 2 simulator. Public headers live in `include/sts2/`; implementations live in `src/`, split into rules, state, engine, observation, persistence, and integration layers. CLI entry points are in `apps/`; `src/main.cpp` runs the older demo. Keep that demo separate from the new engine.
 
 `tests/unit/` contains engine tests; `tests/parity/` holds recording contract tests, replay tests, and recordings; `tests/oracle/` contains reference-tool Python regressions. Shared recording validation and replay code lives under `tools/parity/`, with canonical schemas in `data/schemas/`. Keep `src/` and `include/sts2/` for the C++ engine. Audited definitions live in `data/builds/`; architecture and contracts live in `docs/specs/`. `tools/` also contains rules generation and reference audits. `sts2-cli/` is the pinned reference submodule.
 
@@ -16,7 +16,7 @@ cmake --build --preset debug          # Build engine, tools, and tests
 ctest --preset debug                  # Run registered C++ and Python tests
 ctest --preset debug -L engine        # Run engine checks
 ctest --preset debug -L replay_parity # Run replay checks
-./build/debug/sts2_combat --auto       # Run isolated combat
+./build/debug/sts2_play                # Play the supported run loop
 ```
 
 Use the `release` configure/build/test presets for optimized builds; run `./build/release/kernel_benchmark` for combat measurements. Install `tools/oracle/requirements-test.txt` for Python schema validation.
@@ -35,7 +35,7 @@ Recent commits generally use `feat:`, `fix(oracle):`, `refactor(oracle):`, or `d
 
 ## Engine Boundaries
 
-Keep rules/kernel transitions deterministic and independent of JSON, filesystem access, and game assemblies. Reject unsupported content explicitly. Live oracle checks require a local game installation; consult `tools/README.md` before running them.
+Keep rules/engine transitions deterministic and independent of JSON, filesystem access, and game assemblies. Reject unsupported content explicitly. Live oracle checks require a local game installation; consult `tools/README.md` before running them.
 
 ## Agent skills
 

@@ -4,51 +4,51 @@
 #include <string_view>
 
 namespace sts2::engine {
-// A borrowed collection view. It is never part of a byte-copyable state record.
+// A borrowed collection view. It is never part of a byte-copyable state sequence_data.
 // Const views never expose mutable elements, even when copied by value.
 template<class T, std::size_t N, bool Const = false> class SequenceView {
-    using Record = std::conditional_t<Const, const InlineSequence<T, N>, InlineSequence<T, N>>;
+    using Data = std::conditional_t<Const, const InlineSequence<T, N>, InlineSequence<T, N>>;
     using Owner = std::conditional_t<Const, const OverflowStorage, OverflowStorage>;
 public:
     using value_type = T;
     using element_type = std::conditional_t<Const, const T, T>;
-    Record& record;
+    Data& sequence_data;
     Owner& owner;
-    SequenceView(Record& sequence, Owner& storage) noexcept : record(sequence), owner(storage) {}
+    SequenceView(Data& sequence, Owner& storage) noexcept : sequence_data(sequence), owner(storage) {}
     SequenceView(const SequenceView&) noexcept = default;
-    operator SequenceView<T, N, true>() const noexcept requires (!Const) { return {record, owner}; }
-    [[nodiscard]] auto values() const noexcept { return record.values(owner); }
+    operator SequenceView<T, N, true>() const noexcept requires (!Const) { return {sequence_data, owner}; }
+    [[nodiscard]] auto values() const noexcept { return sequence_data.values(owner); }
     [[nodiscard]] auto begin() const noexcept { return values().begin(); }
     [[nodiscard]] auto end() const noexcept { return values().end(); }
     [[nodiscard]] auto data() const noexcept { return values().data(); }
-    [[nodiscard]] auto size() const noexcept { return record.size(); }
-    [[nodiscard]] auto capacity() const noexcept { return record.capacity(owner); }
-    [[nodiscard]] bool empty() const noexcept { return record.empty(); }
+    [[nodiscard]] auto size() const noexcept { return sequence_data.size(); }
+    [[nodiscard]] auto capacity() const noexcept { return sequence_data.capacity(owner); }
+    [[nodiscard]] bool empty() const noexcept { return sequence_data.empty(); }
     [[nodiscard]] decltype(auto) operator[](std::size_t i) const noexcept { return values()[i]; }
     [[nodiscard]] decltype(auto) front() const noexcept { return values().front(); }
     [[nodiscard]] decltype(auto) back() const noexcept { return values().back(); }
     operator std::span<element_type>() const noexcept { return values(); }
     operator std::span<const T>() const noexcept requires (!Const) { return values(); }
-    void reserve(std::size_t n) requires (!Const) { record.reserve(owner, n); }
-    void push_back(T value) requires (!Const) { record.push_back(owner, value); }
-    void pop_back() noexcept requires (!Const) { record.pop_back(); }
-    void clear() noexcept requires (!Const) { record.clear(); }
+    void reserve(std::size_t n) requires (!Const) { sequence_data.reserve(owner, n); }
+    void push_back(T value) requires (!Const) { sequence_data.push_back(owner, value); }
+    void pop_back() noexcept requires (!Const) { sequence_data.pop_back(); }
+    void clear() noexcept requires (!Const) { sequence_data.clear(); }
     void resize(std::size_t n) requires (!Const) {
         reserve(n);
-        while (record.count < n) push_back(T{});
-        record.count = static_cast<std::uint32_t>(n);
+        while (sequence_data.count < n) push_back(T{});
+        sequence_data.count = static_cast<std::uint32_t>(n);
     }
     auto erase(typename std::span<element_type>::iterator first,
                typename std::span<element_type>::iterator last) noexcept requires (!Const) {
         const auto offset = first - begin();
         const auto removed = last - first;
         std::move(last, end(), first);
-        record.count -= static_cast<std::uint32_t>(removed);
+        sequence_data.count -= static_cast<std::uint32_t>(removed);
         return begin() + offset;
     }
     auto erase(typename std::span<element_type>::iterator at) noexcept requires (!Const) { return erase(at, at + 1); }
     template<std::forward_iterator Iterator> void assign(Iterator first, Iterator last) requires (!Const) {
-        // State transitions use distinct collections. Preserve an aliased input
+        // CombatState transitions use distinct collections. Preserve an aliased input
         // explicitly before a mutation that might invalidate its iterators.
         std::vector<T> alias;
         if constexpr (std::contiguous_iterator<Iterator>) {
@@ -76,12 +76,12 @@ public:
         auto destination = data() + offset;
         std::move_backward(destination, data() + old_size, data() + old_size + n);
         std::copy(first, last, destination);
-        record.count = static_cast<std::uint32_t>(old_size + n);
+        sequence_data.count = static_cast<std::uint32_t>(old_size + n);
         return begin() + offset;
     }
     SequenceView& operator=(std::span<const T> other) requires (!Const) { assign(other.begin(), other.end()); return *this; }
     SequenceView& operator=(const SequenceView& other) requires (!Const) {
-        if (&record != &other.record || &owner != &other.owner) assign(other.begin(), other.end());
+        if (&data != &other.data || &owner != &other.owner) assign(other.begin(), other.end());
         return *this;
     }
     template<bool Other> bool operator==(const SequenceView<T, N, Other>& other) const { return std::ranges::equal(values(), other.values()); }
@@ -93,10 +93,10 @@ template<class T, std::size_t N> SequenceView(const InlineSequence<T, N>&, const
 
 template<std::size_t N, bool Const = false> struct TextView {
     SequenceView<char, N, Const> sequence;
-    TextView(std::conditional_t<Const, const InlineSequence<char, N>, InlineSequence<char, N>>& record,
-             std::conditional_t<Const, const OverflowStorage, OverflowStorage>& owner) noexcept : sequence(record, owner) {}
+    TextView(std::conditional_t<Const, const InlineSequence<char, N>, InlineSequence<char, N>>& data,
+             std::conditional_t<Const, const OverflowStorage, OverflowStorage>& owner) noexcept : sequence(data, owner) {}
     TextView(const TextView&) noexcept = default;
-    operator TextView<N, true>() const noexcept requires (!Const) { return {sequence.record, sequence.owner}; }
+    operator TextView<N, true>() const noexcept requires (!Const) { return {sequence.data, sequence.owner}; }
     operator std::string_view() const noexcept { return {sequence.data(), sequence.size()}; }
     auto size() const noexcept { return sequence.size(); }
     bool empty() const noexcept { return sequence.empty(); }
@@ -113,8 +113,8 @@ template<std::size_t N, bool Const = false> struct TextView {
     bool operator==(std::string_view other) const noexcept { return std::string_view(*this) == other; }
 };
 
-// Allows optional-record views to support ordinary arrow expressions without
-// persisting a view (or a pointer) in the complete-state record.
+// Allows optional-data views to support ordinary arrow expressions without
+// persisting a view (or a pointer) in the complete-state sequence_data.
 template<class View> struct ViewArrow {
     View value;
     View* operator->() noexcept { return &value; }

@@ -53,7 +53,7 @@ template<class T> struct OverflowAllocator {
 };
 
 // Owns individually allocated collections, not an arena. IDs resolve against the
-// owning state; neither records nor their elements contain pointers into a state.
+// owning state; neither data structures nor their elements contain pointers into a state.
 // Production allocates only on overflow. The owner also contains the block table.
 class OverflowStorage {
 public:
@@ -152,7 +152,7 @@ private:
     std::vector<Block, OverflowAllocator<Block>> blocks_;
 };
 
-// This is the byte-copyable record. Access requires its complete state's owner,
+// This is the byte-copyable data. Access requires its complete state's owner,
 // making relocation independent of addresses and inline/overflow storage mode.
 // Borrowed spans last until growth/reset/destruction of the owning collection.
 template<class T, std::size_t InlineCapacity> struct InlineSequence {
@@ -193,27 +193,27 @@ template<class T, std::size_t InlineCapacity> struct InlineSequence {
     }
     void pop_back() noexcept { if (count) --count; }
     void clear() noexcept { count = 0; } // Deliberately retains overflow.
-    // Reset all records and owner together with InlineState::reset(). Resetting
-    // an individual sequence cannot reclaim its ID while other records use it.
+    // Reset all data and owner together with InlineState::reset(). Resetting
+    // an individual sequence cannot reclaim its ID while other data uses it.
     [[nodiscard]] bool equals(const OverflowStorage& owner, const InlineSequence& other,
                               const OverflowStorage& other_owner) const {
         return std::ranges::equal(values(owner), other.values(other_owner));
     }
 };
 
-// The record enumerates its authoritative sequences for storage validation.
+// The data enumerates its authoritative sequences for storage validation.
 // Ownership cloning does not use that list: it copies every owned block. An
 // omitted new overflow-bearing history therefore fails validation rather than
 // silently qualifying for a fast clone with missing ownership.
-template<class Record> bool valid_record_storage(const Record& record, const OverflowStorage& owner) noexcept {
+template<class Data> bool valid_data_storage(const Data& data, const OverflowStorage& owner) noexcept {
     bool valid = true;
     std::size_t overflow_count = 0;
-    record.for_each_sequence([&](const auto& sequence) {
+    data.for_each_sequence([&](const auto& sequence) {
         if (!sequence.valid(owner)) valid = false;
         if (!sequence.overflowed()) return;
         ++overflow_count;
         std::size_t references = 0;
-        record.for_each_sequence([&](const auto& other) {
+        data.for_each_sequence([&](const auto& other) {
             if (other.overflowed() && other.overflow_id == sequence.overflow_id) ++references;
         });
         if (references != 1) valid = false;
@@ -221,27 +221,27 @@ template<class Record> bool valid_record_storage(const Record& record, const Ove
     return valid && overflow_count == owner.block_count();
 }
 
-// The record contains all authoritative scalars and inline collections; optional
+// The data contains all authoritative scalars and inline collections; optional
 // heap ownership stays outside its memcpy image. Persistence must encode semantic
-// fields explicitly rather than writing this record's bytes.
-template<class Record> struct InlineState {
-    static_assert(std::is_trivially_copyable_v<Record>);
-    static_assert(std::is_nothrow_default_constructible_v<Record>);
-    static_assert(std::is_trivially_copy_assignable_v<Record>);
-    Record record{};
+// fields explicitly rather than writing this data's bytes.
+template<class Data> struct InlineState {
+    static_assert(std::is_trivially_copyable_v<Data>);
+    static_assert(std::is_nothrow_default_constructible_v<Data>);
+    static_assert(std::is_trivially_copy_assignable_v<Data>);
+    Data data{};
     OverflowStorage overflow;
     explicit InlineState(StorageAllocator allocator = {}) : overflow(allocator) {}
     void reset() noexcept {
-        record = Record{};
+        data = Data{};
         overflow.reset();
     }
 };
 
-template<class Record> void clone_into(InlineState<Record>& destination, const InlineState<Record>& source) {
+template<class Data> void clone_into(InlineState<Data>& destination, const InlineState<Data>& source) {
     if (&destination == &source) return;
     // No field-by-field eligibility predicate: every authoritative overflow
     // collection is owned here, so adding a history cannot omit its slow path.
     destination.overflow.clone_from(source.overflow);
-    std::memcpy(&destination.record, &source.record, sizeof(Record));
+    std::memcpy(&destination.data, &source.data, sizeof(Data));
 }
 } // namespace sts2::engine

@@ -1,6 +1,6 @@
 #pragma once
 #include "sts2/integration/native_run.hpp"
-#include "sts2/kernel/run_simulator.hpp"
+#include "sts2/engine/run.hpp"
 
 namespace sts2::engine {
 // Canonical wire identities are bound from simulator output, never a reference

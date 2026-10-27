@@ -1,4 +1,4 @@
-#include "sts2/state/setup.hpp"
+#include "sts2/engine/run.hpp"
 #include "sts2/rules/ruleset.hpp"
 #include <algorithm>
 #include <new>
@@ -53,7 +53,7 @@ void fill_encounters(SequenceView<ContentId, 32> output, std::span<const Encount
     }
 }
 }
-StepResult initialize_setup(SetupView destination, const SeededConfig& config) {
+StepResult initialize_run_inventory(RunView state_view, const SeededConfig& config) {
     RunClock clock;
     const auto* character = SetupRules::character(SetupRules::find(config.character));
     std::array<const ActDefinition*, 3> definitions{};
@@ -65,7 +65,7 @@ StepResult initialize_setup(SetupView destination, const SeededConfig& config) {
         if (!definitions[i] || definitions[i]->index != i) return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
     }
     try {
-        SetupState state(destination.overflow.allocator()); auto state_view = state.view(); state_view.seed = config.seed; state_view.numeric_seed = game_seed(config.seed);
+        state_view.seed = config.seed; state_view.numeric_seed = game_seed(config.seed);
         state_view.character = character->id; state_view.ascension = config.ascension;
         state_view.hp = state_view.max_hp = character->hp; state_view.gold = character->gold; state_view.orb_slots = character->orb_slots;
         state_view.potion_slots = config.ascension >= 4 ? 2 : 3;
@@ -96,7 +96,6 @@ StepResult initialize_setup(SetupView destination, const SeededConfig& config) {
             act.ancient = select(ancients, rng);
             if (i == state_view.acts.size() - 1 && config.ascension >= 10) act.second_boss = select(def.bosses, rng, act.boss);
         }
-        destination.replace(std::move(state));
         return {StepStatus::awaiting_input, {1}};
     } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, {}, Restriction::capacity}; }
     catch (...) { return {StepStatus::engine_error, {}, Restriction::execution_budget}; }

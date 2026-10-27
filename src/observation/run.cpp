@@ -31,9 +31,8 @@ StepResult submit(RunState& state, const PlayerInput& input, Scratch& scratch) {
         if (run->expected_boundary != state_view.boundary) return {StepStatus::invalid_action, state_view.boundary, Restriction::stale_boundary};
         if (!canonical(*run)) return {StepStatus::invalid_action, state_view.boundary, Restriction::malformed_action};
         if (run->kind == RunInputKind::proceed || forced(state)) return {StepStatus::invalid_action, state_view.boundary, Restriction::wrong_phase};
-        return apply_run(state, *run);
     }
-    return apply_combat(state, std::get<Input>(input), scratch);
+    return apply_input(state, input, scratch);
 }
 }
 RunObservation observe(const RunState& state) {
@@ -42,13 +41,13 @@ RunObservation observe(const RunState& state) {
     view.boundary = state_view.boundary; view.phase = state_view.phase;
     view.valid = state_view.phase != RunPhase::invalid && state_view.phase != RunPhase::uninitialized;
     if (!view.valid) return view;
-    view.character = SetupRules::name(state_view.setup.character); view.seed = state_view.setup.seed;
-    view.ascension = state_view.setup.ascension; view.act = state_view.act_index + 1;
-    view.hp = state_view.setup.hp; view.max_hp = state_view.setup.max_hp; view.gold = state_view.setup.gold;
-    view.potion_capacity = state_view.setup.potion_slots;
-    for (const auto& card : state_view.setup.deck) view.deck.push_back({card.instance, SetupRules::name(card.definition), card.upgrade, card_cost(SetupRules::name(card.definition))});
-    for (std::size_t i = 0; i < state_view.setup.relics.size(); ++i) view.relics.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state_view.setup.relics[i])});
-    for (std::size_t i = 0; i < state_view.setup.potions.size(); ++i) view.potions.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state_view.setup.potions[i])});
+    view.character = SetupRules::name(state_view.character); view.seed = state_view.seed;
+    view.ascension = state_view.ascension; view.act = state_view.act_index + 1;
+    view.hp = state_view.hp; view.max_hp = state_view.max_hp; view.gold = state_view.gold;
+    view.potion_capacity = state_view.potion_slots;
+    for (const auto& card : state_view.deck) view.deck.push_back({card.instance, SetupRules::name(card.definition), card.upgrade, card_cost(SetupRules::name(card.definition))});
+    for (std::size_t i = 0; i < state_view.relics.size(); ++i) view.relics.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state_view.relics[i])});
+    for (std::size_t i = 0; i < state_view.potions.size(); ++i) view.potions.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state_view.potions[i])});
     if (state_view.phase == RunPhase::neow)
         for (std::size_t i = 0; i < state_view.neow_options.size(); ++i) view.options.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state_view.neow_options[i])});
     switch (state_view.phase) {
@@ -93,7 +92,7 @@ RunObservation observe(const RunState& state) {
         for (auto handle : view.combat->hand) {
             if (auto card = observe_card(*state_view.combat, handle)) view.hand_cards.push_back(*card);
         }
-        if (state_view.combat->phase == Phase::discard_choice) {
+        if (state_view.combat->phase == CombatPhase::discard_choice) {
             view.prompt = PublicPrompt::discard;
             view.minimum_selection = view.maximum_selection = 1;
         }
@@ -157,14 +156,14 @@ std::vector<PlayerAction> actions(const RunState& state) {
         }
     }
     if ((state_view.phase == RunPhase::map || state_view.phase == RunPhase::rewards) && !(state_view.rewards && state_view.rewards->selecting_card))
-        for (std::uint32_t i = 0; i < state_view.setup.potions.size(); ++i)
-            if (state_view.setup.potions[i] != no_content) add(RunInputKind::discard_potion, i);
+        for (std::uint32_t i = 0; i < state_view.potions.size(); ++i)
+            if (state_view.potions[i] != no_content) add(RunInputKind::discard_potion, i);
     return result;
 }
-StepResult advance_player(RunState& state, Scratch&) {
+StepResult advance_player(RunState& state, Scratch& scratch) {
     auto state_view = state.view();
     while (forced(state)) {
-        const auto result = apply_run(state, {state_view.boundary, RunInputKind::proceed});
+        const auto result = apply_input(state, RunInput{state_view.boundary, RunInputKind::proceed}, scratch);
         if (result.status != StepStatus::awaiting_input) {
             // The initiating player input has already executed. A missing
             // automatic capability cannot be published as a valid partial stop.

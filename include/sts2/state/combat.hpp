@@ -10,7 +10,7 @@
 
 namespace sts2::engine {
 enum class Zone : std::uint8_t { hand, draw, discard, exhaust, play, count };
-enum class Phase : std::uint8_t { uninitialized, play, discard_choice, combat_won, player_died, invalid };
+enum class CombatPhase : std::uint8_t { uninitialized, play, discard_choice, combat_won, player_died, invalid };
 enum class BeetleMove : std::uint8_t { shrink, chomp, stomp };
 struct CardInstance {
     CardId definition = CardId::strike;
@@ -19,7 +19,7 @@ struct CardInstance {
     std::uint32_t deck_instance = UINT32_MAX;
     friend bool operator==(const CardInstance&, const CardInstance&) = default;
 };
-using CardPool = PoolRecord<CardInstance, CardInstanceTag, 32>;
+using CardPool = PoolData<CardInstance, CardInstanceTag, 32>;
 struct CreatureState {
     std::int32_t hp = 0, max_hp = 0, block = 0, vulnerable = 0;
     bool shrink = false;
@@ -32,10 +32,10 @@ struct EffectFrame {
     std::uint32_t play = 0;
     friend bool operator==(const EffectFrame&, const EffectFrame&) = default;
 };
-struct StateRecord {
+struct CombatData {
     std::uint32_t rules = rules_revision;
     BoundaryId boundary {};
-    Phase phase = Phase::uninitialized;
+    CombatPhase phase = CombatPhase::uninitialized;
     InlineSequence<char, 32> seed {};
     std::uint64_t numeric_seed = 0;
     RunClock clock {};
@@ -61,46 +61,46 @@ struct StateRecord {
     template<class Visit> void for_each_sequence(Visit visit) const noexcept { visit_sequences(*this, visit); }
     template<class Visit> void for_each_sequence(Visit visit) noexcept { visit_sequences(*this, visit); }
 };
-static_assert(std::is_trivially_copyable_v<StateRecord>);
-struct State;
-CloneStatus clone_into(State&, const State&) noexcept;
-template<bool Const> struct BasicStateView {
-    using Record = std::conditional_t<Const, const StateRecord, StateRecord>;
+static_assert(std::is_trivially_copyable_v<CombatData>);
+struct CombatState;
+CloneStatus clone_into(CombatState&, const CombatState&) noexcept;
+template<bool Const> struct BasicCombatView {
+    using Data = std::conditional_t<Const, const CombatData, CombatData>;
     using Owner = std::conditional_t<Const, const OverflowStorage, OverflowStorage>;
     template<class T> using Ref = std::conditional_t<Const, const T&, T&>;
-    Record& record;
+    Data& data;
     Owner& overflow;
-    Ref<std::uint32_t> rules = record.rules;
-    Ref<BoundaryId> boundary = record.boundary;
-    Ref<Phase> phase = record.phase;
-    TextView<32, Const> seed{record.seed, overflow};
-    Ref<std::uint64_t> numeric_seed = record.numeric_seed;
-    Ref<RunClock> clock = record.clock;
-    Ref<RngBank> rng = record.rng;
-    Ref<CreatureState> player = record.player;
-    Ref<CreatureState> enemy = record.enemy;
-    Ref<std::int32_t> energy = record.energy;
-    Ref<std::int32_t> turn = record.turn;
-    Ref<BeetleMove> move = record.move;
-    Ref<bool> burning_blood = record.burning_blood;
-    PoolView<CardInstance, CardInstanceTag, 32, Const> cards{record.cards, overflow};
-    SequenceView<EffectFrame, 4, Const> execution{record.execution, overflow};
-    SequenceView<CombatHistoryEntry, 64, Const> history{record.history, overflow};
-    SequenceView<CardPlayRecord, 16, Const> plays{record.plays, overflow};
-    SequenceView<PowerRecord, 8, Const> powers{record.powers, overflow};
-    Ref<std::uint32_t> next_creation_order = record.next_creation_order;
-    BasicStateView(Record& data, Owner& owner) noexcept : record(data), overflow(owner) {}
-    operator BasicStateView<true>() const noexcept requires (!Const) { return {record, overflow}; }
-    BasicStateView view() const noexcept { return *this; }
-    auto zone(Zone id) const noexcept { return SequenceView<CardHandle, 32, Const>(record.zones[static_cast<std::size_t>(id)], overflow); }
-    auto zone_views() const noexcept { return std::array<SequenceView<CardHandle, 32, Const>, 5>{{{record.zones[0], overflow}, {record.zones[1], overflow}, {record.zones[2], overflow}, {record.zones[3], overflow}, {record.zones[4], overflow}}}; }
+    Ref<std::uint32_t> rules = data.rules;
+    Ref<BoundaryId> boundary = data.boundary;
+    Ref<CombatPhase> phase = data.phase;
+    TextView<32, Const> seed{data.seed, overflow};
+    Ref<std::uint64_t> numeric_seed = data.numeric_seed;
+    Ref<RunClock> clock = data.clock;
+    Ref<RngBank> rng = data.rng;
+    Ref<CreatureState> player = data.player;
+    Ref<CreatureState> enemy = data.enemy;
+    Ref<std::int32_t> energy = data.energy;
+    Ref<std::int32_t> turn = data.turn;
+    Ref<BeetleMove> move = data.move;
+    Ref<bool> burning_blood = data.burning_blood;
+    PoolView<CardInstance, CardInstanceTag, 32, Const> cards{data.cards, overflow};
+    SequenceView<EffectFrame, 4, Const> execution{data.execution, overflow};
+    SequenceView<CombatHistoryEntry, 64, Const> history{data.history, overflow};
+    SequenceView<CardPlayRecord, 16, Const> plays{data.plays, overflow};
+    SequenceView<PowerRecord, 8, Const> powers{data.powers, overflow};
+    Ref<std::uint32_t> next_creation_order = data.next_creation_order;
+    BasicCombatView(Data& data, Owner& owner) noexcept : data(data), overflow(owner) {}
+    operator BasicCombatView<true>() const noexcept requires (!Const) { return {data, overflow}; }
+    BasicCombatView view() const noexcept { return *this; }
+    auto zone(Zone id) const noexcept { return SequenceView<CardHandle, 32, Const>(data.zones[static_cast<std::size_t>(id)], overflow); }
+    auto zone_views() const noexcept { return std::array<SequenceView<CardHandle, 32, Const>, 5>{{{data.zones[0], overflow}, {data.zones[1], overflow}, {data.zones[2], overflow}, {data.zones[3], overflow}, {data.zones[4], overflow}}}; }
     void reserve(std::size_t card_count) requires (!Const) {
         cards.reserve(card_count);
         for (auto zone : zone_views()) zone.reserve(card_count);
     }
-    std::size_t retained_bytes() const noexcept { return sizeof(StateRecord) + overflow.retained_bytes(); }
-    void replace(State&& source) requires (!Const);
-    template<bool Other> bool operator==(const BasicStateView<Other>& other) const {
+    std::size_t retained_bytes() const noexcept { return sizeof(CombatData) + overflow.retained_bytes(); }
+    void replace(CombatState&& source) requires (!Const);
+    template<bool Other> bool operator==(const BasicCombatView<Other>& other) const {
         return rules == other.rules &&
             boundary == other.boundary &&
             phase == other.phase &&
@@ -123,42 +123,42 @@ template<bool Const> struct BasicStateView {
             next_creation_order == other.next_creation_order;
     }
 };
-using StateView = BasicStateView<false>;
-using ConstStateView = BasicStateView<true>;
-struct State {
-    StateRecord record;
+using CombatView = BasicCombatView<false>;
+using ConstCombatView = BasicCombatView<true>;
+struct CombatState {
+    CombatData data;
     OverflowStorage overflow;
-    explicit State(StorageAllocator allocator = {}) : overflow(allocator) {}
-    State(const State& other) : State(other.overflow.allocator()) { if (clone_into(*this, other) != CloneStatus::cloned) throw std::bad_alloc{}; }
-    explicit State(ConstStateView other) : State(other.overflow.allocator()) {
-        overflow.clone_from(other.overflow); std::memcpy(&record, &other.record, sizeof(record));
+    explicit CombatState(StorageAllocator allocator = {}) : overflow(allocator) {}
+    CombatState(const CombatState& other) : CombatState(other.overflow.allocator()) { if (clone_into(*this, other) != CloneStatus::cloned) throw std::bad_alloc{}; }
+    explicit CombatState(ConstCombatView other) : CombatState(other.overflow.allocator()) {
+        overflow.clone_from(other.overflow); std::memcpy(&data, &other.data, sizeof(data));
     }
-    State& operator=(const State& other) { if (clone_into(*this, other) != CloneStatus::cloned) throw std::bad_alloc{}; return *this; }
-    State(State&& other) noexcept : overflow(std::move(other.overflow)) { std::memcpy(&record, &other.record, sizeof(record)); }
-    State& operator=(State&& other) noexcept {
-        if (this != &other) { overflow = std::move(other.overflow); std::memcpy(&record, &other.record, sizeof(record)); }
+    CombatState& operator=(const CombatState& other) { if (clone_into(*this, other) != CloneStatus::cloned) throw std::bad_alloc{}; return *this; }
+    CombatState(CombatState&& other) noexcept : overflow(std::move(other.overflow)) { std::memcpy(&data, &other.data, sizeof(data)); }
+    CombatState& operator=(CombatState&& other) noexcept {
+        if (this != &other) { overflow = std::move(other.overflow); std::memcpy(&data, &other.data, sizeof(data)); }
         return *this;
     }
-    void reset() noexcept { record = StateRecord{}; overflow.reset(); }
-    StateView view() noexcept { return {record, overflow}; }
-    ConstStateView view() const noexcept { return {record, overflow}; }
-    operator StateView() noexcept { return view(); }
-    operator ConstStateView() const noexcept { return view(); }
+    void reset() noexcept { data = CombatData{}; overflow.reset(); }
+    CombatView view() noexcept { return {data, overflow}; }
+    ConstCombatView view() const noexcept { return {data, overflow}; }
+    operator CombatView() noexcept { return view(); }
+    operator ConstCombatView() const noexcept { return view(); }
     auto zone(Zone id) noexcept { return view().zone(id); }
     auto zone(Zone id) const noexcept { return view().zone(id); }
     std::size_t retained_bytes() const noexcept { return sizeof(*this) + overflow.retained_bytes(); }
-    friend CloneStatus clone_into(State& destination, const State& source) noexcept try {
+    friend CloneStatus clone_into(CombatState& destination, const CombatState& source) noexcept try {
         if (&destination == &source) return CloneStatus::cloned;
         destination.overflow.clone_from(source.overflow);
-        std::memcpy(&destination.record, &source.record, sizeof(StateRecord));
+        std::memcpy(&destination.data, &source.data, sizeof(CombatData));
         return CloneStatus::cloned;
     } catch (const std::bad_alloc&) { return CloneStatus::resource_limit; }
       catch (const std::length_error&) { return CloneStatus::resource_limit; }
-    friend bool operator==(const State& a, const State& b) { return a.view() == b.view(); }
+    friend bool operator==(const CombatState& a, const CombatState& b) { return a.view() == b.view(); }
 };
-template<bool Const> void BasicStateView<Const>::replace(State&& source) requires (!Const) {
+template<bool Const> void BasicCombatView<Const>::replace(CombatState&& source) requires (!Const) {
     overflow = std::move(source.overflow);
-    std::memcpy(&record, &source.record, sizeof(record));
+    std::memcpy(&data, &source.data, sizeof(data));
 }
 // Scratch is discardable and contains no continuation or authoritative values.
 struct Scratch {

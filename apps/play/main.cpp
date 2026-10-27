@@ -33,11 +33,11 @@ int main(int argc, char** argv) {
         if (offered.empty()) return view.valid ? 0 : 1;
         for (std::size_t i = 0; i < offered.size(); ++i) {
             std::cout << i << ": ";
-            if (const auto* input = std::get_if<Input>(&offered[i].input)) {
-                if (input->kind == InputKind::end_turn) std::cout << "End turn";
+            if (const auto* input = std::get_if<CombatInput>(&offered[i].input)) {
+                if (input->kind == CombatInputKind::end_turn) std::cout << "End turn";
                 else {
                     const auto card = std::find_if(view.hand_cards.begin(), view.hand_cards.end(), [&](const auto& c) { return c.handle == input->card; });
-                    std::cout << (input->kind == InputKind::play_card ? "Play " : "Discard ") << card->name;
+                    std::cout << (input->kind == CombatInputKind::play_card ? "Play " : "Discard ") << card->name;
                 }
             } else {
                 const auto& input_run = std::get<RunInput>(offered[i].input);

@@ -23,21 +23,22 @@ Session until(std::size_t actions) {
     return session;
 }
 TEST(PublicRun, ConsecutiveScenarioCombatsReplaceGraphsAndRejectOldCards) {
+    Scratch transition_scratch;
     auto state = until(13).state(); Scratch scratch;
-    ASSERT_EQ(apply_run(state, {state.view().boundary, RunInputKind::skip_rewards}).status, StepStatus::awaiting_input);
-    ASSERT_EQ(apply_run(state, {state.view().boundary, RunInputKind::proceed}).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_input(state, RunInput{state.view().boundary, RunInputKind::skip_rewards}, transition_scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_input(state, RunInput{state.view().boundary, RunInputKind::proceed}, transition_scratch).status, StepStatus::awaiting_input);
     EXPECT_FALSE(state.view().combat); EXPECT_TRUE(state.combat_overflow.empty());
     const CardHandle old_card{0, state.view().combat_generation};
     const auto saved = checkpoint(state).bytes;
     ASSERT_EQ(enter_combat_scenario(state, state.view().boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK").status, StepStatus::awaiting_input);
     EXPECT_EQ(state.view().combat_generation, 2u);
-    EXPECT_EQ(state.view().setup.deck.size(), 10u);
+    EXPECT_EQ(state.view().deck.size(), 10u);
     EXPECT_FALSE(state.view().combat->cards.get(old_card));
-    EXPECT_EQ(apply_player(state, Input{state.view().boundary, InputKind::play_card, old_card, true}, scratch).status, StepStatus::invalid_action);
+    EXPECT_EQ(apply_player(state, CombatInput{state.view().boundary, CombatInputKind::play_card, old_card, true}, scratch).status, StepStatus::invalid_action);
     RunState restored;
     ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
     EXPECT_EQ(restored, state);
-    EXPECT_EQ(apply_player(restored, Input{restored.view().boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(apply_player(restored, CombatInput{restored.view().boundary, CombatInputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
     EXPECT_NE(restored, state);
     RunState before;
     ASSERT_EQ(restore(before, saved, scratch), RestoreStatus::restored);
@@ -50,11 +51,11 @@ TEST(PublicRun, ConsecutiveScenarioCombatsReplaceGraphsAndRejectOldCards) {
     for (unsigned turn = 0; turn < 50 && state.view().phase == RunPhase::combat; ++turn) {
         const auto offered = actions(state);
         const auto attack = std::find_if(offered.begin(), offered.end(), [&](const auto& a) {
-            const auto* input = std::get_if<Input>(&a.input);
-            return a.restriction == Restriction::none && input && input->kind == InputKind::play_card && input->target_enemy;
+            const auto* input = std::get_if<CombatInput>(&a.input);
+            return a.restriction == Restriction::none && input && input->kind == CombatInputKind::play_card && input->target_enemy;
         });
         if (attack != offered.end()) (void)apply_player(state, attack->input, scratch);
-        else (void)apply_player(state, Input{state.view().boundary, InputKind::end_turn}, scratch);
+        else (void)apply_player(state, CombatInput{state.view().boundary, CombatInputKind::end_turn}, scratch);
     }
     ASSERT_EQ(state.view().phase, RunPhase::rewards);
     ASSERT_EQ(apply_player(state, RunInput{state.view().boundary, RunInputKind::skip_rewards}, scratch).status, StepStatus::awaiting_input);
@@ -68,13 +69,13 @@ TEST(PublicRun, ConsecutiveScenarioCombatsReplaceGraphsAndRejectOldCards) {
     // Retaining an older handle generation in an otherwise internally coherent
     // active combat must fail complete-run validation and transactional restore.
     const auto original = restored;
-    State aliased(ConstStateView(*original.view().combat));
+    CombatState aliased(ConstCombatView(*original.view().combat));
     std::vector<CardPool::Slot> slots(aliased.view().cards.slots().begin(), aliased.view().cards.slots().end());
     for (auto& slot : slots) slot.generation = 1;
     ASSERT_TRUE(aliased.view().cards.restore(std::move(slots), {}));
     for (auto zone : aliased.view().zone_views()) for (auto& card : zone) card.generation = 1;
     for (auto& entry : aliased.view().history) if (entry.card.present()) entry.card.generation = 1;
-    ASSERT_TRUE(valid_state(aliased));
+    ASSERT_TRUE(valid_combat(aliased));
     auto bad = checkpoint(original).bytes;
     const auto inner = checkpoint(aliased).bytes;
     std::vector<std::byte> magic;
@@ -102,11 +103,11 @@ TEST(PublicRun, RecycledGenerationsAndExhaustionRemainSafeAcrossCombats) {
     for (unsigned step = 0; step < 100 && state.view().phase == RunPhase::combat; ++step) {
         const auto offered = actions(state);
         const auto attack = std::find_if(offered.begin(), offered.end(), [](const auto& a) {
-            const auto* input = std::get_if<Input>(&a.input);
-            return a.restriction == Restriction::none && input && input->kind == InputKind::play_card && input->target_enemy;
+            const auto* input = std::get_if<CombatInput>(&a.input);
+            return a.restriction == Restriction::none && input && input->kind == CombatInputKind::play_card && input->target_enemy;
         });
         if (attack != offered.end()) (void)apply_player(state, attack->input, scratch);
-        else (void)apply_player(state, Input{state.view().boundary, InputKind::end_turn}, scratch);
+        else (void)apply_player(state, CombatInput{state.view().boundary, CombatInputKind::end_turn}, scratch);
     }
     ASSERT_EQ(state.view().phase, RunPhase::rewards);
     EXPECT_FALSE(state.view().combat); EXPECT_TRUE(state.combat_overflow.empty());
@@ -126,7 +127,7 @@ TEST(PublicRun, PermanentCardLinksSurviveDeckReordering) {
     auto state = until(3).state();
     // Declared scenario permutation of existing permanent objects; combat
     // aliases still point at those objects, not at their old deck indices.
-    std::swap(state.view().setup.deck.front(), state.view().setup.deck.back());
+    std::swap(state.view().deck.front(), state.view().deck.back());
     ASSERT_TRUE(valid_run(state));
     const auto native = NativeRunExporter{}.snapshot(state);
     EXPECT_EQ(native["combat"]["cards"]["card_0"]["deck_version"], "/players/0/deck/9");
@@ -189,12 +190,12 @@ TEST(PublicRun, RewardsRevealOnlyTheActiveOffersAndResumeIndependentAlternatives
     EXPECT_EQ(observe(branch).deck.size(), observe(restored).deck.size() + 1);
     EXPECT_EQ(checkpoint(state).bytes, saved);
     EXPECT_TRUE(observe(restored).reward_cards.empty());
-    EXPECT_EQ(restored.view().setup.player_rng, state.view().setup.player_rng);
+    EXPECT_EQ(restored.view().player_rng, state.view().player_rng);
 }
 TEST(PublicRun, HiddenQueuesAndDrawOrderDoNotAffectVisibleChoicesOrIds) {
     auto session = until(4); auto a = session.state(), b = a;
     std::reverse(b.view().combat->zone(Zone::draw).begin(), b.view().combat->zone(Zone::draw).end());
-    std::reverse(b.view().setup.acts[0].events.begin(), b.view().setup.acts[0].events.end());
+    std::reverse(b.view().acts[0].events.begin(), b.view().acts[0].events.end());
     (void)b.view().event_rng.next_bool();
     const auto av = observe(a), bv = observe(b);
     EXPECT_EQ(av.deck, bv.deck); EXPECT_EQ(av.map, bv.map);
@@ -206,7 +207,7 @@ TEST(PublicRun, HiddenQueuesAndDrawOrderDoNotAffectVisibleChoicesOrIds) {
     ASSERT_EQ(aa.size(), ba.size());
     for (std::size_t i = 0; i < aa.size(); ++i) {
         EXPECT_EQ(aa[i].restriction, ba[i].restriction);
-        const auto ai = std::get<Input>(aa[i].input), bi = std::get<Input>(ba[i].input);
+        const auto ai = std::get<CombatInput>(aa[i].input), bi = std::get<CombatInput>(ba[i].input);
         EXPECT_EQ(ai.card, bi.card); EXPECT_EQ(ai.kind, bi.kind); EXPECT_EQ(ai.target_enemy, bi.target_enemy);
     }
 }
@@ -236,17 +237,17 @@ TEST(PublicRun, StarterVariantsExposeAndExecuteSourceBackedPreviews) {
         // Declared isolated scenario: three authored starter cards, upgrade all
         // or none, fixed 40-HP enemy. This does not import an expected checkpoint.
         const std::array deck{CardSpec{CardId::bash, upgraded}, CardSpec{CardId::defend, upgraded}, CardSpec{CardId::strike, upgraded}};
-        CombatConfig config; config.deck = deck; config.enemy_hp = 40; config.initial_rng = &state.view().setup.rng;
+        CombatConfig config; config.deck = deck; config.enemy_hp = 40; config.initial_rng = &state.view().rng;
         state.view().combat.emplace(); Scratch scratch;
-        ASSERT_EQ(Simulator{}.initialize(*state.view().combat, config, scratch).status, StepStatus::awaiting_input);
-        state.view().setup.rng = state.view().combat->rng;
+        ASSERT_EQ(initialize_combat(*state.view().combat, config, scratch).status, StepStatus::awaiting_input);
+        state.view().rng = state.view().combat->rng;
         state.view().phase = RunPhase::combat; state.view().direct_combat = true; state.view().combat_generation = 1;
         const auto play = [&](std::string_view model) {
             const auto view = observe(state);
             const auto card = std::find_if(view.hand_cards.begin(), view.hand_cards.end(), [&](const auto& c) { return c.model_id == model; });
             EXPECT_NE(card, view.hand_cards.end());
             if (card == view.hand_cards.end()) return;
-            EXPECT_EQ(apply_player(state, Input{view.boundary, InputKind::play_card, card->handle, card->enemy_target}, scratch).status, StepStatus::awaiting_input);
+            EXPECT_EQ(apply_player(state, CombatInput{view.boundary, CombatInputKind::play_card, card->handle, card->enemy_target}, scratch).status, StepStatus::awaiting_input);
         };
         const auto before = checkpoint(state).bytes;
         for (const auto& card : observe(state).hand_cards) {
@@ -259,7 +260,7 @@ TEST(PublicRun, StarterVariantsExposeAndExecuteSourceBackedPreviews) {
         play("CARD.DEFEND_IRONCLAD"); EXPECT_EQ(observe(state).combat->block, upgraded ? 8 : 5);
         play("CARD.BASH"); EXPECT_EQ(observe(state).combat->enemy_hp, upgraded ? 30 : 32);
         EXPECT_EQ(observe(state).combat->enemy_vulnerable, upgraded ? 3 : 2);
-        EXPECT_EQ(apply_player(state, Input{state.view().boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+        EXPECT_EQ(apply_player(state, CombatInput{state.view().boundary, CombatInputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
         EXPECT_TRUE(observe(state).combat->shrunk);
         const auto hp = observe(state).combat->enemy_hp;
         play("CARD.STRIKE_IRONCLAD"); EXPECT_EQ(observe(state).combat->enemy_hp, hp - (upgraded ? 9 : 6));
@@ -274,8 +275,8 @@ TEST(PublicRun, InactivePilePreviewsKeepBaseDamageAfterShrink) {
         return card.model_id == "CARD.STRIKE_IRONCLAD";
     });
     ASSERT_NE(strike, initial.hand_cards.end());
-    ASSERT_EQ(apply_player(state, Input{state.view().boundary, InputKind::play_card, strike->handle, true}, scratch).status, StepStatus::awaiting_input);
-    ASSERT_EQ(apply_player(state, Input{state.view().boundary, InputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_player(state, CombatInput{state.view().boundary, CombatInputKind::play_card, strike->handle, true}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_player(state, CombatInput{state.view().boundary, CombatInputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
     const auto before = checkpoint(state).bytes;
     const auto view = observe(state);
     ASSERT_TRUE(view.combat->shrunk);
@@ -309,10 +310,10 @@ TEST(PublicRun, InspectablePilesExposeMetadataAndDrawInspectionHidesSequence) {
 }
 TEST(PublicRun, HiddenEncounterSupportIsNotDisclosedByTravelQueries) {
     auto a = until(2).state(), b = a;
-    const auto different = std::find_if(b.view().setup.acts[0].normal.begin(), b.view().setup.acts[0].normal.end(),
-        [&](auto encounter) { return encounter != b.view().setup.acts[0].normal[0]; });
-    ASSERT_NE(different, b.view().setup.acts[0].normal.end());
-    b.view().setup.acts[0].normal[0] = *different;
+    const auto different = std::find_if(b.view().acts[0].normal.begin(), b.view().acts[0].normal.end(),
+        [&](auto encounter) { return encounter != b.view().acts[0].normal[0]; });
+    ASSERT_NE(different, b.view().acts[0].normal.end());
+    b.view().acts[0].normal[0] = *different;
     ASSERT_TRUE(valid_run(b));
     const auto aa = actions(a), ba = actions(b);
     ASSERT_FALSE(aa.empty()); ASSERT_EQ(aa.size(), ba.size());
@@ -341,21 +342,22 @@ TEST(RunCheckpoint, EveryLifecycleBoundaryRoundTripsAllFieldsAndNativeExport) {
     }
 }
 TEST(RunCheckpoint, RestoredRewardSelectionBranchesIndependentlyAndKeepsRandomPositions) {
+    Scratch transition_scratch;
     const auto session = until(16); ASSERT_TRUE(session.state().view().rewards->selecting_card);
     const auto encoded = checkpoint(session.state()); RunState a, b; Scratch scratch;
     ASSERT_EQ(restore(a, encoded.bytes, scratch), RestoreStatus::restored);
     ASSERT_EQ(restore(b, encoded.bytes, scratch), RestoreStatus::restored);
-    const auto random = a.view().setup.player_rng;
-    EXPECT_EQ(apply_run(a, {a.view().boundary, RunInputKind::choose_reward_card, 0}).status, StepStatus::awaiting_input);
-    EXPECT_EQ(apply_run(b, {b.view().boundary, RunInputKind::reward_alternative, 0}).status, StepStatus::awaiting_input);
-    EXPECT_EQ(SetupRules::name(a.view().setup.deck.back().definition), "CARD.TRUE_GRIT");
-    EXPECT_EQ(a.view().setup.deck.size(), b.view().setup.deck.size() + 1); EXPECT_EQ(a.view().setup.player_rng, random); EXPECT_EQ(b.view().setup.player_rng, random);
+    const auto random = a.view().player_rng;
+    EXPECT_EQ(apply_input(a, RunInput{a.view().boundary, RunInputKind::choose_reward_card, 0}, transition_scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(apply_input(b, RunInput{b.view().boundary, RunInputKind::reward_alternative, 0}, transition_scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(SetupRules::name(a.view().deck.back().definition), "CARD.TRUE_GRIT");
+    EXPECT_EQ(a.view().deck.size(), b.view().deck.size() + 1); EXPECT_EQ(a.view().player_rng, random); EXPECT_EQ(b.view().player_rng, random);
     EXPECT_EQ(checkpoint(session.state()).bytes, encoded.bytes); EXPECT_TRUE(valid_run(a)); EXPECT_TRUE(valid_run(b));
-    auto sparse_ids = session.state(); sparse_ids.view().setup.deck[0].instance = 100;
+    auto sparse_ids = session.state(); sparse_ids.view().deck[0].instance = 100;
     EXPECT_FALSE(sparse_ids.view().combat); // Completed graphs no longer impose stale deck links.
     ASSERT_TRUE(valid_run(sparse_ids));
-    EXPECT_EQ(apply_run(sparse_ids, {sparse_ids.view().boundary, RunInputKind::choose_reward_card, 0}).status, StepStatus::awaiting_input);
-    EXPECT_EQ(sparse_ids.view().setup.deck.back().instance, 101u); EXPECT_TRUE(valid_run(sparse_ids));
+    EXPECT_EQ(apply_input(sparse_ids, RunInput{sparse_ids.view().boundary, RunInputKind::choose_reward_card, 0}, transition_scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(sparse_ids.view().deck.back().instance, 101u); EXPECT_TRUE(valid_run(sparse_ids));
 }
 TEST(RunCheckpoint, CorruptionCompatibilityAndMalformedPayloadsAreTransactional) {
     const auto session = until(16); const auto saved = checkpoint(session.state()); auto target = session.state(); Scratch scratch;
@@ -378,6 +380,7 @@ TEST(RunCheckpoint, CorruptionCompatibilityAndMalformedPayloadsAreTransactional)
     EXPECT_EQ(target, session.state());
 }
 TEST(RunDecisions, RejectedRewardAndTravelActionsPreserveInventoryAndClock) {
+    Scratch transition_scratch;
     auto session = until(13); const auto before = session.state();
     for (const auto& action : std::vector<Json>{
         {{"kind", "take_reward"}, {"index", 99}}, {{"kind", "select_card_reward"}, {"card_index", 0}},
@@ -385,7 +388,7 @@ TEST(RunDecisions, RejectedRewardAndTravelActionsPreserveInventoryAndClock) {
         EXPECT_EQ(session.apply(action).status, StepStatus::invalid_action); EXPECT_EQ(session.state(), before);
     }
     auto copy = before;
-    EXPECT_EQ(apply_run(copy, {{0}, RunInputKind::take_reward, 0}).reason, Restriction::stale_boundary); EXPECT_EQ(copy, before);
+    EXPECT_EQ(apply_input(copy, RunInput{{0}, RunInputKind::take_reward, 0}, transition_scratch).reason, Restriction::stale_boundary); EXPECT_EQ(copy, before);
     ASSERT_EQ(session.apply({{"kind", "take_reward"}, {"index", 0}}).status, StepStatus::awaiting_input);
     const auto taken = session.state();
     EXPECT_EQ(session.apply({{"kind", "take_reward"}, {"index", 0}}).status, StepStatus::invalid_action); EXPECT_EQ(session.state(), taken);
@@ -393,13 +396,27 @@ TEST(RunDecisions, RejectedRewardAndTravelActionsPreserveInventoryAndClock) {
     EXPECT_EQ(map.apply({{"kind", "select_map_node"}, {"col", 2}, {"row", 2}}).status, StepStatus::unsupported_content);
     EXPECT_EQ(map.state(), at_map);
 }
+TEST(RunDecisions, ExhaustedClockDoesNotPublishRewardRandomnessOrOffers) {
+    auto state = until(12).state();
+    ASSERT_EQ(state.view().phase, RunPhase::combat_done);
+    const auto elapsed = static_cast<std::int64_t>(state.view().boundary.value - 1);
+    ASSERT_TRUE(state.view().clock.restore({RunClock::max_seconds - elapsed, 1}, elapsed));
+    ASSERT_TRUE(valid_run(state));
+    auto expected = state;
+    expected.view().phase = RunPhase::invalid;
+    Scratch scratch;
+    const auto result = apply_input(state, RunInput{state.view().boundary, RunInputKind::proceed}, scratch);
+    EXPECT_EQ(result.status, StepStatus::engine_error);
+    EXPECT_EQ(result.reason, Restriction::clock_exhausted);
+    EXPECT_EQ(state, expected);
+}
 TEST(RunValidation, CorruptMapEdgeMetadataAndRewardFlagsAreRejected) {
     auto session = until(16); auto state = session.state();
     state.view().maps[0]->nodes[state.view().current].children.used = UINT8_MAX; EXPECT_FALSE(valid_run(state));
     EXPECT_THROW((void)checkpoint(state), std::invalid_argument);
     state = session.state(); state.view().maps[0]->nodes[state.view().maps[0]->start].children.used = UINT8_MAX; EXPECT_FALSE(valid_run(state));
     state = session.state(); state.view().maps[0]->starts.free_count = UINT8_MAX; EXPECT_FALSE(valid_run(state));
-    state = session.state(); state.view().setup.card_rarity_offset = std::numeric_limits<float>::quiet_NaN(); EXPECT_FALSE(valid_run(state));
+    state = session.state(); state.view().card_rarity_offset = std::numeric_limits<float>::quiet_NaN(); EXPECT_FALSE(valid_run(state));
     state = session.state(); state.view().rewards->selected_card = 200; EXPECT_FALSE(valid_run(state));
 }
 }

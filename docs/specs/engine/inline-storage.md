@@ -2,10 +2,11 @@
 
 [Issue #55](https://github.com/TonyinBio/sts2-cpp/issues/55) implements
 [ADR 0003](../../adr/0003-inline-state-with-correct-overflow.md) for the currently
-supported engine content. `StateRecord`, `SetupRecord`, and `RunRecord` are
-trivially copyable. Complete `RunRecord` embeds setup, optional active combat,
-progression, maps, clocks, choices, rewards, generation metadata and RNG.
-`State`, `SetupState`, and `RunState` own those records and separate overflow.
+supported engine content. `CombatData` and `RunData` are trivially copyable.
+`RunData` directly contains persistent inventory, content queues, RNG and reward
+odds alongside optional active combat, progression, maps, clocks, choices, rewards
+and generation metadata. `CombatState` and `RunState` own the data and overflow;
+there is no separate setup state or nested setup data.
 No completed encounter graph or replacement archive exists.
 
 ## Storage and clone contract
@@ -13,7 +14,7 @@ No completed encounter graph or replacement archive exists.
 `InlineSequence<T, N>` contains trivial elements, a count and an overflow ID.
 Each overflow collection has an independent allocation; there is no arena or
 copy-on-write. Root owners carry allocation callbacks outside the record.
-Borrowed `StateView`/`SetupView`/`RunView` values pair the record with its own
+Borrowed `CombatView`/`RunView` values pair the record with its own
 storage; const views expose const data. Moving a record does not move any source
 pointer because records contain none. Owned states must be copied with their
 copy operations or `clone_into`, not by copying an overflowed record alone.
@@ -26,8 +27,9 @@ reused destination. C++ owning copy construction/assignment use the same path
 and throw `std::bad_alloc` on resource failure. A failed explicit clone leaves
 the complete destination unchanged. Self-clones are harmless.
 
-Run overflow has setup, active-combat and run-progression ownership domains.
-All three are copied before any is published. Natural run victory/death releases the combat graph immediately after folding
+Run state has two overflow owners: persistent run collections (including inventory
+and progression) and active-combat collections. Both are copied before either is
+published. Natural run victory/death releases the combat graph immediately after folding
 its generation high-water value into run metadata. Reward continuations use
 run phase and active offers, without a completed graph. Isolated victory resets
 all collection records and ownership, retaining scalar outcome and identity
@@ -57,7 +59,7 @@ The existing run/combat initialization, observations, action validation/applicat
 and automatic advancement operate on the new owners/views. Public observation
 content and hidden-information rules are unchanged. Views and spans borrow the
 owner: discard them before owner destruction, move, replacement, clone publication,
-reset or a mutation that grows their collection. Materialize an owning `State`
+reset or a mutation that grows their collection. Materialize an owning `CombatState`
 from a combat view when retaining a combat independently.
 
 Checkpoint encoding is semantic little-endian data, never a record memory image.

@@ -6,6 +6,21 @@ reference checks. A naturally entered combat now continues through explicit rewa
 and returns to the map, or reaches a natural run death. Complete runs remain unfinished. The original
 `sts2::CombatState` demo and its diagnostic adapter remain separate.
 
+## Engine API organization
+
+`include/sts2/engine/combat.hpp` exposes `initialize_combat`, `validate_combat`,
+`apply_combat` and `advance_combat` as free functions. They accept optional rules,
+and initialization also accepts limits, with the existing pinned/default behavior.
+`include/sts2/engine/run.hpp` exposes `apply_input` for one historical run or combat
+transition; `apply_player` additionally advances forced transitions. CMake target
+`sts2_engine` replaces `sts2_kernel`; the namespace remains `sts2::engine`.
+
+Persistent inventory, RNG, content queues and reward odds live directly in
+`RunData`, accessed through `RunView`. `SetupState` and its record/view are removed.
+`CombatData` and `RunData` are byte-copyable; their owning states retain independent
+overflow. History/play/power storage, gameplay and diagnostic comparison contracts
+are unchanged by this refactor. Checkpoint encoding is unchanged.
+
 ## Complete-state inline storage and owning clones
 
 [Issue #55](https://github.com/TonyinBio/sts2-cpp/issues/55) implements byte-copyable
@@ -63,8 +78,7 @@ reference verification does not certify upgraded cards or arbitrary content inte
 
 ```sh
 cmake --build --preset debug
-./build/debug/sts2_combat --seed ORACLECHECK01
-./build/debug/sts2_combat --auto
+./build/debug/sts2_play KERNELRUN14
 ctest --preset debug -L engine
 
 ./build/debug/sts2_replay \
@@ -76,14 +90,12 @@ cmake --build --preset release
 ./build/release/kernel_benchmark 100000
 ```
 
-`sts2_combat` accepts `play INDEX`, `end`, `select INDEX`, `save PATH`, `load PATH`
-and `quit`. The combat CLI uses the combat codec. C++ overloads also checkpoint/restore
-`RunState`, including pending reward selections. These are engine formats, not native
-saves or comparison snapshots. `sts2_run` is a privileged JSON-lines integration tool:
-`{"cmd":"start","setup":...}`, `{"cmd":"action","action":...}` and
-`{"cmd":"snapshot"}` return the generated native state. It requires an explicit
-clock and uses canonical recording card labels bound from its own initial pile order.
-It is not the public hidden-information observation interface.
+`sts2_play [seed]` accepts displayed action indices and `quit`. The C++ persistence
+API checkpoints/restores combat and `RunState`, including pending reward selections.
+These are engine formats, not native
+saves or comparison snapshots. The integration library provides privileged native
+state export and canonical recording identities for replay and scenario tooling.
+It is separate from the public hidden-information observation interface.
 
 `sts2_replay` validates canonical action/state files and independently supplied
 reference metadata, then initializes from setup only. It compares every saved
@@ -93,8 +105,8 @@ content. The Python `tools/oracle/replay.py` separately verifies recordings agai
 the reference backend, reporting reference execution failures separately from
 recording divergence. Simulator replay is built with the test/comparison tooling.
 
-To build the dependency-free kernel and combat CLI, configure with
-`-DBUILD_TESTING=OFF -DSTS2_BUILD_INTEGRATION=OFF`. JSON links into integration
+To build the dependency-free kernel and interactive run CLI, configure with
+`-DBUILD_TESTING=OFF -DSTS2_BUILD_INTEGRATION=OFF -DSTS2_BUILD_PARITY_TOOLS=OFF`. JSON links into integration
 and comparison tooling only; rules/kernel do not use game assemblies, filesystem
 access or JSON during transitions.
 

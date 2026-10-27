@@ -51,7 +51,7 @@ continuation instead of relying on the incidental time taken by a large export.
 ## Matched structured profile
 
 `warm-public-structured-v1` requests the complete non-English structured surface
-exposed by the supported loop's `RunObservation`, `CardView`, `ObservationView`
+exposed by the supported loop's `RunObservation`, `CardView`, `CombatObservationView`
 and `actions` at every boundary. Shared build/boundary metadata is represented
 once; boundary identity is the record's logical ordinal, including declared
 scenario entry. Native automatic `proceed` transitions correspond to automatic

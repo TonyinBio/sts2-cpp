@@ -19,18 +19,18 @@ TEST(InlineStorage, InlineRecordsRelocateAndCloneWithoutAllocating) {
     AllocationCounter allocator;
     {
         InlineState<TestRecord> source(allocator.allocator()), destination(allocator.allocator());
-        source.record.deck.push_back(source.overflow, 11);
-        source.record.deck.push_back(source.overflow, 22);
-        source.record.history.push_back(source.overflow, 33);
-        source.record.generation = 7;
+        source.data.deck.push_back(source.overflow, 11);
+        source.data.deck.push_back(source.overflow, 22);
+        source.data.history.push_back(source.overflow, 33);
+        source.data.generation = 7;
         TestRecord relocated;
-        std::memcpy(&relocated, &source.record, sizeof(TestRecord));
+        std::memcpy(&relocated, &source.data, sizeof(TestRecord));
         EXPECT_EQ(relocated.deck.values(source.overflow)[1], 22);
         clone_into(destination, source);
         EXPECT_EQ(allocator.allocations, 0u);
-        EXPECT_EQ(destination.record.generation, 7u);
-        destination.record.deck.values(destination.overflow)[0] = 44;
-        EXPECT_EQ(source.record.deck.values(source.overflow)[0], 11);
+        EXPECT_EQ(destination.data.generation, 7u);
+        destination.data.deck.values(destination.overflow)[0] = 44;
+        EXPECT_EQ(source.data.deck.values(source.overflow)[0], 11);
     }
     EXPECT_EQ(allocator.outstanding, 0u);
 }
@@ -39,7 +39,7 @@ TEST(InlineStorage, OverflowPreservesOrderAndSurvivesShrinkUntilReset) {
     AllocationCounter allocator;
     {
         InlineState<TestRecord> state(allocator.allocator());
-        auto& deck = state.record.deck;
+        auto& deck = state.data.deck;
         deck.push_back(state.overflow, 11); deck.push_back(state.overflow, 22);
         EXPECT_FALSE(deck.overflowed());
         deck.push_back(state.overflow, 33);
@@ -60,9 +60,9 @@ TEST(InlineStorage, OverflowPreservesOrderAndSurvivesShrinkUntilReset) {
         EXPECT_EQ(allocator.allocations, allocations);
         EXPECT_EQ(deck.values(state.overflow)[0], 55);
         state.reset();
-        EXPECT_FALSE(state.record.deck.overflowed());
+        EXPECT_FALSE(state.data.deck.overflowed());
         EXPECT_TRUE(state.overflow.empty());
-        state.record.deck.push_back(state.overflow, 66);
+        state.data.deck.push_back(state.overflow, 66);
         EXPECT_EQ(allocator.allocations, allocations);
     }
     EXPECT_EQ(allocator.outstanding, 0u);
@@ -72,31 +72,31 @@ TEST(InlineStorage, OverflowClonesOwnAllCollectionsIndependently) {
     AllocationCounter allocator;
     {
         InlineState<TestRecord> source(allocator.allocator()), destination(allocator.allocator());
-        for (int value : {11, 22, 33}) source.record.deck.push_back(source.overflow, value);
+        for (int value : {11, 22, 33}) source.data.deck.push_back(source.overflow, value);
         // A second overflow-bearing history is copied without a clone-field list.
-        for (int value : {44, 55}) source.record.history.push_back(source.overflow, value);
+        for (int value : {44, 55}) source.data.history.push_back(source.overflow, value);
         clone_into(destination, source);
-        EXPECT_TRUE(source.record.deck.equals(source.overflow, destination.record.deck, destination.overflow));
-        EXPECT_TRUE(source.record.history.equals(source.overflow, destination.record.history, destination.overflow));
-        destination.record.deck.values(destination.overflow)[0] = 66;
-        destination.record.history.values(destination.overflow)[0] = 77;
-        EXPECT_EQ(source.record.deck.values(source.overflow)[0], 11);
-        EXPECT_EQ(source.record.history.values(source.overflow)[0], 44);
-        source.record.deck.push_back(source.overflow, 88);
-        EXPECT_EQ(destination.record.deck.size(), 3u);
+        EXPECT_TRUE(source.data.deck.equals(source.overflow, destination.data.deck, destination.overflow));
+        EXPECT_TRUE(source.data.history.equals(source.overflow, destination.data.history, destination.overflow));
+        destination.data.deck.values(destination.overflow)[0] = 66;
+        destination.data.history.values(destination.overflow)[0] = 77;
+        EXPECT_EQ(source.data.deck.values(source.overflow)[0], 11);
+        EXPECT_EQ(source.data.history.values(source.overflow)[0], 44);
+        source.data.deck.push_back(source.overflow, 88);
+        EXPECT_EQ(destination.data.deck.size(), 3u);
         // Reusing a previously overflowed destination replaces both records and
         // storage. Self-cloning preserves every owned collection.
         clone_into(destination, source);
         clone_into(destination, destination);
-        EXPECT_TRUE(source.record.deck.equals(source.overflow, destination.record.deck, destination.overflow));
+        EXPECT_TRUE(source.data.deck.equals(source.overflow, destination.data.deck, destination.overflow));
         InlineState<TestRecord> common(allocator.allocator());
-        common.record.deck.push_back(common.overflow, 99);
+        common.data.deck.push_back(common.overflow, 99);
         const auto allocations = allocator.allocations;
         clone_into(destination, common);
         EXPECT_EQ(allocator.allocations, allocations);
         EXPECT_TRUE(destination.overflow.empty());
-        EXPECT_FALSE(destination.record.deck.overflowed());
-        EXPECT_EQ(destination.record.deck.values(destination.overflow)[0], 99);
+        EXPECT_FALSE(destination.data.deck.overflowed());
+        EXPECT_EQ(destination.data.deck.values(destination.overflow)[0], 99);
     }
     EXPECT_EQ(allocator.outstanding, 0u);
 }
@@ -104,13 +104,13 @@ TEST(InlineStorage, OverflowClonesOwnAllCollectionsIndependently) {
 TEST(InlineStorage, SemanticEqualityIgnoresStorageModeAndCapacity) {
     InlineState<TestRecord> inline_state, overflow_state;
     for (int value : {11, 22}) {
-        inline_state.record.deck.push_back(inline_state.overflow, value);
-        overflow_state.record.deck.push_back(overflow_state.overflow, value);
+        inline_state.data.deck.push_back(inline_state.overflow, value);
+        overflow_state.data.deck.push_back(overflow_state.overflow, value);
     }
-    overflow_state.record.deck.reserve(overflow_state.overflow, 200);
-    EXPECT_FALSE(inline_state.record.deck.overflowed());
-    EXPECT_TRUE(overflow_state.record.deck.overflowed());
-    EXPECT_TRUE(inline_state.record.deck.equals(inline_state.overflow, overflow_state.record.deck, overflow_state.overflow));
+    overflow_state.data.deck.reserve(overflow_state.overflow, 200);
+    EXPECT_FALSE(inline_state.data.deck.overflowed());
+    EXPECT_TRUE(overflow_state.data.deck.overflowed());
+    EXPECT_TRUE(inline_state.data.deck.equals(inline_state.overflow, overflow_state.data.deck, overflow_state.overflow));
 }
 
 TEST(InlineStorage, AllocationFailuresPreserveRecordsAndReleaseTemporaryOwnership) {
@@ -120,22 +120,22 @@ TEST(InlineStorage, AllocationFailuresPreserveRecordsAndReleaseTemporaryOwnershi
         AllocationCounter allocator;
         {
             InlineState<TestRecord> source, destination(allocator.allocator());
-            for (int value : {11, 22, 33}) source.record.deck.push_back(source.overflow, value);
-            for (int value : {44, 55}) source.record.history.push_back(source.overflow, value);
-            for (int value : {66, 77, 88}) destination.record.deck.push_back(destination.overflow, value);
-            destination.record.generation = 9;
+            for (int value : {11, 22, 33}) source.data.deck.push_back(source.overflow, value);
+            for (int value : {44, 55}) source.data.history.push_back(source.overflow, value);
+            for (int value : {66, 77, 88}) destination.data.deck.push_back(destination.overflow, value);
+            destination.data.generation = 9;
             const auto outstanding = allocator.outstanding;
             allocator.fail_after = allocator.allocations + allowed;
             if (allowed < 3) {
                 EXPECT_THROW(clone_into(destination, source), std::bad_alloc);
-                EXPECT_EQ(destination.record.generation, 9u);
-                EXPECT_EQ(destination.record.deck.values(destination.overflow)[0], 66);
-                EXPECT_EQ(destination.record.deck.size(), 3u);
+                EXPECT_EQ(destination.data.generation, 9u);
+                EXPECT_EQ(destination.data.deck.values(destination.overflow)[0], 66);
+                EXPECT_EQ(destination.data.deck.size(), 3u);
                 EXPECT_EQ(allocator.outstanding, outstanding);
             } else {
                 EXPECT_NO_THROW(clone_into(destination, source));
-                EXPECT_EQ(destination.record.generation, 1u);
-                EXPECT_EQ(destination.record.history.values(destination.overflow)[1], 55);
+                EXPECT_EQ(destination.data.generation, 1u);
+                EXPECT_EQ(destination.data.history.values(destination.overflow)[1], 55);
             }
         }
         EXPECT_EQ(allocator.outstanding, 0u);
@@ -147,7 +147,7 @@ TEST(InlineStorage, FailedPromotionAndGrowthPreserveValuesAndOwnership) {
         AllocationCounter allocator;
         {
             InlineState<TestRecord> state(allocator.allocator());
-            auto& deck = state.record.deck;
+            auto& deck = state.data.deck;
             for (int value : {11, 22}) deck.push_back(state.overflow, value);
             if (grow) { deck.push_back(state.overflow, 33); deck.push_back(state.overflow, 44); }
             const auto size = deck.size(), capacity = deck.capacity(state.overflow);
@@ -167,25 +167,25 @@ TEST(InlineStorage, FailedPromotionAndGrowthPreserveValuesAndOwnership) {
 
 TEST(InlineStorage, AddedOverflowHistoryIsCopiedEvenIfValidationRegistrationIsMissing) {
     InlineState<TestRecord> source, copy;
-    source.record.history.push_back(source.overflow, 44);
-    source.record.history.push_back(source.overflow, 55);
-    EXPECT_FALSE(valid_record_storage(source.record, source.overflow));
+    source.data.history.push_back(source.overflow, 44);
+    source.data.history.push_back(source.overflow, 55);
+    EXPECT_FALSE(valid_data_storage(source.data, source.overflow));
     clone_into(copy, source);
-    EXPECT_EQ(copy.record.history.values(copy.overflow)[1], 55);
-    copy.record.history.values(copy.overflow)[0] = 66;
-    EXPECT_EQ(source.record.history.values(source.overflow)[0], 44);
+    EXPECT_EQ(copy.data.history.values(copy.overflow)[1], 55);
+    copy.data.history.values(copy.overflow)[0] = 66;
+    EXPECT_EQ(source.data.history.values(source.overflow)[0], 44);
 }
 TEST(InlineStorage, LargeDeckUsesOverflowWithoutAnInlineCapacityLimit) {
     InlineState<TestRecord> state, destination;
-    for (int i = 0; i < 200; ++i) state.record.deck.push_back(state.overflow, i);
+    for (int i = 0; i < 200; ++i) state.data.deck.push_back(state.overflow, i);
     clone_into(destination, state);
-    EXPECT_EQ(destination.record.deck.size(), 200u);
-    EXPECT_EQ(destination.record.deck.values(destination.overflow)[199], 199);
-    EXPECT_TRUE(state.record.deck.equals(state.overflow, destination.record.deck, destination.overflow));
-    const auto id = state.record.deck.overflow_id;
-    EXPECT_THROW(state.record.deck.reserve(state.overflow, std::size_t(UINT32_MAX) + 1), std::length_error);
-    EXPECT_EQ(state.record.deck.overflow_id, id);
-    EXPECT_EQ(state.record.deck.size(), 200u);
+    EXPECT_EQ(destination.data.deck.size(), 200u);
+    EXPECT_EQ(destination.data.deck.values(destination.overflow)[199], 199);
+    EXPECT_TRUE(state.data.deck.equals(state.overflow, destination.data.deck, destination.overflow));
+    const auto id = state.data.deck.overflow_id;
+    EXPECT_THROW(state.data.deck.reserve(state.overflow, std::size_t(UINT32_MAX) + 1), std::length_error);
+    EXPECT_EQ(state.data.deck.overflow_id, id);
+    EXPECT_EQ(state.data.deck.size(), 200u);
 }
 } // namespace
 } // namespace sts2::engine

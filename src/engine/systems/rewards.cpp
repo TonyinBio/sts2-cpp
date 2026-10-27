@@ -1,4 +1,4 @@
-#include "sts2/kernel/rewards.hpp"
+#include "sts2/engine/rewards.hpp"
 #include <algorithm>
 #include <new>
 #include <stdexcept>
@@ -12,15 +12,15 @@ std::size_t index(GameRng& rng, std::size_t count) {
     return static_cast<std::size_t>(value);
 }
 }
-StepResult generate_combat_rewards(SetupView setup, CombatRewards& destination, std::uint8_t act_index) {
-    if (setup.ascension != 0 || act_index != 0) return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
-    const auto* character = SetupRules::character(setup.character);
+StepResult generate_combat_rewards(RunView run) {
+    if (run.ascension != 0 || run.act_index != 0) return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
+    const auto* character = SetupRules::character(run.character);
     if (!character) return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
-    for (auto id : setup.relics) if (SetupRules::name(id) != "RELIC.BURNING_BLOOD" && SetupRules::name(id) != "RELIC.GOLDEN_PEARL")
+    for (auto id : run.relics) if (SetupRules::name(id) != "RELIC.BURNING_BLOOD" && SetupRules::name(id) != "RELIC.GOLDEN_PEARL")
         return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
     try {
-        auto rng = setup.player_rng.streams[0]; CombatRewards rewards;
-        auto rarity_offset = setup.card_rarity_offset, potion_odds = setup.potion_reward_odds;
+        auto rng = run.player_rng.streams[0]; CombatRewards rewards;
+        auto rarity_offset = run.card_rarity_offset, potion_odds = run.potion_reward_odds;
         const auto has_potion = uniform(rng) < potion_odds;
         potion_odds += has_potion ? -0.1f : 0.1f;
         rewards.gold = 10 + static_cast<int>(index(rng, 11));
@@ -50,8 +50,8 @@ StepResult generate_combat_rewards(SetupView setup, CombatRewards& destination, 
             const auto upgrade_roll = uniform(rng); // Native consumes this even for non-upgradable cards.
             rewards.cards[i] = {card.id, 0, card.upgradable && upgrade_roll <= 0 ? 1u : 0u, -1};
         }
-        setup.player_rng.streams[0] = rng; setup.card_rarity_offset = rarity_offset; setup.potion_reward_odds = potion_odds;
-        destination = rewards;
+        run.player_rng.streams[0] = rng; run.card_rarity_offset = rarity_offset; run.potion_reward_odds = potion_odds;
+        run.rewards = rewards;
         return {StepStatus::awaiting_input, {}};
     } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, {}, Restriction::capacity}; }
     catch (...) { return {StepStatus::engine_error, {}, Restriction::invalid_state}; }

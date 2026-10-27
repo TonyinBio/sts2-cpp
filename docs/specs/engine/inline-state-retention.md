@@ -12,12 +12,12 @@ Their represented histories and referenced objects remain authoritative state.
 | Existing fields | Reason |
 | --- | --- |
 | Combat `rules`, `boundary`, `phase` | Content identity, rejection/stale-action protection, continuation phase |
-| Combat/setup `seed`, `numeric_seed`, clocks and every RNG bank | Seed display, generation, deterministic future draws and action clocks |
+| Combat/run `seed`, `numeric_seed`, clocks and every RNG bank | Seed display, generation, deterministic future draws and action clocks |
 | `player`, `enemy`, `energy`, `turn`, `move`, `burning_blood` | Gameplay, visible health/resources/intent and lifecycle hooks |
 | Combat pool, zone order, `next_creation_order`, slot generations and free order | Stable identities, zone membership, floating referenced sources and future identity allocation |
 | `execution` and captured `plays` | Suspended source, play identity, instruction, paid energy and selected target |
 | `history`, `plays`, `powers`, including inactive powers and referenced cards | Audited future gameplay consumers, captured values and current duration/turn state; not replaced by aggregate counters |
-| Setup character, ascension, HP/max HP, gold, potion/orb slots | Gameplay and player observations |
+| Run character, ascension, HP/max HP, gold, potion/orb slots | Gameplay and player observations |
 | Persistent deck, instance/upgrade/floor metadata, relic order and potion slots | Inventory and stable permanent/combat relationships |
 | Both relic bags, tier order, all act queues, exclusions represented by generated queues, per-act cursors, rarity/potion odds | Hidden generation progress; preserve the original algorithms and RNG positions |
 | Run setup, active combat, direct-combat mode, phase, boundary, clocks | Current execution and legal public boundary behavior |

@@ -1,4 +1,4 @@
-#include "sts2/state/setup.hpp"
+#include "sts2/engine/run.hpp"
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -15,7 +15,7 @@ Json bag(const RelicBag& bag) {
 }
 TEST(SeededSetup, EntireRelicBagsRoomQueuesAndUpFrontRngMatchNativeRun) {
     std::ifstream stream(KERNEL_RUN_FIXTURE); const auto native = Json::parse(stream)["initial"];
-    SetupState state; ASSERT_EQ(initialize_setup(state, {}).status, StepStatus::awaiting_input);
+    RunState state; ASSERT_EQ(initialize_run(state, {}).status, StepStatus::awaiting_input);
     EXPECT_EQ(state.view().numeric_seed, game_hash("ORACLECHECK01"));
     EXPECT_EQ(bag(state.view().shared_relics), native["shared_relic_grab_bag"]);
     EXPECT_EQ(bag(state.view().player_relics), native["players"][0]["relic_grab_bag"]);
@@ -37,18 +37,18 @@ TEST(SeededSetup, EntireRelicBagsRoomQueuesAndUpFrontRngMatchNativeRun) {
         EXPECT_EQ(state.view().player_rng.streams[i].state().words[j], native["players"][0]["rng"]["rngs"][streams[i]]["s" + std::to_string(j)]);
 }
 TEST(SeededSetup, RejectsInvalidConfigurationWithoutPublishingPartialState) {
-    SetupState state; ASSERT_EQ(initialize_setup(state, {}).status, StepStatus::awaiting_input); const auto before = state;
+    RunState state; ASSERT_EQ(initialize_run(state, {}).status, StepStatus::awaiting_input); const auto before = state;
     SeededConfig config; config.character = "unknown";
-    EXPECT_EQ(initialize_setup(state, config).status, StepStatus::unsupported_content); EXPECT_EQ(state, before);
+    EXPECT_EQ(initialize_run(state, config).status, StepStatus::unsupported_content); EXPECT_EQ(state, before);
     config = {}; config.acts[1] = "ACT.GLORY";
-    EXPECT_EQ(initialize_setup(state, config).status, StepStatus::unsupported_content); EXPECT_EQ(state, before);
+    EXPECT_EQ(initialize_run(state, config).status, StepStatus::unsupported_content); EXPECT_EQ(state, before);
     config = {}; config.ascension = 11;
-    EXPECT_EQ(initialize_setup(state, config).status, StepStatus::unsupported_content); EXPECT_EQ(state, before);
+    EXPECT_EQ(initialize_run(state, config).status, StepStatus::unsupported_content); EXPECT_EQ(state, before);
 }
 TEST(SeededSetup, AllCharactersAndAscensionsHaveIndependentInventoryAndRng) {
     for (const auto& character : SetupRules::characters()) for (std::uint8_t ascension = 0; ascension <= 10; ++ascension) {
         SeededConfig config; config.character = SetupRules::name(character.id); config.ascension = ascension;
-        SetupState state; ASSERT_EQ(initialize_setup(state, config).status, StepStatus::awaiting_input);
+        RunState state; ASSERT_EQ(initialize_run(state, config).status, StepStatus::awaiting_input);
         EXPECT_EQ(state.view().deck.size(), character.deck.size() + (ascension >= 5 ? 1 : 0));
         EXPECT_EQ(state.view().potion_slots, ascension >= 4 ? 2 : 3);
         EXPECT_EQ(state.view().acts[2].second_boss != no_content, ascension >= 10);

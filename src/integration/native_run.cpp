@@ -1,5 +1,5 @@
 #include "sts2/integration/native_run.hpp"
-#include "sts2/kernel/run_simulator.hpp"
+#include "sts2/engine/run.hpp"
 #include <stdexcept>
 #include <charconv>
 #include <algorithm>
@@ -45,7 +45,7 @@ Json NativeRunExporter::snapshot(const RunState& s) const {
     if (!valid_run(s))
         throw std::invalid_argument("Cannot export an uninitialized or invalid run");
     if (!s_view.maps[0] || s_view.current == no_node) throw std::invalid_argument("Run has no initialized map");
-    const auto& setup = s_view.setup; const auto& map = *s_view.maps[0];
+    const auto& setup = s_view; const auto& map = *s_view.maps[0];
     const auto* character = SetupRules::character(setup.character);
     if (!character) throw std::invalid_argument("Unknown run character");
     Json acts = Json::array();

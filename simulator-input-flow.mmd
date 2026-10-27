@@ -1,0 +1,17 @@
+flowchart TD
+    Player["Player API: apply_player()"] --> Validate["Check public input restrictions"]
+    Replay["Session: recorded action"] --> Input["apply_input(RunState, PlayerInput, Scratch)"]
+    Validate --> Input
+
+    Input --> Kind{"Input variant"}
+    Kind -->|RunInput| Run["Run transition"]
+    Kind -->|CombatInput| Combat["apply_combat(CombatView, ...)"]
+
+    Run --> State["Update RunState"]
+    Combat --> Sync["Synchronize HP, RNG, clock, boundary and phase"]
+    Sync --> State
+
+    State --> Return["Return one-transition result"]
+    Return -->|Player API| Advance["advance_player(): resolve forced transitions"]
+    Advance -->|Internal proceed| Input
+    Advance --> Choice["Next player choice"]

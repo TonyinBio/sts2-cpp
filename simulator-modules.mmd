@@ -1,0 +1,98 @@
+classDiagram
+    direction TB
+
+    namespace Applications {
+        class sts2_play
+        class sts2_replay
+        class sts2_run_scenario
+        class parity_validate
+    }
+
+    namespace Engine {
+        class Observation {
+            <<module>>
+            observe()
+            actions()
+            validate_player()
+            apply_player()
+            advance_player()
+        }
+        class Run {
+            <<functions>>
+            initialize_run()
+            initialize_seeded_combat()
+            enter_combat_scenario()
+            apply_input()
+            valid_run()
+        }
+        class Combat {
+            <<functions>>
+            initialize_combat()
+            validate_combat()
+            apply_combat()
+            advance_combat()
+            valid_combat()
+        }
+        class RunSystems {
+            <<functions>>
+            initialize_run_inventory()
+            generate_map()
+            generate_combat_rewards()
+        }
+        class Persistence {
+            <<module>>
+            checkpoint()
+            restore()
+        }
+        class Ruleset {
+            <<immutable combat rules>>
+        }
+        class SetupRules {
+            <<immutable content definitions>>
+        }
+    }
+
+    namespace Integration {
+        class Session {
+            initialize(json)
+            apply(json)
+            snapshot() json
+        }
+        class NativeRunExporter {
+            snapshot(RunState) json
+        }
+    }
+
+    namespace Verification {
+        class ParityReplay {
+            <<module>>
+            replay_actions()
+            compare_checkpoints()
+        }
+        class RecordingContracts {
+            <<module>>
+            validate_recordings()
+            compare_snapshots()
+        }
+    }
+
+    sts2_play ..> Observation
+    sts2_replay ..> Session
+    sts2_replay ..> ParityReplay
+    sts2_run_scenario ..> Session
+    parity_validate ..> RecordingContracts
+
+    Session *-- NativeRunExporter
+    Session ..> Run
+    NativeRunExporter ..> SetupRules
+
+    Observation ..> Run
+    Observation ..> Combat
+    Run ..> Combat
+    Run ..> RunSystems
+    RunSystems ..> SetupRules
+    Combat ..> Ruleset
+
+    Persistence ..> Run
+    Persistence ..> Combat
+    ParityReplay ..> RecordingContracts

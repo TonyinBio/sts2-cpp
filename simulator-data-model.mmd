@@ -1,0 +1,150 @@
+classDiagram
+    direction TB
+
+    class RunState {
+        +RunData data
+        +OverflowStorage overflow
+        +OverflowStorage combat_overflow
+        +view() RunView
+        +reset()
+    }
+    class RunData {
+        +character
+        +ascension
+        +hp
+        +max_hp
+        +gold
+        +deck
+        +relics
+        +potions
+        +relic_bags
+        +act_queues
+        +reward_odds
+        +maps
+        +visited
+        +RunPhase phase
+        +BoundaryId boundary
+        +RunClock clock
+    }
+    class CombatState {
+        +CombatData data
+        +OverflowStorage overflow
+        +view() CombatView
+    }
+    class CombatData {
+        +CombatPhase phase
+        +BoundaryId boundary
+        +RunClock clock
+        +energy
+        +turn
+        +enemy_move
+        +zones
+        +execution
+        +history
+        +plays
+        +powers
+    }
+    class CreatureState {
+        +hp
+        +max_hp
+        +block
+        +vulnerable
+        +shrink
+    }
+    class PersistentCard {
+        +ContentId definition
+        +instance
+        +upgrade
+        +floor_added
+    }
+    class CardInstance {
+        +CardId definition
+        +upgraded
+        +creation_order
+        +deck_instance
+    }
+    class CardHandle {
+        +slot
+        +generation
+    }
+    class PoolData {
+        +slots
+        +free
+        +generation_metadata
+    }
+    class EffectFrame {
+        +CardHandle source
+        +instruction
+        +play
+    }
+    class CombatHistoryEntry
+    class CardPlayRecord
+    class PowerRecord
+    class CombatRewards
+    class MapState
+    class RelicBagData
+    class ActRoomsData
+    class RngBank
+    class PlayerRngBank
+
+    class InlineSequence {
+        +inline_values
+        +count
+        +overflow_id
+    }
+    class OverflowStorage {
+        +clone_from()
+        +create()
+        +grow()
+        +reset()
+    }
+    class StorageAllocator {
+        +context
+        +allocate
+        +deallocate
+    }
+    class RunView {
+        <<borrowed internal view>>
+    }
+    class CombatView {
+        <<borrowed internal view>>
+    }
+
+    RunState *-- RunData
+    RunState *-- "2" OverflowStorage
+    RunData *-- "0..1" CombatData : active combat
+    RunData *-- PersistentCard : permanent deck
+    RunData *-- RelicBagData
+    RunData *-- ActRoomsData
+    RunData *-- RngBank
+    RunData *-- PlayerRngBank
+    RunData *-- "0..3" MapState
+    RunData *-- "0..1" CombatRewards
+
+    CombatState *-- CombatData : standalone combat
+    CombatState *-- OverflowStorage
+    CombatData *-- "2" CreatureState
+    CombatData *-- RngBank
+    CombatData *-- PoolData : card pool
+    PoolData *-- CardInstance
+    CombatData *-- CardHandle : piles
+    CardHandle --> CardInstance : slot and generation
+    CardInstance --> PersistentCard : deck_instance ID
+
+    CombatData *-- EffectFrame
+    CombatData *-- CombatHistoryEntry
+    CombatData *-- CardPlayRecord
+    CombatData *-- PowerRecord
+    EffectFrame --> CardPlayRecord : play index
+
+    RunData *-- InlineSequence
+    CombatData *-- InlineSequence
+    InlineSequence ..> OverflowStorage : overflow_id
+    OverflowStorage --> StorageAllocator
+
+    RunState ..> RunView : creates
+    RunView --> RunData : borrows
+    RunView --> OverflowStorage : borrows
+    CombatState ..> CombatView : creates
+    CombatView --> CombatData : borrows
+    CombatView --> OverflowStorage : borrows

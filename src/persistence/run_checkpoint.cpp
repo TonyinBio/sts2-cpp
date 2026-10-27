@@ -1,5 +1,5 @@
 #include "sts2/persistence/checkpoint.hpp"
-#include "sts2/kernel/run_simulator.hpp"
+#include "sts2/engine/run.hpp"
 #include <bit>
 #include <new>
 #include <stdexcept>
@@ -76,7 +76,7 @@ Checkpoint checkpoint(const RunState& run) {
     auto run_view = run.view();
     if (!valid_run(run)) throw std::invalid_argument("Cannot checkpoint invalid run");
     Writer w; w.text("STS2RUN1"); w.u32(3); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
-    const auto s = run_view.setup;
+    const auto s = run_view;
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed); w.u32(s.character); w.u8(s.ascension);
     w.i32(s.hp); w.i32(s.max_hp); w.i32(s.gold); w.i32(s.potion_slots); w.i32(s.orb_slots);
     for (const auto& rng : s.rng.streams) w.rng(rng.state());
@@ -114,7 +114,7 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         for (const auto identity : {game_digest, SetupRules::fingerprint()}) for (char c : identity)
             if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
-        RunState run(destination.overflow.allocator()); auto run_view = run.view(); auto s = run_view.setup;
+        RunState run(destination.overflow.allocator()); auto run_view = run.view(); auto s = run_view;
         const auto seed_size = r.count(1, 4096); for (std::size_t i = 0; i < seed_size; ++i) s.seed.push_back(static_cast<char>(r.u8()));
         s.numeric_seed = r.u64(); s.character = r.id(); s.ascension = r.u8();
         s.hp = r.i32(); s.max_hp = r.i32(); s.gold = r.i32(); s.potion_slots = r.i32(); s.orb_slots = r.i32();

@@ -56,10 +56,10 @@ Json project(const RunState& state, Json& capabilities) {
         // unsupported_setup describes engine capability, not native legality.
         const auto legality = offered.restriction == Restriction::unsupported_setup ? Restriction::none : offered.restriction;
         Json action{{"enabled", legality == Restriction::none}, {"restriction", static_cast<unsigned>(legality)}};
-        if (const auto* input = std::get_if<Input>(&offered.input)) {
-            if (input->kind == InputKind::end_turn) action["kind"] = "end_turn";
+        if (const auto* input = std::get_if<CombatInput>(&offered.input)) {
+            if (input->kind == CombatInputKind::end_turn) action["kind"] = "end_turn";
             else {
-                if (input->kind != InputKind::play_card) throw std::runtime_error("Unsupported benchmark selection");
+                if (input->kind != CombatInputKind::play_card) throw std::runtime_error("Unsupported benchmark selection");
                 action["kind"] = "play_card"; action["target_enemy"] = input->target_enemy;
                 const auto found = std::find(view.combat->hand.begin(), view.combat->hand.end(), input->card);
                 action["index"] = std::distance(view.combat->hand.begin(), found);
@@ -88,7 +88,7 @@ Json project(const RunState& state, Json& capabilities) {
         };
         const auto hand = cards(view.hand_cards);
         result["draw_cards"] = cards(view.draw); result["discard_cards"] = cards(view.discard); result["exhaust_cards"] = cards(view.exhaust);
-        result["combat"] = {{"phase", combat.phase == Phase::play ? "play" : "unsupported"}, {"hp", combat.hp}, {"max_hp", combat.max_hp}, {"block", combat.block}, {"energy", combat.energy},
+        result["combat"] = {{"phase", combat.phase == CombatPhase::play ? "play" : "unsupported"}, {"hp", combat.hp}, {"max_hp", combat.max_hp}, {"block", combat.block}, {"energy", combat.energy},
             {"turn", combat.turn}, {"enemy_vulnerable", combat.enemy_vulnerable}, {"enemy_attack", combat.enemy_attack}, {"shrunk", combat.shrunk}, {"intent", static_cast<unsigned>(combat.intent)}, {"enemy_hp", combat.enemy_hp}, {"enemy_max_hp", combat.enemy_max_hp},
             {"draw", combat.draw_count}, {"discard", combat.discard_count}, {"exhaust", combat.exhaust_count}, {"hand", hand}};
     }
@@ -132,9 +132,9 @@ int main() {
                     const auto view = observe(run); const auto index = action.at("card_index").get<std::size_t>();
                     if (!view.combat || index >= view.combat->hand.size()) throw std::invalid_argument("Invalid hand index");
                     if (action.contains("target_index") && action.at("target_index") != 0) throw std::invalid_argument("Invalid target");
-                    input = Input{run.view().boundary, InputKind::play_card, view.combat->hand[index], action.contains("target_index")};
+                    input = CombatInput{run.view().boundary, CombatInputKind::play_card, view.combat->hand[index], action.contains("target_index")};
                 }
-                else if (kind == "end_turn") input = Input{run.view().boundary, InputKind::end_turn};
+                else if (kind == "end_turn") input = CombatInput{run.view().boundary, CombatInputKind::end_turn};
                 else {
                     RunInput choice{run.view().boundary, RunInputKind::skip_rewards};
                     if (kind == "choose_option") { choice.kind = RunInputKind::choose_option; choice.option = action.at("option_index"); }
