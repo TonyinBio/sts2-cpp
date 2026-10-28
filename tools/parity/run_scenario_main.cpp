@@ -35,7 +35,7 @@ int main() {
             auto apply = [&](RunState& run, Scratch& execution) {
                 if (command == "scenario_enter_combat") return enter_combat_scenario(run, run.view().boundary, request.at("encounter").get<std::string>(), execution.trace);
                 if (command == "scenario_power") {
-                    constexpr std::array names{"POWER.SHRINK_POWER", "POWER.VULNERABLE_POWER", "POWER.STRENGTH_POWER", "POWER.DEXTERITY_POWER", "POWER.WEAK_POWER"};
+                    constexpr std::array names{"POWER.SHRINK_POWER", "POWER.VULNERABLE_POWER", "POWER.STRENGTH_POWER", "POWER.DEXTERITY_POWER", "POWER.WEAK_POWER", "POWER.ARTIFACT_POWER"};
                     const auto id = request.at("id").get<std::string>();
                     const auto found = std::find(names.begin(), names.end(), id);
                     if (found == names.end() || !run.view().combat) throw std::invalid_argument("Unsupported power scenario");

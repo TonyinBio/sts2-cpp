@@ -63,6 +63,17 @@ TEST(OrderedPowers, SignedStatsChangeDamageAndBlockAcrossRestoredFutures) {
     EXPECT_EQ(observe(state).enemy_hp, 36); EXPECT_EQ(observe(restored).block, 2);
     EXPECT_EQ(observe(restored).enemy_hp, 40); EXPECT_EQ(observe(state).block, 0);
 }
+TEST(OrderedPowers, ArtifactIsConsumedByWeakBeforeShockwaveAppliesVulnerable) {
+    const std::array deck{CardSpec{CardId::shockwave}};
+    CombatConfig config; config.deck = deck;
+    auto state = initial(config); Scratch scratch;
+    ASSERT_EQ(apply_power_scenario(state, {PowerId::artifact, 1, true}, scratch).status, StepStatus::awaiting_input);
+    const auto card = find_card(state, CardId::shockwave);
+    ASSERT_EQ(play(state, card, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(observe(state).enemy_weak, 0);
+    EXPECT_EQ(observe(state).enemy_vulnerable, 3);
+    EXPECT_FALSE(state.view().enemy.has_power(PowerId::artifact));
+}
 TEST(GameRng, MatchesPinnedGameMixedCallsAndEntireFinalState) {
     const auto vectors = file(KERNEL_RNG_FIXTURE);
     for (const auto& sequence : vectors["sequences"]) {

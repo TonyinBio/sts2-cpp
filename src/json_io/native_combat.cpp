@@ -165,7 +165,7 @@ void export_native_combat(Json& out, const RunState& run, const RecordedCombat& 
     }
     for (std::size_t i = 0; i < recorded.powers.size(); ++i) {
         const auto& p = recorded.powers[i]; const bool shrink = p.definition == PowerId::shrink;
-        constexpr std::array names{"POWER.SHRINK_POWER", "POWER.VULNERABLE_POWER", "POWER.STRENGTH_POWER", "POWER.DEXTERITY_POWER", "POWER.WEAK_POWER"};
+        constexpr std::array names{"POWER.SHRINK_POWER", "POWER.VULNERABLE_POWER", "POWER.STRENGTH_POWER", "POWER.DEXTERITY_POWER", "POWER.WEAK_POWER", "POWER.ARTIFACT_POWER"};
         Json value = {{"id", names[static_cast<std::size_t>(p.definition)]}, {"amount", p.amount},
             {"amount_on_turn_start", p.amount_on_turn_start}, {"skip_next_duration_tick", p.skip_next_tick},
             {"applier", p.has_applier ? Json(creature(p.applier_enemy)) : Json(nullptr)}, {"target", nullptr}, {"dynamic_vars", shrink ? Json{{"DamageDecrease", 30}} : p.definition == PowerId::vulnerable ? Json{{"DamageIncrease", 1.5}} : p.definition == PowerId::weak ? Json{{"DamageDecrease", 0.75}} : Json::object()}, {"model_fields", Json::object()}};
