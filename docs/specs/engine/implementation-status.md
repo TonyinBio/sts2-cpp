@@ -12,7 +12,10 @@ and returns to the map, or reaches a natural run death. Complete runs remain unf
 `apply_combat` and `advance_combat` as free functions. They accept optional rules,
 and initialization also accepts limits, with the existing pinned/default behavior.
 `include/sts2/engine/run.hpp` exposes `apply_input` for one historical run or combat
-transition; `apply_player` additionally advances forced transitions. CMake target
+transition. `include/sts2/engine/action.hpp` exposes `get_actions`,
+`validate_action`, `apply_action` and `advance_to_decision`; action application
+additionally advances forced transitions. Observation headers retain projection
+and description functions. CMake target
 `sts2_engine` replaces `sts2_kernel`; the namespace remains `sts2::engine`.
 
 Persistent inventory, RNG, content queues and reward odds live directly in

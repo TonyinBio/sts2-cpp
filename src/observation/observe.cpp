@@ -47,26 +47,4 @@ std::string describe(const CardView& card) {
     if (card.model_id == "CARD.SURVIVOR") text += " Discard 1 card.";
     return text;
 }
-std::size_t ActionSpaceView::size() const noexcept {
-    if (!valid_data_storage(state_.data, state_.overflow)) return 0;
-    if (state_.phase == CombatPhase::play) return state_.zone(Zone::hand).size() + 1;
-    if (state_.phase == CombatPhase::discard_choice) return state_.zone(Zone::hand).size();
-    return 0;
-}
-std::optional<ActionView> ActionSpaceView::at(std::size_t index) const noexcept {
-    if (index >= size()) return std::nullopt;
-    const auto& hand = state_.zone(Zone::hand);
-    CombatInput input{state_.boundary, CombatInputKind::end_turn};
-    if (index < hand.size()) {
-        input.card = hand[index];
-        if (state_.phase == CombatPhase::discard_choice) input.kind = CombatInputKind::select_card;
-        else {
-            input.kind = CombatInputKind::play_card;
-            const auto* instance = state_.cards.get(input.card);
-            const auto* def = instance ? Ruleset::pinned().card(instance->definition) : nullptr;
-            input.target_enemy = def && def->enemy_target;
-        }
-    }
-    return ActionView{input, validate_combat(state_, input)};
-}
 } // namespace sts2::engine

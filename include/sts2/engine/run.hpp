@@ -17,7 +17,7 @@ using PlayerInput = std::variant<RunInput, CombatInput>;
 [[nodiscard]] StepResult initialize_run(RunState&, const SeededConfig&);
 [[nodiscard]] StepResult initialize_seeded_combat(RunState&, const SeededConfig&);
 // Declared scenario operation: enter a supported native room without changing
-// generated encounter queues or map topology. Gameplay still uses apply_player.
+// generated encounter queues or map topology. Gameplay still uses apply_action.
 [[nodiscard]] StepResult enter_combat_scenario(RunState&, BoundaryId, std::string_view encounter);
 // Execute one transition, retaining explicit historical proceed boundaries.
 [[nodiscard]] StepResult apply_input(RunState&, const PlayerInput&, Scratch&);

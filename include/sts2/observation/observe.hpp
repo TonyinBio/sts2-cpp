@@ -29,13 +29,4 @@ struct CardView {
 [[nodiscard]] std::optional<CardView> inspect_card(ConstCombatView, CardHandle, const Ruleset& = Ruleset::pinned()) noexcept;
 // English rendering is outside the kernel; callers pay for it only on demand.
 [[nodiscard]] std::string describe(const CardView&);
-struct ActionView { CombatInput input; Restriction restriction; };
-class ActionSpaceView {
-public:
-    explicit ActionSpaceView(ConstCombatView state) noexcept : state_(state) {}
-    [[nodiscard]] std::size_t size() const noexcept;
-    [[nodiscard]] std::optional<ActionView> at(std::size_t index) const noexcept;
-private:
-    ConstCombatView state_;
-};
 } // namespace sts2::engine

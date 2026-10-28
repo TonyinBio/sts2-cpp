@@ -12,10 +12,13 @@ classDiagram
         class Observation {
             <<module>>
             observe()
-            actions()
-            validate_player()
-            apply_player()
-            advance_player()
+        }
+        class Action {
+            <<module>>
+            get_actions()
+            validate_action()
+            apply_action()
+            advance_to_decision()
         }
         class Run {
             <<functions>>
@@ -77,6 +80,7 @@ classDiagram
     }
 
     sts2_play ..> Observation
+    sts2_play ..> Action
     sts2_replay ..> Session
     sts2_replay ..> ParityReplay
     sts2_run_scenario ..> Session
@@ -86,6 +90,8 @@ classDiagram
     Session ..> Run
     NativeRunExporter ..> SetupRules
 
+    Action ..> Run
+    Action ..> Combat
     Observation ..> Run
     Observation ..> Combat
     Run ..> Combat

@@ -1,12 +1,9 @@
 #pragma once
 #include "sts2/engine/run.hpp"
 #include "sts2/observation/observe.hpp"
-#include <variant>
 #include <vector>
 
 namespace sts2::engine {
-// Inputs retain the current boundary. Forced transport continues are omitted.
-struct PlayerAction { PlayerInput input; Restriction restriction; };
 struct VisibleCard {
     std::uint32_t instance;
     std::string_view model_id;
@@ -63,11 +60,6 @@ struct RunObservation {
 };
 // Owns projected containers, borrows seed and combat hand until state mutation.
 [[nodiscard]] RunObservation observe(const RunState&);
-[[nodiscard]] std::vector<PlayerAction> actions(const RunState&);
-// Travel validation checks visible legality; hidden capability is checked on apply.
-[[nodiscard]] Restriction validate_player(const RunState&, const PlayerInput&);
-[[nodiscard]] StepResult apply_player(RunState&, const PlayerInput&, Scratch&);
-[[nodiscard]] StepResult advance_player(RunState&, Scratch&);
 [[nodiscard]] std::string describe(const RunObservation&);
 [[nodiscard]] std::string describe(Restriction);
 struct DefinitionText {

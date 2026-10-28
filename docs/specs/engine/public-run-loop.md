@@ -3,17 +3,21 @@
 Issue [#16](https://github.com/TonyinBio/sts2-cpp/issues/16) exposes the existing
 Neow / Golden Pearl / first Shrinker / reward / map-return mechanics. This adds no
 second gameplay implementation. `include/sts2/observation/run.hpp` supplies typed
-observations, action enumeration, validation, application and pending-input advance.
+observations. `include/sts2/engine/action.hpp` supplies action enumeration, validation,
+application and automatic progression to the next decision or terminal result.
 `sts2_play [seed]` is an example consumer (default seed `KERNELRUN14`). Enter an
 advertised action number, or `quit`. Unsupported visible choices remain explicit.
 
 ```cpp
+#include "sts2/engine/action.hpp"
+#include "sts2/observation/run.hpp"
+
 RunState run;
 Scratch scratch;
 initialize_run(run, config);
 auto view = observe(run);
-auto offered = actions(run);
-auto result = apply_player(run, offered[index].input, scratch);
+auto offered = get_actions(run);
+auto result = apply_action(run, offered[index].input, scratch);
 ```
 
 Observations own their projected vectors. Seed strings and combat hand spans borrow
@@ -53,12 +57,12 @@ support; it is not certification of native partial hand-selection callbacks.
 
 `apply_input(RunState&, const PlayerInput&, Scratch&)` dispatches run and combat
 inputs. It and historical replay retain their original boundaries and bytes.
-`apply_player` executes the submitted input, then calls the same `proceed` transitions
+`apply_action` executes the submitted input, then calls the same `proceed` transitions
 for finished Neow, finished combat, and resolved rewards until the next real choice.
 Each underlying transition retains its existing action-clock increment and boundary
 increment. Thus one public input can span two historical actions; boundary numbers
 can jump. Intermediate historical diagnostic boundaries remain replayable.
-`advance_player` at an input boundary is pure. Repeated queries and validation use
+`advance_to_decision` at an input boundary is pure. Repeated queries and validation use
 no authoritative RNG or clock. Travel validation checks visible adjacency only; unrevealed encounter capability is
 checked by execution before mutation, so querying routes cannot identify hidden rooms.
 Other validation uses an isolated complete-state copy;

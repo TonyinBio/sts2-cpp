@@ -1,5 +1,5 @@
+#include "sts2/engine/action.hpp"
 #include "sts2/engine/combat.hpp"
-#include "sts2/observation/observe.hpp"
 #include <chrono>
 #include <cstdlib>
 #include <iostream>

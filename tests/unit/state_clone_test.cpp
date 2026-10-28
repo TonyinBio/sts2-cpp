@@ -1,3 +1,4 @@
+#include "sts2/engine/action.hpp"
 #include "sts2/observation/run.hpp"
 #include "sts2/persistence/checkpoint.hpp"
 #include "storage_allocator.hpp"
@@ -29,7 +30,7 @@ TEST(CompleteStateClone, PublicCommonRunAndCombatClonesAllocateNothing) {
         EXPECT_TRUE(valid_combat(relocated)); EXPECT_EQ(relocated, combat);
         Scratch scratch;
         const CombatInput input{run_copy.view().boundary, CombatInputKind::end_turn};
-        EXPECT_EQ(apply_player(run_copy, input, scratch).status, StepStatus::awaiting_input);
+        EXPECT_EQ(apply_action(run_copy, input, scratch).status, StepStatus::awaiting_input);
         EXPECT_NE(run_copy, source);
         EXPECT_EQ(combat, combat_copy);
     }
@@ -61,9 +62,9 @@ TEST(CompleteStateClone, LargePublicRunBranchesAndRestoresWithIndependentOverflo
     ASSERT_EQ(restore(restored, encoded, scratch), RestoreStatus::restored);
     EXPECT_EQ(checkpoint(restored).bytes, encoded);
     const CombatInput input{source.view().boundary, CombatInputKind::end_turn};
-    ASSERT_EQ(apply_player(source, input, scratch).status, StepStatus::awaiting_input);
-    EXPECT_EQ(apply_player(cloned, input, scratch).status, StepStatus::awaiting_input);
-    EXPECT_EQ(apply_player(restored, input, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_action(source, input, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(apply_action(cloned, input, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(apply_action(restored, input, scratch).status, StepStatus::awaiting_input);
     EXPECT_EQ(source, cloned); EXPECT_EQ(source, restored);
     const auto unchanged = checkpoint(source).bytes;
     cloned.view().deck[199].upgrade = 1;

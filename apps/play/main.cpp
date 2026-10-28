@@ -1,3 +1,4 @@
+#include "sts2/engine/action.hpp"
 #include "sts2/observation/run.hpp"
 #include <charconv>
 #include <algorithm>
@@ -29,7 +30,7 @@ int main(int argc, char** argv) {
             const auto text = describe(card);
             std::cout << "  Card " << card.instance << ": " << text.name << " (" << card.energy_cost.value_or(-1) << " Energy) — " << text.description << '\n';
         }
-        const auto offered = actions(run);
+        const auto offered = get_actions(run);
         if (offered.empty()) return view.valid ? 0 : 1;
         for (std::size_t i = 0; i < offered.size(); ++i) {
             std::cout << i << ": ";
@@ -60,7 +61,7 @@ int main(int argc, char** argv) {
         std::size_t selected = 0;
         const auto parsed = std::from_chars(line.data(), line.data() + line.size(), selected);
         if (parsed.ec != std::errc{} || parsed.ptr != line.data() + line.size() || selected >= offered.size()) continue;
-        const auto result = apply_player(run, offered[selected].input, scratch);
+        const auto result = apply_action(run, offered[selected].input, scratch);
         if (result.reason != Restriction::none) std::cout << describe(result.reason) << '\n';
     }
 }

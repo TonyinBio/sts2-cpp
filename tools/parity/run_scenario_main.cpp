@@ -1,3 +1,4 @@
+#include "sts2/engine/action.hpp"
 #include "sts2/integration/session.hpp"
 #include "sts2/observation/run.hpp"
 #include "sts2/persistence/checkpoint.hpp"
@@ -15,7 +16,7 @@ int main() {
             Session session; session.initialize(request.at("setup")); state = session.state();
         } else {
             const auto before = checkpoint(state).bytes;
-            (void)observe(state); (void)actions(state); (void)describe(observe(state));
+            (void)observe(state); (void)get_actions(state); (void)describe(observe(state));
             if (checkpoint(state).bytes != before) throw std::runtime_error("Query mutated run");
             RunState restored; if (restore(restored, before, scratch) != RestoreStatus::restored) throw std::runtime_error("Restore failed");
             auto cloned = state;
@@ -40,8 +41,8 @@ int main() {
                     else if (kind != "skip_rewards") throw std::invalid_argument("Unsupported public action");
                     input = choice;
                 }
-                if (validate_player(run, input) != Restriction::none) throw std::runtime_error("Public input is not legal");
-                return apply_player(run, input, scratch);
+                if (validate_action(run, input) != Restriction::none) throw std::runtime_error("Public input is not legal");
+                return apply_action(run, input, scratch);
             };
             const auto result = apply(state);
             if (result.status != StepStatus::awaiting_input && result.status != StepStatus::player_died) throw std::runtime_error("Operation failed");

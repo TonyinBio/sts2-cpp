@@ -52,10 +52,10 @@ continuation instead of relying on the incidental time taken by a large export.
 
 `warm-public-structured-v1` requests the complete non-English structured surface
 exposed by the supported loop's `RunObservation`, `CardView`, `CombatObservationView`
-and `actions` at every boundary. Shared build/boundary metadata is represented
+and `get_actions` at every boundary. Shared build/boundary metadata is represented
 once; boundary identity is the record's logical ordinal, including declared
 scenario entry. Native automatic `proceed` transitions correspond to automatic
-C++ `advance_player` transitions and retain the existing action-clock mapping.
+C++ `advance_to_decision` transitions and retain the existing action-clock mapping.
 
 | Surface | Fields and correspondence |
 | --- | --- |
@@ -87,7 +87,7 @@ Each engine has one persistent worker on the same machine and inherited CPU
 affinity. Inputs are preloaded. The shared Python driver resolves each recorded
 intent against the worker's actual last public choices, hand, target requirement
 and capability result, then sends it to the real consumer. C++ translates it to
-typed `PlayerInput`, validates and calls `apply_player`; native uses the actual
+typed `PlayerInput`, validates and calls `apply_action`; native uses the actual
 run operation/action consumers.
 
 The timed region begins before fresh run setup and ends after final output and

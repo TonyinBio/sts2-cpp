@@ -1,3 +1,4 @@
+#include "sts2/engine/action.hpp"
 #include "sts2/integration/session.hpp"
 #include "sts2/observation/run.hpp"
 #include <algorithm>
@@ -51,7 +52,7 @@ Json project(const RunState& state, Json& capabilities) {
     default: throw std::runtime_error("Unsupported benchmark prompt");
     }
     result["run_phase"] = result["prompt"];
-    for (const auto& offered : actions(state)) {
+    for (const auto& offered : get_actions(state)) {
         capabilities.push_back(static_cast<unsigned>(offered.restriction));
         // unsupported_setup describes engine capability, not native legality.
         const auto legality = offered.restriction == Restriction::unsupported_setup ? Restriction::none : offered.restriction;
@@ -117,7 +118,7 @@ int main() {
             continue;
         } else if (command == "capability_rejection") {
             const auto before = checkpoint(state).bytes;
-            const auto result = apply_player(state, RunInput{state.view().boundary, RunInputKind::choose_option,
+            const auto result = apply_action(state, RunInput{state.view().boundary, RunInputKind::choose_option,
                 request.at("option_index").get<std::uint32_t>()}, scratch);
             std::cout << Json{{"ok", true}, {"unsupported", result.status == StepStatus::unsupported_content},
                 {"restriction", static_cast<unsigned>(result.reason)}, {"checkpoint_unchanged", checkpoint(state).bytes == before}}.dump() << std::endl;
@@ -144,8 +145,8 @@ int main() {
                     else if (kind != "skip_rewards") throw std::invalid_argument("Unsupported public action");
                     input = choice;
                 }
-                if (validate_player(run, input) != Restriction::none) throw std::runtime_error("Public input is not legal");
-                return apply_player(run, input, scratch);
+                if (validate_action(run, input) != Restriction::none) throw std::runtime_error("Public input is not legal");
+                return apply_action(run, input, scratch);
             };
             const auto result = apply(state);
             if (result.status != StepStatus::awaiting_input && result.status != StepStatus::player_died) throw std::runtime_error("Operation failed");

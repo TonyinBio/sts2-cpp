@@ -1,3 +1,4 @@
+#include "sts2/engine/action.hpp"
 #include "sts2/engine/run.hpp"
 #include "sts2/observation/run.hpp"
 #include "sts2/integration/native_run.hpp"
@@ -42,8 +43,8 @@ TEST(PublicRunParity, ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisi
             const auto& a = entry["action"]; const auto kind = a["kind"].get<std::string>();
             if (kind != "proceed") {
                 const auto before = checkpoint(player).bytes;
-                (void)observe(player); (void)actions(player); (void)describe(observe(player));
-                EXPECT_EQ(advance_player(player, scratch).boundary, player.view().boundary);
+                (void)observe(player); (void)get_actions(player); (void)describe(observe(player));
+                EXPECT_EQ(advance_to_decision(player, scratch).boundary, player.view().boundary);
                 EXPECT_EQ(checkpoint(player).bytes, before);
                 PlayerInput input = RunInput{player.view().boundary, RunInputKind::skip_rewards};
                 if (kind == "play_card") input = CombatInput{player.view().boundary, CombatInputKind::play_card,
@@ -60,7 +61,7 @@ TEST(PublicRunParity, ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisi
                     else ASSERT_EQ(kind, "skip_rewards");
                     input = run;
                 }
-                const auto offered = actions(player);
+                const auto offered = get_actions(player);
                 const auto offered_input = std::find_if(offered.begin(), offered.end(), [&](const PlayerAction& action) {
                     if (action.input.index() != input.index()) return false;
                     if (const auto* a = std::get_if<RunInput>(&input)) {
@@ -72,14 +73,14 @@ TEST(PublicRunParity, ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisi
                 });
                 ASSERT_NE(offered_input, offered.end());
                 input = offered_input->input;
-                EXPECT_EQ(validate_player(player, input), Restriction::none);
+                EXPECT_EQ(validate_action(player, input), Restriction::none);
                 EXPECT_EQ(checkpoint(player).bytes, before);
                 RunState restored; ASSERT_EQ(restore(restored, before, scratch), RestoreStatus::restored);
                 auto cloned = player;
-                const auto result = apply_player(player, input, scratch);
+                const auto result = apply_action(player, input, scratch);
                 ASSERT_TRUE(result.status == StepStatus::awaiting_input || result.status == StepStatus::combat_won || result.status == StepStatus::player_died);
-                EXPECT_EQ(apply_player(restored, input, scratch).status, result.status);
-                EXPECT_EQ(apply_player(cloned, input, scratch).status, result.status);
+                EXPECT_EQ(apply_action(restored, input, scratch).status, result.status);
+                EXPECT_EQ(apply_action(cloned, input, scratch).status, result.status);
                 EXPECT_EQ(restored, player); EXPECT_EQ(cloned, player);
                 capture_labels();
             }
