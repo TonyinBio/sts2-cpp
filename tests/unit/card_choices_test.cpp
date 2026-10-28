@@ -19,6 +19,17 @@ StepResult choose(CombatState& state, CombatInputKind kind, Scratch& scratch, Ca
     return apply_combat(state, {state.view().boundary, kind, card, false, observe(state).selection->id}, scratch);
 }
 }
+TEST(CardChoices, PurityClampsVisibleMaximumToNativeCandidateCount) {
+    const std::array deck{CardSpec{CardId::purity, true}, CardSpec{CardId::strike}};
+    CombatConfig config; config.deck = deck;
+    CombatState state; Scratch scratch;
+    ASSERT_EQ(initialize_combat(state, config, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(play(state, find(state, CardId::purity), scratch).status, StepStatus::awaiting_input);
+    const auto prompt = observe(state).selection;
+    ASSERT_TRUE(prompt);
+    EXPECT_EQ(prompt->maximum, 1u);
+    EXPECT_TRUE(valid_combat(state));
+}
 TEST(CardChoices, PurityConfirmsOrderedSelectionAndRestoresIndependentFutures) {
     const std::array deck{CardSpec{CardId::purity}, CardSpec{CardId::strike}, CardSpec{CardId::defend}, CardSpec{CardId::bash}};
     CombatConfig config; config.deck = deck;

@@ -9,6 +9,7 @@ import argparse
 from contextlib import contextmanager
 import hashlib
 import shutil
+import tempfile
 from pathlib import Path
 import reference_runtime as reference
 from check_consecutive_combats import compare
@@ -157,6 +158,14 @@ def replay_fixture(fixture, output, simulator, validator):
     try:
         for case in bundle['cases']:
             name = case['name']; scenario = case['scenario']; states = case['states']
+            require(case['reference']['game_dll_sha256'] == reference.GAME_SHA256,
+                    f'{name} reference build mismatch')
+            require(case['verification']['native_model_self_replay'] == 'passed',
+                    f'{name} missing independent native replay')
+            for key, filename in (('scenario', 'scenario.json'), ('states', 'states.json'),
+                                  ('reference', 'reference.json'), ('public_actions', 'public-actions.json')):
+                digest = hashlib.sha256((wire_json(case[key]) + '\n').encode()).hexdigest()
+                require(digest == case['verification']['sha256'][filename], f'{name} corrupt {filename}')
             cpp = JsonProcess([str(simulator)], None, output / name, 60, log_protocol=False)
             try:
                 reply = cpp.send({'cmd': 'start', 'setup': scenario['setup'], 'scenario_deck': scenario['scenario_deck']})
@@ -181,14 +190,17 @@ if __name__ == '__main__':
     parser.add_argument('--game-dir', type=Path)
     parser.add_argument('--fixture', type=Path)
     parser.add_argument('--fixture-output', type=Path)
-    parser.add_argument('--output-dir', type=Path, required=True)
+    parser.add_argument('--output-dir', type=Path)
     parser.add_argument('--simulator', type=Path, required=True)
     parser.add_argument('--validator', type=Path, required=True)
     parser.add_argument('--only', action='append')
     parser.add_argument('--definitions-output', type=Path)
     args = parser.parse_args()
     if args.fixture:
-        replay_fixture(args.fixture, args.output_dir, args.simulator.resolve(), args.validator.resolve())
+        output = args.output_dir or Path(tempfile.mkdtemp(prefix='sts2-ordered-replay-')) / 'results'
+        print(f'Choice replay logs: {output}', flush=True)
+        replay_fixture(args.fixture, output, args.simulator.resolve(), args.validator.resolve())
     else:
         require(args.game_dir is not None, '--game-dir required for native capture')
+        require(args.output_dir is not None, '--output-dir required for native capture')
         check(args.game_dir, args.output_dir, args.simulator.resolve(), args.validator.resolve(), args.only, args.definitions_output, args.fixture_output)
