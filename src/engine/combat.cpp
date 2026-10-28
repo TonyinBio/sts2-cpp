@@ -60,6 +60,7 @@ void emit(CombatView s, Scratch& scratch, CombatEventKind kind, bool enemy_side 
 std::uint32_t apply_power(CombatView s, Scratch& scratch, PowerId id, int amount, bool enemy, bool enemy_side, CardHandle source = {}, bool has_applier = true, bool applier_enemy = false) {
     auto& creature = enemy ? s.enemy : s.player;
     auto& power = creature.power(id);
+    if (!power.active && amount == 0) return UINT32_MAX;
     // Capture the contributing modifier identity before application. The after-
     // modifier callback may only consume that instance, never a replacement.
     const bool debuff = (id == PowerId::strength || id == PowerId::dexterity) ? amount < 0 :
