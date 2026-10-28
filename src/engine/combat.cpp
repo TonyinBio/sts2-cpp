@@ -21,7 +21,9 @@ bool valid_powers(ConstCombatView state) noexcept {
             seen[slot] = true;
             const auto& p = creature->power(id);
             if (p.definition != id || !p.active || p.enemy_owner != (creature == &state.enemy) || p.instance >= state.next_power_instance) return false;
-            if ((id == PowerId::vulnerable && p.amount <= 0) || (id == PowerId::shrink && p.amount >= 0)) return false;
+            if (((id == PowerId::vulnerable || id == PowerId::weak) && p.amount <= 0) || (id == PowerId::shrink && p.amount >= 0) ||
+                ((id == PowerId::strength || id == PowerId::dexterity) && p.amount == 0) ||
+                (p.source.present() && !state.cards.get(p.source))) return false;
         }
         for (std::size_t i = creature->power_count; i < creature->power_order.size(); ++i)
             if (creature->power_order[i] != PowerId{}) return false;
@@ -51,32 +53,44 @@ StepResult fail(CombatView state, Restriction reason) noexcept {
 }
 bool consume(Scratch& scratch) noexcept { return ++scratch.steps <= scratch.step_limit; }
 void emit(CombatView s, Scratch& scratch, CombatEventKind kind, bool enemy_side = false, bool actor_enemy = false,
-             CardHandle card = {}, std::uint32_t object = 0, int amount = 0, HitResult hit = {}) {
+             CardHandle card = {}, std::uint32_t object = 0, int amount = 0, HitResult hit = {}, bool has_applier = true, bool applier_enemy = false) {
     if (!scratch.trace.receive) return;
-    scratch.trace.emit(s, {kind, s.turn, enemy_side, actor_enemy, card, object, amount, hit});
+    scratch.trace.emit(s, {kind, s.turn, enemy_side, actor_enemy, card, object, amount, hit, has_applier, applier_enemy});
 }
-std::uint32_t apply_power(CombatView s, Scratch& scratch, PowerId id, int amount, bool enemy, bool enemy_side) {
+std::uint32_t apply_power(CombatView s, Scratch& scratch, PowerId id, int amount, bool enemy, bool enemy_side, CardHandle source = {}, bool has_applier = true, bool applier_enemy = false) {
     auto& creature = enemy ? s.enemy : s.player;
     auto& power = creature.power(id);
+    if (!power.active && amount == 0) return UINT32_MAX;
     if (!power.active) {
         if (s.next_power_instance == UINT32_MAX) throw std::length_error("power identity exhausted");
-        power = {s.next_power_instance++, id, amount, 0, enemy, true, !enemy};
+        power = {s.next_power_instance++, id, amount, 0, enemy, true, !enemy && (id == PowerId::weak || id == PowerId::vulnerable || id == PowerId::shrink)};
+        power.source = source; power.applier_enemy = applier_enemy; power.has_applier = has_applier;
         creature.power_order[creature.power_count++] = id;
     } else {
         const auto next = std::int64_t(power.amount) + amount;
         if (next < INT32_MIN || next > INT32_MAX) throw std::length_error("power amount exhausted");
-        power.amount = static_cast<std::int32_t>(next);
+        power.amount = static_cast<std::int32_t>(std::clamp<std::int64_t>(next, -999999999, 999999999));
     }
-    emit(s, scratch, CombatEventKind::power_received, enemy_side, enemy, {}, power.instance, amount);
-    return power.instance;
+    emit(s, scratch, CombatEventKind::power_received, enemy_side, enemy, {}, power.instance, amount, {}, has_applier, applier_enemy);
+    const auto identity = power.instance;
+    if ((id == PowerId::strength || id == PowerId::dexterity || id == PowerId::shrink) ? power.amount == 0 : power.amount <= 0) {
+        power.active = false;
+        emit(s, scratch, CombatEventKind::power_changed, enemy_side, enemy, {}, identity);
+        const auto end = creature.power_order.begin() + creature.power_count;
+        const auto at = std::find(creature.power_order.begin(), end, id);
+        std::move(at + 1, end, at); creature.power_order[--creature.power_count] = PowerId{};
+        power = {};
+    }
+    return identity;
 }
 void expire_power(CombatView state, Scratch& scratch, CreatureState& creature, PowerId id) {
     auto& power = creature.power(id);
     if (!power.active || power.amount <= 0) return;
+    if (power.skip_next_tick) { power.skip_next_tick = false; return; }
     --power.amount;
     power.active = power.amount != 0;
     // Publish the final identity/value before reclaiming its slot.
-    emit(state, scratch, CombatEventKind::power_received, true, power.enemy_owner, {}, power.instance, -1);
+    emit(state, scratch, CombatEventKind::power_received, true, power.enemy_owner, {}, power.instance, -1, {}, false);
     if (!power.active) {
         const auto end = creature.power_order.begin() + creature.power_count;
         const auto at = std::find(creature.power_order.begin(), end, id);
@@ -140,8 +154,8 @@ void draw(CombatView state, Scratch& scratch, int count, const Ruleset& rules, b
 }
 HitResult damage(CreatureState& target, int base, const CreatureState& source) noexcept {
     // The native decimal modifiers combine before a single floor operation.
-    std::int64_t numerator = std::int64_t(base) * (source.has_power(PowerId::shrink) ? 70 : 100) * (target.power_amount(PowerId::vulnerable) > 0 ? 150 : 100);
-    const auto amount = static_cast<int>(numerator / 10000);
+    std::int64_t numerator = std::max<std::int64_t>(0, std::int64_t(base) + source.power_amount(PowerId::strength)) * (source.has_power(PowerId::shrink) ? 70 : 100) * (source.power_amount(PowerId::weak) > 0 ? 75 : 100) * (target.power_amount(PowerId::vulnerable) > 0 ? 150 : 100);
+    const auto amount = static_cast<int>(numerator / 1000000);
     const auto blocked = std::min(target.block, amount);
     const auto unblocked = std::min(target.hp, amount - blocked);
     const HitResult hit{blocked, unblocked, amount - blocked - unblocked,
@@ -318,12 +332,18 @@ StepResult advance_combat(CombatView state, Scratch& scratch, const Ruleset& rul
             emit(state, scratch, CombatEventKind::attacked, false, false, frame.source, 0, 0, hit);
             break;
         }
-        case Opcode::block:
-            if (amount > std::numeric_limits<int>::max() - state.player.block) return fail(state, Restriction::capacity);
-            state.player.block += amount; emit(state, scratch, CombatEventKind::block_gained, false, false, frame.source, frame.play, amount); break;
+        case Opcode::block: {
+            const auto value = std::max<std::int64_t>(0, std::int64_t(amount) + state.player.power_amount(PowerId::dexterity));
+            if (value > std::numeric_limits<int>::max() - state.player.block) return fail(state, Restriction::capacity);
+            state.player.block += static_cast<int>(value); emit(state, scratch, CombatEventKind::block_gained, false, false, frame.source, frame.play, static_cast<int>(value)); break;
+        }
+        case Opcode::strength:
+            (void)apply_power(state, scratch, PowerId::strength, amount, false, false, frame.source); break;
+        case Opcode::weak:
+            (void)apply_power(state, scratch, PowerId::weak, amount, true, false, frame.source); break;
         case Opcode::vulnerable:
             if (amount > std::numeric_limits<int>::max() - state.enemy.power_amount(PowerId::vulnerable)) return fail(state, Restriction::capacity);
-            (void)apply_power(state, scratch, PowerId::vulnerable, amount, true, false); break;
+            (void)apply_power(state, scratch, PowerId::vulnerable, amount, true, false, frame.source); break;
         case Opcode::discard_choice:
             if (state.zone(Zone::hand).size() == 1) {
                 const auto discarded = state.zone(Zone::hand).front();
@@ -333,12 +353,17 @@ StepResult advance_combat(CombatView state, Scratch& scratch, const Ruleset& rul
             break;
         case Opcode::finish: {
             const auto card = frame.source; const auto play = frame.play; state.execution.pop_back();
-            if (source->definition != CardId::purity) move_card(state, Zone::play, Zone::discard, card);
+            if (source->definition == CardId::inflame) {
+                auto pile = state.zone(Zone::play); pile.erase(std::find(pile.begin(), pile.end(), card));
+                state.cards.get(card)->removed = true;
+            } else if (source->definition != CardId::purity && source->definition != CardId::shockwave && source->definition != CardId::tremble)
+                move_card(state, Zone::play, Zone::discard, card);
             if (state.enemy.hp == 0) { end_combat(state, scratch, true); return result(state); }
             ++state.counters.finished_plays;
             state.cards.get(card)->last_finished_player_turn = state.turn;
             emit(state, scratch, CombatEventKind::play_finished, false, false, card, play);
-            if (state.cards.get(card)->definition == CardId::purity) exhaust(state, scratch, Zone::play, card);
+            if (source->definition == CardId::purity || source->definition == CardId::shockwave || source->definition == CardId::tremble)
+                exhaust(state, scratch, Zone::play, card);
             break;
         }
         }
@@ -380,7 +405,7 @@ StepResult apply_combat(CombatView state, const CombatInput& input, Scratch& scr
         state.enemy.block = 0;
         snapshot_power_turn(state, scratch, state.enemy, true);
         switch (state.move) {
-        case BeetleMove::shrink: (void)apply_power(state, scratch, PowerId::shrink, -1, false, true); state.move = BeetleMove::chomp; break;
+        case BeetleMove::shrink: (void)apply_power(state, scratch, PowerId::shrink, -1, false, true, {}, true, true); state.move = BeetleMove::chomp; break;
         case BeetleMove::chomp: case BeetleMove::stomp: {
             const auto hit = damage(state.player, state.move == BeetleMove::chomp ? 7 : 13, state.enemy);
             if (hit.unblocked > 0) ++state.player.positive_unblocked_hits;
@@ -393,7 +418,13 @@ StepResult apply_combat(CombatView state, const CombatInput& input, Scratch& scr
         if (state.player.hp == 0) end_combat(state, scratch, false);
         else {
             // Supported powers have no captured callbacks or model references.
-            expire_power(state, scratch, state.enemy, PowerId::vulnerable);
+            for (auto* owner : {&state.player, &state.enemy}) {
+                const auto candidates = owner->power_order;
+                const auto count = owner->power_count;
+                for (std::size_t i = 0; i < count; ++i)
+                    if (candidates[i] == PowerId::weak || candidates[i] == PowerId::vulnerable)
+                        expire_power(state, scratch, *owner, candidates[i]);
+            }
             snapshot_power_turn(state, scratch, state.player, false);
             state.counters.started_this_turn = state.counters.attacks_this_turn = 0;
             state.counters.zero_energy_attacks_this_turn = state.counters.non_hand_draws_this_turn = 0;
@@ -411,7 +442,7 @@ StepResult apply_combat(CombatView state, const CombatInput& input, Scratch& scr
         state.execution.push_back({input.card, 0, play_id, cost, input.target_enemy});
         emit(state, scratch, CombatEventKind::energy_spent, false, false, {}, 0, cost);
         ++state.counters.started_plays; ++state.counters.started_this_turn;
-        if (card->definition == CardId::strike || card->definition == CardId::bash || card->definition == CardId::headbutt) {
+        if (card->definition == CardId::strike || card->definition == CardId::bash || card->definition == CardId::headbutt || card->definition == CardId::uppercut) {
             ++state.counters.attacks_this_turn;
             if (cost == 0) ++state.counters.zero_energy_attacks_this_turn;
         }
@@ -436,6 +467,17 @@ StepResult apply_combat(CombatView state, const CombatInput& input, Scratch& scr
     state.phase = CombatPhase::invalid;
     return {StepStatus::resource_limit, state.boundary, Restriction::capacity};
 } catch (...) { return fail(state, Restriction::invalid_state); }
+StepResult apply_power_scenario(CombatView state, const PowerApplication& operation, Scratch& scratch) noexcept {
+    if (!valid_combat(state)) return result(state, Restriction::invalid_state);
+    if (state.phase != CombatPhase::play || !state.execution.empty()) return result(state, Restriction::wrong_phase);
+    if (operation.definition >= PowerId::count || operation.amount < -999999999 || operation.amount > 999999999 ||
+        (operation.source.present() && !state.cards.get(operation.source))) return result(state, Restriction::malformed_action);
+    try {
+        (void)apply_power(state, scratch, operation.definition, operation.amount, operation.enemy_owner, false,
+            operation.source, operation.has_applier, operation.applier_enemy);
+        return result(state);
+    } catch (...) { return fail(state, Restriction::capacity); }
+}
 bool valid_combat(ConstCombatView state, const Ruleset& rules) noexcept {
     if (!valid_data_storage(state.data, state.overflow) || !state.cards.valid()) return false;
     if (static_cast<unsigned>(state.phase) > static_cast<unsigned>(CombatPhase::invalid) ||
@@ -523,7 +565,7 @@ bool valid_combat(ConstCombatView state, const Ruleset& rules) noexcept {
         bool referenced = false;
         for (const auto& zone : zones) if (std::find(zone.begin(), zone.end(), card) != zone.end()) referenced = true;
         for (const auto& frame : state.execution) if (frame.source == card) referenced = true;
-        if (!referenced) return false;
+        if (!referenced && !slot.value.removed) return false;
     }
     return true;
 }

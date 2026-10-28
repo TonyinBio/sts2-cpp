@@ -20,7 +20,7 @@ struct Writer {
         for (auto id : c.power_ids()) {
             const auto& p = c.power(id);
             u8(static_cast<std::uint8_t>(id)); u32(p.instance); i32(p.amount); i32(p.amount_on_turn_start);
-            u8(p.enemy_owner); u8(p.skip_next_tick);
+            u8(p.enemy_owner); u8(p.skip_next_tick); u8(p.has_applier); u8(p.applier_enemy); handle(p.source);
         }
     }
 };
@@ -42,6 +42,7 @@ struct Reader {
             if (id >= PowerId::count || c.has_power(id)) throw std::invalid_argument("Invalid power slot");
             auto& p = c.power(id); p.definition = id; p.instance = u32(); p.amount = i32(); p.amount_on_turn_start = i32();
             p.enemy_owner = boolean(); p.skip_next_tick = boolean(); p.active = true;
+            p.has_applier = boolean(); p.applier_enemy = boolean(); p.source = handle();
             c.power_order[c.power_count++] = id;
         }
         return c;
@@ -67,7 +68,7 @@ std::uint64_t content_fingerprint() {
 Checkpoint checkpoint(ConstCombatView s) {
     if (!valid_combat(s)) throw std::invalid_argument("Cannot checkpoint invalid simulation");
     Writer w;
-    w.text("STS2CP07"); w.u32(7); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
+    w.text("STS2CP08"); w.u32(8); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed);
     w.u32(s.boundary.value); w.u8(static_cast<std::uint8_t>(s.phase));
     const auto config = s.clock.config();
@@ -80,7 +81,7 @@ Checkpoint checkpoint(ConstCombatView s) {
     w.u32(static_cast<std::uint32_t>(s.cards.slots().size()));
     for (const auto& slot : s.cards.slots()) {
         w.u32(slot.generation); w.u8(slot.live); w.u8(static_cast<std::uint8_t>(slot.value.definition));
-        w.u8(slot.value.upgraded); w.u32(slot.value.creation_order); w.u32(slot.value.deck_instance); w.i32(slot.value.last_finished_player_turn);
+        w.u8(slot.value.upgraded); w.u32(slot.value.creation_order); w.u32(slot.value.deck_instance); w.i32(slot.value.last_finished_player_turn); w.u8(slot.value.removed);
     }
     w.u32(static_cast<std::uint32_t>(s.cards.free_slots().size()));
     for (auto slot : s.cards.free_slots()) w.u32(slot);
@@ -110,8 +111,8 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
         Reader trailer{bytes.last(8)};
         if (trailer.u64() != digest(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
-        for (char c : std::string_view("STS2CP07")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 7 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        for (char c : std::string_view("STS2CP08")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
+        if (r.u32() != 8 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (char c : game_digest) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
         CombatState s(destination.overflow.allocator()); auto s_view = s.view();
@@ -134,7 +135,7 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
         std::vector<CardPool::Slot> slots(count);
         for (auto& slot : slots) {
             slot.generation = r.u32(); slot.live = r.boolean(); slot.value.definition = static_cast<CardId>(r.u8());
-            slot.value.upgraded = r.boolean(); slot.value.creation_order = r.u32(); slot.value.deck_instance = r.u32(); slot.value.last_finished_player_turn = r.i32();
+            slot.value.upgraded = r.boolean(); slot.value.creation_order = r.u32(); slot.value.deck_instance = r.u32(); slot.value.last_finished_player_turn = r.i32(); slot.value.removed = r.boolean();
         }
         const auto free_count = r.u32(); if (free_count > count) return RestoreStatus::malformed;
         std::vector<std::uint32_t> free(free_count); for (auto& index : free) index = r.u32();

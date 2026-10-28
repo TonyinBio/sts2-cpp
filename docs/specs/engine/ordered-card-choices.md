@@ -19,7 +19,7 @@ ordered selections and typed effect accompany the suspended source-card frame.
 Cloning and binary checkpoints preserve these values and the next prompt identity.
 Candidate and selection lists use pointer-free inline sequences with independently
 owned overflow; the common partial-prompt clone test verifies allocation-free
-cloning and relocation by `memcpy`. Binary checkpoint revision 7 records these
+cloning and relocation by `memcpy`. Binary checkpoint revision 8 records these
 operands and rejects older incompatible layouts.
 The source card remains in Play, and its energy cost and play hooks run once.
 Confirmation resumes the source frame without replaying its completed instructions.

@@ -1,7 +1,7 @@
 # Native hand callback evidence for #18
 
 Captured 2026-10-28 with `tools/oracle/check_native_choice_callbacks.py` against
-pinned game `0.111.0+41cef1ea`, .NET 9.0.8 and actual Godot 4.5.1 Mono. Four cases,
+pinned game `0.111.0+41cef1ea`, .NET 9.0.4 and actual Godot 4.5.1 Mono. Four cases,
 each independently initialized and repeated in a fresh process, passed native
 assertions and identical callback/result comparison. No C++ result is claimed
 by this capture.

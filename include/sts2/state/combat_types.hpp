@@ -21,9 +21,11 @@ struct CombatEvent {
     std::int32_t amount = 0;
     HitResult hit {};
     bool from_hand_draw : 1 = true;
+    bool has_applier : 1 = true;
+    bool applier_enemy : 1 = false;
     friend bool operator==(const CombatEvent&, const CombatEvent&) = default;
 };
-enum class PowerId : std::uint8_t { shrink, vulnerable, count };
+enum class PowerId : std::uint8_t { shrink, vulnerable, strength, dexterity, weak, count };
 struct PowerInstance {
     std::uint32_t instance = 0;
     PowerId definition = PowerId::shrink;
@@ -31,6 +33,9 @@ struct PowerInstance {
     bool enemy_owner : 1 = false;
     bool active : 1 = false;
     bool skip_next_tick : 1 = false;
+    bool has_applier : 1 = true;
+    bool applier_enemy : 1 = false;
+    CardHandle source {};
     friend bool operator==(const PowerInstance&, const PowerInstance&) = default;
 };
 } // namespace sts2::engine

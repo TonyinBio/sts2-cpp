@@ -28,6 +28,41 @@ CardHandle find_card(const CombatState& state, CardId id) {
 StepResult play(CombatState& s, CardHandle card, Scratch& scratch) {
     return apply_combat(s, {s.view().boundary, CombatInputKind::play_card, card, Ruleset::pinned().card(s.view().cards.get(card)->definition)->enemy_target}, scratch);
 }
+TEST(OrderedPowers, InflameChangesSubsequentAttackAndSurvivesCheckpoint) {
+    const std::array deck{CardSpec{CardId::inflame}, CardSpec{CardId::strike},
+        CardSpec{CardId::defend}, CardSpec{CardId::defend}, CardSpec{CardId::defend}};
+    CombatConfig config; config.deck = deck; config.enemy_hp = 40;
+    CombatState state; Scratch scratch;
+    ASSERT_EQ(initialize_combat(state, config, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(play(state, find_card(state, CardId::inflame), scratch).status, StepStatus::awaiting_input);
+    const auto attack = find_card(state, CardId::strike);
+    ASSERT_TRUE(observe_card(state, attack));
+    EXPECT_EQ(observe_card(state, attack)->damage, 8);
+    CombatState restored;
+    ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    CombatState clone = state;
+    for (auto* current : {&state, &restored, &clone}) {
+        ASSERT_EQ(play(*current, attack, scratch).status, StepStatus::awaiting_input);
+        EXPECT_EQ(observe(*current).enemy_hp, 32);
+    }
+    EXPECT_EQ(state, restored); EXPECT_EQ(state, clone);
+}
+TEST(OrderedPowers, SignedStatsChangeDamageAndBlockAcrossRestoredFutures) {
+    const std::array deck{CardSpec{CardId::strike}, CardSpec{CardId::defend}};
+    CombatConfig config; config.deck = deck; config.enemy_hp = 40;
+    auto state = initial(config); Scratch scratch;
+    ASSERT_EQ(apply_power_scenario(state, {PowerId::strength, -2}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_power_scenario(state, {PowerId::dexterity, -3}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(observe(state).player_strength, -2);
+    const auto attack = find_card(state, CardId::strike), defense = find_card(state, CardId::defend);
+    EXPECT_EQ(observe_card(state, attack)->damage, 4); EXPECT_EQ(observe_card(state, defense)->block, 2);
+    CombatState restored;
+    ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    ASSERT_EQ(play(state, attack, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(play(restored, defense, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(observe(state).enemy_hp, 36); EXPECT_EQ(observe(restored).block, 2);
+    EXPECT_EQ(observe(restored).enemy_hp, 40); EXPECT_EQ(observe(state).block, 0);
+}
 TEST(GameRng, MatchesPinnedGameMixedCallsAndEntireFinalState) {
     const auto vectors = file(KERNEL_RNG_FIXTURE);
     for (const auto& sequence : vectors["sequences"]) {

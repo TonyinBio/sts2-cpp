@@ -22,6 +22,7 @@ struct CombatObservationView {
     std::span<const CardHandle> hand;
     std::size_t draw_count, discard_count, exhaust_count;
     std::optional<CardSelectionView> selection;
+    std::int32_t player_strength, player_dexterity, player_weak, enemy_weak;
 };
 // Borrows hand storage; invalidated by state mutation. Hidden draw order, RNG,
 // execution frames and unrevealed data are never part of the public projection.
@@ -32,6 +33,8 @@ struct CardView {
     std::int32_t cost, damage, block, vulnerable;
     bool upgraded, enemy_target;
     CardRarity rarity = CardRarity::basic;
+    std::int32_t strength = 0, weak = 0;
+    bool exhaust = false, power = false;
 };
 [[nodiscard]] std::optional<CardView> observe_card(ConstCombatView, CardHandle, const Ruleset& = Ruleset::pinned()) noexcept;
 // Metadata for inspectable hand/draw/discard/exhaust cards; never pile position.

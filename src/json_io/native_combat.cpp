@@ -26,6 +26,10 @@ Json variables(const CardInstance& c) {
     case CardId::headbutt: return {{"Damage", c.upgraded ? 12 : 9}};
     case CardId::burning_pact: return {{"Cards", c.upgraded ? 3 : 2}};
     case CardId::true_grit: return {{"Block", c.upgraded ? 9 : 7}};
+    case CardId::inflame: return {{"StrengthPower", c.upgraded ? 3 : 2}};
+    case CardId::shockwave: return {{"Power", c.upgraded ? 5 : 3}};
+    case CardId::tremble: return {{"VulnerablePower", c.upgraded ? 4 : 3}};
+    case CardId::uppercut: return {{"Damage", 13}, {"Power", c.upgraded ? 2 : 1}};
     case CardId::count: break;
     }
     throw std::invalid_argument("Unsupported card variables");
@@ -149,8 +153,8 @@ void export_native_combat(Json& out, const RunState& run, const RecordedCombat& 
         if (won) continue;
         combat["cards"]["card_" + std::to_string(i)] = {{"saved", out["players"][0]["deck"][deck_index]},
             {"owner", "/players/0"}, {"deck_version", "/players/0/deck/" + std::to_string(deck_index)}, {"clone_of", nullptr},
-            {"is_dupe", false}, {"base_replay_count", 0}, {"local_keywords", card.definition == CardId::purity ? Json::array({"Retain", "Exhaust"}) : Json::array()}, {"exhaust_on_next_play", false},
-            {"has_single_turn_retain", false}, {"has_single_turn_sly", false}, {"has_been_removed_from_state", false},
+            {"is_dupe", false}, {"base_replay_count", 0}, {"local_keywords", card.definition == CardId::purity ? Json::array({"Retain", "Exhaust"}) : card.definition == CardId::shockwave || card.definition == CardId::tremble ? Json::array({"Exhaust"}) : Json::array()}, {"exhaust_on_next_play", false},
+            {"has_single_turn_retain", false}, {"has_single_turn_sly", false}, {"has_been_removed_from_state", card.removed},
             {"dynamic_vars", vars}, {"energy_cost", {{"base", Ruleset::pinned().card(card.definition)->cost}, {"captured_x_value", 0}, {"local_modifiers", Json::array()}}},
             {"base_star_cost", -1}, {"temporary_star_costs", Json::array()}, {"last_stars_spent", 0}, {"affliction", nullptr}, {"enchantment_runtime", nullptr}, {"model_fields", Json::object()}};
     }
@@ -171,9 +175,10 @@ void export_native_combat(Json& out, const RunState& run, const RecordedCombat& 
     }
     for (std::size_t i = 0; i < recorded.powers.size(); ++i) {
         const auto& p = recorded.powers[i]; const bool shrink = p.definition == PowerId::shrink;
-        Json value = {{"id", shrink ? "POWER.SHRINK_POWER" : "POWER.VULNERABLE_POWER"}, {"amount", p.amount},
+        constexpr std::array names{"POWER.SHRINK_POWER", "POWER.VULNERABLE_POWER", "POWER.STRENGTH_POWER", "POWER.DEXTERITY_POWER", "POWER.WEAK_POWER"};
+        Json value = {{"id", names[static_cast<std::size_t>(p.definition)]}, {"amount", p.amount},
             {"amount_on_turn_start", p.amount_on_turn_start}, {"skip_next_duration_tick", p.skip_next_tick},
-            {"applier", creature(!p.enemy_owner)}, {"target", nullptr}, {"dynamic_vars", shrink ? Json{{"DamageDecrease", 30}} : Json{{"DamageIncrease", 1.5}}}, {"model_fields", Json::object()}};
+            {"applier", p.has_applier ? Json(creature(p.applier_enemy)) : Json(nullptr)}, {"target", nullptr}, {"dynamic_vars", shrink ? Json{{"DamageDecrease", 30}} : p.definition == PowerId::vulnerable ? Json{{"DamageIncrease", 1.5}} : p.definition == PowerId::weak ? Json{{"DamageDecrease", 0.75}} : Json::object()}, {"model_fields", Json::object()}};
         if (p.active) combat["creatures"][p.enemy_owner ? "enemy_0" : "player_0"]["powers"].push_back(power_ref(i));
         else value["detached_owner"] = creature(p.enemy_owner);
         combat["powers"][std::to_string(i)] = std::move(value);
@@ -181,7 +186,7 @@ void export_native_combat(Json& out, const RunState& run, const RecordedCombat& 
     for (std::size_t i = 0; i < recorded.plays.size(); ++i) {
         const auto& p = recorded.plays[i];
         combat["card_plays"][std::to_string(i)] = {{"card", card_ref(p.card)}, {"player", "/players/0"}, {"target", p.enemy_target ? Json(enemy) : Json(nullptr)},
-            {"result_pile", s.cards.get(p.card)->definition == CardId::purity ? "Exhaust" : "Discard"}, {"resources", {{"energy_spent", p.energy}, {"energy_value", p.energy}, {"stars_spent", 0}, {"star_value", 0}}},
+            {"result_pile", s.cards.get(p.card) && s.cards.get(p.card)->definition == CardId::inflame ? "None" : s.cards.get(p.card) && (s.cards.get(p.card)->definition == CardId::purity || s.cards.get(p.card)->definition == CardId::shockwave || s.cards.get(p.card)->definition == CardId::tremble) ? "Exhaust" : "Discard"}, {"resources", {{"energy_spent", p.energy}, {"energy_value", p.energy}, {"stars_spent", 0}, {"star_value", 0}}},
             {"is_auto_play", false}, {"play_index", 0}, {"play_count", 1}};
     }
     constexpr std::array<const char*, 9> kinds{"CardDrawnEntry", "CardDiscardedEntry", "EnergySpentEntry", "CardPlayStartedEntry", "CardPlayFinishedEntry", "DamageReceivedEntry", "CreatureAttackedEntry", "BlockGainedEntry", "PowerReceivedEntry"};
@@ -199,7 +204,7 @@ void export_native_combat(Json& out, const RunState& run, const RecordedCombat& 
             entry["card_source"] = h.card.present() ? Json(card_ref(h.card)) : Json(nullptr); break;
         case CombatEventKind::attacked: entry["damage_results"] = Json::array({damage_result(h.hit, !h.actor_enemy)}); break;
         case CombatEventKind::block_gained: entry["amount"] = h.amount; entry["props"] = 8; entry["card_play"] = play_ref(h.object); break;
-        case CombatEventKind::power_received: entry["amount"] = h.amount; entry["power"] = power_ref(h.object); entry["applier"] = h.amount < 0 && recorded.powers[h.object].definition == PowerId::vulnerable ? Json(nullptr) : Json(creature(!h.actor_enemy)); break;
+        case CombatEventKind::power_received: entry["amount"] = h.amount; entry["power"] = power_ref(h.object); entry["applier"] = h.has_applier ? Json(creature(h.applier_enemy)) : Json(nullptr); break;
         default: throw std::logic_error("Unexpected diagnostic event");
         }
         combat["history"].push_back(std::move(entry));
