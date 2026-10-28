@@ -80,7 +80,7 @@ TEST(PublicRun, ConsecutiveScenarioCombatsReplaceGraphsAndRejectOldCards) {
     auto bad = checkpoint(original).bytes;
     const auto inner = checkpoint(aliased).bytes;
     std::vector<std::byte> magic;
-    for (const char c : std::string_view("STS2CP06")) magic.push_back(std::byte(c));
+    for (const char c : std::string_view("STS2CP07")) magic.push_back(std::byte(c));
     const auto at = std::search(bad.begin(), bad.end(), magic.begin(), magic.end());
     ASSERT_NE(at, bad.end());
     std::copy(inner.begin(), inner.end(), at);

@@ -3,6 +3,7 @@
 #include "sts2/observation/run.hpp"
 #include "sts2/persistence/checkpoint.hpp"
 #include <iostream>
+#include <algorithm>
 
 // Diagnostic scenario transport. Room entry is deliberately separate from the
 // public player action surface and never edits generated encounter queues.
@@ -14,7 +15,16 @@ int main() {
         const auto request = Json::parse(line); const auto command = request.at("cmd").get<std::string>();
         if (command == "start") {
             NativeRunExporter next_exporter;
-            initialize_json_run(state, request.at("setup"), next_exporter.trace());
+            std::vector<CardSpec> deck;
+            if (request.contains("scenario_deck")) for (const auto& entry : request.at("scenario_deck")) {
+                const auto name = entry.at("id").get<std::string>();
+                CardId id = CardId::count;
+                for (unsigned i = 0; i < static_cast<unsigned>(CardId::count); ++i)
+                    if (Ruleset::pinned().card(static_cast<CardId>(i))->model_id == name) id = static_cast<CardId>(i);
+                if (id == CardId::count) throw std::invalid_argument("Unsupported scenario card");
+                deck.push_back({id, entry.value("upgraded", false)});
+            }
+            initialize_json_run(state, request.at("setup"), next_exporter.trace(), deck);
             exporter = std::move(next_exporter); scratch.trace = exporter.trace();
         } else {
             const auto before = checkpoint(state).bytes;
@@ -24,6 +34,15 @@ int main() {
             auto cloned = state;
             auto apply = [&](RunState& run, Scratch& execution) {
                 if (command == "scenario_enter_combat") return enter_combat_scenario(run, run.view().boundary, request.at("encounter").get<std::string>(), execution.trace);
+                if (command == "scenario_power") {
+                    constexpr std::array names{"POWER.SHRINK_POWER", "POWER.VULNERABLE_POWER", "POWER.STRENGTH_POWER", "POWER.DEXTERITY_POWER", "POWER.WEAK_POWER"};
+                    const auto id = request.at("id").get<std::string>();
+                    const auto found = std::find(names.begin(), names.end(), id);
+                    if (found == names.end() || !run.view().combat) throw std::invalid_argument("Unsupported power scenario");
+                    return apply_power_scenario(*run.view().combat,
+                        {static_cast<PowerId>(found - names.begin()), request.at("amount").get<std::int32_t>(),
+                         request.value("enemy_owner", false), request.value("has_applier", true), request.value("applier_enemy", false)}, execution);
+                }
                 if (command != "action") throw std::invalid_argument("Unknown command");
                 const auto& action = request.at("action"); const auto kind = action.at("kind").get<std::string>();
                 PlayerInput input;

@@ -17,6 +17,14 @@ struct CombatInput {
     const Ruleset& = Ruleset::pinned()) noexcept;
 [[nodiscard]] Restriction validate_combat(ConstCombatView, const CombatInput&,
     const Ruleset& = Ruleset::pinned()) noexcept;
+// Diagnostic operation corresponding to native PowerCmd; no player clock step.
+struct PowerApplication {
+    PowerId definition;
+    std::int32_t amount;
+    bool enemy_owner = false, has_applier = true, applier_enemy = false;
+    CardHandle source {};
+};
+[[nodiscard]] StepResult apply_power_scenario(CombatView, const PowerApplication&, Scratch&) noexcept;
 // Complete owning copy; all handles remain local to the destination's storage.
 [[nodiscard]] bool valid_combat(ConstCombatView, const Ruleset& = Ruleset::pinned()) noexcept;
 } // namespace sts2::engine

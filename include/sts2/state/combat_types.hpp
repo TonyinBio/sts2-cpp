@@ -3,7 +3,7 @@
 #include <cstdint>
 
 namespace sts2::engine {
-enum class CombatEventKind : std::uint8_t { drawn, discarded, energy_spent, play_started, play_finished, damaged, attacked, block_gained, power_received, combat_started, combat_won, combat_lost, power_changed, combat_updated };
+enum class CombatEventKind : std::uint8_t { drawn, discarded, energy_spent, play_started, play_finished, damaged, attacked, block_gained, power_received, combat_started, combat_won, combat_lost, power_changed, combat_updated, exhausted };
 struct HitResult {
     std::int32_t blocked = 0, unblocked = 0, overkill = 0;
     bool block_broken : 1 = false;
@@ -20,9 +20,11 @@ struct CombatEvent {
     std::uint32_t object = 0; // Play or power identity, interpreted by kind.
     std::int32_t amount = 0;
     HitResult hit {};
+    bool has_applier : 1 = true;
+    bool applier_enemy : 1 = false;
     friend bool operator==(const CombatEvent&, const CombatEvent&) = default;
 };
-enum class PowerId : std::uint8_t { shrink, vulnerable, count };
+enum class PowerId : std::uint8_t { shrink, vulnerable, strength, dexterity, weak, count };
 struct PowerInstance {
     std::uint32_t instance = 0;
     PowerId definition = PowerId::shrink;
@@ -30,6 +32,9 @@ struct PowerInstance {
     bool enemy_owner : 1 = false;
     bool active : 1 = false;
     bool skip_next_tick : 1 = false;
+    bool has_applier : 1 = true;
+    bool applier_enemy : 1 = false;
+    CardHandle source {};
     friend bool operator==(const PowerInstance&, const PowerInstance&) = default;
 };
 } // namespace sts2::engine

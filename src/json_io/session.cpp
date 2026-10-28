@@ -30,7 +30,7 @@ std::uint32_t label_index(const Json& value) {
     return index;
 }
 }
-void initialize_json_run(RunState& destination, const Json& setup, CombatTrace trace) {
+void initialize_json_run(RunState& destination, const Json& setup, CombatTrace trace, std::span<const CardSpec> scenario_deck) {
     fields(setup, {"kind", "seed", "character", "ascension", "clock", "encounter"});
     const auto seed = setup.at("seed").get<std::string>();
     const auto character = setup.at("character").get<std::string>();
@@ -49,8 +49,9 @@ void initialize_json_run(RunState& destination, const Json& setup, CombatTrace t
     RunState next(destination.overflow.allocator()); StepResult result{StepStatus::unsupported_content, {}};
     if (setup.at("kind") == "seeded_combat") {
         if (setup.at("encounter") != "SHRINKER_BEETLE_WEAK") throw std::invalid_argument("Unsupported encounter");
-        result = initialize_seeded_combat(next, config, trace);
+        result = initialize_combat_scenario(next, config, scenario_deck, trace);
     } else if (setup.at("kind") == "seeded_run") {
+        if (!scenario_deck.empty()) throw std::invalid_argument("Scenario deck requires combat setup");
         if (setup.contains("encounter")) throw std::invalid_argument("Run setup cannot specify an encounter");
         result = initialize_run(next, config);
     }

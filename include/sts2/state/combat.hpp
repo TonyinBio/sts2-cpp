@@ -18,6 +18,7 @@ struct CardInstance {
     std::uint32_t creation_order = 0;
     std::uint32_t deck_instance = UINT32_MAX;
     std::int32_t last_finished_player_turn = 0;
+    bool removed = false;
     friend bool operator==(const CardInstance&, const CardInstance&) = default;
 };
 using CardPool = PoolData<CardInstance, CardInstanceTag, 32>;
