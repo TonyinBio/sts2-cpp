@@ -55,7 +55,10 @@ bool consume(Scratch& scratch) noexcept { return ++scratch.steps <= scratch.step
 void emit(CombatView s, Scratch& scratch, CombatEventKind kind, bool enemy_side = false, bool actor_enemy = false,
              CardHandle card = {}, std::uint32_t object = 0, int amount = 0, HitResult hit = {}, bool has_applier = true, bool applier_enemy = false) {
     if (!scratch.trace.receive) return;
-    scratch.trace.emit(s, {kind, s.turn, enemy_side, actor_enemy, card, object, amount, hit, has_applier, applier_enemy});
+    CombatEvent event{kind, s.turn, enemy_side, actor_enemy, card, object, amount, hit};
+    event.has_applier = has_applier;
+    event.applier_enemy = applier_enemy;
+    scratch.trace.emit(s, event);
 }
 std::uint32_t apply_power(CombatView s, Scratch& scratch, PowerId id, int amount, bool enemy, bool enemy_side, CardHandle source = {}, bool has_applier = true, bool applier_enemy = false) {
     auto& creature = enemy ? s.enemy : s.player;
@@ -453,7 +456,7 @@ StepResult apply_combat(CombatView state, const CombatInput& input, Scratch& scr
         const auto play_id = state.counters.started_plays;
         const auto cost = rules.card(card->definition)->cost;
         state.execution.push_back({input.card, 0, play_id, cost, input.target_enemy});
-        emit(state, scratch, CombatEventKind::energy_spent, false, false, {}, 0, cost);
+        if (cost > 0) emit(state, scratch, CombatEventKind::energy_spent, false, false, {}, 0, cost);
         ++state.counters.started_plays; ++state.counters.started_this_turn;
         if (card->definition == CardId::strike || card->definition == CardId::bash || card->definition == CardId::headbutt || card->definition == CardId::uppercut) {
             ++state.counters.attacks_this_turn;
