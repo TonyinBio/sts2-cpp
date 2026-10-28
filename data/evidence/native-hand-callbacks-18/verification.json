@@ -1,0 +1,245 @@
+{
+  "profile": "native-hand-callbacks-v1",
+  "cases": [
+    {
+      "case_name": "ordered",
+      "observations": [
+        {
+          "input": "initial",
+          "selected": [],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose0",
+          "selected": [
+            0
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose1",
+          "selected": [
+            0,
+            1
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose2",
+          "selected": [
+            0,
+            2
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "deselect0",
+          "selected": [
+            2
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose0",
+          "selected": [
+            2,
+            0
+          ],
+          "pending": true,
+          "confirm": true
+        }
+      ],
+      "result": [
+        2,
+        0
+      ],
+      "exhausted": null,
+      "framework": ".NET 9.0.4",
+      "hand_ready": true,
+      "inside_tree": true,
+      "mode": "Play",
+      "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e"
+    },
+    {
+      "case_name": "zero",
+      "observations": [
+        {
+          "input": "initial",
+          "selected": [],
+          "pending": true,
+          "confirm": true
+        }
+      ],
+      "result": [],
+      "exhausted": null,
+      "framework": ".NET 9.0.4",
+      "hand_ready": true,
+      "inside_tree": true,
+      "mode": "Play",
+      "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e"
+    },
+    {
+      "case_name": "single",
+      "observations": [
+        {
+          "input": "initial",
+          "selected": [],
+          "pending": true,
+          "confirm": false
+        },
+        {
+          "input": "choose0",
+          "selected": [
+            0
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose1",
+          "selected": [
+            1
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose2",
+          "selected": [
+            2
+          ],
+          "pending": true,
+          "confirm": true
+        }
+      ],
+      "result": [
+        2
+      ],
+      "exhausted": null,
+      "framework": ".NET 9.0.4",
+      "hand_ready": true,
+      "inside_tree": true,
+      "mode": "Play",
+      "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e"
+    },
+    {
+      "case_name": "purity-consumer",
+      "observations": [
+        {
+          "input": "initial",
+          "selected": [],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose0",
+          "selected": [
+            0
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose1",
+          "selected": [
+            0,
+            1
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose2",
+          "selected": [
+            0,
+            1,
+            2
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose3",
+          "selected": [
+            0,
+            1,
+            3
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "deselect0",
+          "selected": [
+            1,
+            3
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose0",
+          "selected": [
+            1,
+            3,
+            0
+          ],
+          "pending": true,
+          "confirm": true
+        }
+      ],
+      "result": [
+        1,
+        3,
+        0
+      ],
+      "exhausted": [
+        1,
+        3,
+        0,
+        -1
+      ],
+      "framework": ".NET 9.0.4",
+      "hand_ready": true,
+      "inside_tree": true,
+      "mode": "Play",
+      "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e"
+    }
+  ],
+  "independent_native_repeat": "passed",
+  "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+  "game_pack_sha256": "c60f672ee7804e6aefa1e19a582fa1c80b126a7b0eef4d084d3abf110df2eab7",
+  "godot_sha256": "cf499495ba071c5974e68602f14da9860269cc73bda7dc495ff28128e7972b64",
+  "runner_sha256": "0f46c98b7236dc789ee1560b70442314dddd3e891e52479ff2953a8367b88167",
+  "logs_sha256": {
+    "build.log": "efe73b0779624b6058aef801c5caba8c6870aee8f1965ce7774678e5faed3d0a",
+    "ordered-0.log": "56efae9f0abb9e39787388ea4b845a696726f3448c2f5ee04081d1222730cf11",
+    "ordered-1.log": "56efae9f0abb9e39787388ea4b845a696726f3448c2f5ee04081d1222730cf11",
+    "purity-consumer-0.log": "8cee9ba360c01c38d6902dfdfda97a1303c364cb43631a25f75287f9b20a34a6",
+    "purity-consumer-1.log": "8cee9ba360c01c38d6902dfdfda97a1303c364cb43631a25f75287f9b20a34a6",
+    "single-0.log": "a3a2811f54d463d5d8f3df5cb0705c1706e232b5f9e7e5b94d74a60fc6a2c9d9",
+    "single-1.log": "a3a2811f54d463d5d8f3df5cb0705c1706e232b5f9e7e5b94d74a60fc6a2c9d9",
+    "zero-0.log": "6ea9c814ce538faf21e23f7abf7fbfea95eadd94151efe4f6d81b562b30c72ac",
+    "zero-1.log": "6ea9c814ce538faf21e23f7abf7fbfea95eadd94151efe4f6d81b562b30c72ac"
+  },
+  "probe_sources_sha256": {
+    "NativeBootstrap.cs": "673617ca770ce687ffe63dd588ce8b784342fc480ab975c72feaf31b8bf2e5c5",
+    "NuGet.Config": "87402e6e20dee42bf6466265c5ae2d75602b50c5c86fd05571c6e3ab8df1b8b3",
+    "Probe.cs": "7874725ce0a6095fc24af65f673aa4e32ba23c118bba592aaab07b07790ed4b5",
+    "Probe.csproj": "6704392dfb6620db8e79068a8cffc4326e1d8181da95a25dd621db6d131962b6",
+    "Probe.tscn": "1699a74ac6e216f6aa1b4faf9944639aad0a2265cdcb22e08308bb8e73dd839e",
+    "README.md": "1a7d6b2dc3ff56b6dab4a7372410a4836216918d4a8e62f72ff6cc9b66dc23bc",
+    "project.godot": "2aec1ee68dfd4595a53f1c857cb60f365f9b28a83e9acd2a87543c39be2f5e90"
+  },
+  "limits": [
+    "Purity consumer uses native autoplay wrapper and BlockingPlayerChoiceContext; no manual payment or action queue certification",
+    "No native combat-pile selection callbacks tested",
+    "Scenario setup supplies native NGame context; no full game startup",
+    "No gameplay clock/RNG purity or public projection equivalence certified"
+  ]
+}

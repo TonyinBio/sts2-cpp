@@ -9,6 +9,7 @@ Upstream interface problems are tracked locally in the [sts2-cli issue tracker](
 - `oracle/reference_runtime.py`: shared build, protocol, and validation helpers for interactive recording and live audits.
 - `oracle/replay.py`: verifies canonical recordings against an independently initialized reference backend.
 - `oracle/check_kernel_rng.py`: captures pinned-game RNG, UTF-8 hash and equal-key sort vectors.
+- `oracle/check_native_choice_callbacks.py`: runs real packed Godot hand selection callbacks and a native Purity command/effect continuation; see `oracle/native_choice_probe/README.md` for prerequisites and limits.
 - `oracle/check_kernel_choices.py`: captures native Survivor continuation cases for kernel mechanics checks.
 - `parity/replay_main.cpp`: `sts2_replay`, full-state canonical replay against the new C++ engine.
 - `rules_compiler/setup.py`: compiles audited immutable setup definitions into C++ tables; `--check` verifies generated output.
