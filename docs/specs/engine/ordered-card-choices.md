@@ -73,7 +73,7 @@ at every submitted boundary.
 | C++ gameplay and ownership | `CardChoices` tests cover all five roots, ordered selection, cap replacement, deselect/reselect, confirmation, source cost, random selection, draw continuation, retain, empty/forced resolution, and partial clone/checkpoint futures. |
 | Source contracts | Pinned `CardSelectCmd.FromHand`, `FromHandForUpgrade`, `FromCombatPile`; `NPlayerHand.SelectCards`, `SelectCardInSimpleMode`, `SelectCardInUpgradeMode`, `DeselectCard`; `NCombatPileCardSelectScreen.OnCardClicked`; each of the five native card classes. |
 | Immutable Purity default | `selection-defaults.json`, captured from actual `ModelDb.Card<Purity>().ToMutable().ToSerializable()` with pinned assembly provenance. |
-| Native atomic model comparison | Capture tooling ported; successful per-case artifacts and final matrix pending. |
+| Native atomic model comparison | All 26 cases / 62 boundaries captured, independently self-replayed and compared exactly against C++ public inputs. Preserved in `tests/parity/fixtures/reference/ordered-card-choices.json`, with per-case native build provenance, component hashes and explicit public action intervals. `ordered_card_choice_scenarios` verifies hashes and replays the corpus offline. |
 | Native partial callbacks | Actual scene/callback harness under development; no atomic selector or manually seeded selection fields qualify. |
 | Nested hook interactions | Pending integration with the responsible supported hook models; no unimplemented hook is silently skipped or certified. |
 
