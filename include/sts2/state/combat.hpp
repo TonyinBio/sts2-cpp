@@ -10,7 +10,7 @@
 
 namespace sts2::engine {
 enum class Zone : std::uint8_t { hand, draw, discard, exhaust, play, count };
-enum class CombatPhase : std::uint8_t { uninitialized, play, discard_choice, combat_won, player_died, invalid };
+enum class CombatPhase : std::uint8_t { uninitialized, play, discard_choice, combat_won, player_died, card_choice, invalid };
 enum class BeetleMove : std::uint8_t { shrink, chomp, stomp };
 struct CardInstance {
     CardId definition = CardId::strike;
@@ -46,6 +46,15 @@ struct EffectFrame {
     bool enemy_target = false;
     friend bool operator==(const EffectFrame&, const EffectFrame&) = default;
 };
+enum class SelectionEffect : std::uint8_t { none, exhaust, upgrade, topdeck };
+struct CardSelection {
+    PromptId id {};
+    SelectionEffect effect = SelectionEffect::none;
+    Zone zone = Zone::hand;
+    std::uint32_t minimum = 0, maximum = 0;
+    bool automatic_at_maximum = false;
+    friend bool operator==(const CardSelection&, const CardSelection&) = default;
+};
 // Sufficient summaries for the audited single-player consumers. Card types are
 // immutable in supported content; mutable-type mechanics need a fresh audit.
 struct CombatCounters {
@@ -73,12 +82,15 @@ struct CombatData {
     std::array<InlineSequence<CardHandle, 32>, static_cast<std::size_t>(Zone::count)> zones {};
     InlineSequence<EffectFrame, 4> execution {};
     CombatCounters counters {};
+    CardSelection selection {};
+    InlineSequence<CardHandle, 10> selection_candidates {}, selection_order {};
+    PromptId next_prompt {1};
     std::uint32_t next_power_instance = 0;
     std::uint32_t next_creation_order = 0;
     template<class Self, class Visit> static void visit_sequences(Self& r, Visit visit) noexcept {
         visit(r.seed); visit(r.cards.slots); visit(r.cards.free);
         for (auto& zone : r.zones) visit(zone);
-        visit(r.execution);
+        visit(r.execution); visit(r.selection_candidates); visit(r.selection_order);
     }
     template<class Visit> void for_each_sequence(Visit visit) const noexcept { visit_sequences(*this, visit); }
     template<class Visit> void for_each_sequence(Visit visit) noexcept { visit_sequences(*this, visit); }
@@ -108,6 +120,10 @@ template<bool Const> struct BasicCombatView {
     PoolView<CardInstance, CardInstanceTag, 32, Const> cards{data.cards, overflow};
     SequenceView<EffectFrame, 4, Const> execution{data.execution, overflow};
     Ref<CombatCounters> counters = data.counters;
+    Ref<CardSelection> selection = data.selection;
+    SequenceView<CardHandle, 10, Const> selection_candidates{data.selection_candidates, overflow};
+    SequenceView<CardHandle, 10, Const> selection_order{data.selection_order, overflow};
+    Ref<PromptId> next_prompt = data.next_prompt;
     Ref<std::uint32_t> next_power_instance = data.next_power_instance;
     Ref<std::uint32_t> next_creation_order = data.next_creation_order;
     BasicCombatView(Data& data, Owner& owner) noexcept : data(data), overflow(owner) {}
@@ -139,6 +155,8 @@ template<bool Const> struct BasicCombatView {
             zone_views() == other.zone_views() &&
             execution == other.execution &&
             counters == other.counters &&
+            selection == other.selection && selection_candidates == other.selection_candidates &&
+            selection_order == other.selection_order && next_prompt == other.next_prompt &&
             next_power_instance == other.next_power_instance &&
             next_creation_order == other.next_creation_order;
     }

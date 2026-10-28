@@ -56,7 +56,7 @@ std::uint64_t content_fingerprint() {
     for (const auto& card : Ruleset::pinned().cards()) {
         w.u32(static_cast<std::uint32_t>(card.model_id.size())); w.text(card.model_id);
         w.u32(static_cast<std::uint32_t>(card.name.size())); w.text(card.name);
-        w.i32(card.cost); w.u8(card.enemy_target);
+        w.i32(card.cost); w.u8(card.enemy_target); w.u8(static_cast<std::uint8_t>(card.rarity));
         w.u32(static_cast<std::uint32_t>(card.program.size()));
         for (const auto& instruction : card.program) { w.u8(static_cast<std::uint8_t>(instruction.opcode)); w.i32(instruction.base); w.i32(instruction.upgrade); }
     }
@@ -67,7 +67,7 @@ std::uint64_t content_fingerprint() {
 Checkpoint checkpoint(ConstCombatView s) {
     if (!valid_combat(s)) throw std::invalid_argument("Cannot checkpoint invalid simulation");
     Writer w;
-    w.text("STS2CP06"); w.u32(6); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
+    w.text("STS2CP07"); w.u32(7); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed);
     w.u32(s.boundary.value); w.u8(static_cast<std::uint8_t>(s.phase));
     const auto config = s.clock.config();
@@ -87,6 +87,12 @@ Checkpoint checkpoint(ConstCombatView s) {
     for (const auto& zone : s.zone_views()) { w.u32(static_cast<std::uint32_t>(zone.size())); for (auto h : zone) w.handle(h); }
     w.u32(static_cast<std::uint32_t>(s.execution.size()));
     for (const auto& frame : s.execution) { w.handle(frame.source); w.u32(frame.instruction); w.u32(frame.play); w.i32(frame.energy); w.u8(frame.enemy_target); }
+    w.u32(s.next_prompt.value); w.u32(s.selection.id.value);
+    w.u8(static_cast<std::uint8_t>(s.selection.effect)); w.u8(static_cast<std::uint8_t>(s.selection.zone));
+    w.u32(s.selection.minimum); w.u32(s.selection.maximum); w.u8(s.selection.automatic_at_maximum);
+    for (const auto& selection : {s.selection_candidates, s.selection_order}) {
+        w.u32(static_cast<std::uint32_t>(selection.size())); for (auto card : selection) w.handle(card);
+    }
     w.u32(s.counters.started_plays);
     w.u32(s.counters.finished_plays);
     w.u32(s.counters.started_this_turn);
@@ -104,8 +110,8 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
         Reader trailer{bytes.last(8)};
         if (trailer.u64() != digest(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
-        for (char c : std::string_view("STS2CP06")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 6 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        for (char c : std::string_view("STS2CP07")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
+        if (r.u32() != 7 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (char c : game_digest) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
         CombatState s(destination.overflow.allocator()); auto s_view = s.view();
@@ -146,6 +152,13 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
         for (std::uint32_t i = 0; i < frames; ++i) {
             EffectFrame frame; frame.source = r.handle(); frame.instruction = r.u32(); frame.play = r.u32();
             frame.energy = r.i32(); frame.enemy_target = r.boolean(); s_view.execution.push_back(frame);
+        }
+        s_view.next_prompt.value = r.u32(); s_view.selection.id.value = r.u32();
+        s_view.selection.effect = static_cast<SelectionEffect>(r.u8()); s_view.selection.zone = static_cast<Zone>(r.u8());
+        s_view.selection.minimum = r.u32(); s_view.selection.maximum = r.u32(); s_view.selection.automatic_at_maximum = r.boolean();
+        for (auto selection : {s_view.selection_candidates, s_view.selection_order}) {
+            const auto n = r.u32(); if (n > count) return RestoreStatus::malformed;
+            for (std::uint32_t i = 0; i < n; ++i) selection.push_back(r.handle());
         }
         s_view.counters.started_plays = r.u32();
         s_view.counters.finished_plays = r.u32();
