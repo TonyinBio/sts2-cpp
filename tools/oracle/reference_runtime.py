@@ -285,6 +285,7 @@ def inject(source):
         '            case "oracle_run_start": return sim.OracleRunStart(cmd);\n'
         '            case "oracle_run_action": return sim.OracleRunAction(cmd);\n'
         '            case "oracle_run_state": return sim.OracleRunState(cmd);\n'
+        '            case "oracle_power_scenario": return sim.OraclePowerScenario(cmd);\n'
         '            case "start_run":', 1))
     for name in ('RecordingSession.cs', 'NativeRunRoundTrip.cs', 'RunRecordingSession.cs', 'CombatModelFields.cs', 'RecordingDisplay.cs', 'RecordingClock.cs', 'WarmLifecycle.cs', 'WarmPublic.cs'):
         shutil.copy2(Path(__file__).parent / 'adapters' / name, source)

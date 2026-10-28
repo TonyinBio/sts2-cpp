@@ -213,6 +213,30 @@ public partial class RunSimulator
         return OracleRunResponse(command);
     }
 
+    // Declared diagnostic native PowerCmd setup; not a gameplay action.
+    public Dictionary<string, object?> OraclePowerScenario(JsonElement command)
+    {
+        AwaitRunBoundary();
+        var state = CombatManager.Instance.DebugOnlyGetState()!;
+        var target = command.TryGetProperty("enemy_owner", out var enemyOwner) && enemyOwner.GetBoolean()
+            ? state.Enemies.Single() : _runState!.Players[0].Creature;
+        var applier = command.TryGetProperty("applier_enemy", out var enemyApplier) && enemyApplier.GetBoolean()
+            ? state.Enemies.Single() : _runState!.Players[0].Creature;
+        if (command.TryGetProperty("has_applier", out var hasApplier) && !hasApplier.GetBoolean()) applier = null;
+        var entry = command.GetProperty("id").GetString()!.Replace("POWER.", "");
+        var canonical = ModelDb.GetById<PowerModel>(new ModelId("POWER", entry));
+        var power = canonical.ToMutable();
+        var amount = command.GetProperty("amount").GetDecimal();
+        var existing = target.Powers.FirstOrDefault(p => p.Id == canonical.Id);
+        BeginRunOperation("scenario_power", null, async () => {
+            if (existing != null) await PowerCmd.ModifyAmount(new ThrowingPlayerChoiceContext(), existing, amount, applier, null);
+            else await PowerCmd.Apply(new ThrowingPlayerChoiceContext(), power, target, amount, applier, null);
+        });
+        AwaitRunBoundary();
+        RegisterCombatIdentities();
+        return OracleRunResponse(command);
+    }
+
     private void BeginRunOperation(string kind, int? index, Func<Task> action)
     {
         var operation = new RunOperation(kind, index);
