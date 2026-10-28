@@ -17,6 +17,32 @@ std::uint32_t next_combat_generation(ConstRunView state) noexcept {
     const auto highest = highest_combat_generation(state);
     return highest == UINT32_MAX ? 0 : highest + 1;
 }
+bool supported_combat_inventory(ConstRunView state) {
+    for (auto potion : state.potions)
+        if (potion != no_content && SetupRules::name(potion) != "POTION.POTION_OF_BINDING") return false;
+    // Inventory hooks are supported only for the starting relic and Golden Pearl.
+    for (auto relic : state.relics)
+        if (SetupRules::name(relic) != "RELIC.BURNING_BLOOD" && SetupRules::name(relic) != "RELIC.GOLDEN_PEARL") return false;
+    return true;
+}
+// Prepare combat without publishing run changes. Callers own clock advancement,
+// boundary publication and encounter visitation; initialization reads run RNG.
+StepResult prepare_combat(CombatView destination, ConstRunView run, Scratch& scratch, BoundaryId rejection_boundary) {
+    std::vector<CardSpec> deck;
+    for (const auto& card : run.deck) {
+        CardId definition = CardId::count;
+        for (unsigned i = 0; i < static_cast<unsigned>(CardId::count); ++i)
+            if (Ruleset::pinned().card(static_cast<CardId>(i))->model_id == SetupRules::name(card.definition)) definition = static_cast<CardId>(i);
+        if (definition == CardId::count || card.upgrade > 1)
+            return {StepStatus::unsupported_content, rejection_boundary, Restriction::unsupported_setup};
+        deck.push_back({definition, card.upgrade == 1, card.instance});
+    }
+    CombatConfig config;
+    config.seed = run.seed; config.clock = run.clock.config(); config.initial_rng = &run.rng;
+    config.deck = deck; config.player_hp = run.hp; config.player_max_hp = run.max_hp;
+    config.card_generation = next_combat_generation(run);
+    return initialize_combat(destination, config, scratch);
+}
 std::array<ContentId, 3> neow_options(GameRng& rng) {
     const auto curses = SetupRules::neow_curses(); int index;
     (void)rng.next_int(0, static_cast<int>(curses.size()), index);
@@ -67,20 +93,9 @@ StepResult initialize_seeded_combat(RunState& destination, const SeededConfig& c
         RunState next(destination.overflow.allocator()); auto next_view = next.view();
         const auto result = initialize_run(next, config);
         if (result.status != StepStatus::awaiting_input) return result;
-        next_view.combat.emplace(); CombatConfig combat;
-        std::vector<CardSpec> deck;
-        for (const auto& card : next_view.deck) {
-            CardId definition = CardId::count;
-            for (unsigned i = 0; i < static_cast<unsigned>(CardId::count); ++i)
-                if (Ruleset::pinned().card(static_cast<CardId>(i))->model_id == SetupRules::name(card.definition)) definition = static_cast<CardId>(i);
-            if (definition == CardId::count) return {StepStatus::unsupported_content, destination.view().boundary, Restriction::unsupported_setup};
-            deck.push_back({definition, card.upgrade == 1, card.instance});
-        }
-        combat.deck = deck;
-        combat.seed = config.seed; combat.clock = config.clock; combat.initial_rng = &next_view.rng;
-        combat.player_hp = next_view.hp; combat.player_max_hp = next_view.max_hp;
+        next_view.combat.emplace();
         Scratch scratch;
-        const auto initialized = initialize_combat(*next_view.combat, combat, scratch);
+        const auto initialized = prepare_combat(*next_view.combat, next_view, scratch, destination.view().boundary);
         if (initialized.status != StepStatus::awaiting_input) return initialized;
         next_view.rng = next_view.combat->rng; next_view.acts[0].normal_visited = 1;
         next_view.phase = RunPhase::combat; next_view.direct_combat = true; next_view.combat_generation = 1;
@@ -96,29 +111,17 @@ StepResult enter_combat_scenario(RunState& state, BoundaryId boundary, std::stri
     if (encounter != "ENCOUNTER.SHRINKER_BEETLE_WEAK" || state_view.ascension != 0 ||
         SetupRules::name(state_view.character) != "CHARACTER.IRONCLAD")
         return {StepStatus::unsupported_content, state_view.boundary, Restriction::unsupported_setup};
-    for (auto potion : state_view.potions) if (potion != no_content && SetupRules::name(potion) != "POTION.POTION_OF_BINDING")
-        return {StepStatus::unsupported_content, state_view.boundary, Restriction::unsupported_setup};
-    for (auto relic : state_view.relics) if (SetupRules::name(relic) != "RELIC.BURNING_BLOOD" && SetupRules::name(relic) != "RELIC.GOLDEN_PEARL")
+    if (!supported_combat_inventory(state_view))
         return {StepStatus::unsupported_content, state_view.boundary, Restriction::unsupported_setup};
     if (next_combat_generation(state_view) == 0 || state_view.acts[state_view.act_index].normal_visited >= state_view.acts[state_view.act_index].normal.size()) return {StepStatus::resource_limit, state_view.boundary, Restriction::capacity};
     try {
         RunState next = state; auto next_view = next.view();
-        std::vector<CardSpec> deck;
-        for (const auto& card : next_view.deck) {
-            CardId definition = CardId::count;
-            for (unsigned i = 0; i < static_cast<unsigned>(CardId::count); ++i)
-                if (Ruleset::pinned().card(static_cast<CardId>(i))->model_id == SetupRules::name(card.definition)) definition = static_cast<CardId>(i);
-            if (definition == CardId::count || card.upgrade > 1) return {StepStatus::unsupported_content, state_view.boundary, Restriction::unsupported_setup};
-            deck.push_back({definition, card.upgrade == 1, card.instance});
-        }
-        CombatState combat; CombatConfig config;
-        config.seed = next_view.seed; config.clock = next_view.clock.config(); config.initial_rng = &next_view.rng;
-        config.deck = deck; config.player_hp = next_view.hp; config.player_max_hp = next_view.max_hp;
-        config.card_generation = next_combat_generation(next_view);
-        Scratch scratch; const auto result = initialize_combat(combat, config, scratch);
+        CombatState combat;
+        Scratch scratch;
+        const auto result = prepare_combat(combat, next_view, scratch, state_view.boundary);
         if (result.status != StepStatus::awaiting_input) return result;
         next_view.rewards.reset();
-        next_view.combat_generation = config.card_generation;
+        next_view.combat_generation = next_combat_generation(next_view);
         next_view.combat = std::move(combat); next_view.rng = next_view.combat->rng;
         // Scenario entry is not a player action and does not consume the clock.
         next_view.combat->clock = next_view.clock; next_view.combat->boundary = next_view.boundary;
@@ -218,25 +221,12 @@ StepResult apply_run_transition(RunState& state, const RunInput& input) {
         const auto& rooms = state_view.acts[state_view.act_index];
         if (rooms.normal_visited >= rooms.normal.size() || SetupRules::name(rooms.normal[rooms.normal_visited]) != "ENCOUNTER.SHRINKER_BEETLE_WEAK")
             return {StepStatus::unsupported_content, state_view.boundary, Restriction::unsupported_setup};
-        for (auto potion : state_view.potions) if (potion != no_content && SetupRules::name(potion) != "POTION.POTION_OF_BINDING")
-            return {StepStatus::unsupported_content, state_view.boundary, Restriction::unsupported_setup};
-        // Inventory hooks are supported only for the starting relic and Golden Pearl.
-        for (auto relic : state_view.relics) if (SetupRules::name(relic) != "RELIC.BURNING_BLOOD" && SetupRules::name(relic) != "RELIC.GOLDEN_PEARL")
+        if (!supported_combat_inventory(state_view))
             return {StepStatus::unsupported_content, state_view.boundary, Restriction::unsupported_setup};
         try {
-            std::vector<CardSpec> deck;
-            for (const auto& card : state_view.deck) {
-                CardId id = CardId::count;
-                for (unsigned i = 0; i < static_cast<unsigned>(CardId::count); ++i)
-                    if (Ruleset::pinned().card(static_cast<CardId>(i))->model_id == SetupRules::name(card.definition)) id = static_cast<CardId>(i);
-                if (id == CardId::count || card.upgrade > 1) return {StepStatus::unsupported_content, state_view.boundary, Restriction::unsupported_setup};
-                deck.push_back({id, card.upgrade == 1, card.instance});
-            }
-            entering_combat.emplace(); CombatConfig config;
-            config.seed = state_view.seed; config.clock = state_view.clock.config(); config.initial_rng = &state_view.rng;
-            config.card_generation = entering_generation = next_combat_generation(state_view);
-            config.deck = deck; config.player_hp = state_view.hp; config.player_max_hp = state_view.max_hp;
-            Scratch scratch; const auto initialized = initialize_combat(*entering_combat, config, scratch);
+            entering_combat.emplace();
+            entering_generation = next_combat_generation(state_view);
+            Scratch scratch; const auto initialized = prepare_combat(*entering_combat, state_view, scratch, state_view.boundary);
             if (initialized.status != StepStatus::awaiting_input) return initialized;
             destination = next;
         } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, state_view.boundary, Restriction::capacity}; } catch (const std::length_error&) { return {StepStatus::resource_limit, state_view.boundary, Restriction::capacity}; }
