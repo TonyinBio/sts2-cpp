@@ -141,6 +141,7 @@ void begin_selection(CombatView state, SelectionEffect effect, Zone zone, std::u
     ++state.next_prompt.value;
     for (auto card : state.zone(zone))
         if (effect != SelectionEffect::upgrade || !state.cards.get(card)->upgraded) state.selection_candidates.push_back(card);
+    state.selection.maximum = std::min(maximum, static_cast<std::uint32_t>(state.selection_candidates.size()));
     state.phase = CombatPhase::card_choice;
 }
 void draw(CombatView state, Scratch& scratch, int count, const Ruleset& rules, bool from_hand_draw = true) {
@@ -532,6 +533,7 @@ bool valid_combat(ConstCombatView state, const Ruleset& rules) noexcept {
         else if (opcode == Opcode::topdeck_choice) { effect = SelectionEffect::topdeck; zone = Zone::discard; automatic = true; }
         else if (opcode == Opcode::exhaust_one || (opcode == Opcode::grit_exhaust && source->upgraded)) effect = SelectionEffect::exhaust;
         else return false;
+        maximum = std::min(maximum, static_cast<std::uint32_t>(state.selection_candidates.size()));
         if (p.effect != effect || p.zone != zone || p.minimum != minimum || p.maximum != maximum || p.automatic_at_maximum != automatic) return false;
         std::size_t offered = 0;
         for (auto card : state.zone(zone)) {
