@@ -4,7 +4,7 @@
 #include "sts2/rules/ruleset.hpp"
 #include "sts2/state/clock.hpp"
 #include "sts2/state/rng.hpp"
-#include "sts2/state/history.hpp"
+#include "sts2/state/combat_types.hpp"
 #include <array>
 #include <string_view>
 
@@ -17,12 +17,24 @@ struct CardInstance {
     bool upgraded = false;
     std::uint32_t creation_order = 0;
     std::uint32_t deck_instance = UINT32_MAX;
+    std::int32_t last_finished_player_turn = 0;
     friend bool operator==(const CardInstance&, const CardInstance&) = default;
 };
 using CardPool = PoolData<CardInstance, CardInstanceTag, 32>;
 struct CreatureState {
-    std::int32_t hp = 0, max_hp = 0, block = 0, vulnerable = 0;
-    bool shrink = false;
+    std::int32_t hp = 0, max_hp = 0, block = 0;
+    std::uint64_t positive_unblocked_hits = 0;
+    // Only implemented types have slots. No separate cached effect values.
+    static constexpr std::size_t power_type_count = static_cast<std::size_t>(PowerId::count);
+    std::array<PowerInstance, power_type_count> powers {};
+    std::array<PowerId, power_type_count> power_order {};
+    std::uint16_t power_count = 0;
+    PowerInstance& power(PowerId id) noexcept { return powers[static_cast<std::size_t>(id)]; }
+    const PowerInstance& power(PowerId id) const noexcept { return powers[static_cast<std::size_t>(id)]; }
+    bool has_power(PowerId id) const noexcept { return power(id).active; }
+    std::int32_t power_amount(PowerId id) const noexcept { return power(id).amount; }
+    std::span<const PowerId> power_ids() const noexcept { return {power_order.data(), power_count}; }
+    void clear_powers() noexcept { powers = {}; power_order = {}; power_count = 0; }
     friend bool operator==(const CreatureState&, const CreatureState&) = default;
 };
 // Every suspended operand is owned here, never on the C++ call stack or in Scratch.
@@ -30,7 +42,18 @@ struct EffectFrame {
     CardHandle source;
     std::uint32_t instruction = 0;
     std::uint32_t play = 0;
+    std::int32_t energy = 0;
+    bool enemy_target = false;
     friend bool operator==(const EffectFrame&, const EffectFrame&) = default;
+};
+// Sufficient summaries for the audited single-player consumers. Card types are
+// immutable in supported content; mutable-type mechanics need a fresh audit.
+struct CombatCounters {
+    std::uint32_t started_plays = 0, finished_plays = 0;
+    std::uint32_t started_this_turn = 0, attacks_this_turn = 0;
+    std::uint32_t zero_energy_attacks_this_turn = 0, non_hand_draws_this_turn = 0;
+    std::uint32_t finished_ethereal = 0;
+    friend bool operator==(const CombatCounters&, const CombatCounters&) = default;
 };
 struct CombatData {
     std::uint32_t rules = rules_revision;
@@ -49,14 +72,13 @@ struct CombatData {
     CardPool cards {};
     std::array<InlineSequence<CardHandle, 32>, static_cast<std::size_t>(Zone::count)> zones {};
     InlineSequence<EffectFrame, 4> execution {};
-    InlineSequence<CombatHistoryEntry, 64> history {};
-    InlineSequence<CardPlayRecord, 16> plays {};
-    InlineSequence<PowerRecord, 8> powers {};
+    CombatCounters counters {};
+    std::uint32_t next_power_instance = 0;
     std::uint32_t next_creation_order = 0;
     template<class Self, class Visit> static void visit_sequences(Self& r, Visit visit) noexcept {
         visit(r.seed); visit(r.cards.slots); visit(r.cards.free);
         for (auto& zone : r.zones) visit(zone);
-        visit(r.execution); visit(r.history); visit(r.plays); visit(r.powers);
+        visit(r.execution);
     }
     template<class Visit> void for_each_sequence(Visit visit) const noexcept { visit_sequences(*this, visit); }
     template<class Visit> void for_each_sequence(Visit visit) noexcept { visit_sequences(*this, visit); }
@@ -85,9 +107,8 @@ template<bool Const> struct BasicCombatView {
     Ref<bool> burning_blood = data.burning_blood;
     PoolView<CardInstance, CardInstanceTag, 32, Const> cards{data.cards, overflow};
     SequenceView<EffectFrame, 4, Const> execution{data.execution, overflow};
-    SequenceView<CombatHistoryEntry, 64, Const> history{data.history, overflow};
-    SequenceView<CardPlayRecord, 16, Const> plays{data.plays, overflow};
-    SequenceView<PowerRecord, 8, Const> powers{data.powers, overflow};
+    Ref<CombatCounters> counters = data.counters;
+    Ref<std::uint32_t> next_power_instance = data.next_power_instance;
     Ref<std::uint32_t> next_creation_order = data.next_creation_order;
     BasicCombatView(Data& data, Owner& owner) noexcept : data(data), overflow(owner) {}
     operator BasicCombatView<true>() const noexcept requires (!Const) { return {data, overflow}; }
@@ -117,9 +138,8 @@ template<bool Const> struct BasicCombatView {
             cards == other.cards &&
             zone_views() == other.zone_views() &&
             execution == other.execution &&
-            history == other.history &&
-            plays == other.plays &&
-            powers == other.powers &&
+            counters == other.counters &&
+            next_power_instance == other.next_power_instance &&
             next_creation_order == other.next_creation_order;
     }
 };
@@ -160,10 +180,21 @@ template<bool Const> void BasicCombatView<Const>::replace(CombatState&& source) 
     overflow = std::move(source.overflow);
     std::memcpy(&data, &source.data, sizeof(data));
 }
+// Optional synchronous diagnostic output. No pointer is stored in cloned state.
+// The receiver may allocate; exceptions stop execution through the normal error path.
+struct CombatTrace {
+    void* context = nullptr;
+    void (*receive)(void*, ConstCombatView, const CombatEvent&) = nullptr;
+    void emit(ConstCombatView state, const CombatEvent& event) const {
+        if (receive) receive(context, state, event);
+    }
+};
 // Scratch is discardable and contains no continuation or authoritative values.
+// trace is optional instrumentation supplied by the caller for this execution.
 struct Scratch {
     std::uint32_t step_limit = 10000;
     std::uint32_t steps = 0;
+    CombatTrace trace {};
 };
 struct Limits { std::uint32_t cards = 4096; };
 struct CardSpec { CardId definition; bool upgraded = false; std::uint32_t deck_instance = UINT32_MAX; };

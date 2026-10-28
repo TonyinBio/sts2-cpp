@@ -17,9 +17,9 @@ enemy behavior do not represent the new engine or faithful game rules.
 Requires a C++23 compiler, CMake 3.20+, Make, and Git.
 With testing enabled (the default), the first configure fetches GoogleTest v1.17.0
 from GitHub and requires network access. The shared combat state tests also fetch
-nlohmann/json v3.12.0. JSON also links into the optional native integration tools.
+nlohmann/json v3.12.0. JSON also links into the optional JSON I/O tools.
 The rules/engine and interactive run CLI require neither dependency; disable testing,
-`STS2_BUILD_INTEGRATION` and `STS2_BUILD_PARITY_TOOLS` for a dependency-free build.
+`STS2_BUILD_JSON_IO` and `STS2_BUILD_PARITY_TOOLS` for a dependency-free build.
 
 ```sh
 cmake --preset debug
@@ -117,6 +117,13 @@ and actual value. Exact decimal values and document-local reference normalizatio
 the existing snapshot comparator.
 
 `sts2_replay` connects that runner to the new engine's canonical wire session.
+The `json_io` session attaches its exporter at creation and records one linear
+execution. Diagnostic histories live in the exporter; engine clones carry only
+complete gameplay state, including compact counters and suspended operands.
+Recording from arbitrary pre-made states or recording cloned branches is unsupported.
+The comparison JSON schema is unchanged. Internal binary checkpoint revisions are
+combat 6 and run 4; older checkpoints are rejected explicitly.
+
 It initializes from action setup, binds recording identities from its own generated
 pile order, and exports every native field for supported scenarios:
 

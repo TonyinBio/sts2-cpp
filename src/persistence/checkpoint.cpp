@@ -14,7 +14,15 @@ struct Writer {
     void i32(std::int32_t v) { u32(std::bit_cast<std::uint32_t>(v)); }
     void text(std::string_view s) { for (auto c : s) u8(static_cast<std::uint8_t>(c)); }
     void handle(CardHandle h) { u32(h.slot); u32(h.generation); }
-    void creature(const CreatureState& c) { i32(c.hp); i32(c.max_hp); i32(c.block); i32(c.vulnerable); u8(c.shrink); }
+    void creature(const CreatureState& c) {
+        i32(c.hp); i32(c.max_hp); i32(c.block); u64(c.positive_unblocked_hits);
+        u32(c.power_count);
+        for (auto id : c.power_ids()) {
+            const auto& p = c.power(id);
+            u8(static_cast<std::uint8_t>(id)); u32(p.instance); i32(p.amount); i32(p.amount_on_turn_start);
+            u8(p.enemy_owner); u8(p.skip_next_tick);
+        }
+    }
 };
 struct Reader {
     std::span<const std::byte> bytes;
@@ -25,7 +33,19 @@ struct Reader {
     std::uint64_t u64() { std::uint64_t v = 0; for (unsigned i = 0; i < 8; ++i) v |= std::uint64_t(u8()) << (8 * i); return v; }
     std::int32_t i32() { return std::bit_cast<std::int32_t>(u32()); }
     CardHandle handle() { const auto slot = u32(); return {slot, u32()}; }
-    CreatureState creature() { CreatureState c; c.hp = i32(); c.max_hp = i32(); c.block = i32(); c.vulnerable = i32(); c.shrink = boolean(); return c; }
+    CreatureState creature() {
+        CreatureState c; c.hp = i32(); c.max_hp = i32(); c.block = i32(); c.positive_unblocked_hits = u64();
+        const auto count = u32();
+        if (count > CreatureState::power_type_count) throw std::invalid_argument("Invalid power count");
+        for (std::uint32_t i = 0; i < count; ++i) {
+            const auto id = static_cast<PowerId>(u8());
+            if (id >= PowerId::count || c.has_power(id)) throw std::invalid_argument("Invalid power slot");
+            auto& p = c.power(id); p.definition = id; p.instance = u32(); p.amount = i32(); p.amount_on_turn_start = i32();
+            p.enemy_owner = boolean(); p.skip_next_tick = boolean(); p.active = true;
+            c.power_order[c.power_count++] = id;
+        }
+        return c;
+    }
 };
 std::uint64_t digest(std::span<const std::byte> bytes) {
     return game_hash({reinterpret_cast<const char*>(bytes.data()), bytes.size()});
@@ -47,7 +67,7 @@ std::uint64_t content_fingerprint() {
 Checkpoint checkpoint(ConstCombatView s) {
     if (!valid_combat(s)) throw std::invalid_argument("Cannot checkpoint invalid simulation");
     Writer w;
-    w.text("STS2CP04"); w.u32(4); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
+    w.text("STS2CP06"); w.u32(6); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed);
     w.u32(s.boundary.value); w.u8(static_cast<std::uint8_t>(s.phase));
     const auto config = s.clock.config();
@@ -60,22 +80,21 @@ Checkpoint checkpoint(ConstCombatView s) {
     w.u32(static_cast<std::uint32_t>(s.cards.slots().size()));
     for (const auto& slot : s.cards.slots()) {
         w.u32(slot.generation); w.u8(slot.live); w.u8(static_cast<std::uint8_t>(slot.value.definition));
-        w.u8(slot.value.upgraded); w.u32(slot.value.creation_order); w.u32(slot.value.deck_instance);
+        w.u8(slot.value.upgraded); w.u32(slot.value.creation_order); w.u32(slot.value.deck_instance); w.i32(slot.value.last_finished_player_turn);
     }
     w.u32(static_cast<std::uint32_t>(s.cards.free_slots().size()));
     for (auto slot : s.cards.free_slots()) w.u32(slot);
     for (const auto& zone : s.zone_views()) { w.u32(static_cast<std::uint32_t>(zone.size())); for (auto h : zone) w.handle(h); }
     w.u32(static_cast<std::uint32_t>(s.execution.size()));
-    for (const auto& frame : s.execution) { w.handle(frame.source); w.u32(frame.instruction); w.u32(frame.play); }
-    w.u32(static_cast<std::uint32_t>(s.plays.size()));
-    for (const auto& p : s.plays) { w.handle(p.card); w.i32(p.energy); w.u8(p.enemy_target); }
-    w.u32(static_cast<std::uint32_t>(s.powers.size()));
-    for (const auto& p : s.powers) { w.u8(static_cast<std::uint8_t>(p.definition)); w.i32(p.amount); w.i32(p.amount_on_turn_start); w.u8(p.enemy_owner); w.u8(p.active); w.u8(p.skip_next_tick); }
-    w.u32(static_cast<std::uint32_t>(s.history.size()));
-    for (const auto& e : s.history) {
-        w.u8(static_cast<std::uint8_t>(e.kind)); w.i32(e.turn); w.u8(e.enemy_side); w.u8(e.actor_enemy); w.handle(e.card); w.u32(e.object); w.i32(e.amount);
-        w.i32(e.hit.blocked); w.i32(e.hit.unblocked); w.i32(e.hit.overkill); w.u8(e.hit.block_broken); w.u8(e.hit.fully_blocked); w.u8(e.hit.killed);
-    }
+    for (const auto& frame : s.execution) { w.handle(frame.source); w.u32(frame.instruction); w.u32(frame.play); w.i32(frame.energy); w.u8(frame.enemy_target); }
+    w.u32(s.counters.started_plays);
+    w.u32(s.counters.finished_plays);
+    w.u32(s.counters.started_this_turn);
+    w.u32(s.counters.attacks_this_turn);
+    w.u32(s.counters.zero_energy_attacks_this_turn);
+    w.u32(s.counters.non_hand_draws_this_turn);
+    w.u32(s.counters.finished_ethereal);
+    w.u32(s.next_power_instance);
     w.u64(digest(w.data));
     return {std::move(w.data)};
 }
@@ -85,8 +104,8 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
         Reader trailer{bytes.last(8)};
         if (trailer.u64() != digest(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
-        for (char c : std::string_view("STS2CP04")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 4 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        for (char c : std::string_view("STS2CP06")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
+        if (r.u32() != 6 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (char c : game_digest) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
         CombatState s(destination.overflow.allocator()); auto s_view = s.view();
@@ -109,7 +128,7 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
         std::vector<CardPool::Slot> slots(count);
         for (auto& slot : slots) {
             slot.generation = r.u32(); slot.live = r.boolean(); slot.value.definition = static_cast<CardId>(r.u8());
-            slot.value.upgraded = r.boolean(); slot.value.creation_order = r.u32(); slot.value.deck_instance = r.u32();
+            slot.value.upgraded = r.boolean(); slot.value.creation_order = r.u32(); slot.value.deck_instance = r.u32(); slot.value.last_finished_player_turn = r.i32();
         }
         const auto free_count = r.u32(); if (free_count > count) return RestoreStatus::malformed;
         std::vector<std::uint32_t> free(free_count); for (auto& index : free) index = r.u32();
@@ -124,25 +143,18 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
             for (std::uint32_t i = 0; i < n; ++i) zone.push_back(r.handle());
         }
         const auto frames = r.u32(); if (frames > 1) return RestoreStatus::malformed;
-        for (std::uint32_t i = 0; i < frames; ++i) { auto source = r.handle(); const auto instruction = r.u32(); s_view.execution.push_back({source, instruction, r.u32()}); }
-        const auto bounded_count = [&](std::size_t width) {
-            const auto n = r.u32();
-            if (n > (r.bytes.size() - r.at) / width) throw std::invalid_argument("truncated data table");
-            return n;
-        };
-        const auto plays = bounded_count(13); s_view.plays.reserve(plays);
-        for (std::uint32_t i = 0; i < plays; ++i) { const auto card = r.handle(); const auto energy = r.i32(); s_view.plays.push_back({card, energy, r.boolean()}); }
-        const auto powers = bounded_count(12); s_view.powers.reserve(powers);
-        for (std::uint32_t i = 0; i < powers; ++i) {
-            PowerRecord p; p.definition = static_cast<PowerId>(r.u8()); p.amount = r.i32(); p.amount_on_turn_start = r.i32();
-            p.enemy_owner = r.boolean(); p.active = r.boolean(); p.skip_next_tick = r.boolean(); s_view.powers.push_back(p);
+        for (std::uint32_t i = 0; i < frames; ++i) {
+            EffectFrame frame; frame.source = r.handle(); frame.instruction = r.u32(); frame.play = r.u32();
+            frame.energy = r.i32(); frame.enemy_target = r.boolean(); s_view.execution.push_back(frame);
         }
-        const auto entries = bounded_count(38); s_view.history.reserve(entries);
-        for (std::uint32_t i = 0; i < entries; ++i) {
-            CombatHistoryEntry e; e.kind = static_cast<HistoryKind>(r.u8()); e.turn = r.i32(); e.enemy_side = r.boolean(); e.actor_enemy = r.boolean();
-            e.card = r.handle(); e.object = r.u32(); e.amount = r.i32(); e.hit.blocked = r.i32(); e.hit.unblocked = r.i32(); e.hit.overkill = r.i32();
-            e.hit.block_broken = r.boolean(); e.hit.fully_blocked = r.boolean(); e.hit.killed = r.boolean(); s_view.history.push_back(e);
-        }
+        s_view.counters.started_plays = r.u32();
+        s_view.counters.finished_plays = r.u32();
+        s_view.counters.started_this_turn = r.u32();
+        s_view.counters.attacks_this_turn = r.u32();
+        s_view.counters.zero_energy_attacks_this_turn = r.u32();
+        s_view.counters.non_hand_draws_this_turn = r.u32();
+        s_view.counters.finished_ethereal = r.u32();
+        s_view.next_power_instance = r.u32();
         if (r.at != r.bytes.size() || !valid_combat(s)) return RestoreStatus::malformed;
         destination.replace(std::move(s)); scratch.steps = 0;
         return RestoreStatus::restored;

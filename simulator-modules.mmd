@@ -55,13 +55,14 @@ classDiagram
         }
     }
 
-    namespace Integration {
+    namespace JsonIO {
         class Session {
             initialize(json)
             apply(json)
             snapshot() json
         }
         class NativeRunExporter {
+            trace() CombatTrace
             snapshot(RunState) json
         }
     }

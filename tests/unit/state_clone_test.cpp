@@ -37,6 +37,59 @@ TEST(CompleteStateClone, PublicCommonRunAndCombatClonesAllocateNothing) {
     EXPECT_EQ(allocation.outstanding, 0u);
 }
 
+TEST(CompleteStateClone, FixedPowerSlotsPreserveApplicationOrderAndCloneWithoutAllocating) {
+    AllocationCounter allocation;
+    CombatState source(allocation.allocator()), branch(allocation.allocator()); Scratch scratch;
+    ASSERT_EQ(initialize_combat(source, {}, scratch).status, StepStatus::awaiting_input);
+    auto& player = source.view().player;
+    // Apply in reverse enum order: dispatch must not become enum-ordered.
+    player.power(PowerId::vulnerable) = {0, PowerId::vulnerable, 2, 1, false, true, true};
+    player.power(PowerId::shrink) = {1, PowerId::shrink, -1, -1, false, true, true};
+    player.power_order = {PowerId::vulnerable, PowerId::shrink}; player.power_count = 2;
+    source.view().next_power_instance = 2;
+    ASSERT_TRUE(valid_combat(source));
+    const auto allocations = allocation.allocations;
+    allocation.fail_after = allocations;
+    ASSERT_EQ(clone_into(branch, source), CloneStatus::cloned);
+    EXPECT_EQ(allocation.allocations, allocations);
+    EXPECT_TRUE(branch.overflow.empty());
+    EXPECT_EQ(branch.view().player.power_order[0], PowerId::vulnerable);
+    branch.view().player.power(PowerId::vulnerable).amount = 3;
+    EXPECT_EQ(player.power_amount(PowerId::vulnerable), 2);
+    EXPECT_EQ(branch.view().player.power_amount(PowerId::vulnerable), 3);
+
+    CombatState restored;
+    ASSERT_EQ(restore(restored, checkpoint(source).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(restored, source);
+    EXPECT_EQ(restored.view().player.power_order[0], PowerId::vulnerable);
+}
+
+TEST(CompleteStateClone, InvalidPowerSlotIdentityMembershipAndOrderAreRejected) {
+    CombatState source; Scratch scratch;
+    ASSERT_EQ(initialize_combat(source, {}, scratch).status, StepStatus::awaiting_input);
+    auto invalid = source;
+    invalid.view().player.power_count = CreatureState::power_type_count + 1;
+    EXPECT_FALSE(valid_combat(invalid));
+    const auto unchanged = invalid;
+    EXPECT_EQ(apply_combat(invalid, {invalid.view().boundary, CombatInputKind::end_turn}, scratch).reason, Restriction::invalid_state);
+    EXPECT_EQ(invalid, unchanged);
+    invalid = source;
+    invalid.view().player.power_order[0] = PowerId::count;
+    invalid.view().player.power_count = 1;
+    EXPECT_FALSE(valid_combat(invalid));
+    invalid = source;
+    invalid.view().player.power(PowerId::shrink) = {0, PowerId::shrink, -1, 0, false, true, true};
+    invalid.view().next_power_instance = 1;
+    // A live slot without application-order membership must not be accepted.
+    EXPECT_FALSE(valid_combat(invalid));
+    invalid.view().player.power_count = 2;
+    invalid.view().player.power_order = {PowerId::shrink, PowerId::shrink};
+    EXPECT_FALSE(valid_combat(invalid));
+    invalid.view().player.power_count = 1;
+    invalid.view().player.power(PowerId::shrink).enemy_owner = true;
+    EXPECT_FALSE(valid_combat(invalid));
+}
+
 TEST(CompleteStateClone, LargePublicRunBranchesAndRestoresWithIndependentOverflow) {
     Scratch transition_scratch;
     RunState source;
@@ -83,7 +136,7 @@ TEST(CompleteStateClone, CheckpointsIgnoreStorageModeAndRetainedCapacity) {
     CombatState source; Scratch scratch;
     ASSERT_EQ(initialize_combat(source, {}, scratch).status, StepStatus::awaiting_input);
     auto other = source;
-    other.view().history.reserve(256); other.view().plays.reserve(100); other.view().seed.reserve(100);
+    other.view().execution.reserve(256); other.view().seed.reserve(100);
     ASSERT_FALSE(other.overflow.empty());
     EXPECT_TRUE(valid_combat(other)); EXPECT_EQ(source, other);
     EXPECT_EQ(checkpoint(source).bytes, checkpoint(other).bytes);
@@ -117,7 +170,7 @@ TEST(CompleteStateClone, MultiDomainCloneFailureNeverPublishesPartialOwnership) 
     ASSERT_EQ(initialize_seeded_combat(source, {}).status, StepStatus::awaiting_input);
     source.view().visited.reserve(100);
     source.view().deck.reserve(100);
-    source.view().combat->history.reserve(200);
+    source.view().combat->execution.reserve(200);
     ASSERT_TRUE(valid_run(source));
     for (std::size_t allowed = 0; allowed <= 5; ++allowed) {
         AllocationCounter allocation;
@@ -141,7 +194,7 @@ TEST(CompleteStateClone, MultiDomainCloneFailureNeverPublishesPartialOwnership) 
     }
 }
 
-TEST(CompleteStateClone, PendingChoicePreservesReferencedDetachedSources) {
+TEST(CompleteStateClone, PendingChoicePreservesSourceAfterUnreferencedCardRemoval) {
     const std::array deck{CardSpec{CardId::strike}, CardSpec{CardId::survivor}, CardSpec{CardId::defend}, CardSpec{CardId::bash}};
     CombatConfig config; config.deck = deck; config.enemy_hp = 40;
     CombatState source; Scratch scratch;
@@ -154,10 +207,11 @@ TEST(CompleteStateClone, PendingChoicePreservesReferencedDetachedSources) {
     ASSERT_EQ(apply_combat(source, {source.view().boundary, CombatInputKind::play_card, strike, true}, scratch).status, StepStatus::awaiting_input);
     auto discard = source.zone(Zone::discard);
     discard.erase(std::find(discard.begin(), discard.end(), strike));
-    ASSERT_TRUE(valid_combat(source)); // Logical removal retains a referenced pool slot.
+    ASSERT_TRUE(source.view().cards.erase(strike));
+    ASSERT_TRUE(valid_combat(source)); // Export-only history no longer roots this slot.
     ASSERT_EQ(apply_combat(source, {source.view().boundary, CombatInputKind::play_card, survivor}, scratch).status, StepStatus::awaiting_input);
     ASSERT_EQ(source.view().phase, CombatPhase::discard_choice);
-    source.view().history.reserve(200);
+    source.view().execution.reserve(200);
     const auto encoded = checkpoint(source).bytes;
     CombatState cloned, restored; clone_into(cloned, source);
     ASSERT_EQ(restore(restored, encoded, scratch), RestoreStatus::restored);
@@ -165,7 +219,7 @@ TEST(CompleteStateClone, PendingChoicePreservesReferencedDetachedSources) {
     ASSERT_EQ(apply_combat(cloned, select, scratch).status, StepStatus::awaiting_input);
     ASSERT_EQ(apply_combat(restored, select, scratch).status, StepStatus::awaiting_input);
     EXPECT_EQ(cloned, restored); EXPECT_EQ(cloned.view().rng, restored.view().rng);
-    EXPECT_TRUE(cloned.view().cards.get(strike)); EXPECT_EQ(checkpoint(source).bytes, encoded);
+    EXPECT_FALSE(cloned.view().cards.get(strike)); EXPECT_EQ(checkpoint(source).bytes, encoded);
     ASSERT_EQ(apply_combat(source, {source.view().boundary, CombatInputKind::select_card, bash}, scratch).status, StepStatus::awaiting_input);
     EXPECT_NE(source, cloned);
 }
@@ -185,16 +239,81 @@ TEST(CompleteStateClone, VictoryReleasesCompletedOverflowGraphButPreservesIdenti
     EXPECT_EQ(restored, state); EXPECT_TRUE(restored.overflow.empty());
 }
 
+TEST(CompleteStateClone, SuspendedCountersAndCapturedOperandsSurviveIndependentFutures) {
+    const std::array deck{CardSpec{CardId::survivor}, CardSpec{CardId::strike}, CardSpec{CardId::defend}};
+    CombatConfig config; config.deck = deck; config.enemy_hp = 40;
+    CombatState source; Scratch scratch;
+    ASSERT_EQ(initialize_combat(source, config, scratch).status, StepStatus::awaiting_input);
+    const auto find = [&](CardId id) {
+        for (auto card : source.zone(Zone::hand)) if (source.view().cards.get(card)->definition == id) return card;
+        return CardHandle{};
+    };
+    const auto survivor = find(CardId::survivor), strike = find(CardId::strike), defend = find(CardId::defend);
+    ASSERT_EQ(apply_combat(source, {source.view().boundary, CombatInputKind::play_card, survivor}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(source.view().counters.started_plays, 1u);
+    EXPECT_EQ(source.view().counters.finished_plays, 0u);
+    ASSERT_EQ(source.view().execution.size(), 1u);
+    EXPECT_EQ(source.view().execution.back().energy, 1);
+    EXPECT_FALSE(source.view().execution.back().enemy_target);
+    const auto saved = checkpoint(source).bytes;
+    auto branch = source; CombatState restored;
+    ASSERT_EQ(restore(restored, saved, scratch), RestoreStatus::restored);
+    for (auto* state : {&branch, &restored}) {
+        ASSERT_EQ(apply_combat(*state, {state->view().boundary, CombatInputKind::select_card, defend}, scratch).status, StepStatus::awaiting_input);
+        EXPECT_TRUE(state->view().execution.empty());
+        EXPECT_EQ(state->view().counters.finished_plays, 1u);
+        EXPECT_EQ(state->view().cards.get(survivor)->last_finished_player_turn, 1);
+        ASSERT_EQ(apply_combat(*state, {state->view().boundary, CombatInputKind::play_card, strike, true}, scratch).status, StepStatus::awaiting_input);
+        EXPECT_EQ(state->view().enemy.hp, 34);
+        EXPECT_EQ(state->view().enemy.positive_unblocked_hits, 1u);
+        EXPECT_EQ(state->view().counters.started_this_turn, 2u);
+        EXPECT_EQ(state->view().counters.attacks_this_turn, 1u);
+        ASSERT_EQ(apply_combat(*state, {state->view().boundary, CombatInputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+        EXPECT_EQ(state->view().counters.started_plays, 2u);
+        EXPECT_EQ(state->view().counters.finished_plays, 2u);
+        EXPECT_EQ(state->view().counters.started_this_turn, 0u);
+        EXPECT_EQ(state->view().counters.attacks_this_turn, 0u);
+        EXPECT_EQ(state->view().cards.get(strike)->last_finished_player_turn, 1);
+    }
+    EXPECT_EQ(branch, restored);
+    EXPECT_EQ(checkpoint(source).bytes, saved);
+    ASSERT_EQ(apply_combat(source, {source.view().boundary, CombatInputKind::select_card, strike}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_NE(source, branch);
+}
+
+TEST(CompleteStateClone, LongCombatDoesNotAccumulateDiagnosticStorage) {
+    const std::array deck{CardSpec{CardId::defend, true}, CardSpec{CardId::defend, true}, CardSpec{CardId::defend, true}};
+    CombatConfig config; config.deck = deck;
+    AllocationCounter allocation; CombatState state(allocation.allocator()); Scratch scratch;
+    ASSERT_EQ(initialize_combat(state, config, scratch).status, StepStatus::awaiting_input);
+    const auto allocations = allocation.allocations;
+    allocation.fail_after = allocations;
+    const auto bytes = state.retained_bytes();
+    for (unsigned turn = 0; turn < 100; ++turn) {
+        while (!state.zone(Zone::hand).empty()) {
+            const auto card = state.zone(Zone::hand).front();
+            ASSERT_EQ(apply_combat(state, {state.view().boundary, CombatInputKind::play_card, card}, scratch).status, StepStatus::awaiting_input);
+        }
+        ASSERT_EQ(apply_combat(state, {state.view().boundary, CombatInputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+        ASSERT_TRUE(valid_combat(state));
+        EXPECT_EQ(state.retained_bytes(), bytes);
+        EXPECT_TRUE(state.overflow.empty());
+        EXPECT_EQ(state.view().player.power_count + state.view().enemy.power_count, 1u);
+    }
+    EXPECT_EQ(state.view().counters.finished_plays, 300u);
+    EXPECT_EQ(allocation.allocations, allocations);
+}
+
 TEST(CompleteStateClone, InvalidStorageIdsCountsAndAliasingAreRejectedBeforeAccess) {
     CombatState source; Scratch scratch;
     ASSERT_EQ(initialize_combat(source, {}, scratch).status, StepStatus::awaiting_input);
     auto invalid = source;
-    invalid.data.history.overflow_id = 123;
+    invalid.data.execution.overflow_id = 123;
     EXPECT_FALSE(valid_combat(invalid));
-    invalid = source; invalid.data.history.count = UINT32_MAX;
+    invalid = source; invalid.data.execution.count = UINT32_MAX;
     EXPECT_FALSE(valid_combat(invalid));
-    invalid = source; invalid.view().history.reserve(100);
-    invalid.data.plays.overflow_id = invalid.data.history.overflow_id;
+    invalid = source; invalid.view().execution.reserve(100);
+    invalid.data.seed.overflow_id = invalid.data.execution.overflow_id;
     EXPECT_FALSE(valid_combat(invalid));
 }
 } // namespace

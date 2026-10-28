@@ -77,10 +77,9 @@ include/sts2/
     checkpoint.hpp          Owning Checkpoint and restore interfaces
     codec.hpp               Explicit binary encoding and validation
     canonical.hpp           Field-wise comparison, digest and debug export
-  integration/
-    replay.hpp              Recorded actions, provenance, replay runner
-    import.hpp              Complete-state import and completeness report
-    identity.hpp            Reference object IDs to stable handles
+  json_io/
+    session.hpp             JSON setup/actions and linear recording/replay session
+    native_run.hpp          Comparison exporter and exporter-owned diagnostic history
     json.hpp                Public observation/replay/diagnostic encoding
     c_api.h                 Optional exception-safe C interface
 src/
@@ -123,11 +122,11 @@ Build targets follow these boundaries:
 | `sts2_engine` | core, rules | Own state and execute deterministic transitions |
 | `sts2_observation` | kernel, rules | Project visible state and describe choices |
 | `sts2_persistence` | kernel, rules | Save, restore and compare complete state |
-| `sts2_integration` | observation, persistence | Import, replay, JSON and external interfaces |
-| CLI and optional bindings | integration | Transport and user-facing output |
+| `sts2_json_io` | observation, persistence | Import, replay, JSON and external interfaces |
+| CLI and optional bindings | json_io | Transport and user-facing output |
 
 Content handlers compile into the kernel; generated definitions and programs belong
-to the ruleset. Kernel code does not depend on integration, JSON, filesystem access,
+to the ruleset. Kernel code does not depend on json_io, JSON, filesystem access,
 or English formatting. The reference bridge is a separate tool/process with no runtime
 link from the simulator to game assemblies. Test fixtures are not runtime content.
 

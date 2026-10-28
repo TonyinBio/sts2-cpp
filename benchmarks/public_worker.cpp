@@ -1,5 +1,5 @@
 #include "sts2/engine/action.hpp"
-#include "sts2/integration/session.hpp"
+#include "sts2/json_io/session.hpp"
 #include "sts2/observation/run.hpp"
 #include <algorithm>
 #include "sts2/persistence/checkpoint.hpp"
@@ -110,7 +110,7 @@ int main() {
             continue;
         }
         if (command == "start") {
-            Session session; session.initialize(request.at("setup")); state = session.state();
+            initialize_json_run(state, request.at("setup"));
         } else if (command == "query_audit") {
             const auto before = checkpoint(state).bytes;
             Json capabilities = Json::array(); const auto observation = project(state, capabilities);

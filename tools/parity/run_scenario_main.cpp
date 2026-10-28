@@ -1,5 +1,5 @@
 #include "sts2/engine/action.hpp"
-#include "sts2/integration/session.hpp"
+#include "sts2/json_io/session.hpp"
 #include "sts2/observation/run.hpp"
 #include "sts2/persistence/checkpoint.hpp"
 #include <iostream>
@@ -13,15 +13,17 @@ int main() {
     for (std::string line; std::getline(std::cin, line);) try {
         const auto request = Json::parse(line); const auto command = request.at("cmd").get<std::string>();
         if (command == "start") {
-            Session session; session.initialize(request.at("setup")); state = session.state();
+            NativeRunExporter next_exporter;
+            initialize_json_run(state, request.at("setup"), next_exporter.trace());
+            exporter = std::move(next_exporter); scratch.trace = exporter.trace();
         } else {
             const auto before = checkpoint(state).bytes;
             (void)observe(state); (void)get_actions(state); (void)describe(observe(state));
             if (checkpoint(state).bytes != before) throw std::runtime_error("Query mutated run");
             RunState restored; if (restore(restored, before, scratch) != RestoreStatus::restored) throw std::runtime_error("Restore failed");
             auto cloned = state;
-            auto apply = [&](RunState& run) {
-                if (command == "scenario_enter_combat") return enter_combat_scenario(run, run.view().boundary, request.at("encounter").get<std::string>());
+            auto apply = [&](RunState& run, Scratch& execution) {
+                if (command == "scenario_enter_combat") return enter_combat_scenario(run, run.view().boundary, request.at("encounter").get<std::string>(), execution.trace);
                 if (command != "action") throw std::invalid_argument("Unknown command");
                 const auto& action = request.at("action"); const auto kind = action.at("kind").get<std::string>();
                 PlayerInput input;
@@ -42,11 +44,12 @@ int main() {
                     input = choice;
                 }
                 if (validate_action(run, input) != Restriction::none) throw std::runtime_error("Public input is not legal");
-                return apply_action(run, input, scratch);
+                return apply_action(run, input, execution);
             };
-            const auto result = apply(state);
+            Scratch branch_scratch;
+            const auto result = apply(state, scratch);
             if (result.status != StepStatus::awaiting_input && result.status != StepStatus::player_died) throw std::runtime_error("Operation failed");
-            if (apply(restored).status != result.status || apply(cloned).status != result.status || restored != state || cloned != state)
+            if (apply(restored, branch_scratch).status != result.status || apply(cloned, branch_scratch).status != result.status || restored != state || cloned != state)
                 throw std::runtime_error("Clone/restore future differs");
         }
         std::cout << Json{{"ok", true}, {"state", exporter.snapshot(state)}}.dump() << std::endl;

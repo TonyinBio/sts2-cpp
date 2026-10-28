@@ -6,7 +6,7 @@ CombatObservationView observe(ConstCombatView s) noexcept {
     if (!valid_data_storage(s.data, s.overflow)) { CombatObservationView invalid{}; invalid.phase = CombatPhase::invalid; return invalid; }
     const auto attack = s.move == BeetleMove::chomp ? 7 : s.move == BeetleMove::stomp ? 13 : 0;
     return {game_build, s.boundary, s.phase, s.player.hp, s.player.max_hp, s.player.block, s.energy,
-        s.turn, s.enemy.hp, s.enemy.max_hp, s.enemy.vulnerable, attack, s.player.shrink, s.move,
+        s.turn, s.enemy.hp, s.enemy.max_hp, s.enemy.power_amount(PowerId::vulnerable), attack, s.player.has_power(PowerId::shrink), s.move,
         s.zone(Zone::hand), s.zone(Zone::draw).size(), s.zone(Zone::discard).size(), s.zone(Zone::exhaust).size()};
 }
 std::optional<CardView> observe_card(ConstCombatView s, CardHandle h, const Ruleset& rules) noexcept {
@@ -33,7 +33,7 @@ std::optional<CardView> inspect_card(ConstCombatView s, CardHandle h, const Rule
     const bool active_preview = std::find(hand.begin(), hand.end(), h) != hand.end();
     for (const auto& op : def->program) {
         const auto value = op.base + (instance->upgraded ? op.upgrade : 0);
-        if (op.opcode == Opcode::damage) view.damage = static_cast<int>(std::int64_t(value) * (active_preview && s.player.shrink ? 70 : 100) * (active_preview && s.enemy.vulnerable ? 150 : 100) / 10000);
+        if (op.opcode == Opcode::damage) view.damage = static_cast<int>(std::int64_t(value) * (active_preview && s.player.has_power(PowerId::shrink) ? 70 : 100) * (active_preview && s.enemy.power_amount(PowerId::vulnerable) ? 150 : 100) / 10000);
         else if (op.opcode == Opcode::block) view.block = value;
         else if (op.opcode == Opcode::vulnerable) view.vulnerable = value;
     }

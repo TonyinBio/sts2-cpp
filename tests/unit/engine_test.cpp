@@ -127,14 +127,14 @@ TEST(Engine, UsesRealCostsAndDamageModifiersWithoutIntermediateRounding) {
     CombatConfig config; config.deck = deck; config.enemy_hp = 40;
     auto s = initial(config); Scratch scratch;
     ASSERT_EQ(play(s, find_card(s, CardId::bash), scratch).status, StepStatus::awaiting_input);
-    EXPECT_EQ(s.view().enemy.hp, 32); EXPECT_EQ(s.view().enemy.vulnerable, 2); EXPECT_EQ(s.view().energy, 1);
+    EXPECT_EQ(s.view().enemy.hp, 32); EXPECT_EQ(s.view().enemy.power_amount(PowerId::vulnerable), 2); EXPECT_EQ(s.view().energy, 1);
     ASSERT_EQ(play(s, find_card(s, CardId::strike), scratch).status, StepStatus::awaiting_input);
     EXPECT_EQ(s.view().enemy.hp, 23); EXPECT_EQ(s.view().energy, 0);
     const auto before = checkpoint(s).bytes;
     EXPECT_EQ(play(s, find_card(s, CardId::defend), scratch).reason, Restriction::insufficient_energy);
     EXPECT_EQ(checkpoint(s).bytes, before);
     ASSERT_EQ(apply_combat(s, {s.view().boundary, CombatInputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
-    EXPECT_TRUE(s.view().player.shrink); EXPECT_EQ(s.view().enemy.vulnerable, 1);
+    EXPECT_TRUE(s.view().player.has_power(PowerId::shrink)); EXPECT_EQ(s.view().enemy.power_amount(PowerId::vulnerable), 1);
     ASSERT_EQ(play(s, find_card(s, CardId::bash), scratch).status, StepStatus::awaiting_input);
     EXPECT_EQ(s.view().enemy.hp, 15); // floor(8 * .7 * 1.5), not floor(8*.7)*1.5
 }
@@ -155,7 +155,7 @@ TEST(Engine, VictoryHealsBurningBloodAndClearsCombatPiles) {
     CombatConfig config; config.enemy_hp = 1; config.player_hp = 78;
     auto s = initial(config); Scratch scratch;
     EXPECT_EQ(play(s, find_card(s, CardId::strike), scratch).status, StepStatus::combat_won);
-    EXPECT_EQ(s.view().player.hp, 80); EXPECT_FALSE(s.view().player.shrink);
+    EXPECT_EQ(s.view().player.hp, 80); EXPECT_FALSE(s.view().player.has_power(PowerId::shrink));
     for (const auto& zone : s.view().zone_views()) EXPECT_TRUE(zone.empty());
     EXPECT_TRUE(valid_combat(s));
 }
@@ -268,11 +268,11 @@ TEST(CombatMechanics, RecordedActionsMatchEveryModeledCheckpointIncludingShuffle
             if (power["id"] == "POWER.SHRINK_POWER") shrink = true;
             if (power["id"] == "POWER.VULNERABLE_POWER") vulnerable = power["amount"];
         }
-        EXPECT_EQ(state.view().player.shrink, shrink);
+        EXPECT_EQ(state.view().player.has_power(PowerId::shrink), shrink);
         if (!combat["enemies"].empty()) {
             const auto& enemy = combat["creatures"]["enemy_0"];
             EXPECT_EQ(state.view().enemy.hp, enemy["monster"]["current_hp"]);
-            EXPECT_EQ(state.view().enemy.block, enemy["block"]); EXPECT_EQ(state.view().enemy.vulnerable, vulnerable);
+            EXPECT_EQ(state.view().enemy.block, enemy["block"]); EXPECT_EQ(state.view().enemy.power_amount(PowerId::vulnerable), vulnerable);
             const std::array<std::string, 3> moves{"SHRINKER_MOVE", "CHOMP_MOVE", "STOMP_MOVE"};
             EXPECT_EQ(moves[static_cast<std::size_t>(state.view().move)], enemy["monster"]["ai"]["current_state"]);
         } else EXPECT_EQ(state.view().phase, CombatPhase::combat_won);
@@ -368,6 +368,16 @@ TEST(Engine, RandomizedActionsClonesAndCodecPreserveEveryStateField) {
         CombatState decoded; ASSERT_EQ(restore(decoded, checkpoint(s).bytes, scratch), RestoreStatus::restored);
         ASSERT_EQ(decoded, s);
     }
+}
+TEST(Checkpoint, PreviousHistoryBearingRevisionIsExplicitlyIncompatible) {
+    const auto source = initial(); auto old = checkpoint(source).bytes;
+    old[7] = std::byte{'4'};
+    old[8] = std::byte{4};
+    const auto hash = game_hash({reinterpret_cast<const char*>(old.data()), old.size() - 8});
+    for (unsigned i = 0; i < 8; ++i) old[old.size() - 8 + i] = std::byte(hash >> (8 * i));
+    auto destination = source; Scratch scratch;
+    EXPECT_EQ(restore(destination, old, scratch), RestoreStatus::incompatible);
+    EXPECT_EQ(destination, source);
 }
 TEST(Checkpoint, MutatedChecksummedPayloadsNeverPublishInvalidState) {
     const auto s = initial(); const auto original = checkpoint(s).bytes;

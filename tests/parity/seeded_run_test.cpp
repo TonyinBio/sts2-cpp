@@ -1,8 +1,8 @@
 #include "sts2/engine/action.hpp"
 #include "sts2/engine/run.hpp"
 #include "sts2/observation/run.hpp"
-#include "sts2/integration/native_run.hpp"
-#include "sts2/integration/session.hpp"
+#include "sts2/json_io/native_run.hpp"
+#include "sts2/json_io/session.hpp"
 #include "sts2/persistence/checkpoint.hpp"
 #include "sts2/parity/snapshot.hpp"
 #include <gtest/gtest.h>
@@ -27,7 +27,9 @@ TEST(PublicRunParity, ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisi
         std::ifstream action_stream(root / scenario / "actions.json"); const auto fixture = Json::parse(action_stream);
         std::ifstream state_stream(root / scenario / "states.json"); const auto expected = Json::parse(state_stream);
         Session historical; historical.initialize(fixture["setup"]);
-        auto player = historical.state(); Scratch scratch;
+        NativeRunExporter exporter;
+        RunState player; Scratch scratch; scratch.trace = exporter.trace();
+        initialize_json_run(player, fixture["setup"], exporter.trace());
         std::vector<CardHandle> labels;
         const auto capture_labels = [&] {
             if (player.view().combat && labels.empty())
@@ -37,7 +39,7 @@ TEST(PublicRunParity, ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisi
         // independently initialized objects, never from expected checkpoints.
         capture_labels();
         std::size_t next = 0;
-        compare_all(expected["initial"], NativeRunExporter{}.snapshot(player));
+        compare_all(expected["initial"], exporter.snapshot(player));
         for (const auto& entry : fixture["actions"]) {
             SCOPED_TRACE(entry["id"].get<std::string>());
             const auto& a = entry["action"]; const auto kind = a["kind"].get<std::string>();
@@ -76,11 +78,11 @@ TEST(PublicRunParity, ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisi
                 EXPECT_EQ(validate_action(player, input), Restriction::none);
                 EXPECT_EQ(checkpoint(player).bytes, before);
                 RunState restored; ASSERT_EQ(restore(restored, before, scratch), RestoreStatus::restored);
-                auto cloned = player;
+                auto cloned = player; Scratch branch_scratch;
                 const auto result = apply_action(player, input, scratch);
                 ASSERT_TRUE(result.status == StepStatus::awaiting_input || result.status == StepStatus::combat_won || result.status == StepStatus::player_died);
-                EXPECT_EQ(apply_action(restored, input, scratch).status, result.status);
-                EXPECT_EQ(apply_action(cloned, input, scratch).status, result.status);
+                EXPECT_EQ(apply_action(restored, input, branch_scratch).status, result.status);
+                EXPECT_EQ(apply_action(cloned, input, branch_scratch).status, result.status);
                 EXPECT_EQ(restored, player); EXPECT_EQ(cloned, player);
                 capture_labels();
             }
@@ -88,12 +90,12 @@ TEST(PublicRunParity, ExistingDenseAndSparseRecordingsMatchAtCorrespondingDecisi
             if (next < expected["transitions"].size() && expected["transitions"][next]["action_id"] == entry["id"]) {
                 compare_all(expected["transitions"][next]["state"], historical.snapshot());
                 if (historical.state().view().boundary == player.view().boundary)
-                    compare_all(expected["transitions"][next]["state"], NativeRunExporter{}.snapshot(player));
+                    compare_all(expected["transitions"][next]["state"], exporter.snapshot(player));
                 ++next;
             }
             if (historical.state().view().boundary == player.view().boundary) {
                 EXPECT_EQ(historical.state(), player);
-                compare_all(historical.snapshot(), NativeRunExporter{}.snapshot(player));
+                compare_all(historical.snapshot(), exporter.snapshot(player));
             }
         }
         EXPECT_EQ(next, expected["transitions"].size());
@@ -126,8 +128,8 @@ TEST(SeededRunParity, CanonicalCombatReproducesEveryFieldThroughVictory) {
     std::ifstream actions_stream(std::filesystem::path(KERNEL_COMBAT_FIXTURE).parent_path() / "actions.json");
     const auto actions = Json::parse(actions_stream);
     SeededConfig config; const auto seed = actions["setup"]["seed"].get<std::string>(); config.seed = seed;
-    RunState state; ASSERT_EQ(initialize_seeded_combat(state, config).status, StepStatus::awaiting_input);
-    NativeRunExporter exporter; Scratch scratch;
+    NativeRunExporter exporter; Scratch scratch; scratch.trace = exporter.trace();
+    RunState state; ASSERT_EQ(initialize_seeded_combat(state, config, exporter.trace()).status, StepStatus::awaiting_input);
     // Native recording labels are assigned in first-export pile traversal order.
     // Derive this relation from our generated state, without reading a checkpoint.
     std::vector<CardHandle> labels;
@@ -167,12 +169,13 @@ TEST(SeededRunParity, SurvivorScenarioMatchesEntireNativeStateAcrossSuspensionAn
         // Match the documented scenario operations: set deck, enter combat (HP
         // roll consumes Niche), then explicitly override enemy HP before play.
         CombatConfig combat; combat.seed = seed; combat.deck = deck; combat.initial_rng = &state.view().rng;
-        state.view().combat.emplace(); Scratch scratch;
+        NativeRunExporter exporter;
+        state.view().combat.emplace(); Scratch scratch; scratch.trace = exporter.trace();
         ASSERT_EQ(initialize_combat(*state.view().combat, combat, scratch).status, StepStatus::awaiting_input);
         state.view().combat->enemy.hp = state.view().combat->enemy.max_hp = scenario["enemy_hp"].get<int>();
         state.view().rng = state.view().combat->rng; state.view().acts[0].normal_visited = 1;
         state.view().phase = RunPhase::combat; state.view().direct_combat = true; state.view().combat_generation = 1;
-        NativeRunExporter exporter; compare_all(scenario["states"][0], exporter.snapshot(state));
+        compare_all(scenario["states"][0], exporter.snapshot(state));
         const auto hand = state.view().combat->zone(Zone::hand);
         std::vector<CardHandle> labels(hand.begin(), hand.end());
         const auto card = labels.at(std::stoul(scenario["survivor"].get<std::string>().substr(5)));
@@ -191,7 +194,7 @@ TEST(SeededRunParity, SurvivorScenarioMatchesEntireNativeStateAcrossSuspensionAn
 TEST(SeededRunParity, CanonicalWireRejectsMalformedInputWithoutChangingStateOrClock) {
     std::ifstream stream(std::filesystem::path(KERNEL_COMBAT_FIXTURE).parent_path() / "actions.json");
     auto setup = Json::parse(stream)["setup"]; Session session; session.initialize(setup);
-    const auto before = session.state();
+    const auto before = session.state(); const auto exported_before = session.snapshot();
     for (const auto& action : std::vector<Json>{
         {{"kind", "play_card"}, {"card_instance", "card_02"}, {"target", "enemy_0"}},
         {{"kind", "play_card"}, {"card_instance", "card_2"}, {"target", "enemy_100"}},
@@ -202,9 +205,73 @@ TEST(SeededRunParity, CanonicalWireRejectsMalformedInputWithoutChangingStateOrCl
     }
     EXPECT_EQ(session.apply({{"kind", "select_cards"}, {"card_instances", Json::array()}}).status, StepStatus::invalid_action);
     EXPECT_EQ(session.state(), before);
+    EXPECT_EQ(session.snapshot(), exported_before);
     setup["clock"]["seconds_per_action"] = 86401;
     EXPECT_THROW(session.initialize(setup), std::exception); EXPECT_EQ(session.state(), before);
+    EXPECT_EQ(session.snapshot(), exported_before);
+    setup["clock"]["seconds_per_action"] = 1; setup["kind"] = "unsupported";
+    EXPECT_THROW(session.initialize(setup), std::exception);
+    EXPECT_EQ(session.state(), before); EXPECT_EQ(session.snapshot(), exported_before);
 }
+TEST(SeededRunParity, ExporterRetainsExpiredPowerIdentityWhileEngineReclaimsIt) {
+    NativeRunExporter exporter; Scratch scratch; scratch.trace = exporter.trace();
+    RunState state; ASSERT_EQ(initialize_run(state, {}).status, StepStatus::awaiting_input);
+    const std::array deck{CardSpec{CardId::bash}, CardSpec{CardId::defend}, CardSpec{CardId::defend}};
+    state.view().deck.clear();
+    for (std::size_t i = 0; i < deck.size(); ++i)
+        state.view().deck.push_back({SetupRules::find(i == 0 ? "CARD.BASH" : "CARD.DEFEND_IRONCLAD"), static_cast<std::uint32_t>(i), 0, -1});
+    CombatConfig config; config.deck = deck; config.enemy_hp = 40; config.initial_rng = &state.view().rng;
+    state.view().combat.emplace();
+    ASSERT_EQ(initialize_combat(*state.view().combat, config, scratch).status, StepStatus::awaiting_input);
+    state.view().rng = state.view().combat->rng; state.view().acts[0].normal_visited = 1;
+    state.view().phase = RunPhase::combat; state.view().direct_combat = true; state.view().combat_generation = 1;
+    const auto play = [&](CardId id) {
+        auto combat = *state.view().combat; auto hand = combat.zone(Zone::hand);
+        const auto card = std::find_if(hand.begin(), hand.end(), [&](auto h) { return combat.cards.get(h)->definition == id; });
+        if (card == hand.end()) return StepResult{StepStatus::engine_error, combat.boundary};
+        return apply_input(state, CombatInput{state.view().boundary, CombatInputKind::play_card, *card, id == CardId::bash}, scratch);
+    };
+    const auto end_turn = [&] { return apply_input(state, CombatInput{state.view().boundary, CombatInputKind::end_turn}, scratch); };
+    ASSERT_EQ(play(CardId::bash).status, StepStatus::awaiting_input);
+    ASSERT_EQ(end_turn().status, StepStatus::awaiting_input);
+    ASSERT_EQ(play(CardId::defend).status, StepStatus::awaiting_input);
+    ASSERT_EQ(play(CardId::defend).status, StepStatus::awaiting_input);
+    ASSERT_EQ(end_turn().status, StepStatus::awaiting_input);
+    ASSERT_EQ(state.view().combat->player.power_count + state.view().combat->enemy.power_count, 1u);
+    EXPECT_EQ(state.view().combat->enemy.power_amount(PowerId::vulnerable), 0);
+    const auto expired = exporter.snapshot(state);
+    EXPECT_EQ(expired["combat"]["powers"]["0"]["amount"], 0);
+    EXPECT_EQ(expired["combat"]["powers"]["0"]["detached_owner"], "/combat/creatures/enemy_0");
+    ASSERT_EQ(play(CardId::bash).status, StepStatus::awaiting_input);
+    ASSERT_EQ(state.view().combat->player.power_count + state.view().combat->enemy.power_count, 2u);
+    EXPECT_EQ(state.view().combat->enemy.power(PowerId::vulnerable).instance, 2u);
+    const auto actual = exporter.snapshot(state);
+    EXPECT_EQ(actual["combat"]["powers"].size(), 3u);
+    EXPECT_EQ(actual["combat"]["creatures"]["enemy_0"]["powers"], Json::array({"/combat/powers/2"}));
+    EXPECT_EQ(actual["combat"]["powers"]["0"], expired["combat"]["powers"]["0"]);
+    EXPECT_EQ(actual["combat"]["card_plays"].size(), 4u);
+    auto clone = state; Scratch unrecorded;
+    ASSERT_EQ(apply_input(clone, CombatInput{clone.view().boundary, CombatInputKind::end_turn}, unrecorded).status, StepStatus::awaiting_input);
+    EXPECT_THROW((void)exporter.snapshot(clone), std::invalid_argument);
+    EXPECT_EQ(exporter.snapshot(state), actual);
+}
+
+TEST(SeededRunParity, MovingRecordedSessionRebindsExporterAndPreservesItsHistory) {
+    const Json setup{{"kind", "seeded_combat"}, {"seed", "ORACLECHECK01"}, {"character", "Ironclad"}, {"ascension", 0},
+        {"encounter", "SHRINKER_BEETLE_WEAK"}, {"clock", {{"kind", "action_clock_v1"}, {"epoch_seconds", 1700000000}, {"seconds_per_action", 1}}}};
+    Session expected, original; expected.initialize(setup); original.initialize(setup);
+    ASSERT_EQ(expected.apply({{"kind", "end_turn"}}).status, StepStatus::awaiting_input);
+    ASSERT_EQ(original.apply({{"kind", "end_turn"}}).status, StepStatus::awaiting_input);
+    Session moved(std::move(original));
+    ASSERT_EQ(expected.apply({{"kind", "end_turn"}}).status, StepStatus::awaiting_input);
+    ASSERT_EQ(moved.apply({{"kind", "end_turn"}}).status, StepStatus::awaiting_input);
+    compare_all(expected.snapshot(), moved.snapshot());
+    Session assigned; assigned = std::move(moved);
+    ASSERT_EQ(expected.apply({{"kind", "end_turn"}}).status, StepStatus::awaiting_input);
+    ASSERT_EQ(assigned.apply({{"kind", "end_turn"}}).status, StepStatus::awaiting_input);
+    compare_all(expected.snapshot(), assigned.snapshot());
+}
+
 TEST(SeededRunParity, ChangingExpectedFieldsCannotSupplyInitializationOrOutput) {
     RunState state; ASSERT_EQ(initialize_run(state, {}).status, StepStatus::awaiting_input); NativeRunExporter exporter;
     const auto actual = exporter.snapshot(state); auto changed = actual;

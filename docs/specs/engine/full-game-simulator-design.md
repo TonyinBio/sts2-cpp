@@ -100,7 +100,7 @@ layers:
 1. **Ruleset:** immutable definitions, compiled effect programs, dispatch tables, English text definitions, generation tables and version metadata.
 2. **Simulation kernel:** mutable complete game state, deterministic transition engine, randomness, suspended effects and legality checks.
 3. **Observations:** expose exactly the information visible to the player through a versioned schema.
-4. **Integration:** extract real-game state, convert checkpoints, read and write replays, and provide a CLI and optional C/Python interfaces.
+4. **JSON I/O:** translate setup/actions, record and replay sessions, and export comparison state with diagnostic histories; restorable checkpoints remain in persistence.
 
 The ruleset is shared read-only across workers. A simulation owns its state and mutable
 scratch space. No shared global values that can change, cross-worker allocator locks, filesystem reads

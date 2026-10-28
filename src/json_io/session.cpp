@@ -1,4 +1,4 @@
-#include "sts2/integration/session.hpp"
+#include "sts2/json_io/session.hpp"
 #include <algorithm>
 #include <charconv>
 #include <limits>
@@ -30,7 +30,7 @@ std::uint32_t label_index(const Json& value) {
     return index;
 }
 }
-void Session::initialize(const Json& setup) {
+void initialize_json_run(RunState& destination, const Json& setup, CombatTrace trace) {
     fields(setup, {"kind", "seed", "character", "ascension", "clock", "encounter"});
     const auto seed = setup.at("seed").get<std::string>();
     const auto character = setup.at("character").get<std::string>();
@@ -46,18 +46,24 @@ void Session::initialize(const Json& setup) {
     config.ascension = static_cast<std::uint8_t>(integer(setup.at("ascension"), 10));
     config.clock.epoch_seconds = static_cast<std::int64_t>(integer(clock.at("epoch_seconds"), RunClock::max_seconds));
     config.clock.seconds_per_action = static_cast<std::int64_t>(integer(clock.at("seconds_per_action"), 86400));
-    RunState next; StepResult result{StepStatus::unsupported_content, {}};
+    RunState next(destination.overflow.allocator()); StepResult result{StepStatus::unsupported_content, {}};
     if (setup.at("kind") == "seeded_combat") {
         if (setup.at("encounter") != "SHRINKER_BEETLE_WEAK") throw std::invalid_argument("Unsupported encounter");
-        result = initialize_seeded_combat(next, config);
+        result = initialize_seeded_combat(next, config, trace);
     } else if (setup.at("kind") == "seeded_run") {
         if (setup.contains("encounter")) throw std::invalid_argument("Run setup cannot specify an encounter");
         result = initialize_run(next, config);
     }
     if (result.status != StepStatus::awaiting_input) throw std::invalid_argument("Unsupported simulator setup");
+    destination = std::move(next);
+}
+void Session::initialize(const Json& setup) {
+    NativeRunExporter exporter;
+    RunState next; initialize_json_run(next, setup, exporter.trace());
     std::vector<CardHandle> labels;
     if (next.view().combat) for (const auto& zone : next.view().combat->zone_views()) labels.insert(labels.end(), zone.begin(), zone.end());
-    state_ = std::move(next); cards_ = std::move(labels); scratch_ = {};
+    state_ = std::move(next); cards_ = std::move(labels); exporter_ = std::move(exporter);
+    scratch_ = {}; scratch_.trace = exporter_.trace();
 }
 StepResult Session::apply(const Json& action) {
     const auto kind = action.at("kind").get<std::string>();

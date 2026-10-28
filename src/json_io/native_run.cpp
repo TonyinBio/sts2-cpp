@@ -1,11 +1,11 @@
-#include "sts2/integration/native_run.hpp"
+#include "sts2/json_io/native_run.hpp"
 #include "sts2/engine/run.hpp"
 #include <stdexcept>
 #include <charconv>
 #include <algorithm>
 
 namespace sts2::engine {
-void export_native_combat(nlohmann::json&, const RunState&);
+void export_native_combat(nlohmann::json&, const RunState&, const RecordedCombat&);
 namespace {
 using Json = nlohmann::json;
 constexpr std::array<const char*, 9> map_names{"unassigned", "unknown", "shop", "treasure", "rest_site", "monster", "elite", "boss", "ancient"};
@@ -40,6 +40,46 @@ Json relic_bag(ConstRelicBag bag) {
 
 }
 NativeRunExporter::NativeRunExporter() : defaults_(Json::parse(SetupRules::native_defaults())) {}
+CombatTrace NativeRunExporter::trace() noexcept {
+    return {this, [](void* context, ConstCombatView state, const CombatEvent& event) {
+        static_cast<NativeRunExporter*>(context)->record(state, event);
+    }};
+}
+void NativeRunExporter::record(ConstCombatView state, const CombatEvent& event) {
+    if (event.kind == CombatEventKind::combat_started) {
+        reset(); combat_.attached = true;
+        combat_.card_generation = state.cards.data.highest_generation;
+        return;
+    }
+    if (!combat_.attached) throw std::logic_error("Exporter must be attached at combat creation");
+    if (event.kind == CombatEventKind::combat_updated) {
+        combat_.boundary = state.boundary;
+        return;
+    }
+    if (event.kind == CombatEventKind::combat_won) {
+        combat_.history.clear(); combat_.plays.clear(); combat_.powers.clear();
+        return;
+    }
+    if (event.kind == CombatEventKind::combat_lost) return;
+    if (event.kind == CombatEventKind::power_received || event.kind == CombatEventKind::power_changed) {
+        const PowerInstance* found = nullptr;
+        for (const auto* creature : {&state.player, &state.enemy})
+            for (auto id : creature->power_ids()) {
+                const auto& power = creature->power(id);
+                if (power.instance == event.object) found = &power;
+            }
+        if (!found || event.object > combat_.powers.size()) throw std::logic_error("Missing exported power identity");
+        if (event.object == combat_.powers.size()) combat_.powers.push_back(*found);
+        else combat_.powers[event.object] = *found;
+        if (event.kind == CombatEventKind::power_changed) return;
+    }
+    if (event.kind == CombatEventKind::play_started) {
+        const auto& frame = state.execution.back();
+        if (frame.play != combat_.plays.size()) throw std::logic_error("Missing exported play identity");
+        combat_.plays.push_back({frame.source, frame.energy, frame.enemy_target});
+    }
+    combat_.history.push_back(event);
+}
 Json NativeRunExporter::snapshot(const RunState& s) const {
     auto s_view = s.view();
     if (!valid_run(s))
@@ -121,7 +161,7 @@ Json NativeRunExporter::snapshot(const RunState& s) const {
         {"visited_map_coords", visited}, {"win_time", 0}, {"boundary_kind", "awaiting_input"}, {"run_ending_reason", nullptr},
         {"current_room", native_room}, {"native_model_state", Json::object()}, {"combat", nullptr}, {"pending_choice", nullptr},
         {"run_flow", {{"room", room}, {"pending_choice", nullptr}, {"reward_sets", Json::array()}, {"operations", Json::array()}, {"combat_rewards_offered", false}}}};
-    if (s_view.combat || s_view.phase == RunPhase::combat_done || s_view.phase == RunPhase::rewards || s_view.phase == RunPhase::complete) export_native_combat(out, s);
+    if (s_view.combat || s_view.phase == RunPhase::combat_done || s_view.phase == RunPhase::rewards || s_view.phase == RunPhase::complete) export_native_combat(out, s, combat_);
     return out;
 }
 } // namespace sts2::engine

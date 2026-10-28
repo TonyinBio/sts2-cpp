@@ -1,4 +1,4 @@
-#include "sts2/integration/native_run.hpp"
+#include "sts2/json_io/native_run.hpp"
 #include <bit>
 #include <algorithm>
 #include <stdexcept>
@@ -68,7 +68,7 @@ void export_rewards(Json& out, ConstRunView run_view) {
     }
 }
 }
-void export_native_combat(Json& out, const RunState& run) {
+void export_native_combat(Json& out, const RunState& run, const RecordedCombat& recorded) {
     auto run_view = run.view();
     if (!run_view.combat) {
         const bool died = run_view.phase == RunPhase::complete;
@@ -82,6 +82,9 @@ void export_native_combat(Json& out, const RunState& run) {
     }
     const auto map_room = out["current_room"], map_flow = out["run_flow"];
     const auto& s = *run_view.combat;
+    if (!recorded.attached || recorded.boundary != s.boundary ||
+        (s.phase != CombatPhase::combat_won && recorded.card_generation != run_view.combat_generation))
+        throw std::invalid_argument("Missing exporter history for this execution; attach at creation");
     const bool won = s.phase == CombatPhase::combat_won, died = s.phase == CombatPhase::player_died, terminal = won || died;
     const bool choosing = s.phase == CombatPhase::discard_choice;
     Json piles = Json::object(); constexpr std::array<const char*, 5> zone_names{"Hand", "Draw", "Discard", "Exhaust", "Play"};
@@ -156,8 +159,8 @@ void export_native_combat(Json& out, const RunState& run) {
         out["native_model_state"]["/players/0/potions/" + std::to_string(i)] = {
             {"model_fields", Json::object()}, {"dynamic_vars", {{"VulnerablePower", 1}, {"WeakPower", 1}}}};
     }
-    for (std::size_t i = 0; i < s.powers.size(); ++i) {
-        const auto& p = s.powers[i]; const bool shrink = p.definition == PowerId::shrink;
+    for (std::size_t i = 0; i < recorded.powers.size(); ++i) {
+        const auto& p = recorded.powers[i]; const bool shrink = p.definition == PowerId::shrink;
         Json value = {{"id", shrink ? "POWER.SHRINK_POWER" : "POWER.VULNERABLE_POWER"}, {"amount", p.amount},
             {"amount_on_turn_start", p.amount_on_turn_start}, {"skip_next_duration_tick", p.skip_next_tick},
             {"applier", creature(!p.enemy_owner)}, {"target", nullptr}, {"dynamic_vars", shrink ? Json{{"DamageDecrease", 30}} : Json{{"DamageIncrease", 1.5}}}, {"model_fields", Json::object()}};
@@ -165,28 +168,29 @@ void export_native_combat(Json& out, const RunState& run) {
         else value["detached_owner"] = creature(p.enemy_owner);
         combat["powers"][std::to_string(i)] = std::move(value);
     }
-    for (std::size_t i = 0; i < s.plays.size(); ++i) {
-        const auto& p = s.plays[i];
+    for (std::size_t i = 0; i < recorded.plays.size(); ++i) {
+        const auto& p = recorded.plays[i];
         combat["card_plays"][std::to_string(i)] = {{"card", card_ref(p.card)}, {"player", "/players/0"}, {"target", p.enemy_target ? Json(enemy) : Json(nullptr)},
             {"result_pile", "Discard"}, {"resources", {{"energy_spent", p.energy}, {"energy_value", p.energy}, {"stars_spent", 0}, {"star_value", 0}}},
             {"is_auto_play", false}, {"play_index", 0}, {"play_count", 1}};
     }
     constexpr std::array<const char*, 9> kinds{"CardDrawnEntry", "CardDiscardedEntry", "EnergySpentEntry", "CardPlayStartedEntry", "CardPlayFinishedEntry", "DamageReceivedEntry", "CreatureAttackedEntry", "BlockGainedEntry", "PowerReceivedEntry"};
-    for (const auto& h : s.history) {
+    for (const auto& h : recorded.history) {
         Json entry = {{"kind", kinds[static_cast<std::size_t>(h.kind)]}, {"actor", creature(h.actor_enemy)}, {"round_number", h.turn},
             {"current_side", h.enemy_side ? "Enemy" : "Player"}, {"player_turn_numbers", Json::array({{{"player", "/players/0"}, {"turn_number", h.turn}}})}};
         switch (h.kind) {
-        case HistoryKind::drawn: entry["card"] = card_ref(h.card); entry["from_hand_draw"] = true; break;
-        case HistoryKind::discarded: entry["card"] = card_ref(h.card); break;
-        case HistoryKind::energy_spent: entry["amount"] = h.amount; break;
-        case HistoryKind::play_started: case HistoryKind::play_finished:
-            entry["card_play"] = play_ref(h.object); if (h.kind == HistoryKind::play_finished) entry["was_ethereal"] = false; break;
-        case HistoryKind::damaged:
+        case CombatEventKind::drawn: entry["card"] = card_ref(h.card); entry["from_hand_draw"] = true; break;
+        case CombatEventKind::discarded: entry["card"] = card_ref(h.card); break;
+        case CombatEventKind::energy_spent: entry["amount"] = h.amount; break;
+        case CombatEventKind::play_started: case CombatEventKind::play_finished:
+            entry["card_play"] = play_ref(h.object); if (h.kind == CombatEventKind::play_finished) entry["was_ethereal"] = false; break;
+        case CombatEventKind::damaged:
             entry["result"] = damage_result(h.hit, h.actor_enemy); entry["dealer"] = creature(!h.actor_enemy);
             entry["card_source"] = h.card.present() ? Json(card_ref(h.card)) : Json(nullptr); break;
-        case HistoryKind::attacked: entry["damage_results"] = Json::array({damage_result(h.hit, !h.actor_enemy)}); break;
-        case HistoryKind::block_gained: entry["amount"] = h.amount; entry["props"] = 8; entry["card_play"] = play_ref(h.object); break;
-        case HistoryKind::power_received: entry["amount"] = h.amount; entry["power"] = power_ref(h.object); entry["applier"] = h.amount < 0 && s.powers[h.object].definition == PowerId::vulnerable ? Json(nullptr) : Json(creature(!h.actor_enemy)); break;
+        case CombatEventKind::attacked: entry["damage_results"] = Json::array({damage_result(h.hit, !h.actor_enemy)}); break;
+        case CombatEventKind::block_gained: entry["amount"] = h.amount; entry["props"] = 8; entry["card_play"] = play_ref(h.object); break;
+        case CombatEventKind::power_received: entry["amount"] = h.amount; entry["power"] = power_ref(h.object); entry["applier"] = h.amount < 0 && recorded.powers[h.object].definition == PowerId::vulnerable ? Json(nullptr) : Json(creature(!h.actor_enemy)); break;
+        default: throw std::logic_error("Unexpected diagnostic event");
         }
         combat["history"].push_back(std::move(entry));
     }

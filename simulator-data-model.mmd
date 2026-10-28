@@ -40,9 +40,9 @@ classDiagram
         +enemy_move
         +zones
         +execution
-        +history
-        +plays
-        +powers
+        +CombatCounters counters
+        +live_powers
+        +next_power_instance
     }
     class CreatureState {
         +hp
@@ -50,6 +50,7 @@ classDiagram
         +block
         +vulnerable
         +shrink
+        +positive_unblocked_hits
     }
     class PersistentCard {
         +ContentId definition
@@ -62,6 +63,7 @@ classDiagram
         +upgraded
         +creation_order
         +deck_instance
+        +last_finished_player_turn
     }
     class CardHandle {
         +slot
@@ -75,11 +77,19 @@ classDiagram
     class EffectFrame {
         +CardHandle source
         +instruction
-        +play
+        +play_identity
+        +energy
+        +enemy_target
     }
-    class CombatHistoryEntry
-    class CardPlayRecord
-    class PowerRecord
+    class CombatCounters
+    class CombatEvent
+    class RecordedCardPlay
+    class PowerInstance
+    class NativeRunExporter {
+        +diagnostic_history
+        +completed_plays
+        +retained_powers
+    }
     class CombatRewards
     class MapState
     class RelicBagData
@@ -132,10 +142,12 @@ classDiagram
     CardInstance --> PersistentCard : deck_instance ID
 
     CombatData *-- EffectFrame
-    CombatData *-- CombatHistoryEntry
-    CombatData *-- CardPlayRecord
-    CombatData *-- PowerRecord
-    EffectFrame --> CardPlayRecord : play index
+    CombatData *-- CombatCounters
+    CombatData *-- PowerInstance : live only
+    NativeRunExporter *-- CombatEvent : diagnostic log
+    NativeRunExporter *-- RecordedCardPlay
+    NativeRunExporter *-- PowerInstance : includes expired diagnostics
+    CombatData ..> NativeRunExporter : optional synchronous trace
 
     RunData *-- InlineSequence
     CombatData *-- InlineSequence

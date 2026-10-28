@@ -1,5 +1,5 @@
 #include "sts2/parity/replay.hpp"
-#include "sts2/integration/session.hpp"
+#include "sts2/json_io/session.hpp"
 #include <fstream>
 #include <iostream>
 #include <map>

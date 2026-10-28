@@ -1,5 +1,5 @@
 #include "sts2/engine/action.hpp"
-#include "sts2/integration/session.hpp"
+#include "sts2/json_io/session.hpp"
 #include "sts2/observation/run.hpp"
 #include "sts2/persistence/checkpoint.hpp"
 #include <gtest/gtest.h>
@@ -31,7 +31,8 @@ TEST(PublicRun, ConsecutiveScenarioCombatsReplaceGraphsAndRejectOldCards) {
     EXPECT_FALSE(state.view().combat); EXPECT_TRUE(state.combat_overflow.empty());
     const CardHandle old_card{0, state.view().combat_generation};
     const auto saved = checkpoint(state).bytes;
-    ASSERT_EQ(enter_combat_scenario(state, state.view().boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK").status, StepStatus::awaiting_input);
+    NativeRunExporter exporter;
+    ASSERT_EQ(enter_combat_scenario(state, state.view().boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK", exporter.trace()).status, StepStatus::awaiting_input);
     EXPECT_EQ(state.view().combat_generation, 2u);
     EXPECT_EQ(state.view().deck.size(), 10u);
     EXPECT_FALSE(state.view().combat->cards.get(old_card));
@@ -45,7 +46,7 @@ TEST(PublicRun, ConsecutiveScenarioCombatsReplaceGraphsAndRejectOldCards) {
     ASSERT_EQ(restore(before, saved, scratch), RestoreStatus::restored);
     ASSERT_EQ(enter_combat_scenario(before, before.view().boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK").status, StepStatus::awaiting_input);
     EXPECT_EQ(before, state);
-    const auto exported = NativeRunExporter{}.snapshot(state);
+    const auto exported = exporter.snapshot(state);
     EXPECT_EQ(exported["comparison_revision"], 2);
     EXPECT_FALSE(exported.contains("map_point_history"));
     EXPECT_FALSE(exported["players"][0]["extra_fields"].contains("damage_dealt"));
@@ -75,12 +76,11 @@ TEST(PublicRun, ConsecutiveScenarioCombatsReplaceGraphsAndRejectOldCards) {
     for (auto& slot : slots) slot.generation = 1;
     ASSERT_TRUE(aliased.view().cards.restore(std::move(slots), {}));
     for (auto zone : aliased.view().zone_views()) for (auto& card : zone) card.generation = 1;
-    for (auto& entry : aliased.view().history) if (entry.card.present()) entry.card.generation = 1;
     ASSERT_TRUE(valid_combat(aliased));
     auto bad = checkpoint(original).bytes;
     const auto inner = checkpoint(aliased).bytes;
     std::vector<std::byte> magic;
-    for (const char c : std::string_view("STS2CP04")) magic.push_back(std::byte(c));
+    for (const char c : std::string_view("STS2CP06")) magic.push_back(std::byte(c));
     const auto at = std::search(bad.begin(), bad.end(), magic.begin(), magic.end());
     ASSERT_NE(at, bad.end());
     std::copy(inner.begin(), inner.end(), at);
@@ -98,7 +98,7 @@ TEST(PublicRun, RecycledGenerationsAndExhaustionRemainSafeAcrossCombats) {
     ASSERT_TRUE(combat.cards.erase(old));
     card.creation_order = combat.next_creation_order++;
     const auto recycled = combat.cards.create(card, 4096, 1);
-    combat.history.push_back({HistoryKind::drawn, combat.turn, false, false, recycled});
+    combat.zone(Zone::exhaust).push_back(recycled);
     ASSERT_GT(recycled.generation, old.generation);
     ASSERT_TRUE(valid_run(state));
     for (unsigned step = 0; step < 100 && state.view().phase == RunPhase::combat; ++step) {
@@ -125,17 +125,21 @@ TEST(PublicRun, RecycledGenerationsAndExhaustionRemainSafeAcrossCombats) {
     EXPECT_FALSE(state.view().combat->cards.get(old)); EXPECT_FALSE(state.view().combat->cards.get(recycled));
 }
 TEST(PublicRun, PermanentCardLinksSurviveDeckReordering) {
-    auto state = until(3).state();
+    NativeRunExporter exporter; Scratch scratch; scratch.trace = exporter.trace();
+    const auto fixture = recording();
+    SeededConfig config; const auto seed = fixture["setup"]["seed"].get<std::string>(); config.seed = seed;
+    RunState state; ASSERT_EQ(initialize_seeded_combat(state, config, exporter.trace()).status, StepStatus::awaiting_input);
     // Declared scenario permutation of existing permanent objects; combat
     // aliases still point at those objects, not at their old deck indices.
     std::swap(state.view().deck.front(), state.view().deck.back());
     ASSERT_TRUE(valid_run(state));
-    const auto native = NativeRunExporter{}.snapshot(state);
+    const auto native = exporter.snapshot(state);
     EXPECT_EQ(native["combat"]["cards"]["card_0"]["deck_version"], "/players/0/deck/9");
     EXPECT_EQ(native["combat"]["cards"]["card_0"]["saved"]["id"], "CARD.STRIKE_IRONCLAD");
-    Scratch scratch; RunState restored;
+    RunState restored;
     ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
-    EXPECT_EQ(NativeRunExporter{}.snapshot(restored), native);
+    EXPECT_EQ(restored, state);
+    EXPECT_THROW((void)NativeRunExporter{}.snapshot(restored), std::invalid_argument);
 }
 TEST(PublicRun, ScenarioEntryRejectsUnsupportedAndPrematureRequestsWithoutMutation) {
     auto before_combat = until(2).state(); const auto unchanged = before_combat;
@@ -326,13 +330,14 @@ TEST(PublicRun, HiddenEncounterSupportIsNotDisclosedByTravelQueries) {
     EXPECT_EQ(apply_action(b, ba[0].input, scratch).status, StepStatus::unsupported_content);
     EXPECT_EQ(b, before);
 }
-TEST(RunCheckpoint, EveryLifecycleBoundaryRoundTripsAllFieldsAndNativeExport) {
+TEST(RunCheckpoint, EveryLifecycleBoundaryRoundTripsCompleteGameplayState) {
     const auto fixture = recording(); Session session; session.initialize(fixture["setup"]); Scratch scratch;
     const auto check = [&] {
         ASSERT_TRUE(valid_run(session.state())); const auto encoded = checkpoint(session.state()); RunState restored;
         ASSERT_EQ(restore(restored, encoded.bytes, scratch), RestoreStatus::restored);
         EXPECT_EQ(restored, session.state()); EXPECT_EQ(checkpoint(restored).bytes, encoded.bytes);
-        EXPECT_EQ(NativeRunExporter{}.snapshot(restored), session.snapshot());
+        if (restored.view().combat) EXPECT_THROW((void)NativeRunExporter{}.snapshot(restored), std::invalid_argument);
+        else EXPECT_EQ(NativeRunExporter{}.snapshot(restored), session.snapshot());
     };
     check();
     for (const auto& action : fixture["actions"]) {

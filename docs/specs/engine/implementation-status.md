@@ -24,6 +24,19 @@ Persistent inventory, RNG, content queues and reward odds live directly in
 overflow. History/play/power storage, gameplay and diagnostic comparison contracts
 are unchanged by this refactor. Checkpoint encoding is unchanged.
 
+## Compact combat state and JSON I/O
+
+Combat state uses sufficient counters, per-card last-finished turns, per-creature
+hit counts, self-contained effect frames and fixed power-type slots with application order. Optional `json_io`
+recording owns diagnostic histories outside gameplay clones; schemas and fixtures
+remain unchanged. Recording is linear and attaches at creation; arbitrary saved
+states and recording cloned branches are unsupported. Binary checkpoint revisions
+are combat 6 and run 4. JSON checkpoint migration remains separate.
+
+Debug and core-only builds and all 178 Debug tests passed for the original slice.
+This does not establish sufficiency for unsupported mechanics or mutable card types.
+See the [handoff](../../planning/stage-two-handoff.md) for verification logs.
+
 ## Complete-state inline storage and owning clones
 
 [Issue #55](https://github.com/TonyinBio/sts2-cpp/issues/55) implements byte-copyable
@@ -63,7 +76,7 @@ contract, not the current implementation.
 | Boundaries | Stale/invalid input is immutable; accepted input creates a boundary; execution failures invalidate; explicit resource and execution budgets | Randomized actions, malformed wire inputs, rejection purity and failure/restore tests |
 | Persistence | Combat schema 2 and run schema 1 codecs; maps/queues/inventory/player RNG/reward odds and suspended choices; build/rules/definition identity and checksum | All run-loop boundaries round-trip every owned field and native export; restored reward branches, corruption and malformed metadata checks |
 | Observation | Borrowed hand/action views, intent, pile counts and disabled input restrictions; on-demand card descriptions | Inspection purity and hidden-draw tests; exact English parity is not certified |
-| Integration | Canonical setup/action wire session; standalone full-state simulator replay with independent provenance | SHA-256 action-byte association, schema validation, sparse/dense checkpoints and full comparator |
+| JSON I/O | Canonical setup/action wire session; standalone full-state simulator replay with independent provenance | SHA-256 action-byte association, schema validation, sparse/dense checkpoints and full comparator |
 | Workers | Independent state/scratch/storage and immutable shared rules | Concurrent workers produce identical complete binary states |
 
 The immutable setup tables are generated from audited **definitions**, not recorded
@@ -96,7 +109,7 @@ cmake --build --preset release
 `sts2_play [seed]` accepts displayed action indices and `quit`. The C++ persistence
 API checkpoints/restores combat and `RunState`, including pending reward selections.
 These are engine formats, not native
-saves or comparison snapshots. The integration library provides privileged native
+saves or comparison snapshots. The JSON I/O library provides privileged native
 state export and canonical recording identities for replay and scenario tooling.
 It is separate from the public hidden-information observation interface.
 
@@ -109,7 +122,7 @@ the reference backend, reporting reference execution failures separately from
 recording divergence. Simulator replay is built with the test/comparison tooling.
 
 To build the dependency-free kernel and interactive run CLI, configure with
-`-DBUILD_TESTING=OFF -DSTS2_BUILD_INTEGRATION=OFF -DSTS2_BUILD_PARITY_TOOLS=OFF`. JSON links into integration
+`-DBUILD_TESTING=OFF -DSTS2_BUILD_JSON_IO=OFF -DSTS2_BUILD_PARITY_TOOLS=OFF`. JSON links into json_io
 and comparison tooling only; rules/kernel do not use game assemblies, filesystem
 access or JSON during transitions.
 
@@ -146,7 +159,7 @@ mechanics and remaining content are not implemented. Native complete-state impor
 exact English feedback and public versioned wire observations remain pending. The
 run codec covers every implemented field, including map edge free-slot order,
 persistent inventory, all RNG streams, exact float bits and nested combat continuations.
-Wire-session card-label bindings are integration context; the C++ run codec resumes
+Wire-session card-label bindings are JSON I/O context; the C++ run codec resumes
 with typed handles, not a native save or a recording-label import.
 
 The next integrated slice needs general room-history ownership and additional

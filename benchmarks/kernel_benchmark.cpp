@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
             ++transitions;
             if (result.status == StepStatus::engine_error || result.status == StepStatus::invalid_action || result.status == StepStatus::resource_limit) return 2;
         }
-        checksum += std::uint64_t(state.view().player.hp) + state.view().history.size() + state.view().plays.size();
+        checksum += std::uint64_t(state.view().player.hp) + state.view().counters.started_plays + state.view().counters.finished_plays;
     }
     count_allocations = false;
     const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();

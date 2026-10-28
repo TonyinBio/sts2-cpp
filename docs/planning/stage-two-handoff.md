@@ -2,8 +2,9 @@
 
 ## Start here
 
-Continue the design discussion before implementing. Stage one is complete. The
-user wants to prevent combat history, completed plays and expired powers from
+The design discussion is settled and the user explicitly authorized implementation
+("Alright do that"). Stage one is complete. Stage two is implemented and verified for supported content; see the current
+implementation and verification below. The user wants to prevent combat history, completed plays and expired powers from
 making simulation state grow with combat duration, while retaining complete
 gameplay parity. They proposed mechanic-specific counters, self-contained suspended
 effects and reclaiming expired powers.
@@ -22,6 +23,31 @@ up implementation facts rather than asking the user to supply them.
 
 ## Settled scope and boundaries
 
+- Module name settled: rename `integration` to `json_io` (source/header paths,
+  CMake target `sts2_json_io` and option `STS2_BUILD_JSON_IO`). It handles JSON
+  actions, replay sessions and comparison export; persistence remains separate.
+  The mechanical rename is implemented and verified by the Debug configure/build
+  and all 173 Debug tests. Logs: `/tmp/sts2-json-io-{configure,build,tests}.log`.
+  Engine history compaction and exporter-owned tracking are now implemented;
+  stage-two verification results are recorded separately below.
+
+- Resumed design decisions: replace history with mechanic-specific counters,
+  flags or per-instance metadata where equivalent future gameplay is established;
+  retain richer state wherever needed. This supersedes the direction to retain
+  the original history representation, not the requirement for full parity.
+- Latest decision supersedes the earlier schema-removal proposal: do not change
+  the comparison JSON schema or its historical fields. The C++ engine should use
+  equivalent counters rather than accumulated histories; the exporter module
+  should track the histories needed to emit the existing schema. This is the implemented engine/exporter ownership boundary. Existing recordings
+  retain their comparison contract; no fixture regeneration is required merely
+  to remove history fields, because those fields remain.
+- Mechanic-specific replacement counters are internal simulator state, not new
+  fields in the reference-comparison JSON schema. Do not require the reference
+  engine to expose matching counters or derive synthetic reference fields for
+  them. Verify equivalence through resulting gameplay and observations, including
+  history-dependent behavior. Internal clone/restoration must still preserve the
+  counters; this comparison-schema decision does not exclude them from complete
+  restorable checkpoints.
 - Full gameplay parity remains mandatory. Reference storage layout is not itself
   a gameplay requirement, but removed information must have no effect on future
   gameplay or player-visible results.
@@ -29,12 +55,29 @@ up implementation facts rather than asking the user to supply them.
   metadata; capture values needed by suspended effects in the continuations;
   reclaim completed plays and expired powers only when no remaining references
   require them.
-- Names for `CombatHistoryEntry`, `CardPlayRecord` and `PowerRecord` are unresolved.
-  Earlier proposed `CardPlayHistory`/`PowerHistory` renames were explicitly deferred.
-  `PowerRecord` includes active power state, so calling it purely history is misleading.
-- The user considers historical comparison fields potentially unnecessary because
-  recorded state history may serve the same purpose. This is a direction to
-  investigate, not approval to delete all history/play/power comparison coverage.
+- Names now follow responsibilities: transient `CombatEvent`, exporter-owned
+  `RecordedCardPlay` and runtime `PowerInstance`. Engine event/completed-play
+  collections are removed; active power state is not called history.
+- Historical comparison coverage remains intact, including play/power identities
+  and relationships. Resolve exporter-owned object lifetimes and reference closure
+  independently from gameplay ownership. Keep targeted regressions for
+  history-dependent gameplay even when historical comparisons pass.
+- Exporter lifecycle decision: attach the exporter when creating a run; the C++
+  JSON exporter tracks diagnostic histories itself from that point. Recording a
+  run from a pre-made state may remain unsupported. Seeding exporter history from
+  a JSON save that contains it is a possible later capability, not required scope.
+  Do not require arbitrary late attachment or reconstruction of discarded history
+  from counters. Exporter branching is resolved by Q4 below; engine clones do not
+  carry diagnostic history.
+- Q3 settled: the exporter is optional. Ordinary simulation and MCTS run without
+  it and without diagnostic-history storage or allocation.
+- Q4 settled: recording supports one linear execution. Engine clones preserve
+  complete gameplay state but do not inherit exporter history; recording cloned
+  branches is unsupported in this slice.
+- Q5 settled: internal state changes may invalidate older engine checkpoints.
+  Reject incompatible versions explicitly. Keep the existing checkpoint encoding
+  for this work; the JSON checkpoint migration remains separate. Parity schemas
+  and action recordings are unaffected by checkpoint-version changes.
 - Preserve live powers, pending effects, relevant identities, RNG, clocks, public
   observations and deterministic continuation. Narrow current content coverage
   does not establish full-game correctness.
@@ -74,21 +117,30 @@ current diff and preserve unrelated work; do not reset to HEAD as a starting poi
 
 | Location | Relevant behavior |
 | --- | --- |
-| `include/sts2/state/history.hpp` | Event entries, captured card plays, and active/inactive power instances |
-| `include/sts2/state/combat.hpp` | Inline capacities: 64 events, 16 plays, 8 powers; four effect frames; collection validation enumeration |
-| `src/engine/combat.cpp` | History append, power application/ticking, play capture, effect execution, terminal cleanup and validation |
-| `src/integration/native_combat.cpp` | Privileged export resolves history/play/power relationships through stable indices |
-| `src/persistence/checkpoint.cpp` | Combat semantic codec, including suspended execution and referenced objects |
-| `src/persistence/run_checkpoint.cpp` | Run codec embeds the active-combat checkpoint |
+| `include/sts2/state/combat_types.hpp` | Transient diagnostic events, hit results and live power instances; no history collections |
+| `include/sts2/state/combat.hpp` | Compact counters, per-card turn/per-creature hit metadata, four self-contained frames and fixed power-type slots with application order |
+| `src/engine/combat.cpp` | Counter updates, optional synchronous trace, safe supported-power retirement, execution and validation |
+| `src/json_io/native_run.cpp`, `native_combat.cpp` | Exporter-owned event/completed-play/removed-power history and unchanged privileged comparison output |
+| `src/persistence/checkpoint.cpp` | Binary revision 6 includes counters, per-instance metadata, frames and live powers; old revisions rejected |
+| `src/persistence/run_checkpoint.cpp` | Binary revision 4 embeds active combat; no exporter history |
 | `tests/unit/engine_test.cpp` | Combat behavior, reference snapshots and suspended choices |
 | `tests/unit/state_clone_test.cpp` | Overflow, independent futures, failure guarantees and detached source references |
 | `tests/unit/run_test.cpp` | Run lifecycle, restoration, identity reuse and public decisions |
 
-Current supported combat does not query accumulated events or completed plays to
-calculate card effects. They currently support history/export relationships,
-validation and object reachability; effect frames carry a play index. Active
-powers do participate in current execution. The retention contract also protects
-history needed by audited mechanics that are not implemented yet.
+Engine state no longer contains event/completed-play history or inactive powers.
+The optional `CombatTrace` lives in caller-owned execution scratch (with explicit
+initialization/scenario arguments), never cloned state. `Session` owns the exporter
+and rebinds trace context when moved. Run-level entry synchronizes exporter boundary
+metadata after rebasing combat to the run clock/boundary. Cloned/restored gameplay
+branches use independent unrecorded scratch; recording branches is unsupported.
+Supported powers have no pending callbacks or other gameplay references after
+expiration, so final diagnostic updates precede stable ordered removal.
+
+The fixed summaries represent the audited candidate queries under the supported
+single-player turn model. Unsupported mechanics, mutable card types, extra turns,
+multiplayer identities, richer ordered queries and detached model lifetimes still
+need source verification alongside implementation. Full-game sufficiency is not
+claimed. Schema files, comparators, reference adapters and fixture bytes are unchanged.
 
 ## Consumer audit already performed
 
@@ -134,58 +186,56 @@ Primary starting evidence:
 - Local decompiled evidence under `build/combat-state-audit/decompiled/`, if present.
   Preserve source/build provenance. Consult `tools/README.md` before any live audit.
 
-## Contract changes that need resolution
+## Contracts and verification
 
-[ADR 0003](../adr/0003-inline-state-with-correct-overflow.md) and the
-[retention specification](../specs/engine/inline-state-retention.md) currently require
-retaining represented histories and referenced objects rather than substituting
-aggregate counters. Explicitly revise the relevant retention decision when an
-equivalent representation is agreed; keep its memcpy and independent-overflow
-requirements intact. Preserve [ADR 0001](../adr/0001-separate-complete-state-from-observations.md):
-complete state and public observations serve different purposes.
+ADR 0003 and the retention specification now permit sufficient summaries instead
+of original histories, preserve independent memcpy/overflow clones, and distinguish
+optional current-combat exporter tracking from completed-encounter archives.
+ADR 0004's JSON checkpoint migration remains deferred. Engine checkpoint revisions
+are combat 6 and run 4; incompatible old formats are rejected explicitly.
 
-Current privileged snapshots include `/combat/history`, `/combat/card_plays` and
-power objects, including retained inactive instances. Compact state cannot
-reconstruct arbitrary discarded event logs. For each proposed removal, distinguish:
+New regressions cover started-versus-finished counts during suspension, captured
+operands, independent clone/restore futures, turn reset boundaries, per-card finish
+identity and per-receiver hit counts; a 100-turn supported encounter verifies no
+growing engine storage or overflow allocations. This is a storage/lifetime check,
+not a speed benchmark or proof about all encounters. Exporter tests cover expiration
+and reapplication identities, detached power diagnostics, no branch contamination,
+invalid-input history purity and move/rebinding behavior. Existing exact historical
+comparisons remain enabled.
 
-1. Information required for future execution or player observations.
-2. Information retained only to reproduce reference diagnostic object graphs.
-3. Information independently preserved by recorded checkpoints/actions.
+Stage-two original compaction verification (before the fixed-slot follow-up):
 
-Clarify what the user means by "state history." Sparse checkpoints and player
-actions do not automatically preserve all internal events or suspended boundaries.
-Decide exactly which comparison fields can be excluded or replaced, how the schema
-and comparison revisions change, and which regressions still verify their gameplay
-effects. Do not keep fabricated empty logs while claiming exact historical parity.
-Live power coverage must remain even if inactive diagnostic objects disappear.
+- Debug build passed, including optional benchmark consumers; no speed benchmarks ran.
+- Core-only build passed with `BUILD_TESTING=OFF`, `STS2_BUILD_JSON_IO=OFF` and
+  `STS2_BUILD_PARITY_TOOLS=OFF`, using `/usr/bin/g++` explicitly. No JSON dependency
+  enters the core build.
+- Initial focused run: 35/36 passed; scenario-boundary synchronization was fixed.
+- Initial engine-label run exposed two adapter/test issues: branch checks shared
+  the live exporter trace, and the scenario tool initialized by copying an already
+  recorded state. Both now initialize/record a linear execution and use independent
+  unrecorded scratch for gameplay clone/restore checks.
+- Affected-test recheck passed all 3 checks: old-version rejection, dense/sparse
+  public replay and consecutive scenarios.
+- Final `ctest --preset debug`: all 178 tests passed, including the unchanged
+  historical comparisons, replay/schema contracts and recorder tests.
+- Scoped diff whitespace checks and final compiler warning checks passed. Existing
+  unrelated changes (including AGENTS.md whitespace) were preserved.
 
-Inspect [ADR 0004](../adr/0004-use-json-for-restorable-checkpoints.md) and the current
-codec before changing checkpoints. Stage one deliberately did not implement its
-separate migration. Resolve compatibility/version implications of any stage-two
-data change rather than silently bundling that migration into history compaction.
+Logs:
+- `/tmp/sts2-compact-build.log`
+- `/tmp/sts2-compact-core-system-configure.log`, `/tmp/sts2-compact-core-build.log`
+- `/tmp/sts2-compact-targeted.log`, `/tmp/sts2-compact-engine-tests.log` (initial runs)
+- `/tmp/sts2-compact-recheck.log` (affected checks passed)
+- `/tmp/sts2-compact-full-tests.log` (all 178 passed)
 
-## Remaining design round
+The initial core-only configure selected an unrelated FSL/Conda compiler and failed
+its compiler link probe; explicitly selecting the same system compiler as Debug
+resolved that environment issue. No source workaround was needed.
 
-After the factual audit, present the expected speed trade-offs: cheap counters
-versus repeated scans; smaller clones versus added per-event bookkeeping; inline
-continuation size versus referenced play storage; and safe power reuse versus
-compaction/index-repair cost. Do not make benchmark work a prerequisite.
-
-Then settle:
-
-- Exact sufficient state for each audited consumer and reset boundary.
-- What a suspended play must capture, and when source/play/power objects may be
-  reclaimed without invalidating references or changing dispatch order.
-- Diagnostic fields/schema/comparator changes and the role of recorded state history.
-- Type/collection names after responsibilities are clear.
-- Required regression scenarios and checkpoint compatibility behavior.
-
-Only after shared understanding is confirmed, implement the agreed slice and run
-appropriate engine/replay checks, then the full suite. Keep verbose output in logs.
-Verify counters and identities through meaningful behavior and independent
-clone/restore futures; do not treat weakened snapshot comparisons alone as proof
-of gameplay parity. Extend coverage alongside mechanics without claiming that
-source audit or one bounded encounter certifies complete-game parity.
+Remaining work is the separately deferred JSON checkpoint migration and extending
+mechanics/content with their corresponding lifetime/source audits. There is no
+remaining compaction implementation task for the currently supported slice. Full
+runs and all-game sufficiency are not claimed. No new benchmark gate is required.
 
 ## Diagram caveats
 
@@ -196,3 +246,12 @@ RecordingContracts even though they still exist. Those were diagram errors, not
 refactor changes; do not infer moved validation or deleted schemas from them.
 `sts2_run_scenario` predates the refactor and remains used by the consecutive-combat
 regression. `sts2_run` and `sts2_combat` were explicitly removed earlier.
+
+## Fixed-slot follow-up
+
+The combined commit also includes ADR 0005: implemented power types use fixed
+creature slots with explicit application order; duplicated Vulnerable/Shrink
+creature caches are removed. Combat checkpoint revision is now 6. The follow-up
+verification logs are `/tmp/sts2-fixed-powers-engine-tests.log` and
+`/tmp/sts2-fixed-powers-other-tests.log`; commit-time build and focused checks are
+in `/tmp/sts2-commit-build.log` and `/tmp/sts2-commit-tests.log`.
