@@ -22,6 +22,7 @@ CASES = {
     'tremble-duration': ([('TREMBLE', True), ('STRIKE_IRONCLAD', False)],
                        [('play', 'TREMBLE'), ('play', 'STRIKE_IRONCLAD'), ('end', None)]),
 
+    'artifact-prevention': ([('SHOCKWAVE', False)], [('power', ('ARTIFACT_POWER', 1, True)), ('play', 'SHOCKWAVE')]),
     'player-duration': ([('DEFEND_IRONCLAD', False)], [('power', ('WEAK_POWER', 2)), ('power', ('VULNERABLE_POWER', 2)), ('end', None), ('end', None)]),
     'applier-retention': ([('STRIKE_IRONCLAD', False)], [('power', ('STRENGTH_POWER', 2)), ('power', ('STRENGTH_POWER', 1, False, True)), ('power', ('STRENGTH_POWER', 1, False, False, False)), ('play', 'STRIKE_IRONCLAD')]),
     'signed-modifiers': ([('STRIKE_IRONCLAD', False), ('DEFEND_IRONCLAD', False)], [('power', ('STRENGTH_POWER', -2)), ('power', ('DEXTERITY_POWER', -3)), ('play', 'STRIKE_IRONCLAD'), ('play', 'DEFEND_IRONCLAD'), ('power', ('STRENGTH_POWER', 0)), ('power', ('STRENGTH_POWER', 2)), ('power', ('DEXTERITY_POWER', 5))]),

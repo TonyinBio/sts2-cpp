@@ -21,7 +21,7 @@ bool valid_powers(ConstCombatView state) noexcept {
             seen[slot] = true;
             const auto& p = creature->power(id);
             if (p.definition != id || !p.active || p.enemy_owner != (creature == &state.enemy) || p.instance >= state.next_power_instance) return false;
-            if (((id == PowerId::vulnerable || id == PowerId::weak) && p.amount <= 0) || (id == PowerId::shrink && p.amount >= 0) ||
+            if (((id == PowerId::vulnerable || id == PowerId::weak || id == PowerId::artifact) && p.amount <= 0) || (id == PowerId::shrink && p.amount >= 0) ||
                 ((id == PowerId::strength || id == PowerId::dexterity) && p.amount == 0) ||
                 (p.source.present() && !state.cards.get(p.source))) return false;
         }
@@ -60,7 +60,19 @@ void emit(CombatView s, Scratch& scratch, CombatEventKind kind, bool enemy_side 
 std::uint32_t apply_power(CombatView s, Scratch& scratch, PowerId id, int amount, bool enemy, bool enemy_side, CardHandle source = {}, bool has_applier = true, bool applier_enemy = false) {
     auto& creature = enemy ? s.enemy : s.player;
     auto& power = creature.power(id);
-    if (!power.active && amount == 0) return UINT32_MAX;
+    // Capture the contributing modifier identity before application. The after-
+    // modifier callback may only consume that instance, never a replacement.
+    const bool debuff = (id == PowerId::strength || id == PowerId::dexterity) ? amount < 0 :
+        id == PowerId::shrink || ((id == PowerId::weak || id == PowerId::vulnerable) && amount >= 0);
+    const auto artifact_instance = creature.has_power(PowerId::artifact) && debuff ?
+        creature.power(PowerId::artifact).instance : UINT32_MAX;
+    if (artifact_instance != UINT32_MAX) amount = 0;
+    auto after_modifier = [&] {
+        if (artifact_instance != UINT32_MAX && creature.has_power(PowerId::artifact) &&
+            creature.power(PowerId::artifact).instance == artifact_instance)
+            (void)apply_power(s, scratch, PowerId::artifact, -1, enemy, enemy_side, {}, false);
+    };
+    if (!power.active && amount == 0) { after_modifier(); return UINT32_MAX; }
     if (!power.active) {
         if (s.next_power_instance == UINT32_MAX) throw std::length_error("power identity exhausted");
         power = {s.next_power_instance++, id, amount, 0, enemy, true, !enemy && (id == PowerId::weak || id == PowerId::vulnerable || id == PowerId::shrink)};
@@ -73,6 +85,7 @@ std::uint32_t apply_power(CombatView s, Scratch& scratch, PowerId id, int amount
     }
     emit(s, scratch, CombatEventKind::power_received, enemy_side, enemy, {}, power.instance, amount, {}, has_applier, applier_enemy);
     const auto identity = power.instance;
+    after_modifier();
     if ((id == PowerId::strength || id == PowerId::dexterity || id == PowerId::shrink) ? power.amount == 0 : power.amount <= 0) {
         power.active = false;
         emit(s, scratch, CombatEventKind::power_changed, enemy_side, enemy, {}, identity);
