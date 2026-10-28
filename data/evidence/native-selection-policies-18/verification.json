@@ -1,0 +1,583 @@
+{
+  "profile": "native-selection-policies-v2",
+  "cases": [
+    {
+      "case_name": "ordered",
+      "observations": [
+        {
+          "input": "initial",
+          "selected": [],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose0",
+          "selected": [
+            0
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose1",
+          "selected": [
+            0,
+            1
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose2",
+          "selected": [
+            0,
+            2
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "deselect0",
+          "selected": [
+            2
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose0",
+          "selected": [
+            2,
+            0
+          ],
+          "pending": true,
+          "confirm": true
+        }
+      ],
+      "result": [
+        2,
+        0
+      ],
+      "exhausted": null,
+      "upgraded": null,
+      "candidates": [
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        }
+      ],
+      "minimum": 0,
+      "maximum": 2,
+      "automatic_submission": false,
+      "read_purity": true,
+      "framework": ".NET 9.0.4",
+      "hand_ready": true,
+      "inside_tree": true,
+      "mode": "Play",
+      "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e"
+    },
+    {
+      "case_name": "zero",
+      "observations": [
+        {
+          "input": "initial",
+          "selected": [],
+          "pending": true,
+          "confirm": true
+        }
+      ],
+      "result": [],
+      "exhausted": null,
+      "upgraded": null,
+      "candidates": [
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        }
+      ],
+      "minimum": 0,
+      "maximum": 2,
+      "automatic_submission": false,
+      "read_purity": true,
+      "framework": ".NET 9.0.4",
+      "hand_ready": true,
+      "inside_tree": true,
+      "mode": "Play",
+      "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e"
+    },
+    {
+      "case_name": "single",
+      "observations": [
+        {
+          "input": "initial",
+          "selected": [],
+          "pending": true,
+          "confirm": false
+        },
+        {
+          "input": "choose0",
+          "selected": [
+            0
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose1",
+          "selected": [
+            1
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose2",
+          "selected": [
+            2
+          ],
+          "pending": true,
+          "confirm": true
+        }
+      ],
+      "result": [
+        2
+      ],
+      "exhausted": null,
+      "upgraded": null,
+      "candidates": [
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        }
+      ],
+      "minimum": 1,
+      "maximum": 1,
+      "automatic_submission": false,
+      "read_purity": true,
+      "framework": ".NET 9.0.4",
+      "hand_ready": true,
+      "inside_tree": true,
+      "mode": "Play",
+      "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e"
+    },
+    {
+      "case_name": "purity-consumer",
+      "observations": [
+        {
+          "input": "initial",
+          "selected": [],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose0",
+          "selected": [
+            0
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose1",
+          "selected": [
+            0,
+            1
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose2",
+          "selected": [
+            0,
+            1,
+            2
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose3",
+          "selected": [
+            0,
+            1,
+            3
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "deselect0",
+          "selected": [
+            1,
+            3
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose0",
+          "selected": [
+            1,
+            3,
+            0
+          ],
+          "pending": true,
+          "confirm": true
+        }
+      ],
+      "result": [
+        1,
+        3,
+        0
+      ],
+      "exhausted": [
+        1,
+        3,
+        0,
+        -1
+      ],
+      "upgraded": null,
+      "candidates": [
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        }
+      ],
+      "minimum": 0,
+      "maximum": 3,
+      "automatic_submission": false,
+      "read_purity": true,
+      "framework": ".NET 9.0.4",
+      "hand_ready": true,
+      "inside_tree": true,
+      "mode": "Play",
+      "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e"
+    },
+    {
+      "case_name": "armaments-consumer",
+      "observations": [
+        {
+          "input": "initial",
+          "selected": [],
+          "pending": true,
+          "confirm": false
+        },
+        {
+          "input": "choose0",
+          "selected": [
+            0
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose1",
+          "selected": [
+            1
+          ],
+          "pending": true,
+          "confirm": true
+        },
+        {
+          "input": "choose2",
+          "selected": [
+            2
+          ],
+          "pending": true,
+          "confirm": true
+        }
+      ],
+      "result": [
+        2
+      ],
+      "exhausted": null,
+      "upgraded": [
+        2
+      ],
+      "candidates": [
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        },
+        {
+          "model_id": "CARD.DEFEND_IRONCLAD",
+          "upgraded": false
+        }
+      ],
+      "minimum": 1,
+      "maximum": 1,
+      "automatic_submission": false,
+      "read_purity": true,
+      "framework": ".NET 9.0.4",
+      "hand_ready": true,
+      "inside_tree": true,
+      "mode": "Play",
+      "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e"
+    },
+    {
+      "case_name": "headbutt-pile-command",
+      "screen": "MegaCrit.Sts2.Core.Nodes.Screens.CardSelection.NCombatPileCardSelectScreen",
+      "result": [
+        1
+      ],
+      "automatic_submission": true,
+      "draw_top": 1,
+      "read_purity": true,
+      "assembly_mvid": "73b63ee0-6c0a-47bb-b0d1-b21f6d94222e"
+    }
+  ],
+  "independent_native_repeat": "passed",
+  "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+  "game_pack_sha256": "c60f672ee7804e6aefa1e19a582fa1c80b126a7b0eef4d084d3abf110df2eab7",
+  "godot_sha256": "cf499495ba071c5974e68602f14da9860269cc73bda7dc495ff28128e7972b64",
+  "runner_sha256": "befee9a1051f50e39af86a57a0d3fdf53806f31a561c5544247035aefdcdca82",
+  "logs_sha256": {
+    "armaments-consumer-0.log": "3d5b3061224176e1da1ef82cca2bfb1243cea80e5a9d912bcea490913717cd2c",
+    "armaments-consumer-1.log": "3d5b3061224176e1da1ef82cca2bfb1243cea80e5a9d912bcea490913717cd2c",
+    "build.log": "ae1fdac43985aaaec7038bf604bd84c10fe18c34a4d64c64bc8d72266a5e1baa",
+    "headbutt-pile-command-0.log": "19dcfe0dbcd16c981a2318e7e842ebe688e2fa7e3ccb0c3dfb88f97a2a4bd76e",
+    "headbutt-pile-command-1.log": "19dcfe0dbcd16c981a2318e7e842ebe688e2fa7e3ccb0c3dfb88f97a2a4bd76e",
+    "ordered-0.log": "ea74d5e64e06cdffae2f3eed93ba08d2812cd250a231fd4dc0d152a4a05f5b38",
+    "ordered-1.log": "ea74d5e64e06cdffae2f3eed93ba08d2812cd250a231fd4dc0d152a4a05f5b38",
+    "purity-consumer-0.log": "8e9ee590711bb09606ddd67a507b84f8c9155d34a9637418708ba0bd518ccca1",
+    "purity-consumer-1.log": "8e9ee590711bb09606ddd67a507b84f8c9155d34a9637418708ba0bd518ccca1",
+    "single-0.log": "df0fbddb2b1ba93fef7ad10f259e25a50a687e99aa430d6f289c2a2f25d3611c",
+    "single-1.log": "df0fbddb2b1ba93fef7ad10f259e25a50a687e99aa430d6f289c2a2f25d3611c",
+    "zero-0.log": "6d82848e6e3ccd82ca142453799ee5290f8e273356b08da212871ed63e1cb18b",
+    "zero-1.log": "6d82848e6e3ccd82ca142453799ee5290f8e273356b08da212871ed63e1cb18b"
+  },
+  "probe_sources_sha256": {
+    "NativeBootstrap.cs": "526d97f30c6b7e6653d46499e518d7075ddf496fe830ea145c7f27c88195b08c",
+    "NuGet.Config": "87402e6e20dee42bf6466265c5ae2d75602b50c5c86fd05571c6e3ab8df1b8b3",
+    "Probe.cs": "f75ec376d994bfa7a0cc1c4a182d8c105f911e5585e6e95ba6f52d2c88e9138e",
+    "Probe.csproj": "6704392dfb6620db8e79068a8cffc4326e1d8181da95a25dd621db6d131962b6",
+    "Probe.tscn": "1699a74ac6e216f6aa1b4faf9944639aad0a2265cdcb22e08308bb8e73dd839e",
+    "README.md": "6dd6419f63de1fbe875c41cae6aa7aeafb71c286e464d211b817b76a66f3d9ed",
+    "project.godot": "2aec1ee68dfd4595a53f1c857cb60f365f9b28a83e9acd2a87543c39be2f5e90"
+  },
+  "shutdown_allocation_diagnostics": {
+    "ordered-0.log": [],
+    "ordered-1.log": [],
+    "zero-0.log": [],
+    "zero-1.log": [],
+    "single-0.log": [],
+    "single-1.log": [],
+    "purity-consumer-0.log": [],
+    "purity-consumer-1.log": [],
+    "armaments-consumer-0.log": [
+      "ERROR: 28 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.",
+      "ERROR: 9 RID allocations of type 'N13RendererDummy9DummyMeshE' were leaked at exit.",
+      "ERROR: 18 RID allocations of type 'N13RendererDummy15MaterialStorage13DummyMaterialE' were leaked at exit.",
+      "ERROR: 6 RID allocations of type 'N13RendererDummy15MaterialStorage11DummyShaderE' were leaked at exit.",
+      "ERROR: 108 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.",
+      "ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.",
+      "ERROR: 2 RID allocations of type 'PN18TextServerAdvanced27FontAdvancedLinkedVariationE' were leaked at exit.",
+      "ERROR: 70 resources still in use at exit (run with --verbose for details)."
+    ],
+    "armaments-consumer-1.log": [
+      "ERROR: 28 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.",
+      "ERROR: 9 RID allocations of type 'N13RendererDummy9DummyMeshE' were leaked at exit.",
+      "ERROR: 18 RID allocations of type 'N13RendererDummy15MaterialStorage13DummyMaterialE' were leaked at exit.",
+      "ERROR: 6 RID allocations of type 'N13RendererDummy15MaterialStorage11DummyShaderE' were leaked at exit.",
+      "ERROR: 108 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.",
+      "ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.",
+      "ERROR: 2 RID allocations of type 'PN18TextServerAdvanced27FontAdvancedLinkedVariationE' were leaked at exit.",
+      "ERROR: 70 resources still in use at exit (run with --verbose for details)."
+    ],
+    "headbutt-pile-command-0.log": [],
+    "headbutt-pile-command-1.log": []
+  },
+  "public_policy_comparison": [
+    {
+      "case_name": "purity-consumer",
+      "steps": [
+        {
+          "native_callback": "initial",
+          "public_boundary": 2,
+          "run_time": 2,
+          "selected": [],
+          "can_confirm": true
+        },
+        {
+          "native_callback": "choose0",
+          "public_boundary": 3,
+          "run_time": 4,
+          "selected": [
+            0
+          ],
+          "can_confirm": true
+        },
+        {
+          "native_callback": "choose1",
+          "public_boundary": 4,
+          "run_time": 6,
+          "selected": [
+            0,
+            1
+          ],
+          "can_confirm": true
+        },
+        {
+          "native_callback": "choose2",
+          "public_boundary": 5,
+          "run_time": 8,
+          "selected": [
+            0,
+            1,
+            2
+          ],
+          "can_confirm": true
+        },
+        {
+          "native_callback": "choose3",
+          "public_boundary": 6,
+          "run_time": 10,
+          "selected": [
+            0,
+            1,
+            3
+          ],
+          "can_confirm": true
+        },
+        {
+          "native_callback": "deselect0",
+          "public_boundary": 7,
+          "run_time": 12,
+          "selected": [
+            1,
+            3
+          ],
+          "can_confirm": true
+        },
+        {
+          "native_callback": "choose0",
+          "public_boundary": 8,
+          "run_time": 14,
+          "selected": [
+            1,
+            3,
+            0
+          ],
+          "can_confirm": true
+        }
+      ],
+      "confirmation_boundary": 9,
+      "confirmation_run_time": 16,
+      "seconds_per_public_input": 2,
+      "native_transport_clock": "Not advanced by UI callbacks; atomic native transport correspondence is separately zero-step"
+    },
+    {
+      "case_name": "armaments-consumer",
+      "steps": [
+        {
+          "native_callback": "initial",
+          "public_boundary": 2,
+          "run_time": 2,
+          "selected": [],
+          "can_confirm": false
+        },
+        {
+          "native_callback": "choose0",
+          "public_boundary": 3,
+          "run_time": 4,
+          "selected": [
+            0
+          ],
+          "can_confirm": true
+        },
+        {
+          "native_callback": "choose1",
+          "public_boundary": 4,
+          "run_time": 6,
+          "selected": [
+            1
+          ],
+          "can_confirm": true
+        },
+        {
+          "native_callback": "choose2",
+          "public_boundary": 5,
+          "run_time": 8,
+          "selected": [
+            2
+          ],
+          "can_confirm": true
+        }
+      ],
+      "confirmation_boundary": 6,
+      "confirmation_run_time": 10,
+      "seconds_per_public_input": 2,
+      "native_transport_clock": "Not advanced by UI callbacks; atomic native transport correspondence is separately zero-step"
+    }
+  ],
+  "read_purity_surface": [
+    "run/player RNG save representations",
+    "player/enemy HP and Block",
+    "energy and round",
+    "ordered native combat pile IDs and upgrade levels"
+  ],
+  "limits": [
+    "Purity/Armaments consumers use native autoplay wrappers and BlockingPlayerChoiceContext; manual payment/queue is verified by the separate atomic model corpus",
+    "Pile case invokes native FromCombatPile and native Add(skipVisuals:true) using Headbutt preferences; full Headbutt model is verified by the separate atomic corpus",
+    "Scenario setup supplies native NGame services/scene containers; no full game startup or presentation certification",
+    "Public policy comparison covers prompt candidates, selection order/restrictions, confirmation and declared logical clocks; it is not whole-state or whole-screen projection certification",
+    "Native resource-cache allocation leaks at process teardown are retained and classified only after successful explicit scene cleanup"
+  ]
+}
