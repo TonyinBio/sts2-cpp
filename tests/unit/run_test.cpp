@@ -79,8 +79,7 @@ TEST(PublicRun, ConsecutiveScenarioCombatsReplaceGraphsAndRejectOldCards) {
     ASSERT_TRUE(valid_combat(aliased));
     auto bad = checkpoint(original).bytes;
     const auto inner = checkpoint(aliased).bytes;
-    std::vector<std::byte> magic;
-    for (const char c : std::string_view("STS2CP07")) magic.push_back(std::byte(c));
+    const std::vector<std::byte> magic(inner.begin(), inner.begin() + 8);
     const auto at = std::search(bad.begin(), bad.end(), magic.begin(), magic.end());
     ASSERT_NE(at, bad.end());
     std::copy(inner.begin(), inner.end(), at);
@@ -146,8 +145,11 @@ TEST(PublicRun, ScenarioEntryRejectsUnsupportedAndPrematureRequestsWithoutMutati
     EXPECT_EQ(enter_combat_scenario(before_combat, before_combat.view().boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK").status, StepStatus::invalid_action);
     EXPECT_EQ(before_combat, unchanged);
     auto state = until(recording()["actions"].size()).state(); const auto before = state;
-    EXPECT_EQ(enter_combat_scenario(state, state.view().boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK").status, StepStatus::unsupported_content);
-    EXPECT_EQ(state, before); // Acquired True Grit is retained, but not playable yet.
+    EXPECT_EQ(enter_combat_scenario(state, state.view().boundary, "ENCOUNTER.UNSUPPORTED").status, StepStatus::unsupported_content);
+    EXPECT_EQ(state, before);
+    // Acquired True Grit now participates in ordinary consecutive combat setup.
+    EXPECT_EQ(enter_combat_scenario(state, state.view().boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK").status, StepStatus::awaiting_input);
+    EXPECT_TRUE(valid_run(state));
 }
 TEST(PublicRun, StartingChoicesAreVisiblePureAndForcedProgressIsAutomatic) {
     RunState state;

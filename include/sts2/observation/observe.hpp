@@ -4,6 +4,13 @@
 #include <string>
 
 namespace sts2::engine {
+struct CardSelectionView {
+    PromptId id;
+    SelectionEffect effect;
+    std::span<const CardHandle> candidates, selected;
+    std::uint32_t minimum, maximum;
+    bool submits_immediately, can_confirm;
+};
 struct CombatObservationView {
     std::string_view build;
     BoundaryId boundary;
@@ -14,6 +21,7 @@ struct CombatObservationView {
     BeetleMove intent;
     std::span<const CardHandle> hand;
     std::size_t draw_count, discard_count, exhaust_count;
+    std::optional<CardSelectionView> selection;
     std::int32_t player_strength, player_dexterity, player_weak, enemy_weak;
 };
 // Borrows hand storage; invalidated by state mutation. Hidden draw order, RNG,
@@ -24,6 +32,7 @@ struct CardView {
     std::string_view model_id, name;
     std::int32_t cost, damage, block, vulnerable;
     bool upgraded, enemy_target;
+    CardRarity rarity = CardRarity::basic;
     std::int32_t strength = 0, weak = 0;
     bool exhaust = false, power = false;
 };

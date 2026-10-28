@@ -20,6 +20,7 @@ struct CombatEvent {
     std::uint32_t object = 0; // Play or power identity, interpreted by kind.
     std::int32_t amount = 0;
     HitResult hit {};
+    bool from_hand_draw : 1 = true;
     bool has_applier : 1 = true;
     bool applier_enemy : 1 = false;
     friend bool operator==(const CombatEvent&, const CombatEvent&) = default;

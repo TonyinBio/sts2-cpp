@@ -76,7 +76,7 @@ bool valid_run(const RunState& state) noexcept {
         for (const auto& slot : combat.cards.slots()) if (slot.generation < state_view.combat_generation) return false;
         if (!valid_combat(combat) || !linked_cards(combat, setup.deck) || combat.seed != setup.seed || combat.player.hp != setup.hp || combat.player.max_hp != setup.max_hp || combat.rng != setup.rng) return false;
         if (state_view.phase == RunPhase::combat) {
-            if ((combat.phase != CombatPhase::play && combat.phase != CombatPhase::discard_choice) || combat.clock != state_view.clock || combat.boundary != state_view.boundary) return false;
+            if ((combat.phase != CombatPhase::play && combat.phase != CombatPhase::discard_choice && combat.phase != CombatPhase::card_choice) || combat.clock != state_view.clock || combat.boundary != state_view.boundary) return false;
         } else if (state_view.phase == RunPhase::complete) {
             if (!state_view.direct_combat || combat.phase != CombatPhase::player_died) return false;
         } else if (state_view.phase == RunPhase::combat_done) {

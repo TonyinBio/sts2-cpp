@@ -17,7 +17,7 @@ pretending that it is a player action or advancing the player clock. Gameplay
 still executes through the public combat/action interface. The supplement only
 registers diagnostic model definitions and never adds cards to generation pools.
 
-Checkpoint revision 7 includes removed-card status and live-power source/applier
+Checkpoint revision 8 includes removed-card status and live-power source/applier
 relationships. Earlier revisions are rejected. Independent clone/restoration
 regressions exercise changed attack and block outcomes and alternative futures.
 

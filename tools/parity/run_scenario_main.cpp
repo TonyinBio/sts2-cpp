@@ -52,6 +52,20 @@ int main() {
                     if (action.contains("target_index") && action.at("target_index") != 0) throw std::invalid_argument("Invalid target");
                     input = CombatInput{run.view().boundary, CombatInputKind::play_card, view.combat->hand[index], action.contains("target_index")};
                 }
+                else if (kind == "select_card" || kind == "deselect_card" || kind == "confirm_selection") {
+                    const auto view = observe(run);
+                    if (!view.combat || !view.combat->selection) throw std::invalid_argument("No active selection");
+                    const auto& selection = *view.combat->selection;
+                    CardHandle card;
+                    if (kind != "confirm_selection") {
+                        const auto index = action.at("candidate_index").get<std::size_t>();
+                        if (index >= selection.candidates.size()) throw std::invalid_argument("Invalid candidate index");
+                        card = selection.candidates[index];
+                    }
+                    const auto prompt = action.contains("prompt") ? PromptId{action.at("prompt").get<std::uint32_t>()} : selection.id;
+                    const auto input_kind = kind == "select_card" ? CombatInputKind::select_card : kind == "deselect_card" ? CombatInputKind::deselect_card : CombatInputKind::confirm_selection;
+                    input = CombatInput{run.view().boundary, input_kind, card, false, prompt};
+                }
                 else if (kind == "end_turn") input = CombatInput{run.view().boundary, CombatInputKind::end_turn};
                 else {
                     RunInput choice{run.view().boundary, RunInputKind::skip_rewards};
@@ -71,7 +85,14 @@ int main() {
             if (apply(restored, branch_scratch).status != result.status || apply(cloned, branch_scratch).status != result.status || restored != state || cloned != state)
                 throw std::runtime_error("Clone/restore future differs");
         }
-        std::cout << Json{{"ok", true}, {"state", exporter.snapshot(state)}}.dump() << std::endl;
+        Json response{{"ok", true}, {"state", exporter.snapshot(state)}, {"selection", nullptr}};
+        const auto view = observe(state);
+        if (view.combat && view.combat->selection) {
+            const auto& selection = *view.combat->selection;
+            response["selection"] = {{"prompt", selection.id.value}, {"minimum", selection.minimum}, {"maximum", selection.maximum},
+                {"automatic_at_maximum", selection.submits_immediately}, {"selected_count", selection.selected.size()}};
+        }
+        std::cout << response.dump() << std::endl;
     } catch (const std::exception& error) {
         std::cout << Json{{"ok", false}, {"error", error.what()}}.dump() << std::endl;
     }
