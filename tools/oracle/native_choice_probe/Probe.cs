@@ -47,9 +47,36 @@ public partial class Probe : Node {
             GD.Print("PROBE native hand ready ",hand.IsNodeReady()," type ",hand.GetType().FullName);
             NativeBootstrap.AddCardViews(hand,cards);
             var caseName=System.Environment.GetEnvironmentVariable("STS2_CHOICE_CASE") ?? "ordered";
-            var minimum=caseName=="single" ? 1 : 0;
-            var maximum=caseName=="single" ? 1 : caseName=="purity-consumer" ? 3 : 2;
+            if(caseName=="headbutt-pile-command") {
+                var global=Construct("MegaCrit.Sts2.Core.Nodes.CommonUi.NGlobalUi");
+                var overlay=(Node)Construct("MegaCrit.Sts2.Core.Nodes.Screens.Overlays.NOverlayStack");
+                overlay.AddChild(new Control{Name="OverlayBackstop"});
+                Set(global,"Overlays",overlay);
+                Set(global,"CapstoneContainer",Construct("MegaCrit.Sts2.Core.Nodes.Screens.Capstones.NCapstoneContainer"));
+                Set(global,"MapScreen",Construct("MegaCrit.Sts2.Core.Nodes.Screens.Map.NMapScreen"));
+                Set(run,"GlobalUi",global);
+                AddChild(overlay);
+                var headbutt=NativeBootstrap.BeginPileCommand(cards);
+                for(int tick=0;tick<10 && (int)Get(overlay,"ScreenCount")==0 && !headbutt.IsCompleted;tick++)await ToSignal(GetTree(),SceneTree.SignalName.ProcessFrame);
+                if(headbutt.IsFaulted)throw headbutt.Exception!;
+                if(headbutt.IsCompleted)throw new InvalidOperationException("Headbutt failed to suspend for pile selection");
+                var screen=Invoke(overlay,"Peek")!;
+                if(screen.GetType().Name!="NCombatPileCardSelectScreen")throw new InvalidOperationException("Wrong native pile selection screen");
+                var beforeRead=NativeBootstrap.GameplayFingerprint(cards);
+                var beforeReadAgain=NativeBootstrap.GameplayFingerprint(cards);
+                if(beforeRead!=beforeReadAgain)throw new InvalidOperationException("Pile observation mutated native gameplay");
+                screen.GetType().GetMethod("OnCardClicked",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(screen,new[]{cards[1]});
+                await headbutt;
+                if(!NativeBootstrap.IsDrawTop(cards,1))throw new InvalidOperationException("Headbutt did not topdeck clicked discard card");
+                GD.Print("CHOICE_RESULT ",System.Text.Json.JsonSerializer.Serialize(new{case_name=caseName,screen=screen.GetType().FullName,result=new[]{1},automatic_submission=true,draw_top=1,read_purity=true,assembly_mvid=a.ManifestModule.ModuleVersionId.ToString()}));
+                overlay.Free();
+                ((Node)Get(global,"CapstoneContainer")).Free();((Node)Get(global,"MapScreen")).Free();((Node)global).Free();
+            } else {
+            var upgrading=caseName=="armaments-consumer";
+            var minimum=caseName=="single" || upgrading ? 1 : 0;
+            var maximum=caseName=="single" || upgrading ? 1 : caseName=="purity-consumer" ? 3 : 2;
             var observations=new System.Collections.Generic.List<object>();
+            var candidateModels=NativeBootstrap.CandidateModels(cards);
             void Require(bool condition,string message) { if(!condition)throw new InvalidOperationException(message); }
             var prefsType=T("MegaCrit.Sts2.Core.CardSelection.CardSelectorPrefs");
             var prompt=prefsType.GetProperty("ExhaustSelectionPrompt")!.GetValue(null)!;
@@ -58,8 +85,8 @@ public partial class Probe : Node {
             var mode=Enum.Parse(select.GetParameters()[3].ParameterType,"SimpleSelect");
             System.Threading.Tasks.Task? effect=null;
             System.Threading.Tasks.Task task;
-            if(caseName=="purity-consumer") {
-                effect=NativeBootstrap.BeginPurity(cards);
+            if(caseName=="purity-consumer" || upgrading) {
+                effect=upgrading ? NativeBootstrap.BeginArmaments(cards) : NativeBootstrap.BeginPurity(cards);
                 if(effect.IsFaulted)throw effect.Exception!;
                 var completion=hand.GetType().GetField("_selectionCompletionSource",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(hand)!;
                 task=(System.Threading.Tasks.Task)Get(completion,"Task");
@@ -72,19 +99,21 @@ public partial class Probe : Node {
                 GD.Print("PROBE confirm initialized ",Get(button,"IsEnabled"));
                 var selectedField=hand.GetType().GetField("_selectedCards",BindingFlags.Instance|BindingFlags.NonPublic)!;
                 void Dump(string label) {
+                    var beforeRead=NativeBootstrap.GameplayFingerprint(cards);
                     var values=new System.Collections.Generic.List<int>();
                     foreach(var c in (System.Collections.IEnumerable)selectedField.GetValue(hand)!)values.Add(Array.FindIndex(cards,x=>ReferenceEquals(x,c)));
                     observations.Add(new {input=label,selected=values.ToArray(),pending=!task.IsCompleted,confirm=(bool)Get(button,"IsEnabled")});
                     Require(!task.IsCompleted,"A partial hand callback unexpectedly submitted");
                     Require((bool)Get(button,"IsEnabled")== (values.Count>=minimum && values.Count<=maximum),"Native confirm availability differs");
+                    Require(beforeRead==NativeBootstrap.GameplayFingerprint(cards),"Selection observation mutated native gameplay or RNG");
                 }
                 void Choose(int index) {
                     var holder=Invoke(hand,"GetCardHolder",cards[index])!;
-                    hand.GetType().GetMethod("SelectCardInSimpleMode",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(hand,new[]{holder});
+                    hand.GetType().GetMethod(upgrading ? "SelectCardInUpgradeMode" : "SelectCardInSimpleMode",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(hand,new[]{holder});
                     Dump("choose"+index);
                 }
                 Dump("initial");
-                if(caseName!="zero") { Choose(0);Choose(1);Choose(2); if(effect!=null)Choose(3); }
+                if(caseName!="zero") { Choose(0);Choose(1);Choose(2); if(caseName=="purity-consumer")Choose(3); }
                 var selectedContainer=hand.GetNode<Node>("%SelectedHandCardContainer");
                 if(caseName=="ordered" || caseName=="purity-consumer") {
                     Invoke(selectedContainer,"DeselectCard",cards[0]); Dump("deselect0");
@@ -97,17 +126,30 @@ public partial class Probe : Node {
                 var returned=(System.Collections.IEnumerable)task.GetType().GetProperty("Result")!.GetValue(task)!;
                 var actual=new System.Collections.Generic.List<int>();
                 foreach(var c in returned)actual.Add(Array.FindIndex(cards,x=>ReferenceEquals(x,c)));
-                var expected=caseName=="zero" ? new int[]{} : caseName=="single" ? new[]{2} : caseName=="purity-consumer" ? new[]{1,3,0} : new[]{2,0};
+                var expected=caseName=="zero" ? new int[]{} : caseName=="single" || upgrading ? new[]{2} : caseName=="purity-consumer" ? new[]{1,3,0} : new[]{2,0};
                 Require(System.Linq.Enumerable.SequenceEqual(actual,expected),"Native returned order differs");
                 int[]? exhausted=null;
                 if(effect!=null) {
                     await effect;
-                    exhausted=NativeBootstrap.ExhaustedIndices(cards);
-                    Require(System.Linq.Enumerable.SequenceEqual(exhausted,new[]{1,3,0,-1}),"Native Purity exhaust continuation order differs");
+                    if(upgrading)Require(System.Linq.Enumerable.SequenceEqual(NativeBootstrap.UpgradedIndices(cards),new[]{2}),"Native Armaments upgraded incorrect cards");
+                    else {
+                        exhausted=NativeBootstrap.ExhaustedIndices(cards);
+                        Require(System.Linq.Enumerable.SequenceEqual(exhausted,new[]{1,3,0,-1}),"Native Purity exhaust continuation order differs");
+                    }
                 }
-                GD.Print("CHOICE_RESULT ",System.Text.Json.JsonSerializer.Serialize(new {case_name=caseName,observations,result=actual,exhausted,framework=System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,hand_ready=hand.IsNodeReady(),inside_tree=hand.IsInsideTree(),mode=Get(hand,"CurrentMode").ToString(),assembly_mvid=a.ManifestModule.ModuleVersionId.ToString()}));
+                GD.Print("CHOICE_RESULT ",System.Text.Json.JsonSerializer.Serialize(new {case_name=caseName,observations,result=actual,exhausted,upgraded=upgrading?NativeBootstrap.UpgradedIndices(cards):null,candidates=candidateModels,minimum,maximum,automatic_submission=false,read_purity=true,framework=System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,hand_ready=hand.IsNodeReady(),inside_tree=hand.IsInsideTree(),mode=Get(hand,"CurrentMode").ToString(),assembly_mvid=a.ManifestModule.ModuleVersionId.ToString()}));
+            }
             }
             ui.Free(); room.Free();
+            ((Node)roomContainer).Free();
+            ((Node)Get(game,"RootSceneContainer")).Free();
+            ((Node)Get(input,"ControllerManager")).Free();
+            ((Node)input).Free();
+            ((Node)Get(game,"HotkeyManager")).Free();
+            game.Free();
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            GD.Print("PROBE CLEANUP COMPLETE");
 
         } catch(Exception ex){GD.PrintErr("PROBE ERROR ",ex);GetTree().Quit(1);return;}
         GetTree().Quit();

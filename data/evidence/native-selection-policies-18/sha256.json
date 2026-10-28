@@ -1,0 +1,9 @@
+{
+  "base_commit": "b21aeb8",
+  "simulator_sha256": "6cab0ec171f48c6ef989903a7f5d7db986406dbc4ecc83cfc3ae9d6e1fb61bfc",
+  "simulator_source": "run_scenario_main.cpp in capture archive; byte-copyable engine at base commit",
+  "artifacts": {
+    "capture.tar.gz": "cc673f97e016c1b715de03fcefd4c28180699106cbb101cca0cfcf3f9a174d26",
+    "verification.json": "75ed0286a477cf468f61d6a1b44dd2e5413e74c9c879bcaab20ee5f50514b3de"
+  }
+}
