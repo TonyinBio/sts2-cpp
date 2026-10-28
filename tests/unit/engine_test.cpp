@@ -74,6 +74,20 @@ TEST(OrderedPowers, ArtifactIsConsumedByWeakBeforeShockwaveAppliesVulnerable) {
     EXPECT_EQ(observe(state).enemy_vulnerable, 3);
     EXPECT_FALSE(state.view().enemy.has_power(PowerId::artifact));
 }
+TEST(OrderedPowers, EnemyIntentMatchesModifiedAttackAndKeepsNonAttackZero) {
+    const std::array deck{CardSpec{CardId::defend}};
+    CombatConfig config; config.deck = deck; config.player_hp = 80;
+    auto state = initial(config); Scratch scratch;
+    ASSERT_EQ(apply_power_scenario(state, {PowerId::strength, 3, true}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(observe(state).enemy_attack, 0);
+    ASSERT_EQ(apply_combat(state, {state.view().boundary, CombatInputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_power_scenario(state, {PowerId::shrink, -1, true}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_power_scenario(state, {PowerId::vulnerable, 2}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(observe(state).enemy_attack, 10); // floor((7 + 3) * .7 * 1.5)
+    const auto hp = observe(state).hp;
+    ASSERT_EQ(apply_combat(state, {state.view().boundary, CombatInputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(observe(state).hp, hp - 10);
+}
 TEST(GameRng, MatchesPinnedGameMixedCallsAndEntireFinalState) {
     const auto vectors = file(KERNEL_RNG_FIXTURE);
     for (const auto& sequence : vectors["sequences"]) {
