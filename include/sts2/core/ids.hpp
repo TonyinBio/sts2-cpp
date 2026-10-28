@@ -15,5 +15,6 @@ template<class Tag> struct Handle {
     friend auto operator<=>(const Handle&, const Handle&) = default;
 };
 using CardHandle = Handle<struct CardInstanceTag>;
+using PromptId = Id<struct PromptTag>;
 using BoundaryId = Id<struct BoundaryTag>;
 } // namespace sts2::engine

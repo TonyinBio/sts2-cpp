@@ -2,12 +2,13 @@
 #include "sts2/state/combat.hpp"
 
 namespace sts2::engine {
-enum class CombatInputKind : std::uint8_t { play_card, end_turn, select_card };
+enum class CombatInputKind : std::uint8_t { play_card, end_turn, select_card, deselect_card, confirm_selection };
 struct CombatInput {
     BoundaryId expected_boundary;
     CombatInputKind kind;
     CardHandle card{};
     bool target_enemy = false;
+    PromptId prompt {};
 };
 [[nodiscard]] StepResult initialize_combat(CombatView, const CombatConfig&, Scratch&,
     const Ruleset& = Ruleset::pinned(), Limits = {});

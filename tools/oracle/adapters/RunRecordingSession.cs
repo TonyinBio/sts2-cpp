@@ -122,6 +122,12 @@ public partial class RunSimulator
                 Prefs.Value = new CardSelectorPrefs(new LocString("card_selection", "TO_SELECT"), canSkip ? 0 : 1, 1)
                     { RequireManualConfirmation = false, Cancelable = canSkip };
             }
+            if (__originalMethod.Name == "FromHandForUpgrade") {
+                // This selector-only branch passes literal (1,1) without a prefs
+                // object. Use its source-declared UI branch's native constructor
+                // for diagnostic metadata. This does not execute native UI.
+                Prefs.Value = new CardSelectorPrefs(new LocString("gameplay_ui", "CHOOSE_CARD_UPGRADE_HEADER"), 1);
+            }
         }
     }
 
@@ -169,7 +175,7 @@ public partial class RunSimulator
         var harmony = new Harmony("sts2.oracle.runchoices");
         if (!_runChoicesPatched) {
             foreach (var method in typeof(CardSelectCmd).GetMethods(BindingFlags.Static | BindingFlags.Public))
-                if (method.GetParameters().Any(p => p.ParameterType == typeof(CardSelectorPrefs)) || method.Name == "FromChooseACardScreen")
+                if (method.GetParameters().Any(p => p.ParameterType == typeof(CardSelectorPrefs)) || method.Name is "FromChooseACardScreen" or "FromHandForUpgrade")
                     harmony.Patch(method, prefix: new HarmonyMethod(typeof(RunChoiceContextCapture).GetMethod(nameof(RunChoiceContextCapture.Capture))!));
             harmony.Patch(typeof(RunManager).GetMethod(nameof(RunManager.WinRun))!,
                 prefix: new HarmonyMethod(typeof(RunChoiceContextCapture).GetMethod(nameof(RunChoiceContextCapture.BeforeWin))!));
@@ -181,6 +187,21 @@ public partial class RunSimulator
         // StartRun performs the real seeded setup and enters the initial act/Neow;
         // recorder mode bypasses its UI-oriented decision detection.
         CheckResponse(StartRun(character, ascension, seed, "en"));
+        // Declared diagnostic setup, separate from player actions and native pools.
+        if (command.TryGetProperty("scenario_deck", out var scenarioDeck))
+        {
+            var ids = scenarioDeck.EnumerateArray().Select(card => card.GetProperty("id").GetString()!.Replace("CARD.", "")).ToArray();
+            var deckJson = JsonSerializer.SerializeToElement(ids);
+            CheckResponse(SetPlayer(new Dictionary<string, JsonElement> { ["deck"] = deckJson }));
+            var index = 0;
+            foreach (var card in scenarioDeck.EnumerateArray())
+            {
+                if (card.TryGetProperty("upgraded", out var upgraded) && upgraded.GetBoolean())
+                    { _runState!.Players[0].Deck.Cards[index].UpgradeInternal(); _runState.Players[0].Deck.Cards[index].FinalizeUpgradeInternal(); }
+                ++index;
+            }
+        }
+
         // First-time EnsureModelDbInitialized installs sts2-cli's automatic reward
         // selector. Bind our explicit decision boundary after that initialization.
         RewardsSet.testSelector = OfferRunRewards;

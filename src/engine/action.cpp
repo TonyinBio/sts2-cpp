@@ -1,4 +1,5 @@
 #include "sts2/engine/action.hpp"
+#include <algorithm>
 
 namespace sts2::engine {
 namespace {
@@ -30,10 +31,19 @@ std::size_t ActionSpaceView::size() const noexcept {
     if (!valid_data_storage(state_.data, state_.overflow)) return 0;
     if (state_.phase == CombatPhase::play) return state_.zone(Zone::hand).size() + 1;
     if (state_.phase == CombatPhase::discard_choice) return state_.zone(Zone::hand).size();
+    if (state_.phase == CombatPhase::card_choice) return state_.selection_candidates.size() + !state_.selection.automatic_at_maximum;
     return 0;
 }
 std::optional<ActionView> ActionSpaceView::at(std::size_t index) const noexcept {
     if (index >= size()) return std::nullopt;
+    if (state_.phase == CombatPhase::card_choice) {
+        CombatInput input{state_.boundary, CombatInputKind::confirm_selection, {}, false, state_.selection.id};
+        if (index < state_.selection_candidates.size()) {
+            input.card = state_.selection_candidates[index];
+            input.kind = std::find(state_.selection_order.begin(), state_.selection_order.end(), input.card) == state_.selection_order.end() ? CombatInputKind::select_card : CombatInputKind::deselect_card;
+        }
+        return ActionView{input, validate_combat(state_, input)};
+    }
     const auto& hand = state_.zone(Zone::hand);
     CombatInput input{state_.boundary, CombatInputKind::end_turn};
     if (index < hand.size()) {
