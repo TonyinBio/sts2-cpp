@@ -26,9 +26,12 @@ def cases():
     yield 'armaments-upgrade', [('ARMAMENTS', False), ('STRIKE_IRONCLAD', False), ('DEFEND_IRONCLAD', False)], [('play', 'ARMAMENTS'), ('select', [1])]
     yield 'armaments-all', [('ARMAMENTS', True), ('STRIKE_IRONCLAD', False), ('DEFEND_IRONCLAD', False)], [('play', 'ARMAMENTS')]
     yield 'armaments-ineligible', [('ARMAMENTS', False), ('STRIKE_IRONCLAD', True), ('DEFEND_IRONCLAD', True)], [('play', 'ARMAMENTS')]
+    yield 'armaments-one', [('ARMAMENTS', False), ('STRIKE_IRONCLAD', False)], [('play', 'ARMAMENTS')]
     yield 'headbutt-pile', [('HEADBUTT', False)] + [('DEFEND_IRONCLAD', False)] * 2, [('play', 'DEFEND_IRONCLAD'), ('play', 'DEFEND_IRONCLAD'), ('play', 'HEADBUTT'), ('select', [1])]
     yield 'headbutt-forced', [('HEADBUTT', True), ('DEFEND_IRONCLAD', False)], [('play', 'DEFEND_IRONCLAD'), ('play', 'HEADBUTT')]
     for upgraded in (False, True):
+        yield 'burning-pact-forced' + ('-plus' if upgraded else ''), [('BURNING_PACT', upgraded), ('STRIKE_IRONCLAD', False)], [('play', 'BURNING_PACT')]
+        yield 'true-grit-forced' + ('-plus' if upgraded else ''), [('TRUE_GRIT', upgraded), ('STRIKE_IRONCLAD', False)], [('play', 'TRUE_GRIT')]
         yield 'burning-pact' + ('-plus' if upgraded else ''), [('BURNING_PACT', upgraded)] * 8, [('play', 'BURNING_PACT'), ('select', [2])]
         yield 'true-grit' + ('-plus' if upgraded else ''), [('TRUE_GRIT', upgraded), ('STRIKE_IRONCLAD', False), ('DEFEND_IRONCLAD', False)], [('play', 'TRUE_GRIT')] + ([('select', [1])] if upgraded else [])
 
