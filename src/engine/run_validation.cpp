@@ -46,6 +46,10 @@ bool valid_run(const RunState& state) noexcept {
         for (std::size_t j = 0; j < i; ++j) if (setup.deck[i].instance == setup.deck[j].instance) return false;
     }
     for (auto relic : setup.relics) if (!id(relic, "RELIC.")) return false;
+    const auto joss = SetupRules::find("RELIC.JOSS_PAPER");
+    if (setup.joss_paper_counter >= 5 ||
+        (setup.joss_paper_counter != 0 && std::find(setup.relics.begin(), setup.relics.end(), joss) == setup.relics.end()) ||
+        (state_view.combat && state_view.combat->joss_paper_counter != setup.joss_paper_counter)) return false;
     for (auto potion : setup.potions) if (potion != no_content && !id(potion, "POTION.")) return false;
     for (const auto& act : setup.acts) {
         if (!SetupRules::act(act.act) || !id(act.ancient, "EVENT.") || !id(act.boss, "ENCOUNTER.") ||

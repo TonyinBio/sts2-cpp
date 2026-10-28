@@ -130,10 +130,7 @@ void move_card(CombatView state, Zone from, Zone to, CardHandle card) {
 void clear_selection(CombatView state) {
     state.selection = {}; state.selection_candidates.clear(); state.selection_order.clear();
 }
-void exhaust(CombatView state, Scratch& scratch, Zone from, CardHandle card) {
-    move_card(state, from, Zone::exhaust, card);
-    emit(state, scratch, CombatEventKind::exhausted, false, false, card);
-}
+void exhaust(CombatView, Scratch&, Zone, CardHandle);
 void begin_selection(CombatView state, SelectionEffect effect, Zone zone, std::uint32_t minimum, std::uint32_t maximum, bool automatic) {
     if (state.next_prompt.value == UINT32_MAX) throw std::length_error("prompt identity exhausted");
     clear_selection(state);
@@ -144,6 +141,7 @@ void begin_selection(CombatView state, SelectionEffect effect, Zone zone, std::u
     state.phase = CombatPhase::card_choice;
 }
 void draw(CombatView state, Scratch& scratch, int count, const Ruleset& rules, bool from_hand_draw = true) {
+    if (state.enemy.hp == 0 || state.player.hp == 0) return;
     auto hand = state.zone(Zone::hand); auto pile = state.zone(Zone::draw);
     auto discard = state.zone(Zone::discard);
     while (count-- > 0 && hand.size() < 10) {
@@ -167,6 +165,32 @@ void draw(CombatView state, Scratch& scratch, int count, const Ruleset& rules, b
             event.from_hand_draw = from_hand_draw; scratch.trace.emit(state, event);
         }
     }
+}
+void exhaust(CombatView state, Scratch& scratch, Zone from, CardHandle card) {
+    if (state.enemy.hp == 0 || state.player.hp == 0) return;
+    move_card(state, from, Zone::exhaust, card);
+    emit(state, scratch, CombatEventKind::exhausted, false, false, card);
+    auto& dispatch = state.exhaust_dispatch;
+    dispatch = {card, state.exhaust_relics, state.exhaust_relic_count, 0, true};
+    while (dispatch.cursor < dispatch.count) {
+        const auto listener = dispatch.candidates[dispatch.cursor++];
+        if (listener == ExhaustRelic::charons_ashes && state.enemy.hp > 0) {
+            const auto blocked = std::min(state.enemy.block, 3);
+            const auto unblocked = std::min(state.enemy.hp, 3 - blocked);
+            HitResult hit{blocked, unblocked, 3 - blocked - unblocked,
+                state.enemy.block > 0 && blocked == state.enemy.block, blocked >= 3, unblocked == state.enemy.hp};
+            state.enemy.block -= blocked; state.enemy.hp -= unblocked;
+            if (unblocked > 0) ++state.enemy.positive_unblocked_hits;
+            emit(state, scratch, CombatEventKind::damaged, false, true, {}, 4, 0, hit);
+        } else if (listener == ExhaustRelic::joss_paper) {
+            ++state.joss_paper_counter;
+            if (state.joss_paper_counter >= 5) {
+                draw(state, scratch, static_cast<int>(state.joss_paper_counter / 5), Ruleset::pinned(), false);
+                state.joss_paper_counter %= 5;
+            }
+        }
+    }
+    dispatch = {};
 }
 HitResult damage(CreatureState& target, int base, const CreatureState& source) noexcept {
     // The native decimal modifiers combine before a single floor operation.
@@ -212,16 +236,25 @@ void end_combat(CombatView state, Scratch& scratch, bool won) {
 StepResult initialize_combat(CombatView state, const CombatConfig& config, Scratch& scratch, const Ruleset& rules, Limits limits) {
     if (config.build != game_build || config.ascension != 0 || config.encounter != "ENCOUNTER.SHRINKER_BEETLE_WEAK" ||
         config.seed.empty() || config.seed.size() > 4096 || config.player_max_hp < 1 || config.player_hp < 1 || config.player_hp > config.player_max_hp ||
-        config.card_generation == 0 || config.enemy_hp < 0 || config.enemy_hp > 40 ||
+        config.card_generation == 0 || config.enemy_hp < 0 || config.enemy_hp > 40 || config.exhaust_relics.size() > 2 || config.joss_paper_counter >= 5 ||
         (config.seed.starts_with("old") && std::any_of(config.seed.begin(), config.seed.end(), [](unsigned char c) { return c >= 128; })))
         return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
     const auto deck = config.deck.empty() ? std::span<const CardSpec>(starting_deck) : config.deck;
     if (deck.size() > limits.cards) return {StepStatus::resource_limit, state.boundary, Restriction::capacity};
     for (const auto& card : deck) if (!rules.card(card.definition))
         return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
+    for (std::size_t i = 0; i < config.exhaust_relics.size(); ++i)
+        if (static_cast<unsigned>(config.exhaust_relics[i]) > 1 ||
+            std::find(config.exhaust_relics.begin(), config.exhaust_relics.begin() + i, config.exhaust_relics[i]) != config.exhaust_relics.begin() + i)
+            return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
+    if (config.joss_paper_counter != 0 && std::find(config.exhaust_relics.begin(), config.exhaust_relics.end(), ExhaustRelic::joss_paper) == config.exhaust_relics.end())
+        return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
     CombatState next(state.overflow.allocator()); auto next_view = next.view();
     if (!next_view.clock.initialize(config.clock)) return {StepStatus::unsupported_content, state.boundary, Restriction::unsupported_setup};
     try {
+        next_view.exhaust_relic_count = static_cast<std::uint8_t>(config.exhaust_relics.size());
+        std::copy(config.exhaust_relics.begin(), config.exhaust_relics.end(), next_view.exhaust_relics.begin());
+        next_view.joss_paper_counter = config.joss_paper_counter;
         next_view.reserve(deck.size()); next_view.seed = config.seed; next_view.numeric_seed = game_seed(config.seed); next_view.rng = config.initial_rng ? *config.initial_rng : RngBank(config.seed);
         next_view.player = {config.player_hp, config.player_max_hp};
         int enemy_hp = config.enemy_hp;
@@ -380,6 +413,7 @@ StepResult advance_combat(CombatView state, Scratch& scratch, const Ruleset& rul
             emit(state, scratch, CombatEventKind::play_finished, false, false, card, play);
             if (source->definition == CardId::purity || source->definition == CardId::shockwave || source->definition == CardId::tremble)
                 exhaust(state, scratch, Zone::play, card);
+            if (state.enemy.hp == 0) { end_combat(state, scratch, true); return result(state); }
             break;
         }
         }
@@ -496,6 +530,15 @@ StepResult apply_power_scenario(CombatView state, const PowerApplication& operat
 }
 bool valid_combat(ConstCombatView state, const Ruleset& rules) noexcept {
     if (!valid_data_storage(state.data, state.overflow) || !state.cards.valid()) return false;
+    if (state.exhaust_relic_count > state.exhaust_relics.size() || state.joss_paper_counter >= 5 || state.exhaust_dispatch != ExhaustDispatch{}) return false;
+    bool joss = false;
+    for (std::size_t i = 0; i < state.exhaust_relics.size(); ++i) {
+        if (i >= state.exhaust_relic_count) { if (state.exhaust_relics[i] != ExhaustRelic{}) return false; continue; }
+        const auto relic = state.exhaust_relics[i];
+        if (static_cast<unsigned>(relic) > 1 || std::find(state.exhaust_relics.begin(), state.exhaust_relics.begin() + i, relic) != state.exhaust_relics.begin() + i) return false;
+        joss |= relic == ExhaustRelic::joss_paper;
+    }
+    if (!joss && state.joss_paper_counter != 0) return false;
     if (static_cast<unsigned>(state.phase) > static_cast<unsigned>(CombatPhase::invalid) ||
         static_cast<unsigned>(state.move) > static_cast<unsigned>(BeetleMove::stomp) ||
         state.seed.empty() || state.seed.size() > 4096 || state.numeric_seed != game_seed(state.seed) ||

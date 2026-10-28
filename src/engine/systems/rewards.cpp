@@ -16,7 +16,8 @@ StepResult generate_combat_rewards(RunView run) {
     if (run.ascension != 0 || run.act_index != 0) return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
     const auto* character = SetupRules::character(run.character);
     if (!character) return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
-    for (auto id : run.relics) if (SetupRules::name(id) != "RELIC.BURNING_BLOOD" && SetupRules::name(id) != "RELIC.GOLDEN_PEARL")
+    for (auto id : run.relics) if (SetupRules::name(id) != "RELIC.BURNING_BLOOD" && SetupRules::name(id) != "RELIC.GOLDEN_PEARL" &&
+        SetupRules::name(id) != "RELIC.CHARONS_ASHES" && SetupRules::name(id) != "RELIC.JOSS_PAPER")
         return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
     try {
         auto rng = run.player_rng.streams[0]; CombatRewards rewards;

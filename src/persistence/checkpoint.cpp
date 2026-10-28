@@ -68,7 +68,7 @@ std::uint64_t content_fingerprint() {
 Checkpoint checkpoint(ConstCombatView s) {
     if (!valid_combat(s)) throw std::invalid_argument("Cannot checkpoint invalid simulation");
     Writer w;
-    w.text("STS2CP08"); w.u32(8); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
+    w.text("STS2CP09"); w.u32(9); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed);
     w.u32(s.boundary.value); w.u8(static_cast<std::uint8_t>(s.phase));
     const auto config = s.clock.config();
@@ -77,6 +77,10 @@ Checkpoint checkpoint(ConstCombatView s) {
     for (const auto& rng : s.rng.streams) { for (auto word : rng.state().words) w.u64(word); w.u32(rng.state().counter); }
     w.creature(s.player); w.creature(s.enemy); w.i32(s.energy); w.i32(s.turn);
     w.u8(static_cast<std::uint8_t>(s.move)); w.u8(s.burning_blood); w.u32(s.next_creation_order);
+    w.u8(s.exhaust_relic_count); for (auto relic : s.exhaust_relics) w.u8(static_cast<std::uint8_t>(relic));
+    w.u32(s.joss_paper_counter);
+    w.handle(s.exhaust_dispatch.source); for (auto relic : s.exhaust_dispatch.candidates) w.u8(static_cast<std::uint8_t>(relic));
+    w.u8(s.exhaust_dispatch.count); w.u8(s.exhaust_dispatch.cursor); w.u8(s.exhaust_dispatch.active);
     w.u32(s.cards.data.highest_generation);
     w.u32(static_cast<std::uint32_t>(s.cards.slots().size()));
     for (const auto& slot : s.cards.slots()) {
@@ -111,8 +115,8 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
         Reader trailer{bytes.last(8)};
         if (trailer.u64() != digest(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
-        for (char c : std::string_view("STS2CP08")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 8 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        for (char c : std::string_view("STS2CP09")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
+        if (r.u32() != 9 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (char c : game_digest) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
         CombatState s(destination.overflow.allocator()); auto s_view = s.view();
@@ -128,6 +132,10 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
         }
         s_view.player = r.creature(); s_view.enemy = r.creature(); s_view.energy = r.i32(); s_view.turn = r.i32();
         s_view.move = static_cast<BeetleMove>(r.u8()); s_view.burning_blood = r.boolean(); s_view.next_creation_order = r.u32();
+        s_view.exhaust_relic_count = r.u8(); for (auto& relic : s_view.exhaust_relics) relic = static_cast<ExhaustRelic>(r.u8());
+        s_view.joss_paper_counter = r.u32();
+        s_view.exhaust_dispatch.source = r.handle(); for (auto& relic : s_view.exhaust_dispatch.candidates) relic = static_cast<ExhaustRelic>(r.u8());
+        s_view.exhaust_dispatch.count = r.u8(); s_view.exhaust_dispatch.cursor = r.u8(); s_view.exhaust_dispatch.active = r.boolean();
         const auto highest_generation = r.u32();
         const auto count = r.u32();
         if (count > limits.cards) return RestoreStatus::resource_limit;

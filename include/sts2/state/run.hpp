@@ -57,6 +57,7 @@ struct RunData {
     std::array<ActRoomsData, 3> acts {};
     InlineSequence<PersistentCard, 32> deck {};
     InlineSequence<ContentId, 16> relics {};
+    std::uint32_t joss_paper_counter = 0;
     InlineSequence<ContentId, 4> potions {};
     float card_rarity_offset = -0.05f;
     float potion_reward_odds = 0.4f;
@@ -108,6 +109,7 @@ template<bool Const> struct BasicRunView {
     std::array<BasicActRoomsView<Const>, 3> acts{{{data.acts[0], overflow}, {data.acts[1], overflow}, {data.acts[2], overflow}}};
     SequenceView<PersistentCard, 32, Const> deck{data.deck, overflow};
     SequenceView<ContentId, 16, Const> relics{data.relics, overflow};
+    Ref<std::uint32_t> joss_paper_counter = data.joss_paper_counter;
     SequenceView<ContentId, 4, Const> potions{data.potions, overflow};
     Ref<float> card_rarity_offset = data.card_rarity_offset;
     Ref<float> potion_reward_odds = data.potion_reward_odds;
@@ -136,7 +138,7 @@ template<bool Const> struct BasicRunView {
             potion_slots == other.potion_slots && orb_slots == other.orb_slots &&
             rng == other.rng && player_rng == other.player_rng &&
             shared_relics == other.shared_relics && player_relics == other.player_relics &&
-            acts == other.acts && deck == other.deck && relics == other.relics &&
+            acts == other.acts && deck == other.deck && relics == other.relics && joss_paper_counter == other.joss_paper_counter &&
             potions == other.potions && card_rarity_offset == other.card_rarity_offset &&
             potion_reward_odds == other.potion_reward_odds && combat == other.combat &&
             direct_combat == other.direct_combat && combat_generation == other.combat_generation &&

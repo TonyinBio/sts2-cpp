@@ -23,7 +23,10 @@ RunObservation observe(const RunState& state) {
     view.hp = state_view.hp; view.max_hp = state_view.max_hp; view.gold = state_view.gold;
     view.potion_capacity = state_view.potion_slots;
     for (const auto& card : state_view.deck) view.deck.push_back({card.instance, SetupRules::name(card.definition), card.upgrade, card_cost(SetupRules::name(card.definition))});
-    for (std::size_t i = 0; i < state_view.relics.size(); ++i) view.relics.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state_view.relics[i])});
+    for (std::size_t i = 0; i < state_view.relics.size(); ++i) {
+        const auto name = SetupRules::name(state_view.relics[i]);
+        view.relics.push_back({static_cast<std::uint32_t>(i), name, name == "RELIC.JOSS_PAPER" ? std::optional(state_view.joss_paper_counter) : std::nullopt});
+    }
     for (std::size_t i = 0; i < state_view.potions.size(); ++i) view.potions.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state_view.potions[i])});
     if (state_view.phase == RunPhase::neow)
         for (std::size_t i = 0; i < state_view.neow_options.size(); ++i) view.options.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state_view.neow_options[i])});

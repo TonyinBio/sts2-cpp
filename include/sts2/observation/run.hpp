@@ -14,6 +14,7 @@ struct VisibleCard {
 struct VisibleOption {
     std::uint32_t id;
     std::string_view model_id;
+    std::optional<std::uint32_t> counter;
 };
 struct VisibleMapNode {
     MapNodeId id;

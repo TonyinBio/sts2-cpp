@@ -205,8 +205,22 @@ public partial class RunSimulator
         // First-time EnsureModelDbInitialized installs sts2-cli's automatic reward
         // selector. Bind our explicit decision boundary after that initialization.
         RewardsSet.testSelector = OfferRunRewards;
+        if (command.TryGetProperty("scenario_relics", out var scenarioRelics)) {
+            var player = _runState!.Players[0];
+            var ids = scenarioRelics.EnumerateArray().Select(relic => relic.GetString()!.Replace("RELIC.", "")).ToArray();
+            CheckResponse(SetPlayer(new Dictionary<string, JsonElement> { ["relics"] = JsonSerializer.SerializeToElement(ids) }));
+            foreach (var relic in player.Relics) { relic.Owner = player; relic.FloorAddedToDeck = 1; }
+        }
+        if (command.TryGetProperty("scenario_joss_counter", out var jossCounter)) {
+            var relic = _runState!.Players[0].Relics.Single(relic => relic.Id.Entry == "JOSS_PAPER");
+            relic.GetType().GetProperty("CardsExhausted")!.SetValue(relic, jossCounter.GetInt32());
+        }
         if (setup.TryGetProperty("kind", out var setupKind) && setupKind.GetString() == "seeded_combat")
             CheckResponse(EnterRoom("combat", setup.GetProperty("encounter").GetString(), null));
+        if (command.TryGetProperty("scenario_enemy_hp", out var enemyHp)) {
+            var enemy = CombatManager.Instance.DebugOnlyGetState()!.Enemies.Single();
+            enemy.SetMaxHpInternal(enemyHp.GetInt32()); enemy.SetCurrentHpInternal(enemyHp.GetInt32());
+        }
         _runState!.Players[0].Creature.Died += _ => _runDeathObserved = true;
         AwaitRunBoundary();
         RegisterCombatIdentities();

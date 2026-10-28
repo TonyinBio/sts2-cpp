@@ -22,12 +22,13 @@ bool supported_combat_inventory(ConstRunView state) {
         if (potion != no_content && SetupRules::name(potion) != "POTION.POTION_OF_BINDING") return false;
     // Inventory hooks are supported only for the starting relic and Golden Pearl.
     for (auto relic : state.relics)
-        if (SetupRules::name(relic) != "RELIC.BURNING_BLOOD" && SetupRules::name(relic) != "RELIC.GOLDEN_PEARL") return false;
+        if (SetupRules::name(relic) != "RELIC.BURNING_BLOOD" && SetupRules::name(relic) != "RELIC.GOLDEN_PEARL" &&
+            SetupRules::name(relic) != "RELIC.CHARONS_ASHES" && SetupRules::name(relic) != "RELIC.JOSS_PAPER") return false;
     return true;
 }
 // Prepare combat without publishing run changes. Callers own clock advancement,
 // boundary publication and encounter visitation; initialization reads run RNG.
-StepResult prepare_combat(CombatView destination, ConstRunView run, Scratch& scratch, BoundaryId rejection_boundary) {
+StepResult prepare_combat(CombatView destination, ConstRunView run, Scratch& scratch, BoundaryId rejection_boundary, std::int32_t enemy_hp = 0) {
     std::vector<CardSpec> deck;
     for (const auto& card : run.deck) {
         CardId definition = CardId::count;
@@ -38,10 +39,26 @@ StepResult prepare_combat(CombatView destination, ConstRunView run, Scratch& scr
         deck.push_back({definition, card.upgrade == 1, card.instance});
     }
     CombatConfig config;
+    std::array<ExhaustRelic, 2> listeners {}; std::size_t count = 0;
+    config.burning_blood = false;
+    for (auto relic : run.relics) {
+        const auto name = SetupRules::name(relic);
+        if (name == "RELIC.BURNING_BLOOD") config.burning_blood = true;
+        if (name == "RELIC.CHARONS_ASHES" || name == "RELIC.JOSS_PAPER") {
+            if (count == listeners.size()) return {StepStatus::unsupported_content, rejection_boundary, Restriction::unsupported_setup};
+            listeners[count++] = name == "RELIC.CHARONS_ASHES" ? ExhaustRelic::charons_ashes : ExhaustRelic::joss_paper;
+        }
+    }
+    config.exhaust_relics = std::span(listeners).first(count); config.joss_paper_counter = run.joss_paper_counter;
     config.seed = run.seed; config.clock = run.clock.config(); config.initial_rng = &run.rng;
     config.deck = deck; config.player_hp = run.hp; config.player_max_hp = run.max_hp;
     config.card_generation = next_combat_generation(run);
-    return initialize_combat(destination, config, scratch);
+    const auto result = initialize_combat(destination, config, scratch);
+    if (result.status == StepStatus::awaiting_input && enemy_hp != 0) {
+        if (enemy_hp < 1 || enemy_hp > 40) return {StepStatus::unsupported_content, rejection_boundary, Restriction::unsupported_setup};
+        destination.enemy.hp = enemy_hp; destination.enemy.max_hp = enemy_hp;
+    }
+    return result;
 }
 std::array<ContentId, 3> neow_options(GameRng& rng) {
     const auto curses = SetupRules::neow_curses(); int index;
@@ -87,9 +104,11 @@ StepResult initialize_run(RunState& destination, const SeededConfig& config) {
     catch (...) { return {StepStatus::engine_error, {}, Restriction::execution_budget}; }
 }
 StepResult initialize_seeded_combat(RunState& destination, const SeededConfig& config, CombatTrace trace) {
-    return initialize_combat_scenario(destination, config, {}, trace);
+    const auto result = initialize_combat_scenario(destination, config, {}, trace);
+    if (result.status == StepStatus::awaiting_input) destination.view().direct_combat = true;
+    return result;
 }
-StepResult initialize_combat_scenario(RunState& destination, const SeededConfig& config, std::span<const CardSpec> scenario_deck, CombatTrace trace) {
+StepResult initialize_combat_scenario(RunState& destination, const SeededConfig& config, std::span<const CardSpec> scenario_deck, CombatTrace trace, std::span<const ContentId> scenario_relics, std::int32_t enemy_hp, std::uint32_t joss_counter) {
     if (config.character != "CHARACTER.IRONCLAD" || config.ascension != 0)
         return {StepStatus::unsupported_content, destination.view().boundary, Restriction::unsupported_setup};
     try {
@@ -107,12 +126,15 @@ StepResult initialize_combat_scenario(RunState& destination, const SeededConfig&
                 next_view.deck.push_back({id, static_cast<std::uint32_t>(next_view.deck.size()), static_cast<std::uint32_t>(card.upgraded), -1});
             }
         }
+        if (!scenario_relics.empty()) { next_view.relics.clear(); next_view.relics.insert(next_view.relics.end(), scenario_relics.begin(), scenario_relics.end()); }
+        next_view.joss_paper_counter = joss_counter;
+        if (!supported_combat_inventory(next_view)) return {StepStatus::unsupported_content, destination.view().boundary, Restriction::unsupported_setup};
         next_view.combat.emplace();
         Scratch scratch; scratch.trace = trace;
-        const auto initialized = prepare_combat(*next_view.combat, next_view, scratch, destination.view().boundary);
+        const auto initialized = prepare_combat(*next_view.combat, next_view, scratch, destination.view().boundary, enemy_hp);
         if (initialized.status != StepStatus::awaiting_input) return initialized;
         next_view.rng = next_view.combat->rng; next_view.acts[0].normal_visited = 1;
-        next_view.phase = RunPhase::combat; next_view.direct_combat = true; next_view.combat_generation = 1;
+        next_view.phase = RunPhase::combat; next_view.direct_combat = false; next_view.combat_generation = 1;
         destination = std::move(next); return initialized;
     } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, destination.view().boundary, Restriction::capacity}; } catch (const std::length_error&) { return {StepStatus::resource_limit, destination.view().boundary, Restriction::capacity}; }
 }
@@ -155,6 +177,7 @@ StepResult apply_combat_transition(RunState& state, const CombatInput& input, Sc
     if (result.status == StepStatus::invalid_action || result.status == StepStatus::unsupported_content) return result;
     state_view.clock = state_view.combat->clock; state_view.boundary = state_view.combat->boundary;
     state_view.rng = state_view.combat->rng; state_view.hp = state_view.combat->player.hp;
+    state_view.joss_paper_counter = state_view.combat->joss_paper_counter;
     if (result.status == StepStatus::combat_won) state_view.phase = RunPhase::combat_done;
     else if (result.status == StepStatus::player_died) state_view.phase = RunPhase::complete;
     else if (result.status == StepStatus::engine_error || result.status == StepStatus::resource_limit) state_view.phase = RunPhase::invalid;

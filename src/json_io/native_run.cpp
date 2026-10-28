@@ -107,6 +107,10 @@ Json NativeRunExporter::snapshot(const RunState& s) const {
     }
     for (auto id : setup.relics) {
         auto value = defaults_.at("relics").at(std::string(SetupRules::name(id)));
+        if (SetupRules::name(id) == "RELIC.JOSS_PAPER" && s_view.joss_paper_counter != 0)
+            value["props"] = {{"bools", nullptr}, {"card_arrays", nullptr}, {"cards", nullptr}, {"int_arrays", nullptr},
+                {"ints", Json::array({{{"name", "CardsExhausted"}, {"value", s_view.joss_paper_counter}}})},
+                {"model_ids", nullptr}, {"strings", nullptr}};
         value["floor_added_to_deck"] = 1; relics.push_back(std::move(value));
     }
     Json player_streams = Json::object(), run_streams = Json::object();

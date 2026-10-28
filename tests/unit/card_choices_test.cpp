@@ -48,6 +48,34 @@ TEST(CardChoices, PurityConfirmsOrderedSelectionAndRestoresIndependentFutures) {
     EXPECT_EQ(state.view().counters.started_plays, 1u);
     EXPECT_TRUE(valid_combat(state));
 }
+TEST(CardChoices, ExhaustHooksResumeOnceFromPartialSelectionsAndBranchAtThreshold) {
+    const std::array deck{CardSpec{CardId::purity}, CardSpec{CardId::burning_pact}, CardSpec{CardId::strike}, CardSpec{CardId::defend}};
+    const std::array relics{ExhaustRelic::joss_paper};
+    CombatConfig config; config.deck = deck; config.exhaust_relics = relics; config.joss_paper_counter = 2;
+    CombatState state; Scratch scratch;
+    ASSERT_EQ(initialize_combat(state, config, scratch).status, StepStatus::awaiting_input);
+    const auto attack = find(state, CardId::strike), pact = find(state, CardId::burning_pact), defense = find(state, CardId::defend);
+    ASSERT_EQ(play(state, attack, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(play(state, find(state, CardId::purity), scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(choose(state, CombatInputKind::select_card, scratch, pact).status, StepStatus::awaiting_input);
+    ASSERT_EQ(choose(state, CombatInputKind::select_card, scratch, defense).status, StepStatus::awaiting_input);
+    const auto before = checkpoint(state).bytes;
+    (void)observe(state); (void)ActionSpaceView(state); EXPECT_EQ(checkpoint(state).bytes, before);
+    CombatState restored; ASSERT_EQ(restore(restored, before, scratch), RestoreStatus::restored);
+    auto alternate = state;
+    ASSERT_EQ(choose(state, CombatInputKind::confirm_selection, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(choose(restored, CombatInputKind::confirm_selection, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(state, restored);
+    EXPECT_EQ(state.view().joss_paper_counter, 0);
+    ASSERT_EQ(state.zone(Zone::hand).size(), 1u); EXPECT_EQ(state.zone(Zone::hand).front(), attack);
+    ASSERT_EQ(state.zone(Zone::exhaust).size(), 3u);
+    EXPECT_EQ(state.zone(Zone::exhaust)[0], pact); EXPECT_EQ(state.zone(Zone::exhaust)[1], defense);
+    ASSERT_EQ(choose(alternate, CombatInputKind::deselect_card, scratch, pact).status, StepStatus::awaiting_input);
+    ASSERT_EQ(choose(alternate, CombatInputKind::confirm_selection, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(alternate.view().joss_paper_counter, 4);
+    ASSERT_EQ(alternate.zone(Zone::hand).size(), 1u); EXPECT_EQ(alternate.zone(Zone::hand).front(), pact);
+    EXPECT_EQ(alternate.zone(Zone::discard).front(), attack);
+}
 TEST(CardChoices, PublicChoiceActionsExposeSelectedOrderAndRejectWithoutMutation) {
     const std::array deck{CardSpec{CardId::purity}, CardSpec{CardId::strike}, CardSpec{CardId::defend}};
     CombatConfig config; config.deck = deck;

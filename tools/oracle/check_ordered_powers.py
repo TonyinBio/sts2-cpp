@@ -8,11 +8,15 @@ import argparse
 import hashlib
 import tempfile
 from pathlib import Path
-from check_consecutive_combats import compare
+from check_consecutive_combats import compare, settle
 from play import new_actions, resolve
 from reference_runtime import JsonProcess, reference_build, require, strict_json, wire_json
 
 CASES = {
+    'ashes-joss-ending': ([('TREMBLE', False)], [('play', 'TREMBLE')]),
+    'joss-threshold': ([('PURITY', True)] * 8, [('play', 'PURITY'), ('select', [3, 1, 0, 2])]),
+    'ashes-purity-ending': ([('PURITY', True)] * 8, [('play', 'PURITY'), ('select', [2, 0])]),
+    'ashes-purity-ordered': ([('PURITY', True)] * 8, [('play', 'PURITY'), ('select', [2, 0])]),
     'inflame-stack': ([('INFLAME', False), ('INFLAME', True), ('STRIKE_IRONCLAD', False)],
                        [('play', 'INFLAME'), ('play', 'INFLAME'), ('play', 'STRIKE_IRONCLAD')]),
     'uppercut-order': ([('UPPERCUT', False), ('STRIKE_IRONCLAD', False)],
@@ -50,28 +54,42 @@ def native_step(host, operation, traces=None):
     reply = host.send(request)
     require('state' in reply, f'Native operation: {reply}')
     if traces is not None: traces.append(reply.get('dispatch_trace'))
-    return reply['state']
+    return settle(host, reply['state'])
+
+
+def public_step(cpp, operation):
+    action = operation.get('action', {})
+    if action.get('kind') != 'select_cards':
+        return cpp.send(operation)
+    for candidate in action['indices']:
+        reply = cpp.send({'cmd': 'action', 'action': {'kind': 'select_card', 'candidate_index': candidate}})
+        require(reply.get('ok'), f'Partial C++ selection: {reply}')
+    return cpp.send({'cmd': 'action', 'action': {'kind': 'confirm_selection'}})
 
 
 def check(game_dir, output, simulator, validator, selected=None):
     output.mkdir(parents=True, exist_ok=False)
     logs = output / 'logs'; logs.mkdir()
     setup = new_actions('ORACLECHECK01', 'ordered-powers', run=False)['setup']
+    clock_step = setup['clock']['seconds_per_action']
     with reference_build(game_dir, logs) as (command, env, provenance):
         comparator = JsonProcess([str(validator)], None, logs / 'comparator', 30, log_protocol=False)
         try:
             for name, (cards, script) in CASES.items():
                 if selected and name != selected: continue
+                setup['clock']['seconds_per_action'] = 0 if any(kind == 'select' for kind, _ in script) else clock_step
                 destination = output / name; destination.mkdir()
                 deck = [{'id': 'CARD.' + card, 'upgraded': upgraded} for card, upgraded in cards]
                 native = JsonProcess(command, env, logs / (name + '-capture'), 30, log_protocol=False)
-                extra = {'scenario_relics': ['RELIC.CHARONS_ASHES', 'RELIC.JOSS_PAPER'], 'scenario_enemy_hp': 3} if name == 'ashes-joss-ending' else {}
+                extra = {'scenario_relics': ['RELIC.CHARONS_ASHES', 'RELIC.JOSS_PAPER'], 'scenario_enemy_hp': 3} if name == 'ashes-joss-ending' else {'scenario_relics': ['RELIC.JOSS_PAPER']} if name == 'joss-threshold' else {'scenario_relics': ['RELIC.CHARONS_ASHES', 'RELIC.JOSS_PAPER'], 'scenario_enemy_hp': 3 if name == 'ashes-purity-ending' else 40, 'scenario_joss_counter': 4 if name == 'ashes-purity-ending' else 3} if name.startswith('ashes-purity-') else {}
                 operations = []; states = []; traces = [None]
                 try:
                     initial = native_start(native, setup, deck, extra); states.append(initial['state'])
                     for kind, payload in script:
                         if kind == 'power':
                             operation = {'cmd': 'scenario_power', 'id': 'POWER.' + payload[0], 'amount': payload[1], 'enemy_owner': payload[2] if len(payload) > 2 else False, 'applier_enemy': payload[3] if len(payload) > 3 else False, 'has_applier': payload[4] if len(payload) > 4 else True}
+                        elif kind == 'select':
+                            operation = {'cmd': 'action', 'action': {'kind': 'select_cards', 'indices': payload}}
                         elif kind == 'cardtrace':
                             operation = {'cmd': 'scenario_card_played_probe', 'card_index': 0, 'power_index': 0}
                         elif kind == 'duration':
@@ -106,7 +124,7 @@ def check(game_dir, output, simulator, validator, selected=None):
                 cpp = JsonProcess([str(simulator)], None, logs / (name + '-cpp'), 30, log_protocol=False)
                 try:
                     for index, operation in enumerate([{'cmd': 'start', 'setup': setup, 'scenario_deck': deck, **extra}] + operations):
-                        reply = cpp.send(operation)
+                        reply = public_step(cpp, operation)
                         require(reply.get('ok'), f'{name} C++ {index}: {reply}')
                         (destination / 'cpp-last.json').write_text(wire_json(reply['state']) + '\n')
                         compare(comparator, states[index], reply['state'], f'{name} C++ {index}')
@@ -145,7 +163,7 @@ def check_saved(recording, simulator, validator, selected=None):
             cpp = JsonProcess([str(simulator)], None, logs / name, 30, log_protocol=False)
             try:
                 for index, operation in enumerate([start] + scenario['operations']):
-                    reply = cpp.send(operation)
+                    reply = public_step(cpp, operation)
                     require(reply.get('ok'), f'{name} boundary {index}: {reply}; logs: {logs}')
                     compare(comparator, states[index], reply['state'], f'{name} boundary {index}')
                     require(reply.get('dispatch_trace') == traces[index], f'{name}: dispatch trace differs')

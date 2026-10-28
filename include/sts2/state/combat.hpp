@@ -65,6 +65,14 @@ struct CombatCounters {
     std::uint32_t finished_ethereal = 0;
     friend bool operator==(const CombatCounters&, const CombatCounters&) = default;
 };
+enum class ExhaustRelic : std::uint8_t { charons_ashes, joss_paper };
+struct ExhaustDispatch {
+    CardHandle source {};
+    std::array<ExhaustRelic, 2> candidates {};
+    std::uint8_t count = 0, cursor = 0;
+    bool active : 1 = false;
+    friend bool operator==(const ExhaustDispatch&, const ExhaustDispatch&) = default;
+};
 struct CombatData {
     std::uint32_t rules = rules_revision;
     BoundaryId boundary {};
@@ -83,6 +91,10 @@ struct CombatData {
     std::array<InlineSequence<CardHandle, 32>, static_cast<std::size_t>(Zone::count)> zones {};
     InlineSequence<EffectFrame, 4> execution {};
     CombatCounters counters {};
+    std::array<ExhaustRelic, 2> exhaust_relics {};
+    std::uint8_t exhaust_relic_count = 0;
+    std::uint32_t joss_paper_counter = 0;
+    ExhaustDispatch exhaust_dispatch {};
     CardSelection selection {};
     InlineSequence<CardHandle, 10> selection_candidates {}, selection_order {};
     PromptId next_prompt {1};
@@ -121,6 +133,10 @@ template<bool Const> struct BasicCombatView {
     PoolView<CardInstance, CardInstanceTag, 32, Const> cards{data.cards, overflow};
     SequenceView<EffectFrame, 4, Const> execution{data.execution, overflow};
     Ref<CombatCounters> counters = data.counters;
+    Ref<std::array<ExhaustRelic, 2>> exhaust_relics = data.exhaust_relics;
+    Ref<std::uint8_t> exhaust_relic_count = data.exhaust_relic_count;
+    Ref<std::uint32_t> joss_paper_counter = data.joss_paper_counter;
+    Ref<ExhaustDispatch> exhaust_dispatch = data.exhaust_dispatch;
     Ref<CardSelection> selection = data.selection;
     SequenceView<CardHandle, 10, Const> selection_candidates{data.selection_candidates, overflow};
     SequenceView<CardHandle, 10, Const> selection_order{data.selection_order, overflow};
@@ -155,7 +171,9 @@ template<bool Const> struct BasicCombatView {
             cards == other.cards &&
             zone_views() == other.zone_views() &&
             execution == other.execution &&
-            counters == other.counters &&
+            counters == other.counters && exhaust_relics == other.exhaust_relics &&
+            exhaust_relic_count == other.exhaust_relic_count && joss_paper_counter == other.joss_paper_counter &&
+            exhaust_dispatch == other.exhaust_dispatch &&
             selection == other.selection && selection_candidates == other.selection_candidates &&
             selection_order == other.selection_order && next_prompt == other.next_prompt &&
             next_power_instance == other.next_power_instance &&
@@ -220,6 +238,8 @@ struct CardSpec { CardId definition; bool upgraded = false; std::uint32_t deck_i
 // Isolated combat setup. Seeded run integration supplies the generated RNG bank;
 // a standalone scenario starts fresh streams and does not generate run content.
 struct CombatConfig {
+    std::span<const ExhaustRelic> exhaust_relics;
+    std::uint32_t joss_paper_counter = 0;
     std::string_view build = game_build;
     std::string_view seed = "ORACLECHECK01";
     ClockConfig clock;

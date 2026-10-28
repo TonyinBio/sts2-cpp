@@ -5,7 +5,7 @@
 
 namespace sts2::engine {
 // Initialize from setup only, never from an expected comparison snapshot.
-void initialize_json_run(RunState&, const nlohmann::json&, CombatTrace = {}, std::span<const CardSpec> = {});
+void initialize_json_run(RunState&, const nlohmann::json&, CombatTrace = {}, std::span<const CardSpec> = {}, std::span<const ContentId> = {}, std::int32_t enemy_hp = 0, std::uint32_t joss_counter = 0);
 // Canonical wire identities are bound from simulator output, never a reference
 // snapshot. JSON parsing and allocation stay outside the gameplay kernel.
 class Session {

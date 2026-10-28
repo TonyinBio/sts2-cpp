@@ -88,6 +88,17 @@ TEST(OrderedPowers, EnemyIntentMatchesModifiedAttackAndKeepsNonAttackZero) {
     ASSERT_EQ(apply_combat(state, {state.view().boundary, CombatInputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
     EXPECT_EQ(observe(state).hp, hp - 10);
 }
+TEST(OrderedPowers, ExhaustDispatchContinuesAfterAshesKillsEnemy) {
+    const std::array deck{CardSpec{CardId::tremble}};
+    const std::array relics{ExhaustRelic::charons_ashes, ExhaustRelic::joss_paper};
+    CombatConfig config; config.deck = deck; config.exhaust_relics = relics; config.enemy_hp = 3;
+    auto state = initial(config); Scratch scratch;
+    ASSERT_EQ(play(state, find_card(state, CardId::tremble), scratch).status, StepStatus::combat_won);
+    EXPECT_EQ(state.view().joss_paper_counter, 1);
+    CombatState restored;
+    ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(restored, state);
+}
 TEST(GameRng, MatchesPinnedGameMixedCallsAndEntireFinalState) {
     const auto vectors = file(KERNEL_RNG_FIXTURE);
     for (const auto& sequence : vectors["sequences"]) {

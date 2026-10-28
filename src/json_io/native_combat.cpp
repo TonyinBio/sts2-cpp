@@ -164,8 +164,9 @@ void export_native_combat(Json& out, const RunState& run, const RecordedCombat& 
     }
     for (std::size_t i = 0; i < run_view.relics.size(); ++i) {
         const auto name = SetupRules::name(run_view.relics[i]);
-        const auto vars = name == "RELIC.BURNING_BLOOD" ? Json{{"Heal", 6}} : name == "RELIC.GOLDEN_PEARL" ? Json{{"Gold", 150}} : Json::object();
-        out["native_model_state"]["/players/0/relics/" + std::to_string(i)] = {{"model_fields", Json::object()}, {"dynamic_vars", vars}};
+        const auto vars = name == "RELIC.BURNING_BLOOD" ? Json{{"Heal", 6}} : name == "RELIC.GOLDEN_PEARL" ? Json{{"Gold", 150}} :
+            name == "RELIC.CHARONS_ASHES" ? Json{{"Damage", 3}} : name == "RELIC.JOSS_PAPER" ? Json{{"ExhaustAmount", 5}, {"Cards", 1}} : Json::object();
+        out["native_model_state"]["/players/0/relics/" + std::to_string(i)] = {{"model_fields", name == "RELIC.JOSS_PAPER" ? Json{{"JossPaper._etherealCount", 0}} : Json::object()}, {"dynamic_vars", vars}};
     }
     if (!terminal) for (std::size_t i = 0; i < run_view.potions.size(); ++i) {
         if (run_view.potions[i] == no_content) continue;
@@ -201,6 +202,7 @@ void export_native_combat(Json& out, const RunState& run, const RecordedCombat& 
             entry["card_play"] = play_ref(h.object); if (h.kind == CombatEventKind::play_finished) entry["was_ethereal"] = false; break;
         case CombatEventKind::damaged:
             entry["result"] = damage_result(h.hit, h.actor_enemy); entry["dealer"] = creature(!h.actor_enemy);
+            if (h.object == 4) entry["result"]["props"] = 4;
             entry["card_source"] = h.card.present() ? Json(card_ref(h.card)) : Json(nullptr); break;
         case CombatEventKind::attacked: entry["damage_results"] = Json::array({damage_result(h.hit, !h.actor_enemy)}); break;
         case CombatEventKind::block_gained: entry["amount"] = h.amount; entry["props"] = 8; entry["card_play"] = play_ref(h.object); break;

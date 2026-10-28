@@ -24,7 +24,14 @@ int main() {
                 if (id == CardId::count) throw std::invalid_argument("Unsupported scenario card");
                 deck.push_back({id, entry.value("upgraded", false)});
             }
-            initialize_json_run(state, request.at("setup"), next_exporter.trace(), deck);
+            std::vector<ContentId> relics;
+            if (request.contains("scenario_relics")) for (const auto& relic : request.at("scenario_relics")) {
+                const auto id = SetupRules::find(relic.get<std::string>());
+                if (id == no_content) throw std::invalid_argument("Unsupported scenario relic");
+                relics.push_back(id);
+            }
+            initialize_json_run(state, request.at("setup"), next_exporter.trace(), deck, relics,
+                request.value("scenario_enemy_hp", 0), request.value("scenario_joss_counter", 0u));
             exporter = std::move(next_exporter); scratch.trace = exporter.trace();
         } else {
             const auto before = checkpoint(state).bytes;
@@ -81,7 +88,7 @@ int main() {
             };
             Scratch branch_scratch;
             const auto result = apply(state, scratch);
-            if (result.status != StepStatus::awaiting_input && result.status != StepStatus::player_died) throw std::runtime_error("Operation failed");
+            if (result.status != StepStatus::awaiting_input && result.status != StepStatus::player_died && result.status != StepStatus::combat_won) throw std::runtime_error("Operation failed: status " + std::to_string(static_cast<unsigned>(result.status)));
             if (apply(restored, branch_scratch).status != result.status || apply(cloned, branch_scratch).status != result.status || restored != state || cloned != state)
                 throw std::runtime_error("Clone/restore future differs");
         }
