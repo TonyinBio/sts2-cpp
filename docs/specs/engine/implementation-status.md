@@ -28,7 +28,7 @@ An optional synchronous trace supplies `json_io`'s exporter-owned diagnostic his
 completed plays and removed powers. Comparison schemas and fixtures remain unchanged.
 Recording is linear and attaches at creation; recording arbitrary pre-made states
 or cloned branches is unsupported. Engine clones contain no exporter context.
-Binary checkpoint revisions are combat 12 and run 10; older versions are rejected.
+Binary checkpoint revisions are combat 13 and run 11; older versions are rejected.
 JSON checkpoint migration remains separate. These summaries are not a sufficiency
 proof for unsupported mechanics or mutable card types.
 
@@ -255,3 +255,20 @@ inventory at offer, visible Skip availability, skipping and re-entering card sel
 explicit collection, potion discard and return to map. Backend provenance changed; all ten canonical pairs were recaptured and self-replayed
 against the corrected adapter. Every recording publication now also retains the
 independently obtained `reference.json` beside the matched action/state pair.
+
+The #56 review follow-up replaces one-instance-per-type power slots with a
+creature-owned ordered instance access interface. Explicit type, per-applier and
+separate stacking policies retain monotonically allocated instance IDs and
+generational applier identities. The provisional six-instance inline sequence
+can overflow into independently cloned run storage; this is not a measured
+dense/sparse layout decision. Supported content keeps its existing type stacking.
+Controlled instances are rejected by the native diagnostic exporter.
+
+Resumable card frames retain the selected creature handle. Resolution consults
+the canonical pool, so membership replacement cannot redirect an interrupted
+effect; stale generations fail validation without mutation. Standalone combat
+extraction explicitly rejects captured targets or appliers outside its active
+two-creature projection; complete-run cloning/checkpoints retain them. Controlled nested public-run tests
+cover retained and recycled targets, power overflow, independent clone/restore
+futures and standalone combat extraction. These fixtures add no production
+content or native gameplay claims.

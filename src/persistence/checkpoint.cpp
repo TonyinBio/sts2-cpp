@@ -16,20 +16,20 @@ struct Writer {
     void handle(CardHandle h) { u32(h.slot); u32(h.generation); }
     void reaction_handle(ShuffleReactionHandle h) { u32(h.slot); u32(h.generation); }
     void frame(const EffectFrame& f) {
-        handle(f.source); u32(f.instruction); u32(f.play); i32(f.energy); u8(f.enemy_target);
+        handle(f.source); u32(f.instruction); u32(f.play); i32(f.energy); u32(f.target.slot); u32(f.target.generation);
         u8(static_cast<std::uint8_t>(f.pending.index()));
         if (const auto* value = std::get_if<DrawContinuation>(&f.pending)) { i32(value->remaining); u8(value->from_hand_draw); }
         else if (const auto* value = std::get_if<ShuffleContinuation>(&f.pending)) { u32(value->begin); u32(value->count); u32(value->cursor); u8(value->waiting); handle(value->remember_to); }
         else if (const auto* value = std::get_if<SelectionContinuation>(&f.pending)) { u8(static_cast<std::uint8_t>(value->effect)); u8(static_cast<std::uint8_t>(value->zone)); u32(value->begin); u32(value->count); u32(value->cursor); handle(value->remember_to); }
         else if (const auto* value = std::get_if<ExhaustContinuation>(&f.pending)) { for (auto relic : value->candidates) u8(static_cast<std::uint8_t>(relic)); u8(value->count); u8(value->cursor); }
     }
-    void creature(const CreatureState& c) {
+    void creature(const CreatureState& c, const OverflowStorage& owner) {
         i32(c.hp); i32(c.max_hp); i32(c.block); u64(c.positive_unblocked_hits);
-        u32(c.power_count);
-        for (auto id : c.power_ids()) {
-            const auto& p = c.power(id);
+        u32(static_cast<std::uint32_t>(c.powers.size()));
+        for (const auto& p : c.power_instances(owner)) {
+            const auto id = p.definition;
             u8(static_cast<std::uint8_t>(id)); u32(p.instance); i32(p.amount); i32(p.amount_on_turn_start);
-            u8(p.enemy_owner); u8(p.skip_next_tick); u8(p.has_applier); u8(p.applier_enemy); handle(p.source);
+            u8(p.enemy_owner); u8(p.skip_next_tick); u8(p.has_applier); u8(p.applier_enemy); handle(p.source); u32(p.applier.slot); u32(p.applier.generation); u8(static_cast<std::uint8_t>(p.stacking));
         }
     }
 };
@@ -49,7 +49,7 @@ struct Reader {
     }
     ShuffleReactionHandle reaction_handle() { const auto slot = u32(); return {slot, u32()}; }
     EffectFrame frame() {
-        EffectFrame f; f.source = handle(); f.instruction = u32(); f.play = u32(); f.energy = i32(); f.enemy_target = boolean();
+        EffectFrame f; f.source = handle(); f.instruction = u32(); f.play = u32(); f.energy = i32(); f.target = {u32(), u32()};
         switch (u8()) {
         case 0: break;
         case 1: f.pending = DrawContinuation{i32(), boolean()}; break;
@@ -61,17 +61,17 @@ struct Reader {
         }
         return f;
     }
-    CreatureState creature() {
+    CreatureState creature(OverflowStorage& owner) {
         CreatureState c; c.hp = i32(); c.max_hp = i32(); c.block = i32(); c.positive_unblocked_hits = u64();
         const auto count = u32();
-        if (count > CreatureState::power_type_count) throw std::invalid_argument("Invalid power count");
+        if (count > 65536) throw std::invalid_argument("Invalid power count");
         for (std::uint32_t i = 0; i < count; ++i) {
             const auto id = static_cast<PowerId>(u8());
-            if (id >= PowerId::count || c.has_power(id)) throw std::invalid_argument("Invalid power slot");
-            auto& p = c.power(id); p.definition = id; p.instance = u32(); p.amount = i32(); p.amount_on_turn_start = i32();
+            if (id >= PowerId::count) throw std::invalid_argument("Invalid power slot");
+            PowerInstance p; p.definition = id; p.instance = u32(); p.amount = i32(); p.amount_on_turn_start = i32();
             p.enemy_owner = boolean(); p.skip_next_tick = boolean(); p.active = true;
-            p.has_applier = boolean(); p.applier_enemy = boolean(); p.source = handle();
-            c.power_order[c.power_count++] = id;
+            p.has_applier = boolean(); p.applier_enemy = boolean(); p.source = handle(); p.applier = {u32(), u32()}; p.stacking = static_cast<PowerInstance::Stacking>(u8());
+            c.power_instances(owner).push_back(p);
         }
         return c;
     }
@@ -97,14 +97,15 @@ std::uint64_t content_fingerprint() {
 Checkpoint checkpoint(ConstCombatView s) {
     if (!valid_combat(s)) throw std::invalid_argument("Cannot checkpoint invalid simulation");
     Writer w;
-    w.text("STS2CP12"); w.u32(12); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
+    w.text("STS2CP13"); w.u32(13); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed);
     w.u32(s.boundary.value); w.u8(static_cast<std::uint8_t>(s.phase));
     const auto config = s.clock.config();
     w.u64(static_cast<std::uint64_t>(config.epoch_seconds)); w.u64(static_cast<std::uint64_t>(config.seconds_per_action));
     w.u64(static_cast<std::uint64_t>(s.clock.elapsed_seconds()));
     for (const auto& rng : s.rng.streams) { for (auto word : rng.state().words) w.u64(word); w.u32(rng.state().counter); }
-    w.creature(s.player); w.creature(s.enemy); w.i32(s.energy); w.i32(s.turn);
+    w.u32(s.player_handle.slot); w.u32(s.player_handle.generation); w.u32(s.enemy_handle.slot); w.u32(s.enemy_handle.generation);
+    w.creature(s.player, s.creature_overflow); w.creature(s.enemy, s.creature_overflow); w.i32(s.energy); w.i32(s.turn);
     w.u8(static_cast<std::uint8_t>(s.move)); w.u8(s.burning_blood); w.u32(s.next_creation_order);
     w.u8(s.exhaust_relic_count); for (auto relic : s.exhaust_relics) w.u8(static_cast<std::uint8_t>(relic));
     w.u32(s.joss_paper_counter);
@@ -153,8 +154,8 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
         Reader trailer{bytes.last(8)};
         if (trailer.u64() != digest(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
-        for (char c : std::string_view("STS2CP12")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 12 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        for (char c : std::string_view("STS2CP13")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
+        if (r.u32() != 13 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (char c : game_digest) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
         CombatState s(destination.overflow.allocator()); auto s_view = s.view();
@@ -168,7 +169,9 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
             RngState state; for (auto& word : state.words) word = r.u64(); state.counter = r.u32();
             if (!rng.restore(state)) return RestoreStatus::malformed;
         }
-        s_view.player = r.creature(); s_view.enemy = r.creature(); s_view.energy = r.i32(); s_view.turn = r.i32();
+        s.data.player_identity = {r.u32(), r.u32()}; s.data.enemy_identity = {r.u32(), r.u32()}; s_view.player_handle = s.data.player_identity; s_view.enemy_handle = s.data.enemy_identity;
+        if (destination.creature_pool && (s_view.player_handle != destination.player_handle || s_view.enemy_handle != destination.enemy_handle)) return RestoreStatus::malformed;
+        s_view.player = r.creature(s.creature_overflow); s_view.enemy = r.creature(s.creature_overflow); s_view.energy = r.i32(); s_view.turn = r.i32();
         s_view.move = static_cast<BeetleMove>(r.u8()); s_view.burning_blood = r.boolean(); s_view.next_creation_order = r.u32();
         s_view.exhaust_relic_count = r.u8(); for (auto& relic : s_view.exhaust_relics) relic = static_cast<ExhaustRelic>(r.u8());
         s_view.joss_paper_counter = r.u32();
@@ -228,7 +231,12 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
         s_view.counters.non_hand_draws_this_turn = r.u32();
         s_view.counters.finished_ethereal = r.u32();
         s_view.next_power_instance = r.u32();
-        if (r.at != r.bytes.size() || !valid_combat(s)) return RestoreStatus::malformed;
+        // Run restoration supplies its newly parsed canonical pool here. Borrow
+        // only identity resolution; parsed records/overflow remain transactional.
+        ConstCombatView validation = s.view();
+        validation.creature_pool = destination.creature_pool;
+        validation.creature_pool_owner = destination.creature_pool_owner;
+        if (r.at != r.bytes.size() || !valid_combat(validation)) return RestoreStatus::malformed;
         destination.replace(std::move(s)); scratch.steps = 0;
         return RestoreStatus::restored;
     } catch (const std::bad_alloc&) { return RestoreStatus::resource_limit; } catch (const std::length_error&) { return RestoreStatus::resource_limit; }

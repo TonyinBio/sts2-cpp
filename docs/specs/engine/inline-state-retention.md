@@ -20,7 +20,7 @@ representations where established rather than retaining diagnostic event logs.
 | `counters` | Combat-wide started/finished play totals and finished-ethereal count; per-player-turn starts, Attack starts, zero-energy Attack starts and non-hand draws |
 | Creature `positive_unblocked_hits` | Per-receiver count, distinct from HP lost |
 | Card `last_finished_player_turn` | Exact card identity's last finished player turn |
-| Creature fixed `powers`, `power_order`, `power_count`; combat `next_power_instance` | Slots indexed by implemented `PowerId`, runtime amount, turn-start amount, duration flags, application order and non-reused identity; no separate Vulnerable/Shrink caches or expired instances |
+| Creature `powers`; combat `next_power_instance` | Ordered live instances, runtime/turn-start amounts, duration flags, stable identity, stacking policy and generational applier; inline storage can overflow without a gameplay cap |
 | Run character, ascension, HP/max HP, gold, potion/orb slots | Gameplay and player observations |
 | Persistent deck, instance/upgrade/floor metadata, relic order and potion slots | Inventory and stable permanent/combat relationships |
 | Both relic bags, tier order, all act queues, exclusions represented by generated queues, per-act cursors, rarity/potion odds | Hidden generation progress; preserve the original algorithms and RNG positions |
@@ -61,12 +61,13 @@ checkpoint revision 6 and run checkpoint revision 4 reject older revisions. Thei
 encoding remains binary. Comparison schemas, action recordings and fixtures are
 unchanged. Exact history comparisons remain enabled.
 
-[ADR 0005](../../adr/0005-use-fixed-power-type-slots.md) selects fixed power-type
-slots over the former combat-wide sequence. Only implemented power types reserve
-slots; Vulnerable and Shrink have no multiple instances, so the current layout
-reserves no additional-instance storage. Application order uses compact type IDs.
-The ADR records the requested later review of removing that order tracking while
-preserving native behavior.
+[ADR 0006](../../adr/0006-use-a-data-oriented-engine-with-selective-continuations.md)
+supersedes ADR 0005's fixed power-type slot decision. Creature-owned ordered power
+instances now support explicit type, per-applier and separate stacking through the
+same access interface. The provisional inline sequence overflows into the run
+storage owner; standalone combat adapters own their own creature overflow. Clone,
+validation and checkpoints traverse these nested records. No dense/sparse winner
+is selected by this implementation.
 
 ## Removed state and exact export paths
 

@@ -208,12 +208,16 @@ template<class T, std::size_t InlineCapacity> struct InlineSequence {
 template<class Data> bool valid_data_storage(const Data& data, const OverflowStorage& owner) noexcept {
     bool valid = true;
     std::size_t overflow_count = 0;
-    data.for_each_sequence([&](const auto& sequence) {
+    const auto visit = [&](auto callback) {
+        if constexpr (requires { data.for_each_sequence(owner, callback); }) data.for_each_sequence(owner, callback);
+        else data.for_each_sequence(callback);
+    };
+    visit([&](const auto& sequence) {
         if (!sequence.valid(owner)) valid = false;
         if (!sequence.overflowed()) return;
         ++overflow_count;
         std::size_t references = 0;
-        data.for_each_sequence([&](const auto& other) {
+        visit([&](const auto& other) {
             if (other.overflowed() && other.overflow_id == sequence.overflow_id) ++references;
         });
         if (references != 1) valid = false;

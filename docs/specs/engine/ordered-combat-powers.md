@@ -6,8 +6,11 @@ byte-copyable engine introduced by #54. The legacy work remains preserved on
 
 The concrete card slice supports Inflame, Shockwave, Tremble and Uppercut,
 including upgrades, Strength and Dexterity arithmetic, Weak duration, exhaust
-movement and the removal of played power cards. Fixed power-type slots preserve
-application order and monotonic identities. Sources and original appliers belong
+movement and the removal of played power cards. Creature-owned power instances
+preserve application order and monotonic identities. The access interface supports
+explicit type, per-applier and separate stacking policies; supported content uses
+type stacking. The current inline/overflow sequence is provisional pending layout
+measurements. Sources and original appliers belong
 to each live power; removed power diagnostics belong to the optional linear
 exporter. No accumulated combat history is stored in engine state.
 

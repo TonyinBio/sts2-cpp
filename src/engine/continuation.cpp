@@ -93,7 +93,7 @@ bool valid_continuations(ConstCombatView state, const Ruleset& rules) noexcept {
         if (frame.energy < 0 || (frame.source.present() && !source)) return false;
         if (std::holds_alternative<std::monostate>(frame.pending)) {
             const auto* definition = source ? rules.card(source->definition) : nullptr;
-            if (!definition || frame.play >= state.counters.started_plays || frame.instruction >= definition->program.size()) return false;
+            if (!definition || !state.creature(frame.target) || frame.play >= state.counters.started_plays || frame.instruction >= definition->program.size()) return false;
             if (!source->removed && std::find(state.zone(Zone::play).begin(), state.zone(Zone::play).end(), frame.source) == state.zone(Zone::play).end()) return false;
         } else if (const auto* draw_state = std::get_if<DrawContinuation>(&frame.pending)) {
             if (draw_state->remaining < 0) return false;

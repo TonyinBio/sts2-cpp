@@ -83,7 +83,21 @@ void export_native_combat(Json& out, const RunState& run, const RecordedCombat& 
     if (run.view().combat) for (const auto& slot : run.view().combat->cards.slots())
         if (slot.live && !std::holds_alternative<std::monostate>(slot.value.extra))
             throw std::invalid_argument("Exceptional card state has no native diagnostic mapping");
+    for (const auto& power : recorded.powers)
+        if (power.stacking != PowerInstance::Stacking::by_type)
+            throw std::invalid_argument("Distinct/per-applier controlled powers have no native diagnostic mapping");
     auto run_view = run.view();
+    if (run_view.combat) {
+        const auto slots = run_view.creatures.slots();
+        for (std::size_t i = 0; i < slots.size(); ++i)
+            if (slots[i].live && CreatureHandle{static_cast<std::uint32_t>(i), slots[i].generation} != run_view.data.player &&
+                CreatureHandle{static_cast<std::uint32_t>(i), slots[i].generation} != run_view.combat.enemies.front())
+                throw std::invalid_argument("Retained extra creatures have no native diagnostic mapping");
+    }
+    if (run_view.combat) for (const auto* creature : {&run_view.combat->player, &run_view.combat->enemy})
+        for (const auto& power : creature->power_instances(run.overflow))
+            if (power.stacking != PowerInstance::Stacking::by_type)
+                throw std::invalid_argument("Distinct/per-applier controlled powers have no native diagnostic mapping");
     if (!run_view.combat) {
         const bool died = run_view.phase == RunPhase::complete;
         out["current_room"] = {{"encounter_id", "ENCOUNTER.SHRINKER_BEETLE_WEAK"}, {"encounter_state", Json::object()}, {"event_id", nullptr},

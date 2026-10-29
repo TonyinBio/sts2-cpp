@@ -181,7 +181,9 @@ StepResult apply_combat_transition(RunState& state, const CombatInput& input, Sc
         child_combat_finished(state_view, result.status == StepStatus::combat_won);
         state_view.combat_generation = highest_combat_generation(state_view);
         state_view.combat.reset();
-        *state_view.creatures.get(state_view.data.player) = {state_view.hp, state_view.max_hp};
+        auto* player = state_view.creatures.get(state_view.data.player);
+        const auto hp = player->hp, max_hp = player->max_hp;
+        player->clear(); player->hp = hp; player->max_hp = max_hp;
     }
     return result;
 }

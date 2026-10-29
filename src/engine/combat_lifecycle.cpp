@@ -27,8 +27,7 @@ void end_combat(CombatView state, Scratch& scratch, bool won) {
         state.player.clear_powers(); state.enemy.clear_powers();
         for (auto& zone : state.zone_views()) zone.clear();
     } else {
-        for (auto id : state.player.power_ids()) {
-            auto& power = state.player.power(id);
+        for (auto& power : state.player.power_instances(state.creature_overflow)) {
             power.active = false; emit(state, scratch, CombatEventKind::power_changed, false, false, {}, power.instance);
         }
         state.player.clear_powers();
@@ -43,7 +42,7 @@ void end_combat(CombatView state, Scratch& scratch, bool won) {
         // scalars/identity progress, but release its completed collection graph.
         CombatState terminal(state.overflow.allocator());
         std::memcpy(&terminal.data, &state.data, sizeof(CombatData));
-        terminal.player = state.player; terminal.enemy = state.enemy; terminal.boundary = state.boundary; terminal.clock = state.clock; terminal.rng = state.rng; terminal.joss_paper_counter = state.joss_paper_counter;
+        terminal.player = state.player; terminal.enemy = state.enemy; terminal.player.powers = {}; terminal.enemy.powers = {}; terminal.boundary = state.boundary; terminal.clock = state.clock; terminal.rng = state.rng; terminal.joss_paper_counter = state.joss_paper_counter;
         terminal.data.for_each_sequence([](auto& sequence) { sequence = std::remove_reference_t<decltype(sequence)>{}; });
         terminal.view().seed = std::string_view(state.seed);
         state.replace(std::move(terminal));

@@ -9,8 +9,8 @@ bool consume(Scratch&) noexcept;
 void emit(CombatView, Scratch&, CombatEventKind, bool enemy_side = false, bool actor_enemy = false,
     CardHandle = {}, std::uint32_t object = 0, int amount = 0, HitResult = {}, bool has_applier = true, bool applier_enemy = false);
 std::uint32_t apply_power(CombatView, Scratch&, PowerId, int amount, bool enemy, bool enemy_side,
-    CardHandle source = {}, bool has_applier = true, bool applier_enemy = false);
-void expire_power(CombatView, Scratch&, CreatureState&, PowerId);
+    CardHandle source = {}, bool has_applier = true, bool applier_enemy = false, PowerInstance::Stacking stacking = PowerInstance::Stacking::by_type, CreatureHandle applier = {}, CreatureHandle target = {}, std::uint32_t existing_instance = UINT32_MAX);
+void expire_power(CombatView, Scratch&, CreatureState&, std::uint32_t identity);
 void snapshot_power_turn(CombatView, Scratch&, CreatureState&, bool enemy);
 void move_card(CombatView, Zone from, Zone to, CardHandle);
 bool valid_card_extra_state(ConstCombatView) noexcept;
@@ -28,13 +28,13 @@ int heal(CreatureState&, int amount) noexcept;
 void spend_energy(CombatView, int amount) noexcept;
 void refresh_energy(CombatView, int amount) noexcept;
 HitResult receive_damage(CreatureState& target, int amount) noexcept;
-HitResult damage(CreatureState& target, int base, const CreatureState& source) noexcept;
+HitResult damage(CreatureState& target, int base, const CreatureState& source, const OverflowStorage&) noexcept;
 // Typed hooks distinguish synchronous value modification from ordered reactions.
 struct PowerModifier { int amount; std::uint32_t artifact; };
-PowerModifier before_power_application(const CreatureState&, PowerId, int amount) noexcept;
-void after_power_application(CombatView, Scratch&, CreatureState&, PowerModifier, bool enemy, bool enemy_side);
-std::int64_t modify_block(const CreatureState&, int amount) noexcept;
-int modify_attack_damage(const CreatureState& target, int base, const CreatureState& source) noexcept;
+PowerModifier before_power_application(const CreatureState&, const OverflowStorage&, PowerId, int amount) noexcept;
+void after_power_application(CombatView, Scratch&, CreatureState&, PowerModifier, bool enemy, bool enemy_side, CreatureHandle target);
+std::int64_t modify_block(const CreatureState&, const OverflowStorage&, int amount) noexcept;
+int modify_attack_damage(const CreatureState& target, int base, const CreatureState& source, const OverflowStorage&) noexcept;
 void react_to_exhaust(ExhaustRelic, CombatView, Scratch&);
 void after_enemy_turn(CombatView, Scratch&);
 void after_card_exhausted(CombatView, Scratch&, CardHandle);

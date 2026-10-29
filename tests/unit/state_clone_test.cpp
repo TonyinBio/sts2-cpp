@@ -2,6 +2,7 @@
 #include "sts2/observation/run.hpp"
 #include "sts2/persistence/checkpoint.hpp"
 #include "storage_allocator.hpp"
+#include "../../src/engine/gameplay.hpp"
 #include <gtest/gtest.h>
 
 namespace sts2::engine {
@@ -40,56 +41,41 @@ TEST(CompleteStateClone, PublicCommonRunAndCombatClonesAllocateNothing) {
     EXPECT_EQ(allocation.outstanding, 0u);
 }
 
-TEST(CompleteStateClone, FixedPowerSlotsPreserveApplicationOrderAndCloneWithoutAllocating) {
+TEST(CompleteStateClone, OrderedPowerInstancesCloneWithoutAllocating) {
     AllocationCounter allocation;
     CombatState source(allocation.allocator()), branch(allocation.allocator()); Scratch scratch;
     ASSERT_EQ(initialize_combat(source, {}, scratch).status, StepStatus::awaiting_input);
-    auto& player = source.view().player;
-    // Apply in reverse enum order: dispatch must not become enum-ordered.
-    player.power(PowerId::vulnerable) = {0, PowerId::vulnerable, 2, 1, false, true, true};
-    player.power(PowerId::shrink) = {1, PowerId::shrink, -1, -1, false, true, true};
-    player.power_order = {PowerId::vulnerable, PowerId::shrink}; player.power_count = 2;
-    source.view().next_power_instance = 2;
+    auto powers = source.player.power_instances(source.creature_overflow);
+    PowerInstance vulnerable{0, PowerId::vulnerable, 2, 1, false, true, true}; vulnerable.applier = {0, 1};
+    PowerInstance shrink{1, PowerId::shrink, -1, -1, false, true, true}; shrink.applier = {0, 1};
+    powers.push_back(vulnerable); powers.push_back(shrink); source.data.next_power_instance = 2;
     ASSERT_TRUE(valid_combat(source));
-    const auto allocations = allocation.allocations;
-    allocation.fail_after = allocations;
+    const auto allocations = allocation.allocations; allocation.fail_after = allocations;
     ASSERT_EQ(clone_into(branch, source), CloneStatus::cloned);
     EXPECT_EQ(allocation.allocations, allocations);
-    EXPECT_TRUE(branch.overflow.empty());
-    EXPECT_EQ(branch.view().player.power_order[0], PowerId::vulnerable);
-    branch.view().player.power(PowerId::vulnerable).amount = 3;
-    EXPECT_EQ(player.power_amount(PowerId::vulnerable), 2);
-    EXPECT_EQ(branch.view().player.power_amount(PowerId::vulnerable), 3);
-
+    EXPECT_EQ(branch.player.power_instances(branch.creature_overflow).front().definition, PowerId::vulnerable);
+    branch.player.find_power(PowerId::vulnerable, branch.creature_overflow)->amount = 3;
+    EXPECT_EQ(source.player.power_amount(PowerId::vulnerable, source.creature_overflow), 2);
     CombatState restored;
     ASSERT_EQ(restore(restored, checkpoint(source).bytes, scratch), RestoreStatus::restored);
     EXPECT_EQ(restored, source);
-    EXPECT_EQ(restored.view().player.power_order[0], PowerId::vulnerable);
 }
-
-TEST(CompleteStateClone, InvalidPowerSlotIdentityMembershipAndOrderAreRejected) {
+TEST(CompleteStateClone, InvalidPowerIdentityAndStackingAreRejected) {
     CombatState source; Scratch scratch;
     ASSERT_EQ(initialize_combat(source, {}, scratch).status, StepStatus::awaiting_input);
+    PowerInstance power{0, PowerId::shrink, -1, 0, false, true, true}; power.applier = {0, 1};
+    source.player.power_instances(source.creature_overflow).push_back(power); source.data.next_power_instance = 1;
+    ASSERT_TRUE(valid_combat(source));
     auto invalid = source;
-    invalid.view().player.power_count = CreatureState::power_type_count + 1;
+    invalid.player.powers.count = 7;
     EXPECT_FALSE(valid_combat(invalid));
-    const auto unchanged = invalid;
-    EXPECT_EQ(apply_combat(invalid, {invalid.view().boundary, CombatInputKind::end_turn}, scratch).reason, Restriction::invalid_state);
-    EXPECT_EQ(invalid, unchanged);
-    invalid = source;
-    invalid.view().player.power_order[0] = PowerId::count;
-    invalid.view().player.power_count = 1;
+    invalid = source; invalid.player.power_instances(invalid.creature_overflow)[0].definition = PowerId::count;
     EXPECT_FALSE(valid_combat(invalid));
-    invalid = source;
-    invalid.view().player.power(PowerId::shrink) = {0, PowerId::shrink, -1, 0, false, true, true};
-    invalid.view().next_power_instance = 1;
-    // A live slot without application-order membership must not be accepted.
+    invalid = source; invalid.player.power_instances(invalid.creature_overflow).push_back(power);
     EXPECT_FALSE(valid_combat(invalid));
-    invalid.view().player.power_count = 2;
-    invalid.view().player.power_order = {PowerId::shrink, PowerId::shrink};
+    invalid = source; invalid.player.power_instances(invalid.creature_overflow)[0].enemy_owner = true;
     EXPECT_FALSE(valid_combat(invalid));
-    invalid.view().player.power_count = 1;
-    invalid.view().player.power(PowerId::shrink).enemy_owner = true;
+    invalid = source; invalid.player.power_instances(invalid.creature_overflow)[0].applier.generation++;
     EXPECT_FALSE(valid_combat(invalid));
 }
 
@@ -166,6 +152,76 @@ TEST(CompleteStateClone, FailedPublicInitializationAndCloneKeepDestinationUnchan
         EXPECT_EQ(checkpoint(destination).bytes, saved);
     }
     EXPECT_EQ(allocation.outstanding, 0u);
+}
+
+TEST(CompleteStateClone, CheckpointRejectsMismatchedOrAbsentCreatureIdentities) {
+    RunState run; Scratch scratch;
+    ASSERT_EQ(initialize_combat_scenario(run, {}, {}).status, StepStatus::awaiting_input);
+    const auto retained = run.view().creatures.create({5, 5}, 4096);
+    const auto saved = checkpoint(run).bytes;
+    const auto view = *run.view().combat;
+    const auto original = checkpoint(view).bytes;
+    // Wire identity fields follow the fixed header, seed, clock and RNG bank.
+    const auto offset = 8 + 4 + 4 + game_digest.size() + 8 + 4 + view.seed.size() + 8 + 4 + 1 + 24 + view.rng.streams.size() * 36;
+    const auto mutate = [&](CreatureHandle player) {
+        auto bytes = original;
+        for (unsigned i = 0; i < 4; ++i) { bytes[offset + i] = std::byte(player.slot >> (8 * i)); bytes[offset + 4 + i] = std::byte(player.generation >> (8 * i)); }
+        const auto hash = game_hash({reinterpret_cast<const char*>(bytes.data()), bytes.size() - 8});
+        for (unsigned i = 0; i < 8; ++i) bytes[bytes.size() - 8 + i] = std::byte(hash >> (8 * i));
+        return bytes;
+    };
+    EXPECT_EQ(restore(*run.view().combat, mutate(retained), scratch), RestoreStatus::malformed);
+    EXPECT_EQ(checkpoint(run).bytes, saved);
+    CombatState standalone{ConstCombatView(view)};
+    EXPECT_EQ(restore(standalone, mutate({}), scratch), RestoreStatus::malformed);
+    EXPECT_EQ(restore(standalone, mutate(view.enemy_handle), scratch), RestoreStatus::malformed);
+    EXPECT_TRUE(valid_combat(standalone));
+}
+
+TEST(CompleteStateClone, OverflowPowerRestorePublishesBothOwnersTransactionally) {
+    RunState source; Scratch scratch;
+    ASSERT_EQ(initialize_combat_scenario(source, {}, {}).status, StepStatus::awaiting_input);
+    for (int i = 0; i < 9; ++i)
+        gameplay::apply_power(*source.view().combat, scratch, PowerId::strength, 1, false, false, {}, true, false, PowerInstance::Stacking::separate);
+    const auto bytes = checkpoint(*source.view().combat).bytes;
+    AllocationCounter allocation;
+    {
+        RunState destination(allocation.allocator());
+        ASSERT_EQ(initialize_combat_scenario(destination, {}, {}).status, StepStatus::awaiting_input);
+        const auto unchanged = checkpoint(destination).bytes;
+        bool completed = false;
+        for (std::size_t allowed = 0; allowed < 128; ++allowed) {
+            allocation.fail_after = allocation.allocations + allowed;
+            const auto result = restore(*destination.view().combat, bytes, scratch);
+            if (result == RestoreStatus::restored) { completed = true; break; }
+            ASSERT_EQ(result, RestoreStatus::resource_limit);
+            EXPECT_EQ(checkpoint(destination).bytes, unchanged);
+        }
+        ASSERT_TRUE(completed);
+        EXPECT_TRUE(valid_run(destination));
+        EXPECT_EQ(destination, source);
+    }
+    EXPECT_EQ(allocation.outstanding, 0u);
+}
+
+TEST(CompleteStateClone, RecycledCreatureRetainsIndependentOverflowPowerStorage) {
+    RunState state; Scratch scratch;
+    ASSERT_EQ(initialize_combat_scenario(state, {}, {}).status, StepStatus::awaiting_input);
+    for (int i = 0; i < 9; ++i)
+        gameplay::apply_power(*state.view().combat, scratch, PowerId::strength, 1, true, false, {}, true, false, PowerInstance::Stacking::separate);
+    const auto old = state.view().combat.enemies.front();
+    const auto replacement = state.view().creatures.create({40, 40}, 4096);
+    state.view().combat.enemies[0] = replacement;
+    state.view().creatures.get(old)->clear();
+    ASSERT_TRUE(state.view().creatures.erase(old));
+    const auto reused = state.view().creatures.create({5, 5}, 4096);
+    EXPECT_EQ(reused.slot, old.slot); EXPECT_NE(reused.generation, old.generation);
+    ASSERT_TRUE(valid_run(state));
+    EXPECT_TRUE(state.view().creatures.get(reused)->powers.overflowed());
+    EXPECT_TRUE(state.view().creatures.get(reused)->powers.empty());
+    RunState clone = state, restored;
+    ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(clone, state); EXPECT_EQ(restored, state);
 }
 
 TEST(CompleteStateClone, MultiDomainCloneFailureNeverPublishesPartialOwnership) {
@@ -257,7 +313,7 @@ TEST(CompleteStateClone, SuspendedCountersAndCapturedOperandsSurviveIndependentF
     EXPECT_EQ(source.view().counters.finished_plays, 0u);
     ASSERT_EQ(source.view().execution.size(), 1u);
     EXPECT_EQ(source.view().execution.back().energy, 1);
-    EXPECT_FALSE(source.view().execution.back().enemy_target);
+    EXPECT_EQ(source.view().execution.back().target, source.view().enemy_handle);
     const auto saved = checkpoint(source).bytes;
     auto branch = source; CombatState restored;
     ASSERT_EQ(restore(restored, saved, scratch), RestoreStatus::restored);
@@ -301,7 +357,7 @@ TEST(CompleteStateClone, LongCombatDoesNotAccumulateDiagnosticStorage) {
         ASSERT_TRUE(valid_combat(state));
         EXPECT_EQ(state.retained_bytes(), bytes);
         EXPECT_TRUE(state.overflow.empty());
-        EXPECT_EQ(state.view().player.power_count + state.view().enemy.power_count, 1u);
+        EXPECT_EQ(state.view().player.powers.size() + state.view().enemy.powers.size(), 1u);
     }
     EXPECT_EQ(state.view().counters.finished_plays, 300u);
     EXPECT_EQ(allocation.allocations, allocations);

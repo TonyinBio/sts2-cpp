@@ -51,7 +51,7 @@ template<bool Const> struct OptionalCombatView {
     std::conditional_t<Const, const std::uint32_t, std::uint32_t>& joss_paper_counter;
     bool has_value() const noexcept { return data.has_value(); }
     explicit operator bool() const noexcept { return has_value(); }
-    auto operator*() const noexcept { return BasicCombatView<Const>(*data, overflow, *creatures.get(player), *creatures.get(enemies.front()), boundary, clock, rng, joss_paper_counter); }
+    auto operator*() const noexcept { return BasicCombatView<Const>(*data, overflow, creatures.owner, creatures.data, player, enemies.front(), boundary, clock, rng, joss_paper_counter); }
     auto operator->() const noexcept { return ViewArrow<BasicCombatView<Const>>{**this}; }
     auto emplace() requires (!Const) {
         reset();
@@ -64,7 +64,7 @@ template<bool Const> struct OptionalCombatView {
         // Combat execution and its captured operands are discarded before recycling.
         data.reset(); overflow.reset();
         for (auto enemy : enemies) {
-            if (auto* creature = creatures.get(enemy)) *creature = {};
+            if (auto* creature = creatures.get(enemy)) creature->clear();
             (void)creatures.erase(enemy);
         }
         enemies.clear();
@@ -162,6 +162,10 @@ struct RunData {
     GameRng event_rng;
     std::array<ContentId, 3> neow_options{};
     ContentId selected_neow = no_content;
+    template<class Visit> void for_each_sequence(const OverflowStorage& owner, Visit visit) const noexcept {
+        for_each_sequence(visit);
+        if (creatures.slots.valid(owner)) for (const auto& slot : creatures.slots.values(owner)) visit(slot.value.powers);
+    }
     template<class Visit> void for_each_sequence(Visit visit) const noexcept {
         visit(seed); visit(creatures.slots); visit(creatures.free); visit(enemies);
         for (const auto* bag : {&shared_relics, &player_relics}) {
@@ -246,8 +250,7 @@ inline bool valid_creature_storage(const RunData& data, const OverflowStorage& o
     if (!valid_data_storage(data, owner)) return false;
     const PoolView<CreatureState, CreatureTag, 8, true> pool{data.creatures, owner};
     if (!pool.valid() || !pool.get(data.player)) return false;
-    for (const auto& slot : pool.slots())
-        if (slot.value.power_count > CreatureState::power_type_count) return false;
+    for (const auto& slot : pool.slots()) if (!slot.value.powers.valid(owner)) return false;
     const auto enemies = data.enemies.values(owner);
     if (data.combat.has_value() != !enemies.empty() || enemies.size() > 1) return false;
     for (const auto enemy : enemies) if (enemy == data.player || !pool.get(enemy)) return false;

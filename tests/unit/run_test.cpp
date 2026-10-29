@@ -1,5 +1,6 @@
 #include "sts2/engine/action.hpp"
 #include "../../src/engine/card_state.hpp"
+#include "../../src/engine/gameplay.hpp"
 #include "../../src/engine/continuation_scenario.hpp"
 #include "../../src/engine/parent_room_scenario.hpp"
 #include "storage_allocator.hpp"
@@ -79,7 +80,7 @@ TEST(PublicRun, DeadCreatureRemainsUntilCombatResolutionReleasesItsOperands) {
     EXPECT_FALSE(state.view().combat);
     EXPECT_FALSE(state.view().creatures.get(enemy));
     EXPECT_EQ(state.data.player, player);
-    EXPECT_EQ(state.view().creatures.slots()[enemy.slot].value, CreatureState{});
+    EXPECT_TRUE(state.view().creatures.slots()[enemy.slot].value.equals(state.overflow, CreatureState{}, state.overflow));
     ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
     EXPECT_EQ(restored, state);
 }
@@ -152,6 +153,136 @@ TEST(PublicRun, ConcurrentOverflowBranchesOwnStateAndScratchIndependently) {
     EXPECT_EQ(checkpoint(b).bytes, sibling);
     EXPECT_EQ(checkpoint(source).bytes, before);
 }
+// Controlled architecture fixtures use existing compiled instructions and public
+// stepping. They do not establish native support for additional power semantics.
+TEST(PublicRun, DistinctAndPerApplierPowersSurviveOverflowCloneAndRestore) {
+    RunState state; Scratch scratch;
+    const std::array deck{CardSpec{CardId::strike}, CardSpec{CardId::strike}, CardSpec{CardId::strike}, CardSpec{CardId::strike}, CardSpec{CardId::strike}};
+    ASSERT_EQ(initialize_combat_scenario(state, {}, deck).status, StepStatus::awaiting_input);
+    auto combat = *state.view().combat;
+    using Stacking = PowerInstance::Stacking;
+    std::array<std::uint32_t, 9> separate {};
+    for (auto& id : separate) id = gameplay::apply_power(combat, scratch, PowerId::strength, 1, false, false, {}, true, false, Stacking::separate, combat.player_handle);
+    const auto player = gameplay::apply_power(combat, scratch, PowerId::strength, 2, false, false, {}, true, false, Stacking::by_applier, combat.player_handle);
+    const auto enemy = gameplay::apply_power(combat, scratch, PowerId::strength, 3, false, false, {}, true, true, Stacking::by_applier, combat.enemy_handle);
+    EXPECT_NE(player, enemy);
+    EXPECT_EQ(gameplay::apply_power(combat, scratch, PowerId::strength, 1, false, false, {}, true, false, Stacking::by_applier, combat.player_handle), player);
+    gameplay::apply_power(combat, scratch, PowerId::strength, 4, false, false);
+    ASSERT_TRUE(combat.player.powers.overflowed());
+    ASSERT_TRUE(valid_run(state));
+    EXPECT_EQ(combat.player.power_instances(combat.creature_overflow).size(), 12u);
+    EXPECT_EQ(combat.player.power_amount(PowerId::strength, combat.creature_overflow), 19);
+    const auto saved = checkpoint(state).bytes;
+    RunState clone = state, restored;
+    ASSERT_EQ(restore(restored, saved, scratch), RestoreStatus::restored);
+    EXPECT_EQ(restored, state);
+    CombatState extracted{ConstCombatView(combat)}, extracted_copy;
+    ASSERT_TRUE(valid_combat(extracted));
+    ASSERT_EQ(clone_into(extracted_copy, extracted), CloneStatus::cloned);
+    EXPECT_EQ(extracted_copy, extracted);
+    for (auto* branch : {&clone, &restored}) {
+        const auto view = *branch->view().combat;
+        const auto card = view.zone(Zone::hand).front();
+        ASSERT_EQ(apply_action(*branch, CombatInput{branch->data.boundary, CombatInputKind::play_card, card, true}, scratch).status, StepStatus::awaiting_input);
+        EXPECT_EQ(branch->view().combat->enemy.hp, combat.enemy.hp - 25);
+        branch->view().combat->player.find_power_instance(separate[0], branch->overflow)->amount = 2;
+    }
+    EXPECT_EQ(clone, restored);
+    EXPECT_EQ(checkpoint(state).bytes, saved);
+}
+
+TEST(PublicRun, PerApplierIdentityAndArtifactRemainOnRetainedCreature) {
+    RunState state; Scratch scratch;
+    ASSERT_EQ(initialize_combat_scenario(state, {}, {}).status, StepStatus::awaiting_input);
+    auto combat = *state.view().combat;
+    const auto retained = combat.enemy_handle;
+    gameplay::apply_power(combat, scratch, PowerId::strength, 2, false, false, {}, true, true, PowerInstance::Stacking::by_applier, retained);
+    gameplay::apply_power(combat, scratch, PowerId::artifact, 1, true, false, {}, true, false, PowerInstance::Stacking::separate);
+    const auto replacement = state.view().creatures.create({40, 40}, 4096);
+    state.view().combat.enemies[0] = replacement;
+    gameplay::apply_power(*state.view().combat, scratch, PowerId::artifact, 2, true, false);
+    ASSERT_TRUE(valid_run(state));
+    EXPECT_THROW(CombatState{ConstCombatView(*state.view().combat)}, std::invalid_argument);
+    RunState clone = state, restored;
+    ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(restored, state);
+    for (auto* branch : {&clone, &restored}) {
+        gameplay::apply_power(*branch->view().combat, scratch, PowerId::weak, 2, true, false, {}, true, false, PowerInstance::Stacking::by_type, {}, retained);
+        EXPECT_EQ(branch->view().creatures.get(retained)->power_amount(PowerId::artifact, branch->overflow), 0);
+        EXPECT_EQ(branch->view().creatures.get(retained)->power_amount(PowerId::weak, branch->overflow), 0);
+        EXPECT_EQ(branch->view().creatures.get(replacement)->power_amount(PowerId::artifact, branch->overflow), 2);
+        EXPECT_EQ(advance_to_decision(*branch, scratch).status, StepStatus::awaiting_input);
+    }
+    EXPECT_EQ(clone, restored);
+    EXPECT_EQ(state.view().creatures.get(retained)->power_amount(PowerId::artifact, state.overflow), 1);
+}
+
+TEST(PublicRun, CapturedCreatureTargetSurvivesMembershipReplacementAcrossNestedPrompt) {
+    RunState state; Scratch scratch; NestedPromptInfo info;
+    const std::array hooks{scenario::ShuffleReactionKind::choose_card};
+    reach_nested_shuffle_prompt(state, hooks, info);
+    const auto captured = state.view().combat.enemies.front();
+    const auto captured_hp = state.view().creatures.get(captured)->hp;
+    // Resume an existing damage program after the controlled interruption.
+    auto combat = *state.view().combat;
+    combat.cards.get(info.source)->definition = CardId::strike;
+    combat.cards.get(info.source)->origin = {};
+    for (auto& frame : combat.execution) if (std::holds_alternative<std::monostate>(frame.pending)) {
+        frame.instruction = 0; frame.target = captured;
+    }
+    const auto replacement = state.view().creatures.create({40, 40}, 4096);
+    state.view().combat.enemies[0] = replacement;
+    ASSERT_TRUE(valid_run(state));
+    EXPECT_THROW(CombatState{ConstCombatView(*state.view().combat)}, std::invalid_argument);
+    const auto saved = checkpoint(state).bytes;
+    RunState clone = state, restored;
+    ASSERT_EQ(restore(restored, saved, scratch), RestoreStatus::restored);
+    for (auto* branch : {&clone, &restored}) {
+        ASSERT_EQ(choose_nested_card(*branch, scratch), StepStatus::awaiting_input);
+        EXPECT_EQ(branch->view().creatures.get(captured)->hp, captured_hp - 6);
+        EXPECT_EQ(branch->view().creatures.get(replacement)->hp, 40);
+    }
+    EXPECT_EQ(clone, restored);
+    EXPECT_EQ(checkpoint(state).bytes, saved);
+    RunState stale = state;
+    ASSERT_TRUE(stale.view().creatures.erase(captured));
+    const auto reused = stale.view().creatures.create({40, 40}, 4096);
+    ASSERT_EQ(reused.slot, captured.slot); ASSERT_NE(reused.generation, captured.generation);
+    EXPECT_FALSE(valid_run(stale));
+    EXPECT_THROW(checkpoint(stale), std::invalid_argument);
+    const auto unchanged = stale;
+    const auto stale_view = *stale.view().combat;
+    const CombatInput stale_input{stale.data.boundary, CombatInputKind::select_card, stale_view.selection_candidates.front(), false, stale_view.selection.id};
+    EXPECT_EQ(validate_action(stale, stale_input), Restriction::invalid_state);
+    EXPECT_EQ(apply_action(stale, stale_input, scratch).reason, Restriction::invalid_state);
+    EXPECT_EQ(stale, unchanged);
+    EXPECT_EQ(stale.view().creatures.get(reused)->hp, 40);
+    EXPECT_EQ(stale.view().creatures.get(replacement)->hp, 40);
+}
+
+TEST(PublicRun, SuspendedCombatExtractionPreservesCapturedCreatureIdentities) {
+    RunState state; Scratch scratch; NestedPromptInfo info;
+    const std::array hooks{scenario::ShuffleReactionKind::choose_card};
+    reach_nested_shuffle_prompt(state, hooks, info);
+    const auto replacement = state.view().creatures.create({40, 40}, 4096);
+    state.view().combat.enemies[0] = replacement;
+    auto combat = *state.view().combat;
+    combat.cards.get(info.source)->definition = CardId::strike;
+    combat.cards.get(info.source)->origin = {};
+    for (auto& frame : combat.execution) if (std::holds_alternative<std::monostate>(frame.pending)) { frame.instruction = 0; frame.target = replacement; }
+    CombatState extracted{ConstCombatView(combat)}, restored;
+    ASSERT_TRUE(valid_combat(extracted));
+    ASSERT_EQ(restore(restored, checkpoint(extracted).bytes, scratch), RestoreStatus::restored);
+    const auto choose = [&](CombatState& branch) {
+        const auto view = branch.view();
+        return apply_combat(branch, {view.boundary, CombatInputKind::select_card, view.selection_candidates.front(), false, view.selection.id}, scratch).status;
+    };
+    EXPECT_EQ(choose(extracted), StepStatus::awaiting_input);
+    EXPECT_EQ(choose(restored), StepStatus::awaiting_input);
+    EXPECT_EQ(extracted.enemy.hp, 34);
+    EXPECT_EQ(extracted, restored);
+}
+
 TEST(PublicRun, NestedShuffleChoiceResumesDrawAndParentExactlyOnceAfterRestore) {
     RunState state; Scratch scratch; NestedPromptInfo info;
     const std::array hooks{scenario::ShuffleReactionKind::choose_card};

@@ -29,7 +29,7 @@ StepResult submit_action(RunState& state, const PlayerInput& input, Scratch& scr
 }
 }
 std::size_t ActionSpaceView::size() const noexcept {
-    if (!valid_data_storage(state_.data, state_.overflow)) return 0;
+    if (!state_.valid_storage()) return 0;
     if (state_.phase == CombatPhase::play) return state_.zone(Zone::hand).size() + 1;
     if (state_.phase == CombatPhase::discard_choice) return state_.zone(Zone::hand).size();
     if (state_.phase == CombatPhase::card_choice) return state_.selection_candidates.size() + !state_.selection.automatic_at_maximum;
