@@ -98,10 +98,30 @@ int main() {
         }
         Json response{{"ok", true}, {"state", exporter.snapshot(state)}, {"selection", nullptr}, {"boundary", state.view().boundary.value}};
         const auto view = observe(state);
+        response["boundary"] = view.boundary.value;
+        response["hand"] = Json::array();
+        if (view.combat) for (auto handle : view.combat->hand) {
+            const auto card = observe_card(*state.view().combat, handle);
+            if (!card) throw std::runtime_error("Unobservable public hand card");
+            response["hand"].push_back({{"model_id", card->model_id}, {"upgraded", card->upgraded}});
+        }
         if (view.combat && view.combat->selection) {
             const auto& selection = *view.combat->selection;
+            Json candidates = Json::array(), selected = Json::array();
+            for (auto handle : selection.candidates) {
+                const auto card = inspect_card(*state.view().combat, handle);
+                if (!card) throw std::runtime_error("Uninspectable public selection candidate");
+                candidates.push_back({{"slot", handle.slot}, {"generation", handle.generation},
+                    {"model_id", card->model_id}, {"upgraded", card->upgraded}});
+            }
+            for (auto handle : selection.selected) {
+                const auto at = std::find(selection.candidates.begin(), selection.candidates.end(), handle);
+                if (at == selection.candidates.end()) throw std::runtime_error("Selected public card absent from candidates");
+                selected.push_back(at - selection.candidates.begin());
+            }
             response["selection"] = {{"prompt", selection.id.value}, {"minimum", selection.minimum}, {"maximum", selection.maximum},
-                {"automatic_at_maximum", selection.submits_immediately}, {"selected_count", selection.selected.size()}};
+                {"automatic_at_maximum", selection.submits_immediately}, {"selected_count", selection.selected.size()},
+                {"can_confirm", selection.can_confirm}, {"candidates", candidates}, {"selected_indices", selected}};
         }
         std::cout << response.dump() << std::endl;
     } catch (const std::exception& error) {
