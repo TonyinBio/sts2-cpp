@@ -1,17 +1,13 @@
 #include "sts2/observation/observe.hpp"
+#include "../engine/gameplay.hpp"
 #include <algorithm>
 
 namespace sts2::engine {
 CombatObservationView observe(ConstCombatView s) noexcept {
     if (!valid_data_storage(s.data, s.overflow)) { CombatObservationView invalid{}; invalid.phase = CombatPhase::invalid; return invalid; }
-    const auto base_attack = s.move == BeetleMove::chomp ? 7 : s.move == BeetleMove::stomp ? 13 : 0;
-    const auto attack = base_attack == 0 ? 0 : static_cast<int>(
-        std::max<std::int64_t>(0, std::int64_t(base_attack) + s.enemy.power_amount(PowerId::strength)) *
-        (s.enemy.has_power(PowerId::shrink) ? 70 : 100) *
-        (s.enemy.power_amount(PowerId::weak) > 0 ? 75 : 100) *
-        (s.player.power_amount(PowerId::vulnerable) > 0 ? 150 : 100) / 1000000);
+    const auto intent = gameplay::visible_enemy_intent(s);
     CombatObservationView view{game_build, s.boundary, s.phase, s.player.hp, s.player.max_hp, s.player.block, s.energy,
-        s.turn, s.enemy.hp, s.enemy.max_hp, s.enemy.power_amount(PowerId::vulnerable), attack, s.player.has_power(PowerId::shrink), s.move,
+        s.turn, s.enemy.hp, s.enemy.max_hp, s.enemy.power_amount(PowerId::vulnerable), intent.attack, s.player.has_power(PowerId::shrink), intent.move,
         s.zone(Zone::hand), s.zone(Zone::draw).size(), s.zone(Zone::discard).size(), s.zone(Zone::exhaust).size(), std::nullopt, s.player.power_amount(PowerId::strength), s.player.power_amount(PowerId::dexterity), s.player.power_amount(PowerId::weak), s.enemy.power_amount(PowerId::weak)};
     if (s.phase == CombatPhase::card_choice) view.selection = CardSelectionView{s.selection.id, s.selection.effect, s.selection_candidates, s.selection_order, s.selection.minimum, s.selection.maximum, s.selection.automatic_at_maximum, !s.selection.automatic_at_maximum && s.selection_order.size() >= s.selection.minimum};
     return view;

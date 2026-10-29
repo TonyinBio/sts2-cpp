@@ -1,4 +1,5 @@
 #include "sts2/engine/run.hpp"
+#include "run_flow.hpp"
 #include <algorithm>
 #include <cmath>
 
@@ -31,6 +32,7 @@ bool valid_run(const RunState& state) noexcept {
     auto state_view = state.view();
     if (!valid_data_storage(state.data, state.overflow) ||
         (!state.data.combat && !state.combat_overflow.empty())) return false;
+    if (!flow::valid_room_context(state_view)) return false;
     const auto& setup = state_view;
     if (state_view.phase == RunPhase::uninitialized || state_view.phase >= RunPhase::invalid || state_view.act_index != 0 ||
         state_view.boundary.value == 0 || setup.seed.empty() || setup.seed.size() > 4096 || game_seed(setup.seed) != setup.numeric_seed ||

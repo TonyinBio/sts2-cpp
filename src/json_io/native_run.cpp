@@ -85,6 +85,7 @@ Json NativeRunExporter::snapshot(const RunState& s) const {
     auto s_view = s.view();
     if (!valid_run(s))
         throw std::invalid_argument("Cannot export an uninitialized or invalid run");
+    if (!std::holds_alternative<std::monostate>(s_view.room)) throw std::invalid_argument("Controlled parent rooms have no native diagnostic mapping");
     if (!s_view.maps[0] || s_view.current == no_node) throw std::invalid_argument("Run has no initialized map");
     const auto& setup = s_view; const auto& map = *s_view.maps[0];
     const auto* character = SetupRules::character(setup.character);

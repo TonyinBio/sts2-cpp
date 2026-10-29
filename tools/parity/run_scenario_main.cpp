@@ -39,7 +39,9 @@ int main() {
             exporter = std::move(next_exporter); scratch.trace = exporter.trace();
         } else {
             const auto before = checkpoint(state).bytes;
-            (void)observe(state); (void)get_actions(state); (void)describe(observe(state));
+            (void)observe(state); (void)describe(observe(state));
+            const RunActionSpaceView actions(state);
+            for (std::size_t i = 0; i < actions.size(); ++i) (void)actions.at(i);
             if (checkpoint(state).bytes != before) throw std::runtime_error("Query mutated run");
             RunState restored; if (restore(restored, before, scratch) != RestoreStatus::restored) throw std::runtime_error("Restore failed");
             auto cloned = state;

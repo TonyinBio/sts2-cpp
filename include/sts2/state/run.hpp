@@ -5,11 +5,22 @@
 #include <cstddef>
 #include <iterator>
 #include <optional>
+#include <variant>
 #include <stdexcept>
 
 namespace sts2::engine {
-enum class RunPhase : std::uint8_t { uninitialized, neow, neow_done, map, combat, combat_done, rewards, complete, invalid };
-struct CombatRewards {
+enum class RunPhase : std::uint8_t { uninitialized, neow, neow_done, map, combat, combat_done, rewards, room, complete, invalid };
+enum class RewardReturn : std::uint8_t { map, parent_room };
+enum class ParentRoomStage : std::uint8_t { child_combat, child_rewards, choosing };
+struct ParentInteractionState {
+    ParentRoomStage stage = ParentRoomStage::child_combat;
+    std::int32_t pending_gold = 0;
+    friend bool operator==(const ParentInteractionState&, const ParentInteractionState&) = default;
+};
+// Stateless rooms need no payload. An enclosing interaction can remain here
+// while its child combat and generated offers live in their own records.
+using RoomPayload = std::variant<std::monostate, ParentInteractionState>;
+struct RewardOffers {
     std::int32_t gold = 0;
     ContentId potion = no_content;
     std::array<PersistentCard, 3> cards{};
@@ -20,8 +31,10 @@ struct CombatRewards {
     bool resolved : 1 = false;
     bool skipped : 1 = false;
     std::uint8_t selected_card = UINT8_MAX;
-    friend bool operator==(const CombatRewards&, const CombatRewards&) = default;
+    RewardReturn return_to = RewardReturn::map;
+    friend bool operator==(const RewardOffers&, const RewardOffers&) = default;
 };
+using CombatRewards = RewardOffers;
 using CreaturePool = PoolData<CreatureState, CreatureTag, 8>;
 // Views borrow pool storage. Reacquire them after any pool mutation.
 template<bool Const> struct OptionalCombatView {
@@ -141,6 +154,7 @@ struct RunData {
     RunClock clock;
     BoundaryId boundary{};
     RunPhase phase = RunPhase::uninitialized;
+    RoomPayload room {};
     std::uint8_t act_index = 0;
     std::array<std::optional<MapState>, 3> maps;
     MapNodeId current = no_node;
@@ -196,6 +210,7 @@ template<bool Const> struct BasicRunView {
     Ref<RunClock> clock = data.clock;
     Ref<BoundaryId> boundary = data.boundary;
     Ref<RunPhase> phase = data.phase;
+    Ref<RoomPayload> room = data.room;
     Ref<std::uint8_t> act_index = data.act_index;
     Ref<std::array<std::optional<MapState>, 3>> maps = data.maps;
     Ref<MapNodeId> current = data.current;
@@ -220,7 +235,7 @@ template<bool Const> struct BasicRunView {
             potion_reward_odds == other.potion_reward_odds && combat == other.combat &&
             direct_combat == other.direct_combat && combat_generation == other.combat_generation &&
             rewards == other.rewards && clock == other.clock && boundary == other.boundary &&
-            phase == other.phase && act_index == other.act_index && maps == other.maps &&
+            phase == other.phase && room == other.room && act_index == other.act_index && maps == other.maps &&
             current == other.current && visited == other.visited && event_rng == other.event_rng &&
             neow_options == other.neow_options && selected_neow == other.selected_neow;
     }

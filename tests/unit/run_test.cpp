@@ -1,6 +1,7 @@
 #include "sts2/engine/action.hpp"
 #include "../../src/engine/card_state.hpp"
 #include "../../src/engine/continuation_scenario.hpp"
+#include "../../src/engine/parent_room_scenario.hpp"
 #include "storage_allocator.hpp"
 #include "sts2/json_io/session.hpp"
 #include "sts2/observation/run.hpp"
@@ -280,6 +281,106 @@ TEST(PublicRun, NestedRelicDrawDefersItsCounterResetUntilTheChildChoiceFinishes)
     EXPECT_EQ(restored.view().joss_paper_counter, 0u);
     EXPECT_EQ(restored.view().combat->counters.finished_plays, 2u);
     EXPECT_EQ(checkpoint(state).bytes, saved);
+}
+TEST(PublicRun, DirectActionValidationDoesNotCloneOverflowState) {
+    test::AllocationCounter allocation;
+    RunState state(allocation.allocator()); Scratch scratch;
+    const std::array<CardSpec, 200> deck{};
+    ASSERT_EQ(initialize_combat_scenario(state, {}, deck).status, StepStatus::awaiting_input);
+    ASSERT_FALSE(state.combat_overflow.empty());
+    const auto before = checkpoint(state).bytes;
+    const auto allocations = allocation.allocations;
+    allocation.fail_after = allocations;
+    const auto card = state.view().combat->zone(Zone::hand).front();
+    const PlayerInput input = CombatInput{state.data.boundary, CombatInputKind::play_card, card, true};
+    EXPECT_NO_THROW(EXPECT_EQ(validate_action(state, input), Restriction::none));
+    EXPECT_EQ(allocation.allocations, allocations);
+    EXPECT_EQ(checkpoint(state).bytes, before);
+}
+TEST(PublicRun, BorrowedRunActionsTraverseOverflowWithoutAllocationAndExpireAfterMutation) {
+    test::AllocationCounter allocation;
+    RunState state(allocation.allocator()); Scratch scratch;
+    const std::array<CardSpec, 200> deck{};
+    ASSERT_EQ(initialize_combat_scenario(state, {}, deck).status, StepStatus::awaiting_input);
+    const auto saved = checkpoint(state).bytes;
+    const auto allocations = allocation.allocations;
+    allocation.fail_after = allocations;
+    const RunActionSpaceView first(state);
+    ASSERT_EQ(first.size(), 6u);
+    std::size_t plays = 0, turns = 0;
+    for (std::size_t i = 0; i < first.size(); ++i) {
+        const auto action = first.at(i);
+        ASSERT_TRUE(action);
+        const auto& input = std::get<CombatInput>(action->input);
+        plays += input.kind == CombatInputKind::play_card;
+        turns += input.kind == CombatInputKind::end_turn;
+        EXPECT_EQ(action->restriction, Restriction::none);
+    }
+    EXPECT_EQ(plays, 5u); EXPECT_EQ(turns, 1u);
+    EXPECT_FALSE(first.at(first.size()));
+    EXPECT_EQ(allocation.allocations, allocations);
+    EXPECT_EQ(checkpoint(state).bytes, saved);
+    for (int i = 0; i < 3; ++i) {
+        const RunActionSpaceView current(state);
+        ASSERT_EQ(apply_action(state, current.at(0)->input, scratch).status, StepStatus::awaiting_input);
+    }
+    EXPECT_TRUE(first.empty());
+    const RunActionSpaceView exhausted_energy(state);
+    ASSERT_EQ(exhausted_energy.size(), 3u);
+    EXPECT_EQ(exhausted_energy.at(0)->restriction, Restriction::insufficient_energy);
+    EXPECT_EQ(exhausted_energy.at(1)->restriction, Restriction::insufficient_energy);
+    EXPECT_EQ(std::get<CombatInput>(exhausted_energy.at(2)->input).kind, CombatInputKind::end_turn);
+    EXPECT_EQ(exhausted_energy.at(2)->restriction, Restriction::none);
+    EXPECT_EQ(allocation.allocations, allocations);
+}
+TEST(PublicRun, ParentInteractionReturnsAfterChildCombatAndRewardsExactlyOnce) {
+    RunState state; Scratch scratch;
+    const std::array deck{CardSpec{CardId::strike}, CardSpec{CardId::strike}};
+    ASSERT_EQ(initialize_combat_scenario(state, {}, deck, {}, {}, 1).status, StepStatus::awaiting_input);
+    scenario::configure_parent_return(state, 7);
+    const auto gold = observe(state).gold;
+    const auto card = state.view().combat->zone(Zone::hand).front();
+    ASSERT_EQ(apply_action(state, CombatInput{state.data.boundary, CombatInputKind::play_card, card, true}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(state.view().phase, RunPhase::rewards);
+    const auto reward_boundary = state.data.boundary;
+    const auto reward_rng = state.view().player_rng;
+    const auto saved_rewards = checkpoint(state).bytes;
+    ASSERT_EQ(apply_action(state, RunInput{state.data.boundary, RunInputKind::skip_rewards}, scratch).status, StepStatus::awaiting_input);
+    const auto view = observe(state);
+    ASSERT_EQ(view.options.size(), 2u);
+    EXPECT_EQ(describe(view.options[0]).name, "Continue");
+    EXPECT_EQ(view.options[0].gold_reward, 7);
+    EXPECT_EQ(describe(view.options[0]).description, "Gain 7 Gold.");
+    EXPECT_FALSE(state.view().combat); EXPECT_FALSE(state.view().rewards);
+    const RunActionSpaceView actions(state); ASSERT_EQ(actions.size(), 2u);
+    const auto saved_parent = checkpoint(state).bytes;
+    EXPECT_EQ(advance_to_decision(state, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(checkpoint(state).bytes, saved_parent);
+    EXPECT_EQ(validate_action(state, RunInput{reward_boundary, RunInputKind::skip_rewards}), Restriction::stale_boundary);
+    RunState clone = state, restored, parent_restored;
+    ASSERT_EQ(restore(parent_restored, saved_parent, scratch), RestoreStatus::restored);
+    EXPECT_EQ(parent_restored, state);
+    ASSERT_EQ(restore(restored, saved_rewards, scratch), RestoreStatus::restored);
+    ASSERT_EQ(apply_action(restored, RunInput{restored.data.boundary, RunInputKind::skip_rewards}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(restored, state);
+    ASSERT_EQ(apply_action(clone, actions.at(0)->input, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_action(restored, actions.at(0)->input, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(clone, restored);
+    ASSERT_EQ(apply_action(parent_restored, actions.at(0)->input, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(parent_restored, clone);
+    EXPECT_EQ(observe(clone).gold, gold + 7);
+    EXPECT_EQ(clone.view().phase, RunPhase::map);
+    EXPECT_EQ(clone.view().player_rng, reward_rng);
+    const auto completed = checkpoint(clone).bytes;
+    EXPECT_EQ(advance_to_decision(clone, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(checkpoint(clone).bytes, completed);
+    EXPECT_EQ(apply_action(clone, actions.at(0)->input, scratch).reason, Restriction::stale_boundary);
+    EXPECT_EQ(observe(clone).gold, gold + 7);
+    RunState alternative = state;
+    ASSERT_EQ(apply_action(alternative, actions.at(1)->input, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(observe(alternative).gold, gold);
+    EXPECT_NE(alternative, restored);
+    EXPECT_EQ(checkpoint(state).bytes, saved_parent);
 }
 Json recording() {
     std::ifstream input(std::filesystem::path(KERNEL_RUN_PREFIX_FIXTURE).parent_path().parent_path() / "run-shrinker-victory/actions.json");
