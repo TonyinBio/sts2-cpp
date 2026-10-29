@@ -18,13 +18,13 @@ struct Writer {
     void ids(std::span<const ContentId> values) { u32(static_cast<std::uint32_t>(values.size())); for (auto value : values) u32(value); }
     void card(const PersistentCard& value) { u32(value.definition); u32(value.instance); u32(value.upgrade); i32(value.floor_added); }
     void handle(CardHandle h) { u32(h.slot); u32(h.generation); }
-    void creature(const CreatureState& c) {
+    void creature(const CreatureState& c, const OverflowStorage& owner) {
         i32(c.hp); i32(c.max_hp); i32(c.block); u64(c.positive_unblocked_hits);
-        u32(c.power_count);
-        for (auto id : c.power_ids()) {
-            const auto& p = c.power(id);
+        u32(static_cast<std::uint32_t>(c.powers.size()));
+        for (const auto& p : c.power_instances(owner)) {
+            const auto id = p.definition;
             u8(static_cast<std::uint8_t>(id)); u32(p.instance); i32(p.amount); i32(p.amount_on_turn_start);
-            u8(p.enemy_owner); u8(p.skip_next_tick); u8(p.has_applier); u8(p.applier_enemy); handle(p.source);
+            u8(p.enemy_owner); u8(p.skip_next_tick); u8(p.has_applier); u8(p.applier_enemy); handle(p.source); u32(p.applier.slot); u32(p.applier.generation); u8(static_cast<std::uint8_t>(p.stacking));
         }
     }
     void edges(const MapEdges& value) {
@@ -63,17 +63,17 @@ struct Reader {
     template<std::size_t N> void ids(SequenceView<ContentId, N> values) { const auto n = count(4); values.reserve(n); for (std::size_t i = 0; i < n; ++i) values.push_back(id()); }
     PersistentCard card() { PersistentCard result; result.definition = id(); result.instance = u32(); result.upgrade = u32(); result.floor_added = i32(); return result; }
     CardHandle handle() { const auto slot = u32(); return {slot, u32()}; }
-    CreatureState creature() {
+    CreatureState creature(OverflowStorage& owner) {
         CreatureState c; c.hp = i32(); c.max_hp = i32(); c.block = i32(); c.positive_unblocked_hits = u64();
         const auto count = u32();
-        if (count > CreatureState::power_type_count) throw std::invalid_argument("Invalid power count");
+        if (count > 65536) throw std::invalid_argument("Invalid power count");
         for (std::uint32_t i = 0; i < count; ++i) {
             const auto id = static_cast<PowerId>(u8());
-            if (id >= PowerId::count || c.has_power(id)) throw std::invalid_argument("Invalid power slot");
-            auto& p = c.power(id); p.definition = id; p.instance = u32(); p.amount = i32(); p.amount_on_turn_start = i32();
+            if (id >= PowerId::count) throw std::invalid_argument("Invalid power slot");
+            PowerInstance p; p.definition = id; p.instance = u32(); p.amount = i32(); p.amount_on_turn_start = i32();
             p.enemy_owner = boolean(); p.skip_next_tick = boolean(); p.active = true;
-            p.has_applier = boolean(); p.applier_enemy = boolean(); p.source = handle();
-            c.power_order[c.power_count++] = id;
+            p.has_applier = boolean(); p.applier_enemy = boolean(); p.source = handle(); p.applier = {u32(), u32()}; p.stacking = static_cast<PowerInstance::Stacking>(u8());
+            c.power_instances(owner).push_back(p);
         }
         return c;
     }
@@ -100,11 +100,11 @@ std::uint64_t checksum(std::span<const std::byte> bytes) { return game_hash({rei
 Checkpoint checkpoint(const RunState& run) {
     if (!valid_run(run)) throw std::invalid_argument("Cannot checkpoint invalid run");
     auto run_view = run.view();
-    Writer w; w.text("STS2RUN1"); w.u32(10); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
+    Writer w; w.text("STS2RUN1"); w.u32(11); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
     const auto s = run_view;
     w.u32(s.creatures.data.highest_generation);
     w.u32(static_cast<std::uint32_t>(s.creatures.slots().size()));
-    for (const auto& slot : s.creatures.slots()) { w.u32(slot.generation); w.u8(slot.live); w.creature(slot.value); }
+    for (const auto& slot : s.creatures.slots()) { w.u32(slot.generation); w.u8(slot.live); w.creature(slot.value, s.overflow); }
     w.u32(static_cast<std::uint32_t>(s.creatures.free_slots().size()));
     for (auto index : s.creatures.free_slots()) w.u32(index);
     w.u32(s.data.player.slot); w.u32(s.data.player.generation);
@@ -152,7 +152,7 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         Reader trailer{bytes.last(8)}; if (trailer.u64() != checksum(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
         for (char c : std::string_view("STS2RUN1")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 10 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        if (r.u32() != 11 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (const auto identity : {game_digest, SetupRules::fingerprint()}) for (char c : identity)
             if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
@@ -161,7 +161,7 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         const auto creature_slot_count = r.count(29, 4096);
         std::vector<CreaturePool::Slot> creature_slots; creature_slots.reserve(creature_slot_count);
         for (std::size_t i = 0; i < creature_slot_count; ++i) {
-            CreaturePool::Slot slot; slot.generation = r.u32(); slot.live = r.boolean(); slot.value = r.creature(); creature_slots.push_back(slot);
+            CreaturePool::Slot slot; slot.generation = r.u32(); slot.live = r.boolean(); slot.value = r.creature(run.overflow); creature_slots.push_back(slot);
         }
         const auto creature_free_count = r.count(4, 4096); std::vector<std::uint32_t> creature_free; creature_free.reserve(creature_free_count);
         for (std::size_t i = 0; i < creature_free_count; ++i) creature_free.push_back(r.u32());
@@ -219,11 +219,15 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
             const auto expected_rng = run_view.rng; const auto expected_clock = run_view.clock; const auto expected_boundary = run_view.boundary;
             const auto size = r.count(1, 64 * 1024 * 1024);
             if (run_view.combat.enemies.size() != 1) return RestoreStatus::malformed;
-            const auto expected_player = *creatures.get(run.data.player);
-            const auto expected_enemy = *creatures.get(run_view.combat.enemies.front());
+            auto expected_player = *creatures.get(run.data.player);
+            auto expected_enemy = *creatures.get(run_view.combat.enemies.front());
+            OverflowStorage expected_owner;
+            expected_player.powers = {}; expected_enemy.powers = {};
+            for (const auto& power : creatures.get(run.data.player)->power_instances(run.overflow)) expected_player.power_instances(expected_owner).push_back(power);
+            for (const auto& power : creatures.get(run_view.combat.enemies.front())->power_instances(run.overflow)) expected_enemy.power_instances(expected_owner).push_back(power);
             run.data.combat.emplace();
             const auto status = restore(*run_view.combat, r.bytes.subspan(r.at, size), temporary, limits); if (status != RestoreStatus::restored) return status; r.at += size;
-            if (*creatures.get(run.data.player) != expected_player || *creatures.get(run_view.combat.enemies.front()) != expected_enemy) return RestoreStatus::malformed;
+            if (!creatures.get(run.data.player)->equals(run.overflow, expected_player, expected_owner) || !creatures.get(run_view.combat.enemies.front())->equals(run.overflow, expected_enemy, expected_owner)) return RestoreStatus::malformed;
             if (run_view.joss_paper_counter != expected_joss || run_view.hp != expected_hp || run_view.max_hp != expected_max_hp || run_view.rng != expected_rng ||
                 run_view.clock != expected_clock || run_view.boundary != expected_boundary) return RestoreStatus::malformed;
         }

@@ -37,7 +37,10 @@ template<class T, class Tag, std::size_t N = 32, bool Const = false> struct Pool
             free.reserve(slots.size() + 1);
             slots.push_back({{}, generation, false});
         }
-        auto& slot = slots[index]; slot.value = value; slot.live = true;
+        auto& slot = slots[index];
+        if constexpr (requires { slot.value.assign_from(value, owner); }) slot.value.assign_from(value, owner);
+        else slot.value = value;
+        slot.live = true;
         data.highest_generation = std::max(data.highest_generation, slot.generation);
         return {index, slot.generation};
     }
@@ -86,7 +89,15 @@ template<class T, class Tag, std::size_t N = 32, bool Const = false> struct Pool
         return true;
     }
     template<bool Other> bool operator==(const PoolView<T, Tag, N, Other>& other) const {
-        return data.highest_generation == other.data.highest_generation && std::ranges::equal(slots(), other.slots()) && std::ranges::equal(free_slots(), other.free_slots());
+        if (data.highest_generation != other.data.highest_generation || slots().size() != other.slots().size() || !std::ranges::equal(free_slots(), other.free_slots())) return false;
+        for (std::size_t i = 0; i < slots().size(); ++i) {
+            const auto& a = slots()[i]; const auto& b = other.slots()[i];
+            if (a.generation != b.generation || a.live != b.live) return false;
+            if constexpr (requires { a.value.equals(owner, b.value, other.owner); }) {
+                if (!a.value.equals(owner, b.value, other.owner)) return false;
+            } else if (a.value != b.value) return false;
+        }
+        return true;
     }
 };
 } // namespace sts2::engine

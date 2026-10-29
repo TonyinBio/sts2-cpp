@@ -24,6 +24,8 @@ StepResult execute_instruction(CombatView state, Scratch& scratch, const Ruleset
     if (!source) return fail(state, Restriction::invalid_state);
     const auto* definition = rules.card(source->definition);
     if (!definition || frame.instruction >= definition->program.size()) return fail(state, Restriction::invalid_state);
+    auto* target = state.creature(frame.target);
+    if (!target) return fail(state, Restriction::invalid_state);
     const auto instruction = definition->program[frame.instruction++];
     const int amount = instruction.base + (source->upgraded ? instruction.upgrade : 0);
     switch (instruction.opcode) {
@@ -78,7 +80,7 @@ StepResult execute_instruction(CombatView state, Scratch& scratch, const Ruleset
         }
         break;
     case Opcode::damage: {
-        const auto hit = damage(state.enemy, amount, state.player);
+        const auto hit = damage(*target, amount, state.player, state.creature_overflow);
         emit(state, scratch, CombatEventKind::damaged, false, true, frame.source, 0, 0, hit);
         emit(state, scratch, CombatEventKind::attacked, false, false, frame.source, 0, 0, hit);
         break;
@@ -90,10 +92,10 @@ StepResult execute_instruction(CombatView state, Scratch& scratch, const Ruleset
     case Opcode::strength:
         (void)apply_power(state, scratch, PowerId::strength, amount, false, false, frame.source); break;
     case Opcode::weak:
-        (void)apply_power(state, scratch, PowerId::weak, amount, true, false, frame.source); break;
+        (void)apply_power(state, scratch, PowerId::weak, amount, true, false, frame.source, true, false, PowerInstance::Stacking::by_type, {}, frame.target); break;
     case Opcode::vulnerable:
-        if (amount > std::numeric_limits<int>::max() - state.enemy.power_amount(PowerId::vulnerable)) return fail(state, Restriction::capacity);
-        (void)apply_power(state, scratch, PowerId::vulnerable, amount, true, false, frame.source); break;
+        if (amount > std::numeric_limits<int>::max() - target->power_amount(PowerId::vulnerable, state.creature_overflow)) return fail(state, Restriction::capacity);
+        (void)apply_power(state, scratch, PowerId::vulnerable, amount, true, false, frame.source, true, false, PowerInstance::Stacking::by_type, {}, frame.target); break;
     case Opcode::discard_choice:
         if (state.zone(Zone::hand).size() == 1) {
             const auto discarded = state.zone(Zone::hand).front();

@@ -36,6 +36,9 @@ struct PowerInstance {
     bool has_applier : 1 = true;
     bool applier_enemy : 1 = false;
     CardHandle source {};
+    CreatureHandle applier {};
+    enum class Stacking : std::uint8_t { by_type, by_applier, separate };
+    Stacking stacking = Stacking::by_type;
     friend bool operator==(const PowerInstance&, const PowerInstance&) = default;
 };
 } // namespace sts2::engine

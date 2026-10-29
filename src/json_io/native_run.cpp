@@ -64,8 +64,7 @@ void NativeRunExporter::record(ConstCombatView state, const CombatEvent& event) 
     if (event.kind == CombatEventKind::power_received || event.kind == CombatEventKind::power_changed) {
         const PowerInstance* found = nullptr;
         for (const auto* creature : {&state.player, &state.enemy})
-            for (auto id : creature->power_ids()) {
-                const auto& power = creature->power(id);
+            for (const auto& power : creature->power_instances(state.creature_overflow)) {
                 if (power.instance == event.object) found = &power;
             }
         if (!found || event.object > combat_.powers.size()) throw std::logic_error("Missing exported power identity");
@@ -76,7 +75,7 @@ void NativeRunExporter::record(ConstCombatView state, const CombatEvent& event) 
     if (event.kind == CombatEventKind::play_started) {
         const auto& frame = state.execution.back();
         if (frame.play != combat_.plays.size()) throw std::logic_error("Missing exported play identity");
-        combat_.plays.push_back({frame.source, frame.energy, frame.enemy_target});
+        combat_.plays.push_back({frame.source, frame.energy, Ruleset::pinned().card(state.cards.get(frame.source)->definition)->enemy_target});
     }
     combat_.history.push_back(event);
 }

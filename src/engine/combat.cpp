@@ -14,31 +14,43 @@ constexpr std::array starting_deck = {
     CardSpec{CardId::strike}, CardSpec{CardId::strike}, CardSpec{CardId::defend},
     CardSpec{CardId::defend}, CardSpec{CardId::defend}, CardSpec{CardId::defend}, CardSpec{CardId::bash}};
 bool valid_powers(ConstCombatView state) noexcept {
-    for (const auto* creature : {&state.player, &state.enemy}) {
-        if (creature->power_count > CreatureState::power_type_count) return false;
-        std::array<bool, CreatureState::power_type_count> seen {};
-        for (auto id : creature->power_ids()) {
-            const auto slot = static_cast<std::size_t>(id);
-            if (slot >= seen.size() || seen[slot]) return false;
-            seen[slot] = true;
-            const auto& p = creature->power(id);
-            if (p.definition != id || !p.active || p.enemy_owner != (creature == &state.enemy) || p.instance >= state.next_power_instance) return false;
-            if (((id == PowerId::vulnerable || id == PowerId::weak || id == PowerId::artifact) && p.amount <= 0) || (id == PowerId::shrink && p.amount >= 0) ||
-                ((id == PowerId::strength || id == PowerId::dexterity) && p.amount == 0) ||
-                (p.source.present() && !state.cards.get(p.source))) return false;
+    const bool canonical = state.creature_pool && state.creature_pool_owner == &state.creature_overflow;
+    const auto for_each_creature = [&](auto visit) {
+        if (canonical) {
+            const auto slots = state.creature_pool->slots.values(state.creature_overflow);
+            for (std::size_t i = 0; i < slots.size(); ++i) if (slots[i].live)
+                visit(&slots[i].value, CreatureHandle{static_cast<std::uint32_t>(i), slots[i].generation} != state.player_handle);
+        } else { visit(&state.player, false); visit(&state.enemy, true); }
+    };
+    const auto valid_creature = [&](const CreatureState* creature, bool enemy) {
+        if (!creature->powers.valid(state.creature_overflow)) return false;
+        const auto powers = creature->power_instances(state.creature_overflow);
+        for (std::size_t i = 0; i < powers.size(); ++i) {
+            const auto& power = powers[i]; const auto id = power.definition;
+            if (id >= PowerId::count || !power.active || power.enemy_owner != enemy || power.instance >= state.next_power_instance || power.stacking > PowerInstance::Stacking::separate) return false;
+            if (((id == PowerId::vulnerable || id == PowerId::weak || id == PowerId::artifact) && power.amount <= 0) || (id == PowerId::shrink && power.amount >= 0) ||
+                ((id == PowerId::strength || id == PowerId::dexterity) && power.amount == 0) ||
+                (power.source.present() && !state.cards.get(power.source)) || (power.has_applier && (!power.applier.present() || !state.creature(power.applier)))) return false;
+            for (std::size_t j = 0; j < i; ++j) {
+                const auto& previous = powers[j];
+                if (power.instance == previous.instance) return false;
+                if (id == previous.definition && power.stacking == previous.stacking &&
+                    (power.stacking == PowerInstance::Stacking::by_type || (power.stacking == PowerInstance::Stacking::by_applier && power.applier == previous.applier))) return false;
+            }
         }
-        for (std::size_t i = creature->power_count; i < creature->power_order.size(); ++i)
-            if (creature->power_order[i] != PowerId{}) return false;
-        for (std::size_t i = 0; i < seen.size(); ++i) {
-            if (!seen[i] && creature->powers[i] != PowerInstance{}) return false;
-            for (std::size_t j = 0; seen[i] && j < i; ++j)
-                if (seen[j] && creature->powers[i].instance == creature->powers[j].instance) return false;
-        }
-    }
-    for (auto player : state.player.power_ids())
-        for (auto enemy : state.enemy.power_ids())
-            if (state.player.power(player).instance == state.enemy.power(enemy).instance) return false;
-    return true;
+        return true;
+    };
+    bool valid = true;
+    for_each_creature([&](const CreatureState* creature, bool enemy) { if (!valid_creature(creature, enemy)) valid = false; });
+    if (!valid) return false;
+    for_each_creature([&](const CreatureState* a, bool) {
+        for_each_creature([&](const CreatureState* b, bool) {
+            if (a == b) return;
+            for (const auto& pa : a->power_instances(state.creature_overflow))
+                for (const auto& pb : b->power_instances(state.creature_overflow)) if (pa.instance == pb.instance) valid = false;
+        });
+    });
+    return valid;
 }
 
 }
@@ -98,7 +110,7 @@ std::int32_t effective_card_cost(ConstCombatView state, CardHandle handle, const
     return static_cast<std::int32_t>(std::max<std::int64_t>(0, cost));
 }
 Restriction validate_combat(ConstCombatView state, const CombatInput& input, const Ruleset& rules) noexcept {
-    if (!valid_data_storage(state.data, state.overflow) || !valid_powers(state) || !valid_card_extra_state(state) || !valid_continuations(state, rules) ||
+    if (!state.valid_storage() || !valid_powers(state) || !valid_card_extra_state(state) || !valid_continuations(state, rules) ||
         state.phase == CombatPhase::uninitialized || state.phase == CombatPhase::invalid || state.rules != rules_revision)
         return Restriction::invalid_state;
     if (input.expected_boundary != state.boundary) return Restriction::stale_boundary;
@@ -137,7 +149,7 @@ Restriction validate_combat(ConstCombatView state, const CombatInput& input, con
     return Restriction::none;
 }
 StepResult advance_combat(CombatView state, Scratch& scratch, const Ruleset& rules) noexcept try {
-    if (!valid_data_storage(state.data, state.overflow) || !valid_powers(state) || !valid_card_extra_state(state)) return fail(state, Restriction::invalid_state);
+    if (!state.valid_storage() || !valid_powers(state) || !valid_card_extra_state(state)) return fail(state, Restriction::invalid_state);
     if (state.phase != CombatPhase::play || state.execution.empty()) return result(state);
     while (!state.execution.empty()) {
         if (!consume(scratch)) return fail(state, Restriction::execution_budget);
@@ -204,7 +216,7 @@ StepResult apply_combat(CombatView state, const CombatInput& input, Scratch& scr
         move_card(state, Zone::hand, Zone::play, input.card);
         if (state.counters.started_plays == UINT32_MAX) return fail(state, Restriction::capacity);
         const auto play_id = state.counters.started_plays;
-        state.execution.push_back({input.card, 0, play_id, cost, input.target_enemy});
+        state.execution.push_back({input.card, 0, play_id, cost, state.enemy_handle});
         if (cost > 0) emit(state, scratch, CombatEventKind::energy_spent, false, false, {}, 0, cost);
         ++state.counters.started_plays; ++state.counters.started_this_turn;
         if (rules.card(card->definition)->kind == CardKind::attack) {
@@ -248,7 +260,8 @@ StepResult apply_power_scenario(CombatView state, const PowerApplication& operat
     } catch (...) { return fail(state, Restriction::capacity); }
 }
 bool valid_combat(ConstCombatView state, const Ruleset& rules) noexcept {
-    if (!valid_data_storage(state.data, state.overflow) || !state.cards.valid()) return false;
+    if (!state.player_handle.present() || !state.enemy_handle.present() || state.player_handle == state.enemy_handle) return false;
+    if (!state.valid_storage() || !state.cards.valid()) return false;
     if (state.exhaust_relic_count > state.exhaust_relics.size() ||
         (state.joss_paper_counter >= 5 && std::none_of(state.execution.begin(), state.execution.end(), [](const auto& frame) { return std::holds_alternative<RelicDrawCompletion>(frame.pending); }))) return false;
     bool joss = false;
@@ -278,7 +291,7 @@ bool valid_combat(ConstCombatView state, const Ruleset& rules) noexcept {
         (!terminal && (state.enemy.hp == 0 || state.player.hp == 0))) return false;
     if (state.next_prompt.value == 0 || (state.phase != CombatPhase::card_choice && (state.selection != CardSelection{} || !state.selection_candidates.empty() || !state.selection_order.empty()))) return false;
     if (!valid_continuations(state, rules)) return false;
-    if (state.phase == CombatPhase::combat_won && (state.player.power_count != 0 || state.enemy.power_count != 0)) return false;
+    if (state.phase == CombatPhase::combat_won && (!state.player.powers.empty() || !state.enemy.powers.empty())) return false;
     const auto& counters = state.counters;
     if (counters.finished_plays > counters.started_plays || counters.started_this_turn > counters.started_plays ||
         counters.attacks_this_turn > counters.started_this_turn || counters.zero_energy_attacks_this_turn > counters.attacks_this_turn ||

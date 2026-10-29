@@ -238,14 +238,14 @@ TEST(SeededRunParity, ExporterRetainsExpiredPowerIdentityWhileEngineReclaimsIt) 
     ASSERT_EQ(play(CardId::defend).status, StepStatus::awaiting_input);
     ASSERT_EQ(play(CardId::defend).status, StepStatus::awaiting_input);
     ASSERT_EQ(end_turn().status, StepStatus::awaiting_input);
-    ASSERT_EQ(state.view().combat->player.power_count + state.view().combat->enemy.power_count, 1u);
-    EXPECT_EQ(state.view().combat->enemy.power_amount(PowerId::vulnerable), 0);
+    ASSERT_EQ(state.view().combat->player.powers.size() + state.view().combat->enemy.powers.size(), 1u);
+    EXPECT_EQ(state.view().combat->enemy.power_amount(PowerId::vulnerable, state.overflow), 0);
     const auto expired = exporter.snapshot(state);
     EXPECT_EQ(expired["combat"]["powers"]["0"]["amount"], 0);
     EXPECT_EQ(expired["combat"]["powers"]["0"]["detached_owner"], "/combat/creatures/enemy_0");
     ASSERT_EQ(play(CardId::bash).status, StepStatus::awaiting_input);
-    ASSERT_EQ(state.view().combat->player.power_count + state.view().combat->enemy.power_count, 2u);
-    EXPECT_EQ(state.view().combat->enemy.power(PowerId::vulnerable).instance, 2u);
+    ASSERT_EQ(state.view().combat->player.powers.size() + state.view().combat->enemy.powers.size(), 2u);
+    EXPECT_EQ(state.view().combat->enemy.find_power(PowerId::vulnerable, state.overflow)->instance, 2u);
     const auto actual = exporter.snapshot(state);
     EXPECT_EQ(actual["combat"]["powers"].size(), 3u);
     EXPECT_EQ(actual["combat"]["creatures"]["enemy_0"]["powers"], Json::array({"/combat/powers/2"}));
