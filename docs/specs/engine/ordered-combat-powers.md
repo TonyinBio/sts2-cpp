@@ -33,7 +33,8 @@ byte-for-byte unchanged. Capture, independent native self-replay, and exact C++
 replay are separate checks in `tools/oracle/check_ordered_powers.py`. The eight
 power cases were freshly captured/self-replayed and exactly compared at 38
 boundaries during this resumption. New directories record the real exhaust
-interactions separately. Native comparison retains all historical fields.
+interactions separately. The final 14-case capture independently self-replays and
+compares all 54 boundaries exactly. Native comparison retains all historical fields.
 
 Artifact captures the contributing instance before power application, prevents
 the first debuff and consumes only that instance in the after-modifier callback.

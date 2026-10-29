@@ -19,7 +19,7 @@ ordered selections and typed effect accompany the suspended source-card frame.
 Cloning and binary checkpoints preserve these values and the next prompt identity.
 Candidate and selection lists use pointer-free inline sequences with independently
 owned overflow; the common partial-prompt clone test verifies allocation-free
-cloning and relocation by `memcpy`. Binary checkpoint revision 8 records these
+cloning and relocation by `memcpy`. Binary checkpoint revision 9 records these
 operands and rejects older incompatible layouts.
 The source card remains in Play, and its energy cost and play hooks run once.
 Confirmation resumes the source frame without replaying its completed instructions.
@@ -75,7 +75,7 @@ at every submitted boundary.
 | Immutable Purity default | `selection-defaults.json`, captured from actual `ModelDb.Card<Purity>().ToMutable().ToSerializable()` with pinned assembly provenance. |
 | Native atomic model comparison | All 26 cases / 62 boundaries captured, independently self-replayed and compared exactly against C++ public inputs. Preserved in `tests/parity/fixtures/reference/ordered-card-choices.json`, with per-case native build provenance, component hashes and explicit public action intervals. `ordered_card_choice_scenarios` verifies hashes and replays the corpus offline. |
 | Native partial callbacks | [Preserved native selection-policy evidence](../../../data/evidence/native-selection-policies-18/README.md): six actual scene/callback scenarios passed in two independently initialized processes each. Eleven partial Purity/Armaments states match the C++ public prompt projection, followed by two completed confirmations; accepted C++ inputs each advance one boundary and one configured two-second clock step. Native callbacks do not advance the recorder transport clock; their logical-input correspondence is recorded separately. Native read purity covers the explicitly enumerated fingerprint surface. Headbutt's actual pile callback and command consumer run with pile visuals disabled; full presentation startup is outside this seam. Exact native resource-cache/renderer teardown diagnostics remain preserved and do not certify a leak-free application lifecycle. |
-| Nested hook interactions | Pending integration with the responsible supported hook models; no unimplemented hook is silently skipped or certified. |
+| Nested effect and hook interactions | Public clone/restore tests resume partial Purity choices into ordered Charon's Ashes/Joss Paper effects and threshold draws, with independent alternative selections. Six new native cases in `ordered-powers/` independently self-replay and compare exactly, including lethal first/later exhausts, blocked damage and downstream callbacks during combat completion. No supported callback creates a second simultaneous prompt; deeper input stops remain conditional on an actual supported native caller. |
 
 Exact English, other characters and broader unsupported content remain outside
 this slice. A missing native callback or interaction result remains an evidence gap
