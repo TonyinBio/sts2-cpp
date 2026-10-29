@@ -12,12 +12,17 @@ enum class CardId : std::uint8_t { strike, defend, bash, survivor, purity, armam
 enum class Opcode : std::uint8_t { damage, block, vulnerable, discard_choice, finish, exhaust_choice, upgrade_choice, topdeck_choice, exhaust_one, draw, grit_exhaust, strength, weak };
 struct Instruction { Opcode opcode; std::int32_t base = 0; std::int32_t upgrade = 0; };
 enum class CardRarity : std::uint8_t { basic, common, uncommon };
+enum class CardKind : std::uint8_t { skill, attack, power };
+enum class CardDestination : std::uint8_t { discard, exhaust, remove };
 struct CardDefinition {
     std::string_view model_id, name;
     std::int32_t cost;
     bool enemy_target;
     std::span<const Instruction> program;
     CardRarity rarity = CardRarity::basic;
+    CardKind kind = CardKind::skill;
+    CardDestination destination = CardDestination::discard;
+    bool retain = false;
 };
 // Static programs/English data live once, outside every simulation's mutable state.
 class Ruleset {

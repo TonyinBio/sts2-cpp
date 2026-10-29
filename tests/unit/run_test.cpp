@@ -79,6 +79,17 @@ TEST(PublicRun, DeadCreatureRemainsUntilCombatResolutionReleasesItsOperands) {
     ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
     EXPECT_EQ(restored, state);
 }
+TEST(PublicRun, EachUnblockedAttackUpdatesTheCreatureHitCountOnce) {
+    RunState state; Scratch scratch;
+    const std::array deck{CardSpec{CardId::strike}, CardSpec{CardId::strike}};
+    ASSERT_EQ(initialize_combat_scenario(state, {}, deck, {}, {}, 40).status, StepStatus::awaiting_input);
+    for (unsigned hits = 1; hits <= 2; ++hits) {
+        const auto card = state.view().combat->zone(Zone::hand).front();
+        ASSERT_EQ(apply_action(state, CombatInput{state.data.boundary, CombatInputKind::play_card, card, true}, scratch).status, StepStatus::awaiting_input);
+        EXPECT_EQ(state.view().combat->enemy.hp, 40 - 6 * static_cast<int>(hits));
+        EXPECT_EQ(state.view().combat->enemy.positive_unblocked_hits, hits);
+    }
+}
 Json recording() {
     std::ifstream input(std::filesystem::path(KERNEL_RUN_PREFIX_FIXTURE).parent_path().parent_path() / "run-shrinker-victory/actions.json");
     return Json::parse(input);

@@ -16,19 +16,19 @@ constexpr std::array shockwave = {Instruction{Opcode::weak, 3, 2}, Instruction{O
 constexpr std::array tremble = {Instruction{Opcode::vulnerable, 3, 1}, Instruction{Opcode::finish}};
 constexpr std::array uppercut = {Instruction{Opcode::damage, 13}, Instruction{Opcode::weak, 1, 1}, Instruction{Opcode::vulnerable, 1, 1}, Instruction{Opcode::finish}};
 constexpr std::array definitions = {
-    CardDefinition{"CARD.STRIKE_IRONCLAD", "Strike", 1, true, strike},
+    CardDefinition{"CARD.STRIKE_IRONCLAD", "Strike", 1, true, strike, CardRarity::basic, CardKind::attack},
     CardDefinition{"CARD.DEFEND_IRONCLAD", "Defend", 1, false, defend},
-    CardDefinition{"CARD.BASH", "Bash", 2, true, bash},
+    CardDefinition{"CARD.BASH", "Bash", 2, true, bash, CardRarity::basic, CardKind::attack},
     CardDefinition{"CARD.SURVIVOR", "Survivor", 1, false, survivor},
-    CardDefinition{"CARD.PURITY", "Purity", 0, false, purity, CardRarity::uncommon},
+    CardDefinition{"CARD.PURITY", "Purity", 0, false, purity, CardRarity::uncommon, CardKind::skill, CardDestination::exhaust, true},
     CardDefinition{"CARD.ARMAMENTS", "Armaments", 1, false, armaments, CardRarity::common},
-    CardDefinition{"CARD.HEADBUTT", "Headbutt", 1, true, headbutt, CardRarity::common},
+    CardDefinition{"CARD.HEADBUTT", "Headbutt", 1, true, headbutt, CardRarity::common, CardKind::attack},
     CardDefinition{"CARD.BURNING_PACT", "Burning Pact", 1, false, burning_pact, CardRarity::uncommon},
     CardDefinition{"CARD.TRUE_GRIT", "True Grit", 1, false, true_grit, CardRarity::common},
-    CardDefinition{"CARD.INFLAME", "Inflame", 1, false, inflame, CardRarity::uncommon},
-    CardDefinition{"CARD.SHOCKWAVE", "Shockwave", 2, false, shockwave, CardRarity::uncommon},
-    CardDefinition{"CARD.TREMBLE", "Tremble", 1, true, tremble, CardRarity::common},
-    CardDefinition{"CARD.UPPERCUT", "Uppercut", 2, true, uppercut, CardRarity::uncommon}};
+    CardDefinition{"CARD.INFLAME", "Inflame", 1, false, inflame, CardRarity::uncommon, CardKind::power, CardDestination::remove},
+    CardDefinition{"CARD.SHOCKWAVE", "Shockwave", 2, false, shockwave, CardRarity::uncommon, CardKind::skill, CardDestination::exhaust},
+    CardDefinition{"CARD.TREMBLE", "Tremble", 1, true, tremble, CardRarity::common, CardKind::skill, CardDestination::exhaust},
+    CardDefinition{"CARD.UPPERCUT", "Uppercut", 2, true, uppercut, CardRarity::uncommon, CardKind::attack}};
 }
 const CardDefinition* Ruleset::card(CardId id) const noexcept {
     const auto index = static_cast<std::size_t>(id);
