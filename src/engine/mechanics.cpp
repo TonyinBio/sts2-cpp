@@ -139,4 +139,18 @@ int heal(CreatureState& creature, int amount) noexcept {
 }
 void spend_energy(CombatView state, int amount) noexcept { state.energy -= amount; }
 void refresh_energy(CombatView state, int amount) noexcept { state.energy = amount; }
+void remember_card_choice(CombatView state, CardHandle receiver, CardHandle choice) {
+    auto* card = state.cards.get(receiver);
+    if (!card || !state.cards.get(choice)) throw std::invalid_argument("Stale remembered choice");
+    card->extra = RememberedCardChoice{choice};
+}
+bool valid_card_extra_state(ConstCombatView state) noexcept {
+    for (const auto& slot : state.cards.slots()) {
+        if (slot.value.extra.index() > 1) return false;
+        if (!slot.live) continue;
+        if (const auto* memory = std::get_if<RememberedCardChoice>(&slot.value.extra))
+            if (!state.cards.get(memory->card)) return false;
+    }
+    return true;
+}
 }

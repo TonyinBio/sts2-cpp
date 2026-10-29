@@ -78,6 +78,11 @@ void export_rewards(Json& out, ConstRunView run_view) {
 }
 }
 void export_native_combat(Json& out, const RunState& run, const RecordedCombat& recorded) {
+    if (run.view().combat && run.view().combat->shuffle_reactions.data.highest_generation != 0)
+        throw std::invalid_argument("Controlled shuffle reactions have no native diagnostic mapping");
+    if (run.view().combat) for (const auto& slot : run.view().combat->cards.slots())
+        if (slot.live && !std::holds_alternative<std::monostate>(slot.value.extra))
+            throw std::invalid_argument("Exceptional card state has no native diagnostic mapping");
     auto run_view = run.view();
     if (!run_view.combat) {
         const bool died = run_view.phase == RunPhase::complete;

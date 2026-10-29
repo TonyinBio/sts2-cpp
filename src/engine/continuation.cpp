@@ -32,11 +32,20 @@ StepResult resume_continuation(CombatView state, Scratch& scratch, const Ruleset
         auto* listener = state.shuffle_reactions.get(handle);
         if (!listener || listener->fired) return result(state);
         const auto kind = listener->kind;
+        const auto remember = listener->remember_choice;
         listener->fired = true;
         auto hand = state.zone(Zone::hand);
         if (kind == ShuffleReactionKind::choose_card) {
+            CardHandle receiver;
+            if (remember) for (std::size_t i = state.execution.size(); i-- > 0;) {
+                const auto& parent = state.execution[i];
+                if (std::holds_alternative<std::monostate>(parent.pending)) { receiver = parent.source; break; }
+            }
+            traversal->remember_to = receiver;
             if (hand.size() > 1) { traversal->waiting = true; begin_selection(state, SelectionEffect::topdeck, Zone::hand, 1, 1, true); }
             else if (!hand.empty()) {
+                if (receiver.present()) remember_card_choice(state, receiver, hand.front());
+                traversal->remember_to = {};
                 move_card(state, Zone::hand, Zone::draw, hand.front());
                 auto pile = state.zone(Zone::draw); std::rotate(pile.begin(), pile.end() - 1, pile.end());
             }
@@ -51,7 +60,9 @@ StepResult resume_continuation(CombatView state, Scratch& scratch, const Ruleset
         }
         const auto card = state.continuation_cards[choice->begin + choice->cursor++];
         const auto effect = choice->effect; const auto zone = choice->zone;
+        const auto receiver = choice->remember_to;
         if (!state.cards.get(card)) return fail(state, Restriction::invalid_state);
+        if (receiver.present()) remember_card_choice(state, receiver, card);
         if (effect == SelectionEffect::upgrade) state.cards.get(card)->upgraded = true;
         else if (effect == SelectionEffect::topdeck) {
             move_card(state, zone, Zone::draw, card);
@@ -87,10 +98,12 @@ bool valid_continuations(ConstCombatView state, const Ruleset& rules) noexcept {
         } else if (const auto* draw_state = std::get_if<DrawContinuation>(&frame.pending)) {
             if (draw_state->remaining < 0) return false;
         } else if (const auto* hook = std::get_if<ShuffleContinuation>(&frame.pending)) {
+            if (hook->remember_to.present() && !state.cards.get(hook->remember_to)) return false;
             if (hook->begin != captured_end || hook->cursor > hook->count || hook->count > state.captured_shuffle_reactions.size() - captured_end) return false;
             captured_end += hook->count;
             if (hook->waiting && (&frame != &state.execution.back() || state.phase != CombatPhase::card_choice || hook->cursor == 0)) return false;
         } else if (const auto* choice = std::get_if<SelectionContinuation>(&frame.pending)) {
+            if (choice->remember_to.present() && !state.cards.get(choice->remember_to)) return false;
             if (choice->begin != cards_end || choice->cursor > choice->count || choice->count > state.continuation_cards.size() - cards_end ||
                 choice->effect == SelectionEffect::none || choice->effect > SelectionEffect::topdeck || choice->zone >= Zone::count) return false;
             cards_end += choice->count;

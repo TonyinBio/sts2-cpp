@@ -13,6 +13,8 @@ std::uint32_t apply_power(CombatView, Scratch&, PowerId, int amount, bool enemy,
 void expire_power(CombatView, Scratch&, CreatureState&, PowerId);
 void snapshot_power_turn(CombatView, Scratch&, CreatureState&, bool enemy);
 void move_card(CombatView, Zone from, Zone to, CardHandle);
+bool valid_card_extra_state(ConstCombatView) noexcept;
+void remember_card_choice(CombatView, CardHandle receiver, CardHandle choice);
 void clear_selection(CombatView);
 void begin_selection(CombatView, SelectionEffect, Zone, std::uint32_t minimum, std::uint32_t maximum, bool automatic);
 void reshuffle(CombatView, const Ruleset&);

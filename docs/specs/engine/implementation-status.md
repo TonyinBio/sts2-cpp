@@ -28,7 +28,7 @@ An optional synchronous trace supplies `json_io`'s exporter-owned diagnostic his
 completed plays and removed powers. Comparison schemas and fixtures remain unchanged.
 Recording is linear and attaches at creation; recording arbitrary pre-made states
 or cloned branches is unsupported. Engine clones contain no exporter context.
-Binary checkpoint revisions are combat 11 and run 9; older versions are rejected.
+Binary checkpoint revisions are combat 12 and run 10; older versions are rejected.
 JSON checkpoint migration remains separate. These summaries are not a sufficiency
 proof for unsupported mechanics or mutable card types.
 
@@ -53,7 +53,11 @@ Persistent deck order now holds handles into a separate generational card pool;
 combat card origins resolve those handles rather than deck positions. Ordered cost
 layers preserve local absolute/relative changes, reduce-only behavior and expiry.
 Controlled upgrade, reorder and branch tests exercise temporary/permanent isolation;
-they do not establish parity for new production effects or exceptional card payloads.
+they do not establish parity for new production effects. A typed remembered-choice
+payload exercises exceptional card state through controlled shuffle reactions,
+including cloning, checkpoints and stale-generation rejection. It is architecture
+coverage, not evidence for a native card mechanic. Native diagnostic export rejects
+these controlled states. Inline payload placement remains provisional pending measurement.
 
 Shared mechanics, typed hooks, compiled instruction handlers and combat completion
 live in `src/engine/mechanics.cpp`, `hooks.cpp`, `content.cpp` and

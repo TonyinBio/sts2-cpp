@@ -19,8 +19,8 @@ struct Writer {
         handle(f.source); u32(f.instruction); u32(f.play); i32(f.energy); u8(f.enemy_target);
         u8(static_cast<std::uint8_t>(f.pending.index()));
         if (const auto* value = std::get_if<DrawContinuation>(&f.pending)) { i32(value->remaining); u8(value->from_hand_draw); }
-        else if (const auto* value = std::get_if<ShuffleContinuation>(&f.pending)) { u32(value->begin); u32(value->count); u32(value->cursor); u8(value->waiting); }
-        else if (const auto* value = std::get_if<SelectionContinuation>(&f.pending)) { u8(static_cast<std::uint8_t>(value->effect)); u8(static_cast<std::uint8_t>(value->zone)); u32(value->begin); u32(value->count); u32(value->cursor); }
+        else if (const auto* value = std::get_if<ShuffleContinuation>(&f.pending)) { u32(value->begin); u32(value->count); u32(value->cursor); u8(value->waiting); handle(value->remember_to); }
+        else if (const auto* value = std::get_if<SelectionContinuation>(&f.pending)) { u8(static_cast<std::uint8_t>(value->effect)); u8(static_cast<std::uint8_t>(value->zone)); u32(value->begin); u32(value->count); u32(value->cursor); handle(value->remember_to); }
         else if (const auto* value = std::get_if<ExhaustContinuation>(&f.pending)) { for (auto relic : value->candidates) u8(static_cast<std::uint8_t>(relic)); u8(value->count); u8(value->cursor); }
     }
     void creature(const CreatureState& c) {
@@ -53,8 +53,8 @@ struct Reader {
         switch (u8()) {
         case 0: break;
         case 1: f.pending = DrawContinuation{i32(), boolean()}; break;
-        case 2: f.pending = ShuffleContinuation{u32(), u32(), u32(), boolean()}; break;
-        case 3: f.pending = SelectionContinuation{static_cast<SelectionEffect>(u8()), static_cast<Zone>(u8()), u32(), u32(), u32()}; break;
+        case 2: f.pending = ShuffleContinuation{u32(), u32(), u32(), boolean(), handle()}; break;
+        case 3: f.pending = SelectionContinuation{static_cast<SelectionEffect>(u8()), static_cast<Zone>(u8()), u32(), u32(), u32(), handle()}; break;
         case 5: f.pending = RelicDrawCompletion{}; break;
         case 4: { ExhaustContinuation value; for (auto& relic : value.candidates) relic = static_cast<ExhaustRelic>(u8()); value.count = u8(); value.cursor = u8(); f.pending = value; break; }
         default: throw std::invalid_argument("Unknown continuation");
@@ -97,7 +97,7 @@ std::uint64_t content_fingerprint() {
 Checkpoint checkpoint(ConstCombatView s) {
     if (!valid_combat(s)) throw std::invalid_argument("Cannot checkpoint invalid simulation");
     Writer w;
-    w.text("STS2CP11"); w.u32(11); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
+    w.text("STS2CP12"); w.u32(12); w.u32(s.rules); w.text(game_digest); w.u64(content_fingerprint());
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed);
     w.u32(s.boundary.value); w.u8(static_cast<std::uint8_t>(s.phase));
     const auto config = s.clock.config();
@@ -113,6 +113,8 @@ Checkpoint checkpoint(ConstCombatView s) {
     for (const auto& slot : s.cards.slots()) {
         w.u32(slot.generation); w.u8(slot.live); w.u8(static_cast<std::uint8_t>(slot.value.definition));
         w.u8(slot.value.upgraded); w.u32(slot.value.creation_order); w.u32(slot.value.origin.slot); w.u32(slot.value.origin.generation); w.i32(slot.value.last_finished_player_turn); w.u8(slot.value.removed);
+        w.u8(static_cast<std::uint8_t>(slot.value.extra.index()));
+        if (const auto* memory = std::get_if<RememberedCardChoice>(&slot.value.extra)) w.handle(memory->card);
     }
     w.u32(static_cast<std::uint32_t>(s.cards.free_slots().size()));
     for (auto slot : s.cards.free_slots()) w.u32(slot);
@@ -121,7 +123,7 @@ Checkpoint checkpoint(ConstCombatView s) {
     for (const auto& modifier : s.cost_modifiers) { w.handle(modifier.card); w.u8(static_cast<std::uint8_t>(modifier.kind)); w.u8(static_cast<std::uint8_t>(modifier.expiry)); w.i32(modifier.amount); w.u8(modifier.reduce_only); }
     w.u32(s.shuffle_reactions.data.highest_generation);
     w.u32(static_cast<std::uint32_t>(s.shuffle_reactions.slots().size()));
-    for (const auto& slot : s.shuffle_reactions.slots()) { w.u32(slot.generation); w.u8(slot.live); w.u8(static_cast<std::uint8_t>(slot.value.kind)); w.u8(slot.value.fired); }
+    for (const auto& slot : s.shuffle_reactions.slots()) { w.u32(slot.generation); w.u8(slot.live); w.u8(static_cast<std::uint8_t>(slot.value.kind)); w.u8(slot.value.fired); w.u8(slot.value.remember_choice); }
     w.u32(static_cast<std::uint32_t>(s.shuffle_reactions.free_slots().size()));
     for (auto index : s.shuffle_reactions.free_slots()) w.u32(index);
     w.u32(static_cast<std::uint32_t>(s.shuffle_order.size())); for (auto h : s.shuffle_order) w.reaction_handle(h);
@@ -151,8 +153,8 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
         Reader trailer{bytes.last(8)};
         if (trailer.u64() != digest(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
-        for (char c : std::string_view("STS2CP11")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 11 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        for (char c : std::string_view("STS2CP12")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
+        if (r.u32() != 12 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (char c : game_digest) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
         CombatState s(destination.overflow.allocator()); auto s_view = s.view();
@@ -178,6 +180,11 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
         for (auto& slot : slots) {
             slot.generation = r.u32(); slot.live = r.boolean(); slot.value.definition = static_cast<CardId>(r.u8());
             slot.value.upgraded = r.boolean(); slot.value.creation_order = r.u32(); slot.value.origin.slot = r.u32(); slot.value.origin.generation = r.u32(); slot.value.last_finished_player_turn = r.i32(); slot.value.removed = r.boolean();
+            switch (r.u8()) {
+            case 0: break;
+            case 1: slot.value.extra = RememberedCardChoice{r.handle()}; break;
+            default: return RestoreStatus::malformed;
+            }
         }
         const auto free_count = r.u32(); if (free_count > count) return RestoreStatus::malformed;
         std::vector<std::uint32_t> free(free_count); for (auto& index : free) index = r.u32();
@@ -194,9 +201,9 @@ RestoreStatus restore(CombatView destination, std::span<const std::byte> bytes, 
         const auto modifiers = r.u32(); if (modifiers > (r.bytes.size() - r.at) / 15) return RestoreStatus::malformed;
         for (std::uint32_t i = 0; i < modifiers; ++i) { CostModifier modifier; modifier.card = r.handle(); modifier.kind = static_cast<CostModifierKind>(r.u8()); modifier.expiry = static_cast<CostExpiry>(r.u8()); modifier.amount = r.i32(); modifier.reduce_only = r.boolean(); s_view.cost_modifiers.push_back(modifier); }
         const auto reaction_highest = r.u32();
-        const auto reaction_count = r.count(7, limits.continuations);
+        const auto reaction_count = r.count(8, limits.continuations);
         std::vector<ShuffleReactionPool::Slot> reactions(reaction_count);
-        for (auto& slot : reactions) { slot.generation = r.u32(); slot.live = r.boolean(); slot.value.kind = static_cast<ShuffleReactionKind>(r.u8()); slot.value.fired = r.boolean(); }
+        for (auto& slot : reactions) { slot.generation = r.u32(); slot.live = r.boolean(); slot.value.kind = static_cast<ShuffleReactionKind>(r.u8()); slot.value.fired = r.boolean(); slot.value.remember_choice = r.boolean(); }
         const auto reaction_free_count = r.count(4, reaction_count); std::vector<std::uint32_t> reaction_free(reaction_free_count);
         for (auto& index : reaction_free) index = r.u32();
         if (!s_view.shuffle_reactions.restore(std::move(reactions), std::move(reaction_free)) || reaction_highest < s_view.shuffle_reactions.data.highest_generation) return RestoreStatus::malformed;
