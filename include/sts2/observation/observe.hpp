@@ -35,6 +35,7 @@ struct CardView {
     CardRarity rarity = CardRarity::basic;
     std::int32_t strength = 0, weak = 0;
     bool exhaust = false, power = false;
+    std::optional<CardHandle> remembered_choice {};
 };
 [[nodiscard]] std::optional<CardView> observe_card(ConstCombatView, CardHandle, const Ruleset& = Ruleset::pinned()) noexcept;
 // Metadata for inspectable hand/draw/discard/exhaust cards; never pile position.

@@ -98,7 +98,7 @@ std::int32_t effective_card_cost(ConstCombatView state, CardHandle handle, const
     return static_cast<std::int32_t>(std::max<std::int64_t>(0, cost));
 }
 Restriction validate_combat(ConstCombatView state, const CombatInput& input, const Ruleset& rules) noexcept {
-    if (!valid_data_storage(state.data, state.overflow) || !valid_powers(state) || !valid_continuations(state, rules) ||
+    if (!valid_data_storage(state.data, state.overflow) || !valid_powers(state) || !valid_card_extra_state(state) || !valid_continuations(state, rules) ||
         state.phase == CombatPhase::uninitialized || state.phase == CombatPhase::invalid || state.rules != rules_revision)
         return Restriction::invalid_state;
     if (input.expected_boundary != state.boundary) return Restriction::stale_boundary;
@@ -137,7 +137,7 @@ Restriction validate_combat(ConstCombatView state, const CombatInput& input, con
     return Restriction::none;
 }
 StepResult advance_combat(CombatView state, Scratch& scratch, const Ruleset& rules) noexcept try {
-    if (!valid_data_storage(state.data, state.overflow) || !valid_powers(state)) return fail(state, Restriction::invalid_state);
+    if (!valid_data_storage(state.data, state.overflow) || !valid_powers(state) || !valid_card_extra_state(state)) return fail(state, Restriction::invalid_state);
     if (state.phase != CombatPhase::play || state.execution.empty()) return result(state);
     while (!state.execution.empty()) {
         if (!consume(scratch)) return fail(state, Restriction::execution_budget);
@@ -167,8 +167,9 @@ StepResult apply_combat(CombatView state, const CombatInput& input, Scratch& scr
             EffectFrame resolution = state.execution.back();
             const auto begin = static_cast<std::uint32_t>(state.continuation_cards.size());
             for (auto card : selected) state.continuation_cards.push_back(card);
-            resolution.pending = SelectionContinuation{state.selection.effect, state.selection.zone, begin, static_cast<std::uint32_t>(selected.size()), 0};
-            if (auto* hook = std::get_if<ShuffleContinuation>(&state.execution.back().pending)) hook->waiting = false;
+            const auto* hook = std::get_if<ShuffleContinuation>(&state.execution.back().pending);
+            resolution.pending = SelectionContinuation{state.selection.effect, state.selection.zone, begin, static_cast<std::uint32_t>(selected.size()), 0, hook ? hook->remember_to : CardHandle{}};
+            if (auto* hook = std::get_if<ShuffleContinuation>(&state.execution.back().pending)) { hook->waiting = false; hook->remember_to = {}; }
             clear_selection(state); state.phase = CombatPhase::play;
             state.execution.push_back(resolution);
             const auto advanced = advance_combat(state, scratch, rules);
@@ -282,7 +283,7 @@ bool valid_combat(ConstCombatView state, const Ruleset& rules) noexcept {
     if (counters.finished_plays > counters.started_plays || counters.started_this_turn > counters.started_plays ||
         counters.attacks_this_turn > counters.started_this_turn || counters.zero_energy_attacks_this_turn > counters.attacks_this_turn ||
         counters.finished_ethereal > counters.finished_plays) return false;
-    if (!valid_powers(state)) return false;
+    if (!valid_powers(state) || !valid_card_extra_state(state)) return false;
     for (const auto& modifier : state.cost_modifiers)
         if (!state.cards.get(modifier.card) || static_cast<unsigned>(modifier.kind) > 1 || (static_cast<unsigned>(modifier.expiry) & ~6U) != 0) return false;
     std::size_t live = 0, membership = 0;

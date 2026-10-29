@@ -44,6 +44,11 @@ std::optional<CardView> inspect_card(ConstCombatView s, CardHandle h, const Rule
     }
     view.exhaust = instance->definition == CardId::shockwave || instance->definition == CardId::tremble;
     view.power = instance->definition == CardId::inflame;
+    if (instance->extra.index() > 1) return std::nullopt;
+    if (const auto* memory = std::get_if<RememberedCardChoice>(&instance->extra)) {
+        if (!s.cards.get(memory->card)) return std::nullopt;
+        view.remembered_choice = memory->card;
+    }
     return view;
 }
 std::string describe(const CardView& card) {

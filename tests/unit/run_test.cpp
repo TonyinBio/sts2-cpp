@@ -94,11 +94,11 @@ TEST(PublicRun, EachUnblockedAttackUpdatesTheCreatureHitCountOnce) {
     }
 }
 struct NestedPromptInfo { PromptId previous; CardHandle source; };
-void reach_nested_shuffle_prompt(RunState& state, std::span<const scenario::ShuffleReactionKind> hooks, NestedPromptInfo& info, std::span<const ContentId> relics = {}, std::uint32_t joss_counter = 0) {
+void reach_nested_shuffle_prompt(RunState& state, std::span<const scenario::ShuffleReactionKind> hooks, NestedPromptInfo& info, std::span<const ContentId> relics = {}, std::uint32_t joss_counter = 0, bool remember = false) {
     Scratch scratch;
     const std::array deck{CardSpec{CardId::burning_pact}, CardSpec{CardId::defend}, CardSpec{CardId::strike}, CardSpec{CardId::strike}, CardSpec{CardId::defend}};
     ASSERT_EQ(initialize_combat_scenario(state, {}, deck, {}, relics, 0, joss_counter).status, StepStatus::awaiting_input);
-    scenario::configure_shuffle_reactions(state, hooks);
+    scenario::configure_shuffle_reactions(state, hooks, remember);
     auto play = [&](CardId definition) {
         for (auto card : state.view().combat->zone(Zone::hand)) {
             if (state.view().combat->cards.get(card)->definition == definition)
@@ -381,6 +381,91 @@ TEST(PublicRun, ParentInteractionReturnsAfterChildCombatAndRewardsExactlyOnce) {
     EXPECT_EQ(observe(alternative).gold, gold);
     EXPECT_NE(alternative, restored);
     EXPECT_EQ(checkpoint(state).bytes, saved_parent);
+}
+TEST(PublicRun, TypedCardChoiceMemoryClonesRestoresAndStaysOutOfThePermanentDeck) {
+    RunState state; Scratch scratch; NestedPromptInfo info;
+    const std::array hooks{scenario::ShuffleReactionKind::choose_card};
+    reach_nested_shuffle_prompt(state, hooks, info, {}, 0, true);
+    ASSERT_EQ(state.view().combat->phase, CombatPhase::card_choice);
+    state.view().combat->cards.reserve(200);
+    ASSERT_TRUE(state.view().combat->data.cards.slots.overflowed());
+    const auto first = state.view().combat->selection_candidates[0];
+    const auto second = state.view().combat->selection_candidates[1];
+    const auto permanent = observe(state).deck;
+    const auto saved = checkpoint(state).bytes;
+    RunState clone = state, restored;
+    ASSERT_EQ(restore(restored, saved, scratch), RestoreStatus::restored);
+    ASSERT_EQ(choose_nested_card(clone, scratch), StepStatus::awaiting_input);
+    ASSERT_EQ(choose_nested_card(restored, scratch), StepStatus::awaiting_input);
+    EXPECT_EQ(clone, restored);
+    const auto remembered = inspect_card(*clone.view().combat, info.source);
+    ASSERT_TRUE(remembered); EXPECT_EQ(remembered->remembered_choice, first);
+    EXPECT_EQ(observe(clone).deck, permanent);
+    RunState after;
+    ASSERT_EQ(restore(after, checkpoint(clone).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(inspect_card(*after.view().combat, info.source)->remembered_choice, first);
+    RunState alternate = state;
+    ASSERT_EQ(choose_nested_card(alternate, scratch, 1), StepStatus::awaiting_input);
+    EXPECT_EQ(inspect_card(*alternate.view().combat, info.source)->remembered_choice, second);
+    EXPECT_NE(alternate, clone); EXPECT_EQ(alternate.view().rng, clone.view().rng);
+    EXPECT_EQ(checkpoint(state).bytes, saved);
+    clone.view().combat->enemy.hp = 1;
+    bool finished = false;
+    const RunActionSpaceView lethal_actions(clone);
+    for (std::size_t i = 0; i < lethal_actions.size(); ++i) {
+        const auto action = *lethal_actions.at(i);
+        const auto* input = std::get_if<CombatInput>(&action.input);
+        if (action.restriction == Restriction::none && input && input->kind == CombatInputKind::play_card && input->target_enemy) {
+            ASSERT_EQ(apply_action(clone, action.input, scratch).status, StepStatus::awaiting_input);
+            finished = true; break;
+        }
+    }
+    ASSERT_TRUE(finished); ASSERT_EQ(clone.view().phase, RunPhase::rewards);
+    ASSERT_EQ(apply_action(clone, RunInput{clone.data.boundary, RunInputKind::skip_rewards}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(enter_combat_scenario(clone, clone.data.boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK").status, StepStatus::awaiting_input);
+    EXPECT_TRUE(clone.combat_overflow.empty());
+    for (auto card : clone.view().combat->zone(Zone::hand)) EXPECT_FALSE(inspect_card(*clone.view().combat, card)->remembered_choice);
+    EXPECT_EQ(observe(clone).deck, permanent);
+    EXPECT_EQ(checkpoint(state).bytes, saved);
+}
+TEST(PublicRun, RememberedCardChoiceRejectsARecycledTargetGeneration) {
+    RunState state; Scratch scratch; NestedPromptInfo info;
+    const std::array hooks{scenario::ShuffleReactionKind::choose_card};
+    reach_nested_shuffle_prompt(state, hooks, info, {}, 0, true);
+    ASSERT_EQ(state.view().combat->phase, CombatPhase::card_choice);
+    const auto target = state.view().combat->selection_candidates.front();
+    ASSERT_EQ(choose_nested_card(state, scratch), StepStatus::awaiting_input);
+    auto combat = *state.view().combat;
+    const auto value = *combat.cards.get(target);
+    ASSERT_TRUE(combat.cards.erase(target));
+    const auto replacement = combat.cards.create(value, 4096);
+    ASSERT_EQ(replacement.slot, target.slot); EXPECT_NE(replacement.generation, target.generation);
+    for (auto zone : combat.zone_views()) for (auto& card : zone) if (card == target) card = replacement;
+    EXPECT_FALSE(valid_run(state));
+    EXPECT_THROW(checkpoint(state), std::invalid_argument);
+    EXPECT_TRUE(RunActionSpaceView(state).empty());
+    const auto boundary = state.data.boundary;
+    const auto rng = state.view().rng;
+    const PlayerInput input = CombatInput{boundary, CombatInputKind::end_turn};
+    EXPECT_EQ(validate_action(state, input), Restriction::invalid_state);
+    EXPECT_EQ(apply_action(state, input, scratch).reason, Restriction::invalid_state);
+    EXPECT_EQ(state.data.boundary, boundary); EXPECT_EQ(state.view().rng, rng);
+    // With only the stale memory removed, the replacement is a valid instance.
+    combat.cards.get(info.source)->extra = std::monostate{};
+    EXPECT_TRUE(valid_run(state));
+}
+TEST(PublicRun, ControlledShuffleStateCannotBeExportedAsNativeDiagnosticEvidence) {
+    RunState state; NestedPromptInfo info;
+    const std::array hooks{scenario::ShuffleReactionKind::choose_card};
+    reach_nested_shuffle_prompt(state, hooks, info, {}, 0, true);
+    ASSERT_EQ(state.view().combat->phase, CombatPhase::card_choice);
+    NativeRunExporter exporter;
+    try {
+        (void)exporter.snapshot(state);
+        FAIL() << "Controlled shuffle state must have an explicit diagnostic mapping";
+    } catch (const std::invalid_argument& error) {
+        EXPECT_NE(std::string_view(error.what()).find("native diagnostic mapping"), std::string_view::npos);
+    }
 }
 Json recording() {
     std::ifstream input(std::filesystem::path(KERNEL_RUN_PREFIX_FIXTURE).parent_path().parent_path() / "run-shrinker-victory/actions.json");

@@ -13,6 +13,13 @@ namespace sts2::engine {
 enum class Zone : std::uint8_t { hand, draw, discard, exhaust, play, count };
 enum class CombatPhase : std::uint8_t { uninitialized, play, discard_choice, combat_won, player_died, card_choice, invalid };
 enum class BeetleMove : std::uint8_t { shrink, chomp, stomp };
+struct RememberedCardChoice {
+    CardHandle card {};
+    friend bool operator==(const RememberedCardChoice&, const RememberedCardChoice&) = default;
+};
+// Concrete typed exceptional properties, not an opaque fixed-size payload or
+// universal modifier bag. Extend with audited types as content requires them.
+using CardExtraState = std::variant<std::monostate, RememberedCardChoice>;
 struct CardInstance {
     CardId definition = CardId::strike;
     bool upgraded = false;
@@ -20,6 +27,7 @@ struct CardInstance {
     PersistentCardHandle origin {};
     std::int32_t last_finished_player_turn = 0;
     bool removed = false;
+    CardExtraState extra {};
     friend bool operator==(const CardInstance&, const CardInstance&) = default;
 };
 enum class CostModifierKind : std::uint8_t { absolute, relative };
@@ -60,12 +68,14 @@ struct DrawContinuation {
 struct ShuffleContinuation {
     std::uint32_t begin = 0, count = 0, cursor = 0;
     bool waiting = false;
+    CardHandle remember_to {};
     friend bool operator==(const ShuffleContinuation&, const ShuffleContinuation&) = default;
 };
 struct SelectionContinuation {
     SelectionEffect effect = SelectionEffect::none;
     Zone zone = Zone::hand;
     std::uint32_t begin = 0, count = 0, cursor = 0;
+    CardHandle remember_to {};
     friend bool operator==(const SelectionContinuation&, const SelectionContinuation&) = default;
 };
 struct ExhaustContinuation {
@@ -100,6 +110,7 @@ enum class ShuffleReactionKind : std::uint8_t { choose_card, nested_draw };
 struct ShuffleReaction {
     ShuffleReactionKind kind = ShuffleReactionKind::choose_card;
     bool fired = false;
+    bool remember_choice = false;
     friend bool operator==(const ShuffleReaction&, const ShuffleReaction&) = default;
 };
 using ShuffleReactionPool = PoolData<ShuffleReaction, ShuffleReactionTag, 4>;
