@@ -16,10 +16,20 @@ struct CardInstance {
     CardId definition = CardId::strike;
     bool upgraded = false;
     std::uint32_t creation_order = 0;
-    std::uint32_t deck_instance = UINT32_MAX;
+    PersistentCardHandle origin {};
     std::int32_t last_finished_player_turn = 0;
     bool removed = false;
     friend bool operator==(const CardInstance&, const CardInstance&) = default;
+};
+enum class CostModifierKind : std::uint8_t { absolute, relative };
+enum class CostExpiry : std::uint8_t { combat = 0, turn = 2, played = 4, turn_or_played = 6 };
+struct CostModifier {
+    CardHandle card {};
+    CostModifierKind kind = CostModifierKind::relative;
+    CostExpiry expiry = CostExpiry::combat;
+    std::int32_t amount = 0;
+    bool reduce_only = false;
+    friend bool operator==(const CostModifier&, const CostModifier&) = default;
 };
 using CardPool = PoolData<CardInstance, CardInstanceTag, 32>;
 struct CreatureState {
@@ -83,6 +93,7 @@ struct CombatData {
     BeetleMove move = BeetleMove::shrink;
     bool burning_blood = true;
     CardPool cards {};
+    InlineSequence<CostModifier, 8> cost_modifiers {};
     std::array<InlineSequence<CardHandle, 32>, static_cast<std::size_t>(Zone::count)> zones {};
     InlineSequence<EffectFrame, 4> execution {};
     CombatCounters counters {};
@@ -96,7 +107,7 @@ struct CombatData {
     std::uint32_t next_power_instance = 0;
     std::uint32_t next_creation_order = 0;
     template<class Self, class Visit> static void visit_sequences(Self& r, Visit visit) noexcept {
-        visit(r.seed); visit(r.cards.slots); visit(r.cards.free);
+        visit(r.seed); visit(r.cards.slots); visit(r.cards.free); visit(r.cost_modifiers);
         for (auto& zone : r.zones) visit(zone);
         visit(r.execution); visit(r.selection_candidates); visit(r.selection_order);
     }
@@ -126,6 +137,7 @@ template<bool Const> struct BasicCombatView {
     Ref<BeetleMove> move = data.move;
     Ref<bool> burning_blood = data.burning_blood;
     PoolView<CardInstance, CardInstanceTag, 32, Const> cards{data.cards, overflow};
+    SequenceView<CostModifier, 8, Const> cost_modifiers{data.cost_modifiers, overflow};
     SequenceView<EffectFrame, 4, Const> execution{data.execution, overflow};
     Ref<CombatCounters> counters = data.counters;
     Ref<std::array<ExhaustRelic, 2>> exhaust_relics = data.exhaust_relics;
@@ -163,7 +175,7 @@ template<bool Const> struct BasicCombatView {
             turn == other.turn &&
             move == other.move &&
             burning_blood == other.burning_blood &&
-            cards == other.cards &&
+            cards == other.cards && cost_modifiers == other.cost_modifiers &&
             zone_views() == other.zone_views() &&
             execution == other.execution &&
             counters == other.counters && exhaust_relics == other.exhaust_relics &&
@@ -235,7 +247,7 @@ struct Scratch {
     CombatTrace trace {};
 };
 struct Limits { std::uint32_t cards = 4096; };
-struct CardSpec { CardId definition; bool upgraded = false; std::uint32_t deck_instance = UINT32_MAX; };
+struct CardSpec { CardId definition; bool upgraded = false; PersistentCardHandle origin {}; };
 // Isolated combat setup. Seeded run integration supplies the generated RNG bank;
 // a standalone scenario starts fresh streams and does not generate run content.
 struct CombatConfig {

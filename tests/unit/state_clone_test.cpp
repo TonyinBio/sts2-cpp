@@ -175,14 +175,14 @@ TEST(CompleteStateClone, MultiDomainCloneFailureNeverPublishesPartialOwnership) 
     source.view().deck.reserve(100);
     source.view().combat->execution.reserve(200);
     ASSERT_TRUE(valid_run(source));
-    for (std::size_t allowed = 0; allowed <= 5; ++allowed) {
+    for (std::size_t allowed = 0; allowed <= 7; ++allowed) {
         AllocationCounter allocation;
         {
             RunState destination(allocation.allocator());
             ASSERT_EQ(initialize_run(destination, {}).status, StepStatus::awaiting_input);
             const auto unchanged = checkpoint(destination).bytes;
             allocation.fail_after = allocation.allocations + allowed;
-            if (allowed < 5) {
+            if (allowed < 7) {
                 EXPECT_EQ(clone_into(destination, source), CloneStatus::resource_limit);
                 EXPECT_EQ(checkpoint(destination).bytes, unchanged);
                 EXPECT_TRUE(destination.overflow.empty());

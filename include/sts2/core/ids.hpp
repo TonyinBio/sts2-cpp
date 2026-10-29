@@ -16,6 +16,7 @@ template<class Tag> struct Handle {
 };
 using CreatureHandle = Handle<struct CreatureTag>;
 using CardHandle = Handle<struct CardInstanceTag>;
+using PersistentCardHandle = Handle<struct PersistentCardTag>;
 using PromptId = Id<struct PromptTag>;
 using BoundaryId = Id<struct BoundaryTag>;
 } // namespace sts2::engine
