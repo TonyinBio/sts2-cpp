@@ -221,6 +221,8 @@ public partial class RunSimulator
             var enemy = CombatManager.Instance.DebugOnlyGetState()!.Enemies.Single();
             enemy.SetMaxHpInternal(enemyHp.GetInt32()); enemy.SetCurrentHpInternal(enemyHp.GetInt32());
         }
+        if (command.TryGetProperty("scenario_enemy_block", out var enemyBlock))
+            CombatManager.Instance.DebugOnlyGetState()!.Enemies.Single().GainBlockInternal(enemyBlock.GetInt32());
         _runState!.Players[0].Creature.Died += _ => _runDeathObserved = true;
         AwaitRunBoundary();
         RegisterCombatIdentities();

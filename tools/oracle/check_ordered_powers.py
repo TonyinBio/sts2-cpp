@@ -14,8 +14,10 @@ from reference_runtime import JsonProcess, reference_build, require, strict_json
 
 CASES = {
     'ashes-joss-ending': ([('TREMBLE', False)], [('play', 'TREMBLE')]),
+    'ashes-blocked': ([('TREMBLE', False)], [('play', 'TREMBLE')]),
     'joss-threshold': ([('PURITY', True)] * 8, [('play', 'PURITY'), ('select', [3, 1, 0, 2])]),
     'ashes-purity-ending': ([('PURITY', True)] * 8, [('play', 'PURITY'), ('select', [2, 0])]),
+    'ashes-purity-ending-late': ([('PURITY', True)] * 8, [('play', 'PURITY'), ('select', [0, 2])]),
     'ashes-purity-ordered': ([('PURITY', True)] * 8, [('play', 'PURITY'), ('select', [2, 0])]),
     'inflame-stack': ([('INFLAME', False), ('INFLAME', True), ('STRIKE_IRONCLAD', False)],
                        [('play', 'INFLAME'), ('play', 'INFLAME'), ('play', 'STRIKE_IRONCLAD')]),
@@ -81,7 +83,16 @@ def check(game_dir, output, simulator, validator, selected=None):
                 destination = output / name; destination.mkdir()
                 deck = [{'id': 'CARD.' + card, 'upgraded': upgraded} for card, upgraded in cards]
                 native = JsonProcess(command, env, logs / (name + '-capture'), 30, log_protocol=False)
-                extra = {'scenario_relics': ['RELIC.CHARONS_ASHES', 'RELIC.JOSS_PAPER'], 'scenario_enemy_hp': 3} if name == 'ashes-joss-ending' else {'scenario_relics': ['RELIC.JOSS_PAPER']} if name == 'joss-threshold' else {'scenario_relics': ['RELIC.CHARONS_ASHES', 'RELIC.JOSS_PAPER'], 'scenario_enemy_hp': 3 if name == 'ashes-purity-ending' else 40, 'scenario_joss_counter': 4 if name == 'ashes-purity-ending' else 3} if name.startswith('ashes-purity-') else {}
+                extra = {}
+                if name.startswith('ashes-'):
+                    extra['scenario_relics'] = ['RELIC.CHARONS_ASHES', 'RELIC.JOSS_PAPER']
+                    extra['scenario_enemy_hp'] = 3 if name in ('ashes-joss-ending', 'ashes-purity-ending') else 6 if name == 'ashes-purity-ending-late' else 40
+                    if name.startswith('ashes-purity-'):
+                        extra['scenario_joss_counter'] = 4 if name == 'ashes-purity-ending' else 3
+                    if name == 'ashes-blocked':
+                        extra['scenario_enemy_block'] = 3
+                elif name == 'joss-threshold':
+                    extra['scenario_relics'] = ['RELIC.JOSS_PAPER']
                 operations = []; states = []; traces = [None]
                 try:
                     initial = native_start(native, setup, deck, extra); states.append(initial['state'])
@@ -122,6 +133,7 @@ def check(game_dir, output, simulator, validator, selected=None):
                 finally:
                     replay.close()
                 cpp = JsonProcess([str(simulator)], None, logs / (name + '-cpp'), 30, log_protocol=False)
+                correspondence = []; previous_boundary = None
                 try:
                     for index, operation in enumerate([{'cmd': 'start', 'setup': setup, 'scenario_deck': deck, **extra}] + operations):
                         reply = public_step(cpp, operation)
@@ -129,8 +141,15 @@ def check(game_dir, output, simulator, validator, selected=None):
                         (destination / 'cpp-last.json').write_text(wire_json(reply['state']) + '\n')
                         compare(comparator, states[index], reply['state'], f'{name} C++ {index}')
                         require(reply.get('dispatch_trace') == traces[index], f'{name}: C++ dispatch trace differs: {reply.get("dispatch_trace")} vs {traces[index]}')
+                        if index:
+                            action = operation.get('action', {})
+                            correspondence.append({'native_operation': index - 1, 'cpp_boundary_begin': previous_boundary,
+                                'cpp_boundary_end': reply['boundary'], 'cpp_input_count': 0 if operation['cmd'] != 'action' else len(action['indices']) + 1 if action.get('kind') == 'select_cards' else 1})
+                        previous_boundary = reply['boundary']
                 finally:
                     cpp.close()
+                scenario['boundary_correspondence'] = correspondence
+                (destination / 'scenario.json').write_text(wire_json(scenario) + '\n')
                 hashes = {f: hashlib.sha256((destination / f).read_bytes()).hexdigest() for f in ('scenario.json', 'states.json', 'reference.json', 'trace.json')}
                 (destination / 'verification.json').write_text(wire_json({'native_self_replay': 'passed', 'cpp_exact_comparison': 'passed', 'boundaries': len(states), 'sha256': hashes}) + '\n')
                 print(f'{name}: {len(states)} independently replayed native / C++ exact boundaries', flush=True)
@@ -167,6 +186,8 @@ def check_saved(recording, simulator, validator, selected=None):
                     require(reply.get('ok'), f'{name} boundary {index}: {reply}; logs: {logs}')
                     compare(comparator, states[index], reply['state'], f'{name} boundary {index}')
                     require(reply.get('dispatch_trace') == traces[index], f'{name}: dispatch trace differs')
+                    if index and 'boundary_correspondence' in scenario:
+                        require(reply['boundary'] == scenario['boundary_correspondence'][index - 1]['cpp_boundary_end'], f'{name}: public boundary correspondence differs')
                     count += 1
             finally:
                 cpp.close()

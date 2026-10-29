@@ -14,6 +14,9 @@ int main() {
     for (std::string line; std::getline(std::cin, line);) try {
         const auto request = Json::parse(line); const auto command = request.at("cmd").get<std::string>();
         if (command == "start") {
+            const auto enemy_block = request.value("scenario_enemy_block", 0);
+            if (enemy_block < 0 || enemy_block > 999999999 || (enemy_block != 0 && request.at("setup").at("kind") != "seeded_combat"))
+                throw std::invalid_argument("Invalid scenario enemy block");
             NativeRunExporter next_exporter;
             std::vector<CardSpec> deck;
             if (request.contains("scenario_deck")) for (const auto& entry : request.at("scenario_deck")) {
@@ -32,6 +35,7 @@ int main() {
             }
             initialize_json_run(state, request.at("setup"), next_exporter.trace(), deck, relics,
                 request.value("scenario_enemy_hp", 0), request.value("scenario_joss_counter", 0u));
+            if (state.view().combat) state.view().combat->enemy.block = enemy_block;
             exporter = std::move(next_exporter); scratch.trace = exporter.trace();
         } else {
             const auto before = checkpoint(state).bytes;
@@ -92,7 +96,7 @@ int main() {
             if (apply(restored, branch_scratch).status != result.status || apply(cloned, branch_scratch).status != result.status || restored != state || cloned != state)
                 throw std::runtime_error("Clone/restore future differs");
         }
-        Json response{{"ok", true}, {"state", exporter.snapshot(state)}, {"selection", nullptr}};
+        Json response{{"ok", true}, {"state", exporter.snapshot(state)}, {"selection", nullptr}, {"boundary", state.view().boundary.value}};
         const auto view = observe(state);
         if (view.combat && view.combat->selection) {
             const auto& selection = *view.combat->selection;

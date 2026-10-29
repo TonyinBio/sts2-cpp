@@ -77,6 +77,16 @@ bool valid_run(const RunState& state) noexcept {
     if (state_view.combat && state_view.combat_generation == 0) return false;
     if (state_view.combat) {
         const auto& combat = *state_view.combat;
+        std::size_t listener = 0; bool burning_blood = false;
+        for (auto relic : setup.relics) {
+            const auto name = SetupRules::name(relic);
+            burning_blood |= name == "RELIC.BURNING_BLOOD";
+            if (name == "RELIC.CHARONS_ASHES" || name == "RELIC.JOSS_PAPER") {
+                const auto expected = name == "RELIC.CHARONS_ASHES" ? ExhaustRelic::charons_ashes : ExhaustRelic::joss_paper;
+                if (listener >= combat.exhaust_relic_count || combat.exhaust_relics[listener++] != expected) return false;
+            }
+        }
+        if (listener != combat.exhaust_relic_count || combat.burning_blood != burning_blood) return false;
         for (const auto& slot : combat.cards.slots()) if (slot.generation < state_view.combat_generation) return false;
         if (!valid_combat(combat) || !linked_cards(combat, setup.deck) || combat.seed != setup.seed || combat.player.hp != setup.hp || combat.player.max_hp != setup.max_hp || combat.rng != setup.rng) return false;
         if (state_view.phase == RunPhase::combat) {

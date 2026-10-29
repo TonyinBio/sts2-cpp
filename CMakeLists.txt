@@ -162,6 +162,11 @@ if(BUILD_TESTING)
       --fixture "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/fixtures/reference/ordered-card-choices.json"
       --simulator "$<TARGET_FILE:sts2_run_scenario>" --validator "$<TARGET_FILE:parity_validate>")
     set_tests_properties(ordered_card_choice_scenarios PROPERTIES LABELS "engine;replay_parity")
+    add_test(NAME ordered_power_scenarios COMMAND "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tools/oracle/check_ordered_powers.py"
+      --recording-dir "${CMAKE_CURRENT_SOURCE_DIR}/tests/parity/fixtures/reference/ordered-powers"
+      --simulator "$<TARGET_FILE:sts2_run_scenario>" --validator "$<TARGET_FILE:parity_validate>")
+    set_tests_properties(ordered_power_scenarios PROPERTIES LABELS "engine;replay_parity")
     add_test(NAME setup_rules_generated COMMAND "${Python3_EXECUTABLE}"
       "${CMAKE_CURRENT_SOURCE_DIR}/tools/rules_compiler/setup.py" --check)
     set_tests_properties(setup_rules_generated PROPERTIES LABELS "engine")

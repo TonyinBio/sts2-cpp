@@ -88,6 +88,46 @@ TEST(PublicRun, ConsecutiveScenarioCombatsReplaceGraphsAndRejectOldCards) {
     EXPECT_EQ(restore(restored, bad, scratch), RestoreStatus::malformed);
     EXPECT_EQ(restored, original);
 }
+TEST(PublicRun, ExhaustRelicCounterSurvivesCombatCleanupAndRestoredNextEncounter) {
+    const std::array deck{CardSpec{CardId::tremble}};
+    const std::array relics{SetupRules::find("RELIC.CHARONS_ASHES"), SetupRules::find("RELIC.JOSS_PAPER")};
+    RunState state; Scratch scratch;
+    ASSERT_EQ(initialize_combat_scenario(state, {}, deck, {}, relics, 3).status, StepStatus::awaiting_input);
+    const auto source = observe(state).combat->hand.front();
+    ASSERT_EQ(apply_action(state, CombatInput{state.view().boundary, CombatInputKind::play_card, source, true}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_FALSE(state.view().combat);
+    ASSERT_EQ(observe(state).relics.size(), 2u);
+    EXPECT_EQ(observe(state).relics[1].counter, 1u);
+    RunState restored; ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    for (auto* branch : {&state, &restored}) {
+        ASSERT_EQ(apply_action(*branch, RunInput{branch->view().boundary, RunInputKind::skip_rewards}, scratch).status, StepStatus::awaiting_input);
+        ASSERT_EQ(enter_combat_scenario(*branch, branch->view().boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK").status, StepStatus::awaiting_input);
+        EXPECT_EQ(observe(*branch).relics[1].counter, 1u);
+        EXPECT_EQ(branch->view().combat->joss_paper_counter, 1u);
+        EXPECT_FALSE(branch->view().combat->cards.get(source));
+    }
+    EXPECT_EQ(restored, state);
+}
+TEST(PublicRun, RestoreRejectsReorderedRunRelicsThatDisagreeWithCapturedCombatInventory) {
+    const std::array deck{CardSpec{CardId::purity}, CardSpec{CardId::defend}, CardSpec{CardId::defend}};
+    const std::array relics{SetupRules::find("RELIC.CHARONS_ASHES"), SetupRules::find("RELIC.JOSS_PAPER")};
+    RunState state; Scratch scratch;
+    ASSERT_EQ(initialize_combat_scenario(state, {}, deck, {}, relics).status, StepStatus::awaiting_input);
+    const auto before = state;
+    std::vector<std::byte> pattern;
+    for (const auto value : std::array<std::uint32_t, 3>{2u, relics[0], relics[1]})
+        for (unsigned i = 0; i < 4; ++i) pattern.push_back(std::byte(value >> (8 * i)));
+    auto bytes = checkpoint(state).bytes;
+    const auto at = std::search(bytes.begin(), bytes.end(), pattern.begin(), pattern.end());
+    ASSERT_NE(at, bytes.end());
+    ASSERT_EQ(std::search(at + pattern.size(), bytes.end(), pattern.begin(), pattern.end()), bytes.end());
+    for (unsigned i = 0; i < 4; ++i) std::swap(at[4 + i], at[8 + i]);
+    const auto hash = game_hash({reinterpret_cast<const char*>(bytes.data()), bytes.size() - 8});
+    for (unsigned i = 0; i < 8; ++i) bytes[bytes.size() - 8 + i] = std::byte(hash >> (8 * i));
+    scratch.steps = 73;
+    EXPECT_EQ(restore(state, bytes, scratch), RestoreStatus::malformed);
+    EXPECT_EQ(state, before); EXPECT_EQ(scratch.steps, 73u);
+}
 TEST(PublicRun, RecycledGenerationsAndExhaustionRemainSafeAcrossCombats) {
     auto state = until(3).state(); Scratch scratch;
     auto combat = *state.view().combat;
