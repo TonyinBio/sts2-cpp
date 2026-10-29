@@ -228,6 +228,7 @@ void end_combat(CombatView state, Scratch& scratch, bool won) {
         // scalars/identity progress, but release its completed collection graph.
         CombatState terminal(state.overflow.allocator());
         std::memcpy(&terminal.data, &state.data, sizeof(CombatData));
+        terminal.player = state.player; terminal.enemy = state.enemy; terminal.boundary = state.boundary; terminal.clock = state.clock; terminal.rng = state.rng;
         terminal.data.for_each_sequence([](auto& sequence) { sequence = std::remove_reference_t<decltype(sequence)>{}; });
         terminal.view().seed = std::string_view(state.seed);
         state.replace(std::move(terminal));

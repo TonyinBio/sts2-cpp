@@ -133,7 +133,7 @@ StepResult initialize_combat_scenario(RunState& destination, const SeededConfig&
         Scratch scratch; scratch.trace = trace;
         const auto initialized = prepare_combat(*next_view.combat, next_view, scratch, destination.view().boundary, enemy_hp);
         if (initialized.status != StepStatus::awaiting_input) return initialized;
-        next_view.rng = next_view.combat->rng; next_view.acts[0].normal_visited = 1;
+        next_view.acts[0].normal_visited = 1;
         next_view.phase = RunPhase::combat; next_view.direct_combat = false; next_view.combat_generation = 1;
         destination = std::move(next); return initialized;
     } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, destination.view().boundary, Restriction::capacity}; } catch (const std::length_error&) { return {StepStatus::resource_limit, destination.view().boundary, Restriction::capacity}; }
@@ -158,9 +158,10 @@ StepResult enter_combat_scenario(RunState& state, BoundaryId boundary, std::stri
         if (result.status != StepStatus::awaiting_input) return result;
         next_view.rewards.reset();
         next_view.combat_generation = next_combat_generation(next_view);
-        next_view.combat = std::move(combat); next_view.rng = next_view.combat->rng;
+        const auto run_clock = next_view.clock; const auto run_boundary = next_view.boundary;
+        next_view.combat = std::move(combat);
         // Scenario entry is not a player action and does not consume the clock.
-        next_view.combat->clock = next_view.clock; next_view.combat->boundary = next_view.boundary;
+        next_view.clock = run_clock; next_view.boundary = run_boundary;
         trace.emit(*next_view.combat, {CombatEventKind::combat_updated});
         ++next_view.acts[next_view.act_index].normal_visited;
         next_view.phase = RunPhase::combat; next_view.direct_combat = false;
@@ -175,8 +176,6 @@ StepResult apply_combat_transition(RunState& state, const CombatInput& input, Sc
         return {StepStatus::invalid_action, state_view.boundary, Restriction::wrong_phase};
     const auto result = apply_combat(*state_view.combat, input, scratch);
     if (result.status == StepStatus::invalid_action || result.status == StepStatus::unsupported_content) return result;
-    state_view.clock = state_view.combat->clock; state_view.boundary = state_view.combat->boundary;
-    state_view.rng = state_view.combat->rng; state_view.hp = state_view.combat->player.hp;
     state_view.joss_paper_counter = state_view.combat->joss_paper_counter;
     if (result.status == StepStatus::combat_won) state_view.phase = RunPhase::combat_done;
     else if (result.status == StepStatus::player_died) state_view.phase = RunPhase::complete;
@@ -184,6 +183,8 @@ StepResult apply_combat_transition(RunState& state, const CombatInput& input, Sc
     if (!state_view.direct_combat && (result.status == StepStatus::combat_won || result.status == StepStatus::player_died)) {
         state_view.combat_generation = highest_combat_generation(state_view);
         state_view.combat.reset();
+        state_view.data.enemy = {};
+        state_view.data.player = {state_view.hp, state_view.max_hp};
     }
     return result;
 }
@@ -319,12 +320,13 @@ StepResult apply_run_transition(RunState& state, const RunInput& input, Scratch&
             state_view.combat_generation = entering_generation;
             state_view.current = destination; state_view.visited.push_back(destination);
             ++state_view.acts[state_view.act_index].normal_visited;
-            state_view.combat = std::move(entering_combat); state_view.rng = state_view.combat->rng;
+            const auto run_clock = state_view.clock; const auto run_boundary = state_view.boundary;
+            state_view.combat = std::move(entering_combat);
+            state_view.clock = run_clock; state_view.boundary = run_boundary;
             state_view.phase = RunPhase::combat;
         } else state_view.phase = RunPhase::map;
         ++state_view.boundary.value;
         if (state_view.phase == RunPhase::combat) {
-            state_view.combat->clock = state_view.clock; state_view.combat->boundary = state_view.boundary;
             scratch.trace.emit(*state_view.combat, {CombatEventKind::combat_updated});
         }
         return {StepStatus::awaiting_input, state_view.boundary};

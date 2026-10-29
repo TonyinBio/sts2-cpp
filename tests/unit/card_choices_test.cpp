@@ -331,6 +331,9 @@ TEST(CardChoices, CommonPartialPromptClonesUseOnlyByteCopyStorage) {
     EXPECT_EQ(allocation.allocations, count); EXPECT_EQ(cloned, state);
     CombatState relocated(allocation.allocator());
     std::memcpy(&relocated.data, &state.data, sizeof(CombatData));
+    std::memcpy(&relocated.player, &state.player, sizeof(CreatureState));
+    std::memcpy(&relocated.enemy, &state.enemy, sizeof(CreatureState));
+    relocated.boundary = state.boundary; relocated.clock = state.clock; relocated.rng = state.rng;
     EXPECT_TRUE(valid_combat(relocated)); EXPECT_EQ(relocated, state);
     ASSERT_EQ(choose(cloned, CombatInputKind::confirm_selection, scratch).status, StepStatus::awaiting_input);
     EXPECT_TRUE(observe(state).selection); EXPECT_FALSE(observe(cloned).selection);

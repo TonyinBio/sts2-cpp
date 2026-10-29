@@ -11,6 +11,16 @@
 namespace sts2::engine {
 namespace {
 using Json = nlohmann::json;
+TEST(PublicRun, PermanentCreatureAttributesRemainVisibleAndSurviveCheckpoint) {
+    RunState state; Scratch scratch;
+    ASSERT_EQ(initialize_combat_scenario(state, {}, {}).status, StepStatus::awaiting_input);
+    // Arrange a permanent maximum-HP effect until supported content exposes one.
+    state.view().combat->player.max_hp += 5;
+    EXPECT_EQ(observe(state).max_hp, 85);
+    RunState restored;
+    ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(observe(restored).max_hp, 85);
+}
 Json recording() {
     std::ifstream input(std::filesystem::path(KERNEL_RUN_PREFIX_FIXTURE).parent_path().parent_path() / "run-shrinker-victory/actions.json");
     return Json::parse(input);

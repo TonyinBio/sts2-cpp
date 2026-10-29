@@ -24,9 +24,14 @@ template<bool Const> struct OptionalCombatView {
     using Owner = std::conditional_t<Const, const OverflowStorage, OverflowStorage>;
     Data& data;
     Owner& overflow;
+    std::conditional_t<Const, const CreatureState, CreatureState>& player;
+    std::conditional_t<Const, const CreatureState, CreatureState>& enemy;
+    std::conditional_t<Const, const BoundaryId, BoundaryId>& boundary;
+    std::conditional_t<Const, const RunClock, RunClock>& clock;
+    std::conditional_t<Const, const RngBank, RngBank>& rng;
     bool has_value() const noexcept { return data.has_value(); }
     explicit operator bool() const noexcept { return has_value(); }
-    auto operator*() const noexcept { return BasicCombatView<Const>(*data, overflow); }
+    auto operator*() const noexcept { return BasicCombatView<Const>(*data, overflow, player, enemy, boundary, clock, rng); }
     auto operator->() const noexcept { return ViewArrow<BasicCombatView<Const>>{**this}; }
     auto emplace() requires (!Const) { overflow.reset(); data.emplace(); return **this; }
     void reset() noexcept requires (!Const) { data.reset(); overflow.reset(); }
@@ -45,8 +50,7 @@ struct RunData {
     std::uint64_t numeric_seed = 0;
     ContentId character = no_content;
     std::uint8_t ascension = 0;
-    std::int32_t hp = 0;
-    std::int32_t max_hp = 0;
+    CreatureState player {}, enemy {};
     std::int32_t gold = 0;
     std::int32_t potion_slots = 3;
     std::int32_t orb_slots = 0;
@@ -97,8 +101,8 @@ template<bool Const> struct BasicRunView {
     Ref<std::uint64_t> numeric_seed = data.numeric_seed;
     Ref<ContentId> character = data.character;
     Ref<std::uint8_t> ascension = data.ascension;
-    Ref<std::int32_t> hp = data.hp;
-    Ref<std::int32_t> max_hp = data.max_hp;
+    Ref<std::int32_t> hp = data.player.hp;
+    Ref<std::int32_t> max_hp = data.player.max_hp;
     Ref<std::int32_t> gold = data.gold;
     Ref<std::int32_t> potion_slots = data.potion_slots;
     Ref<std::int32_t> orb_slots = data.orb_slots;
@@ -128,13 +132,13 @@ template<bool Const> struct BasicRunView {
     Ref<std::array<ContentId, 3>> neow_options = data.neow_options;
     Ref<ContentId> selected_neow = data.selected_neow;
     BasicRunView(Data& r, Owner& run_owner, Owner& combat_owner) noexcept
-        : data(r), overflow(run_owner), combat{r.combat, combat_owner} {}
+        : data(r), overflow(run_owner), combat{r.combat, combat_owner, r.player, r.enemy, r.boundary, r.clock, r.rng} {}
     BasicRunView view() const noexcept { return *this; }
     operator BasicRunView<true>() const noexcept requires (!Const) { return {data, overflow, combat.overflow}; }
     template<bool Other> bool operator==(const BasicRunView<Other>& other) const {
         return seed == other.seed && numeric_seed == other.numeric_seed &&
             character == other.character && ascension == other.ascension &&
-            hp == other.hp && max_hp == other.max_hp && gold == other.gold &&
+            data.player == other.data.player && gold == other.gold &&
             potion_slots == other.potion_slots && orb_slots == other.orb_slots &&
             rng == other.rng && player_rng == other.player_rng &&
             shared_relics == other.shared_relics && player_relics == other.player_relics &&

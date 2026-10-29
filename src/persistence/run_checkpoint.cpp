@@ -138,8 +138,12 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         run_view.selected_neow = r.id(); run_view.direct_combat = r.boolean(); run_view.combat_generation = r.u32();
         Scratch temporary;
         if (r.boolean()) {
+            const auto expected_hp = run_view.hp, expected_max_hp = run_view.max_hp;
+            const auto expected_rng = run_view.rng; const auto expected_clock = run_view.clock; const auto expected_boundary = run_view.boundary;
             const auto size = r.count(1, 64 * 1024 * 1024); run_view.combat.emplace();
             const auto status = restore(*run_view.combat, r.bytes.subspan(r.at, size), temporary, limits); if (status != RestoreStatus::restored) return status; r.at += size;
+            if (run_view.hp != expected_hp || run_view.max_hp != expected_max_hp || run_view.rng != expected_rng ||
+                run_view.clock != expected_clock || run_view.boundary != expected_boundary) return RestoreStatus::malformed;
         }
         if (r.boolean()) {
             run_view.rewards.emplace(); auto& rewards = *run_view.rewards; rewards.gold = r.i32(); rewards.potion = r.id();

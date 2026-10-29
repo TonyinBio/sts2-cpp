@@ -75,14 +75,9 @@ struct ExhaustDispatch {
 };
 struct CombatData {
     std::uint32_t rules = rules_revision;
-    BoundaryId boundary {};
     CombatPhase phase = CombatPhase::uninitialized;
     InlineSequence<char, 32> seed {};
     std::uint64_t numeric_seed = 0;
-    RunClock clock {};
-    RngBank rng {};
-    CreatureState player {};
-    CreatureState enemy {};
     std::int32_t energy = 0;
     std::int32_t turn = 0;
     BeetleMove move = BeetleMove::shrink;
@@ -118,14 +113,14 @@ template<bool Const> struct BasicCombatView {
     Data& data;
     Owner& overflow;
     Ref<std::uint32_t> rules = data.rules;
-    Ref<BoundaryId> boundary = data.boundary;
+    Ref<BoundaryId> boundary;
     Ref<CombatPhase> phase = data.phase;
     TextView<32, Const> seed{data.seed, overflow};
     Ref<std::uint64_t> numeric_seed = data.numeric_seed;
-    Ref<RunClock> clock = data.clock;
-    Ref<RngBank> rng = data.rng;
-    Ref<CreatureState> player = data.player;
-    Ref<CreatureState> enemy = data.enemy;
+    Ref<RunClock> clock;
+    Ref<RngBank> rng;
+    Ref<CreatureState> player;
+    Ref<CreatureState> enemy;
     Ref<std::int32_t> energy = data.energy;
     Ref<std::int32_t> turn = data.turn;
     Ref<BeetleMove> move = data.move;
@@ -143,8 +138,8 @@ template<bool Const> struct BasicCombatView {
     Ref<PromptId> next_prompt = data.next_prompt;
     Ref<std::uint32_t> next_power_instance = data.next_power_instance;
     Ref<std::uint32_t> next_creation_order = data.next_creation_order;
-    BasicCombatView(Data& data, Owner& owner) noexcept : data(data), overflow(owner) {}
-    operator BasicCombatView<true>() const noexcept requires (!Const) { return {data, overflow}; }
+    BasicCombatView(Data& data, Owner& owner, Ref<CreatureState> player, Ref<CreatureState> enemy, Ref<BoundaryId> boundary, Ref<RunClock> clock, Ref<RngBank> rng) noexcept : data(data), overflow(owner), boundary(boundary), clock(clock), rng(rng), player(player), enemy(enemy) {}
+    operator BasicCombatView<true>() const noexcept requires (!Const) { return {data, overflow, player, enemy, boundary, clock, rng}; }
     BasicCombatView view() const noexcept { return *this; }
     auto zone(Zone id) const noexcept { return SequenceView<CardHandle, 32, Const>(data.zones[static_cast<std::size_t>(id)], overflow); }
     auto zone_views() const noexcept { return std::array<SequenceView<CardHandle, 32, Const>, 5>{{{data.zones[0], overflow}, {data.zones[1], overflow}, {data.zones[2], overflow}, {data.zones[3], overflow}, {data.zones[4], overflow}}}; }
@@ -152,7 +147,7 @@ template<bool Const> struct BasicCombatView {
         cards.reserve(card_count);
         for (auto zone : zone_views()) zone.reserve(card_count);
     }
-    std::size_t retained_bytes() const noexcept { return sizeof(CombatData) + overflow.retained_bytes(); }
+    std::size_t retained_bytes() const noexcept { return sizeof(CombatData) + 2 * sizeof(CreatureState) + sizeof(BoundaryId) + sizeof(RunClock) + sizeof(RngBank) + overflow.retained_bytes(); }
     void replace(CombatState&& source) requires (!Const);
     template<bool Other> bool operator==(const BasicCombatView<Other>& other) const {
         return rules == other.rules &&
@@ -184,21 +179,25 @@ using CombatView = BasicCombatView<false>;
 using ConstCombatView = BasicCombatView<true>;
 struct CombatState {
     CombatData data;
+    CreatureState player {}, enemy {};
+    BoundaryId boundary {};
+    RunClock clock {};
+    RngBank rng {};
     OverflowStorage overflow;
     explicit CombatState(StorageAllocator allocator = {}) : overflow(allocator) {}
     CombatState(const CombatState& other) : CombatState(other.overflow.allocator()) { if (clone_into(*this, other) != CloneStatus::cloned) throw std::bad_alloc{}; }
     explicit CombatState(ConstCombatView other) : CombatState(other.overflow.allocator()) {
-        overflow.clone_from(other.overflow); std::memcpy(&data, &other.data, sizeof(data));
+        overflow.clone_from(other.overflow); std::memcpy(&data, &other.data, sizeof(data)); player = other.player; enemy = other.enemy; boundary = other.boundary; clock = other.clock; rng = other.rng;
     }
     CombatState& operator=(const CombatState& other) { if (clone_into(*this, other) != CloneStatus::cloned) throw std::bad_alloc{}; return *this; }
-    CombatState(CombatState&& other) noexcept : overflow(std::move(other.overflow)) { std::memcpy(&data, &other.data, sizeof(data)); }
+    CombatState(CombatState&& other) noexcept : player(other.player), enemy(other.enemy), boundary(other.boundary), clock(other.clock), rng(other.rng), overflow(std::move(other.overflow)) { std::memcpy(&data, &other.data, sizeof(data)); }
     CombatState& operator=(CombatState&& other) noexcept {
-        if (this != &other) { overflow = std::move(other.overflow); std::memcpy(&data, &other.data, sizeof(data)); }
+        if (this != &other) { overflow = std::move(other.overflow); std::memcpy(&data, &other.data, sizeof(data)); player = other.player; enemy = other.enemy; boundary = other.boundary; clock = other.clock; rng = other.rng; }
         return *this;
     }
-    void reset() noexcept { data = CombatData{}; overflow.reset(); }
-    CombatView view() noexcept { return {data, overflow}; }
-    ConstCombatView view() const noexcept { return {data, overflow}; }
+    void reset() noexcept { data = CombatData{}; player = {}; enemy = {}; boundary = {}; clock = {}; rng = RngBank{}; overflow.reset(); }
+    CombatView view() noexcept { return {data, overflow, player, enemy, boundary, clock, rng}; }
+    ConstCombatView view() const noexcept { return {data, overflow, player, enemy, boundary, clock, rng}; }
     operator CombatView() noexcept { return view(); }
     operator ConstCombatView() const noexcept { return view(); }
     auto zone(Zone id) noexcept { return view().zone(id); }
@@ -208,6 +207,7 @@ struct CombatState {
         if (&destination == &source) return CloneStatus::cloned;
         destination.overflow.clone_from(source.overflow);
         std::memcpy(&destination.data, &source.data, sizeof(CombatData));
+        destination.player = source.player; destination.enemy = source.enemy; destination.boundary = source.boundary; destination.clock = source.clock; destination.rng = source.rng;
         return CloneStatus::cloned;
     } catch (const std::bad_alloc&) { return CloneStatus::resource_limit; }
       catch (const std::length_error&) { return CloneStatus::resource_limit; }
@@ -216,6 +216,7 @@ struct CombatState {
 template<bool Const> void BasicCombatView<Const>::replace(CombatState&& source) requires (!Const) {
     overflow = std::move(source.overflow);
     std::memcpy(&data, &source.data, sizeof(data));
+    player = source.player; enemy = source.enemy; boundary = source.boundary; clock = source.clock; rng = source.rng;
 }
 // Optional synchronous diagnostic output. No pointer is stored in cloned state.
 // The receiver may allocate; exceptions stop execution through the normal error path.
