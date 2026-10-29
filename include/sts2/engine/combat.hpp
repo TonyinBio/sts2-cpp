@@ -2,6 +2,7 @@
 #include "sts2/state/combat.hpp"
 
 namespace sts2::engine {
+[[nodiscard]] std::int32_t effective_card_cost(ConstCombatView, CardHandle, const Ruleset& = Ruleset::pinned()) noexcept;
 enum class CombatInputKind : std::uint8_t { play_card, end_turn, select_card, deselect_card, confirm_selection };
 struct CombatInput {
     BoundaryId expected_boundary;

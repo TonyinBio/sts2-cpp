@@ -144,18 +144,27 @@ void export_native_combat(Json& out, const RunState& run, const RecordedCombat& 
     for (std::size_t i = 0; i < s.cards.slots().size(); ++i) {
         const auto& slot = s.cards.slots()[i]; if (!slot.live) continue;
         const auto& card = slot.value;
-        const auto linked = std::find_if(run_view.deck.begin(), run_view.deck.end(), [&](const auto& c) { return c.instance == card.deck_instance; });
-        const auto deck_index = card.deck_instance == UINT32_MAX ? card.creation_order : static_cast<std::uint32_t>(linked - run_view.deck.begin());
-        if (deck_index >= run_view.deck.size()) throw std::invalid_argument("Missing permanent card relationship");
+        const auto handles = run_view.deck.handles();
+        const auto linked = std::find(handles.begin(), handles.end(), card.origin);
+        const bool has_origin = card.origin.present();
+        const auto deck_index = static_cast<std::size_t>(linked - handles.begin());
+        if (has_origin && deck_index >= run_view.deck.size()) throw std::invalid_argument("Missing permanent card relationship");
         const auto vars = variables(card);
-        auto permanent = card; permanent.upgraded = run_view.deck[deck_index].upgrade != 0;
-        out["native_model_state"]["/players/0/deck/" + std::to_string(deck_index)] = {{"model_fields", Json::object()}, {"dynamic_vars", variables(permanent)}};
+        Json local_modifiers = Json::array();
+        for (const auto& modifier : s.cost_modifiers) if (modifier.card.slot == i && modifier.card.generation == slot.generation)
+            local_modifiers.push_back({{"amount", modifier.amount}, {"type", modifier.kind == CostModifierKind::absolute ? "Absolute" : "Relative"}, {"expiration", static_cast<unsigned>(modifier.expiry)}, {"is_reduce_only", modifier.reduce_only}});
+        if (has_origin) {
+            auto permanent = card; permanent.upgraded = run_view.deck[deck_index].upgrade != 0;
+            out["native_model_state"]["/players/0/deck/" + std::to_string(deck_index)] = {{"model_fields", Json::object()}, {"dynamic_vars", variables(permanent)}};
+        }
         if (won) continue;
-        combat["cards"]["card_" + std::to_string(i)] = {{"saved", out["players"][0]["deck"][deck_index]},
-            {"owner", "/players/0"}, {"deck_version", "/players/0/deck/" + std::to_string(deck_index)}, {"clone_of", nullptr},
+        const Json saved = has_origin ? out["players"][0]["deck"][deck_index] : Json{{"current_upgrade_level", card.upgraded ? 1 : 0}, {"enchantment", nullptr}, {"floor_added_to_deck", nullptr}, {"id", Ruleset::pinned().card(card.definition)->model_id}, {"props", nullptr}};
+        const Json deck_version = has_origin ? Json("/players/0/deck/" + std::to_string(deck_index)) : Json(nullptr);
+        combat["cards"]["card_" + std::to_string(i)] = {{"saved", saved},
+            {"owner", "/players/0"}, {"deck_version", deck_version}, {"clone_of", nullptr},
             {"is_dupe", false}, {"base_replay_count", 0}, {"local_keywords", card.definition == CardId::purity ? Json::array({"Retain", "Exhaust"}) : card.definition == CardId::shockwave || card.definition == CardId::tremble ? Json::array({"Exhaust"}) : Json::array()}, {"exhaust_on_next_play", false},
             {"has_single_turn_retain", false}, {"has_single_turn_sly", false}, {"has_been_removed_from_state", card.removed},
-            {"dynamic_vars", vars}, {"energy_cost", {{"base", Ruleset::pinned().card(card.definition)->cost}, {"captured_x_value", 0}, {"local_modifiers", Json::array()}}},
+            {"dynamic_vars", vars}, {"energy_cost", {{"base", Ruleset::pinned().card(card.definition)->cost}, {"captured_x_value", 0}, {"local_modifiers", local_modifiers}}},
             {"base_star_cost", -1}, {"temporary_star_costs", Json::array()}, {"last_stars_spent", 0}, {"affliction", nullptr}, {"enchantment_runtime", nullptr}, {"model_fields", Json::object()}};
     }
     if (!won) for (std::size_t i = 0; i < s.cards.slots().size(); ++i) {
