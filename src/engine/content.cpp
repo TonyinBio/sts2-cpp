@@ -13,6 +13,7 @@ void begin_selection(CombatView state, SelectionEffect effect, Zone zone, std::u
     clear_selection(state);
     state.selection = {state.next_prompt, effect, zone, minimum, maximum, automatic};
     ++state.next_prompt.value;
+    state.selection.continuation_depth = static_cast<std::uint32_t>(state.execution.size() - 1);
     for (auto card : state.zone(zone))
         if (effect != SelectionEffect::upgrade || !state.cards.get(card)->upgraded) state.selection_candidates.push_back(card);
     state.selection.maximum = std::min(maximum, static_cast<std::uint32_t>(state.selection_candidates.size()));
@@ -106,7 +107,9 @@ StepResult execute_instruction(CombatView state, Scratch& scratch, const Ruleset
             if (it->card == card && (static_cast<unsigned>(it->expiry) & 4U) != 0) it = state.cost_modifiers.erase(it);
             else ++it;
         }
-        if (definition->destination == CardDestination::remove) {
+        if (source->removed) {
+            // A captured source can outlive its active zone membership.
+        } else if (definition->destination == CardDestination::remove) {
             auto pile = state.zone(Zone::play); pile.erase(std::find(pile.begin(), pile.end(), card));
             state.cards.get(card)->removed = true;
         } else if (definition->destination == CardDestination::discard)
@@ -115,7 +118,7 @@ StepResult execute_instruction(CombatView state, Scratch& scratch, const Ruleset
         ++state.counters.finished_plays;
         state.cards.get(card)->last_finished_player_turn = state.turn;
         emit(state, scratch, CombatEventKind::play_finished, false, false, card, play);
-        if (definition->destination == CardDestination::exhaust)
+        if (!source->removed && definition->destination == CardDestination::exhaust)
             exhaust(state, scratch, Zone::play, card);
         if (state.enemy.hp == 0) { end_combat(state, scratch, true); return result(state); }
         break;
@@ -130,6 +133,14 @@ void react_to_exhaust(ExhaustRelic listener, CombatView state, Scratch& scratch)
     } else if (listener == ExhaustRelic::joss_paper) {
         ++state.joss_paper_counter;
         if (state.joss_paper_counter >= 5) {
+            if (!state.shuffle_order.empty()) {
+                EffectFrame completion;
+                if (!state.execution.empty()) completion = state.execution.back();
+                completion.pending = RelicDrawCompletion{};
+                state.execution.push_back(completion);
+                draw(state, scratch, static_cast<int>(state.joss_paper_counter / 5), Ruleset::pinned(), false);
+                return;
+            }
             draw(state, scratch, static_cast<int>(state.joss_paper_counter / 5), Ruleset::pinned(), false);
             state.joss_paper_counter %= 5;
         }

@@ -1,5 +1,7 @@
 #include "sts2/engine/action.hpp"
 #include "../../src/engine/card_state.hpp"
+#include "../../src/engine/continuation_scenario.hpp"
+#include "storage_allocator.hpp"
 #include "sts2/json_io/session.hpp"
 #include "sts2/observation/run.hpp"
 #include "sts2/persistence/checkpoint.hpp"
@@ -89,6 +91,195 @@ TEST(PublicRun, EachUnblockedAttackUpdatesTheCreatureHitCountOnce) {
         EXPECT_EQ(state.view().combat->enemy.hp, 40 - 6 * static_cast<int>(hits));
         EXPECT_EQ(state.view().combat->enemy.positive_unblocked_hits, hits);
     }
+}
+struct NestedPromptInfo { PromptId previous; CardHandle source; };
+void reach_nested_shuffle_prompt(RunState& state, std::span<const scenario::ShuffleReactionKind> hooks, NestedPromptInfo& info, std::span<const ContentId> relics = {}, std::uint32_t joss_counter = 0) {
+    Scratch scratch;
+    const std::array deck{CardSpec{CardId::burning_pact}, CardSpec{CardId::defend}, CardSpec{CardId::strike}, CardSpec{CardId::strike}, CardSpec{CardId::defend}};
+    ASSERT_EQ(initialize_combat_scenario(state, {}, deck, {}, relics, 0, joss_counter).status, StepStatus::awaiting_input);
+    scenario::configure_shuffle_reactions(state, hooks);
+    auto play = [&](CardId definition) {
+        for (auto card : state.view().combat->zone(Zone::hand)) {
+            if (state.view().combat->cards.get(card)->definition == definition)
+                return apply_action(state, CombatInput{state.data.boundary, CombatInputKind::play_card, card, false}, scratch).status;
+        }
+        return StepStatus::engine_error;
+    };
+    ASSERT_EQ(play(CardId::defend), StepStatus::awaiting_input);
+    ASSERT_EQ(play(CardId::burning_pact), StepStatus::awaiting_input);
+    const auto exhaust_prompt = state.view().combat->selection.id;
+    info.previous = exhaust_prompt; info.source = state.view().combat->zone(Zone::play).front();
+    const auto exhausted = state.view().combat->selection_candidates.front();
+    ASSERT_EQ(apply_action(state, CombatInput{state.data.boundary, CombatInputKind::select_card, exhausted, false, exhaust_prompt}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_action(state, CombatInput{state.data.boundary, CombatInputKind::confirm_selection, {}, false, exhaust_prompt}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(state.view().combat->phase, CombatPhase::card_choice);
+}
+StepStatus choose_nested_card(RunState& branch, Scratch& scratch, std::size_t index = 0) {
+    const auto combat = *branch.view().combat;
+    return apply_action(branch, CombatInput{branch.data.boundary, CombatInputKind::select_card, combat.selection_candidates[index], false, combat.selection.id}, scratch).status;
+}
+TEST(PublicRun, NestedShuffleChoiceResumesDrawAndParentExactlyOnceAfterRestore) {
+    RunState state; Scratch scratch; NestedPromptInfo info;
+    const std::array hooks{scenario::ShuffleReactionKind::choose_card};
+    reach_nested_shuffle_prompt(state, hooks, info);
+    const auto exhaust_prompt = info.previous;
+    ASSERT_EQ(state.view().combat->phase, CombatPhase::card_choice);
+    EXPECT_NE(state.view().combat->selection.id, exhaust_prompt);
+    EXPECT_EQ(state.view().combat->counters.finished_plays, 1u);
+    EXPECT_EQ(state.view().combat->counters.non_hand_draws_this_turn, 0u);
+    const auto saved = checkpoint(state).bytes;
+    RunState clone = state, restored;
+    ASSERT_EQ(restore(restored, saved, scratch), RestoreStatus::restored);
+    EXPECT_EQ(advance_to_decision(state, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(checkpoint(state).bytes, saved);
+    auto choose = [&](RunState& branch, std::size_t index) {
+        const auto combat = *branch.view().combat;
+        return apply_action(branch, CombatInput{branch.data.boundary, CombatInputKind::select_card, combat.selection_candidates[index], false, combat.selection.id}, scratch).status;
+    };
+    ASSERT_EQ(choose(clone, 0), StepStatus::awaiting_input);
+    ASSERT_EQ(choose(restored, 0), StepStatus::awaiting_input);
+    EXPECT_EQ(clone, restored);
+    EXPECT_EQ(clone.view().combat->phase, CombatPhase::play);
+    EXPECT_EQ(clone.view().combat->counters.finished_plays, 2u);
+    EXPECT_EQ(clone.view().combat->counters.non_hand_draws_this_turn, 2u);
+    EXPECT_EQ(checkpoint(state).bytes, saved);
+    RunState alternate = state;
+    ASSERT_EQ(choose(alternate, 1), StepStatus::awaiting_input);
+    EXPECT_NE(alternate, clone);
+    EXPECT_EQ(alternate.view().rng, clone.view().rng);
+}
+TEST(PublicRun, CapturedShuffleListenersRejectReplacementsAndExcludeNewListeners) {
+    RunState state; Scratch scratch; NestedPromptInfo info;
+    const std::array hooks{scenario::ShuffleReactionKind::choose_card, scenario::ShuffleReactionKind::nested_draw};
+    reach_nested_shuffle_prompt(state, hooks, info);
+    ASSERT_EQ(state.view().combat->phase, CombatPhase::card_choice);
+    auto combat = *state.view().combat;
+    const auto removed = combat.shuffle_order.back();
+    combat.shuffle_order.pop_back(); ASSERT_TRUE(combat.shuffle_reactions.erase(removed));
+    const auto replacement = combat.shuffle_reactions.create({ShuffleReactionKind::nested_draw, false}, 4096);
+    ASSERT_TRUE(replacement.present()); combat.shuffle_order.push_back(replacement);
+    ASSERT_EQ(replacement.slot, removed.slot); EXPECT_NE(replacement.generation, removed.generation);
+    ASSERT_TRUE(valid_run(state));
+    const auto saved = checkpoint(state).bytes;
+    RunState clone = state, restored;
+    ASSERT_EQ(restore(restored, saved, scratch), RestoreStatus::restored);
+    ASSERT_EQ(choose_nested_card(clone, scratch), StepStatus::awaiting_input);
+    ASSERT_EQ(choose_nested_card(restored, scratch), StepStatus::awaiting_input);
+    EXPECT_EQ(clone, restored);
+    EXPECT_EQ(clone.view().combat->counters.non_hand_draws_this_turn, 2u);
+    EXPECT_FALSE(clone.view().combat->shuffle_reactions.get(replacement)->fired);
+    EXPECT_EQ(checkpoint(state).bytes, saved);
+}
+TEST(PublicRun, NestedContinuationOverflowKeepsIndependentSameAndAlternativeFutures) {
+    RunState state; Scratch scratch; NestedPromptInfo info;
+    std::array<scenario::ShuffleReactionKind, 7> hooks;
+    hooks.fill(scenario::ShuffleReactionKind::nested_draw); hooks.back() = scenario::ShuffleReactionKind::choose_card;
+    reach_nested_shuffle_prompt(state, hooks, info);
+    ASSERT_EQ(state.view().combat->phase, CombatPhase::card_choice);
+    ASSERT_TRUE(state.view().combat->data.execution.overflowed());
+    ASSERT_TRUE(valid_run(state));
+    const auto saved = checkpoint(state).bytes;
+    RunState clone = state, restored;
+    ASSERT_EQ(restore(restored, saved, scratch), RestoreStatus::restored);
+    ASSERT_EQ(choose_nested_card(clone, scratch), StepStatus::awaiting_input);
+    ASSERT_EQ(choose_nested_card(restored, scratch), StepStatus::awaiting_input);
+    EXPECT_EQ(clone, restored);
+    EXPECT_EQ(clone.view().combat->phase, CombatPhase::play);
+    EXPECT_EQ(clone.view().combat->counters.finished_plays, 2u);
+    RunState alternate = state;
+    ASSERT_EQ(choose_nested_card(alternate, scratch, 1), StepStatus::awaiting_input);
+    EXPECT_NE(alternate, clone); EXPECT_EQ(alternate.view().rng, clone.view().rng);
+    EXPECT_EQ(checkpoint(state).bytes, saved);
+}
+TEST(PublicRun, NestedPromptRetainsSourceAfterItLeavesActiveCardMembership) {
+    RunState state; Scratch scratch; NestedPromptInfo info;
+    const std::array hooks{scenario::ShuffleReactionKind::choose_card};
+    reach_nested_shuffle_prompt(state, hooks, info);
+    ASSERT_EQ(state.view().combat->phase, CombatPhase::card_choice);
+    auto play = state.view().combat->zone(Zone::play);
+    play.erase(std::find(play.begin(), play.end(), info.source));
+    state.view().combat->cards.get(info.source)->removed = true;
+    ASSERT_TRUE(valid_run(state));
+    RunState restored;
+    ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    ASSERT_EQ(choose_nested_card(restored, scratch), StepStatus::awaiting_input);
+    EXPECT_EQ(restored.view().combat->counters.finished_plays, 2u);
+    EXPECT_NE(restored.view().combat->cards.get(info.source), nullptr);
+    EXPECT_TRUE(restored.view().combat->cards.get(info.source)->removed);
+    EXPECT_EQ(state.view().combat->phase, CombatPhase::card_choice);
+}
+TEST(PublicRun, CommonNestedPromptCloneUsesNoAllocationAndBudgetFailureIsOperational) {
+    test::AllocationCounter allocation;
+    RunState state(allocation.allocator()), clone(allocation.allocator()); Scratch scratch; NestedPromptInfo info;
+    const std::array hooks{scenario::ShuffleReactionKind::choose_card};
+    reach_nested_shuffle_prompt(state, hooks, info);
+    ASSERT_EQ(state.view().combat->phase, CombatPhase::card_choice);
+    ASSERT_TRUE(state.combat_overflow.empty());
+    const auto saved = checkpoint(state).bytes;
+    const auto allocations = allocation.allocations;
+    allocation.fail_after = allocations;
+    ASSERT_EQ(clone_into(clone, state), CloneStatus::cloned);
+    EXPECT_EQ(allocation.allocations, allocations);
+    scratch.step_limit = 1;
+    EXPECT_EQ(choose_nested_card(clone, scratch), StepStatus::engine_error);
+    EXPECT_EQ(clone.view().phase, RunPhase::invalid);
+    EXPECT_FALSE(observe(clone).valid);
+    EXPECT_EQ(checkpoint(state).bytes, saved);
+}
+TEST(PublicRun, NestedPromptRejectsMalformedResultDestinationBeforePublishingQueries) {
+    RunState state; Scratch scratch; NestedPromptInfo info;
+    const std::array hooks{scenario::ShuffleReactionKind::choose_card};
+    reach_nested_shuffle_prompt(state, hooks, info);
+    ASSERT_EQ(state.view().combat->phase, CombatPhase::card_choice);
+    ++state.view().combat->selection.continuation_depth;
+    EXPECT_FALSE(valid_run(state));
+    const auto boundary = state.data.boundary;
+    const auto candidate = state.view().combat->selection_candidates.front();
+    const PlayerInput input = CombatInput{boundary, CombatInputKind::select_card, candidate, false, state.view().combat->selection.id};
+    EXPECT_EQ(validate_action(state, input), Restriction::invalid_state);
+    EXPECT_THROW(checkpoint(state), std::invalid_argument);
+    EXPECT_TRUE(get_actions(state).empty());
+    EXPECT_FALSE(observe(state).valid);
+    EXPECT_EQ(state.data.boundary, boundary);
+}
+TEST(PublicRun, OverflowingNestedCloneAndRestoreFailuresKeepDestinationTransactional) {
+    test::AllocationCounter allocation;
+    {
+        RunState state(allocation.allocator()), destination(allocation.allocator()); Scratch scratch; NestedPromptInfo info;
+        std::array<scenario::ShuffleReactionKind, 7> hooks;
+        hooks.fill(scenario::ShuffleReactionKind::nested_draw); hooks.back() = scenario::ShuffleReactionKind::choose_card;
+        reach_nested_shuffle_prompt(state, hooks, info);
+        ASSERT_EQ(state.view().combat->phase, CombatPhase::card_choice);
+        const auto encoded = checkpoint(state).bytes;
+        ASSERT_EQ(initialize_seeded_combat(destination, {}).status, StepStatus::awaiting_input);
+        const auto before = checkpoint(destination).bytes;
+        allocation.fail_after = allocation.allocations;
+        EXPECT_EQ(clone_into(destination, state), CloneStatus::resource_limit);
+        EXPECT_EQ(checkpoint(destination).bytes, before);
+        EXPECT_EQ(restore(destination, encoded, scratch), RestoreStatus::resource_limit);
+        EXPECT_EQ(checkpoint(destination).bytes, before);
+        EXPECT_EQ(checkpoint(state).bytes, encoded);
+    }
+    EXPECT_EQ(allocation.outstanding, 0u);
+}
+TEST(PublicRun, NestedRelicDrawDefersItsCounterResetUntilTheChildChoiceFinishes) {
+    RunState state; Scratch scratch; NestedPromptInfo info;
+    const std::array hooks{scenario::ShuffleReactionKind::choose_card};
+    const std::array relics{SetupRules::find("RELIC.JOSS_PAPER")};
+    reach_nested_shuffle_prompt(state, hooks, info, relics, 4);
+    ASSERT_EQ(state.view().combat->phase, CombatPhase::card_choice);
+    EXPECT_EQ(state.view().combat->joss_paper_counter, 5u);
+    EXPECT_EQ(state.view().joss_paper_counter, 5u);
+    EXPECT_EQ(state.view().combat->counters.finished_plays, 1u);
+    const auto saved = checkpoint(state).bytes;
+    RunState restored;
+    ASSERT_EQ(restore(restored, saved, scratch), RestoreStatus::restored);
+    ASSERT_EQ(choose_nested_card(restored, scratch), StepStatus::awaiting_input);
+    EXPECT_EQ(restored.view().combat->phase, CombatPhase::play);
+    EXPECT_EQ(restored.view().combat->joss_paper_counter, 0u);
+    EXPECT_EQ(restored.view().joss_paper_counter, 0u);
+    EXPECT_EQ(restored.view().combat->counters.finished_plays, 2u);
+    EXPECT_EQ(checkpoint(state).bytes, saved);
 }
 Json recording() {
     std::ifstream input(std::filesystem::path(KERNEL_RUN_PREFIX_FIXTURE).parent_path().parent_path() / "run-shrinker-victory/actions.json");

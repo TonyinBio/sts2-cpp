@@ -28,7 +28,7 @@ An optional synchronous trace supplies `json_io`'s exporter-owned diagnostic his
 completed plays and removed powers. Comparison schemas and fixtures remain unchanged.
 Recording is linear and attaches at creation; recording arbitrary pre-made states
 or cloned branches is unsupported. Engine clones contain no exporter context.
-Binary checkpoint revisions are combat 10 and run 7; older versions are rejected.
+Binary checkpoint revisions are combat 11 and run 8; older versions are rejected.
 JSON checkpoint migration remains separate. These summaries are not a sufficiency
 proof for unsupported mechanics or mutable card types.
 
@@ -61,8 +61,20 @@ live in `src/engine/mechanics.cpp`, `hooks.cpp`, `content.cpp` and
 block and power modifiers return values directly. Reaction hooks retain explicit
 native traversal order. Immutable card metadata determines attack classification,
 retention and completion destinations, so these behaviors do not require named
-card checks in the central controller. Nested hook suspension, parent-room returns,
-allocation-free run action traversal and final benchmarking remain migration work.
+card checks in the central controller. Selective continuations in `continuation.cpp` preserve unfinished draw, selection,
+exhaust-hook and relic-draw completion work on the same stack as card programs.
+Guaranteed synchronous mechanics remain direct calls. Captured listener handles and
+ordered operands belong to complete state, including their overflow; prompts name
+the frame that receives their result. Joss Paper's persistent counter is run-owned
+and its reset waits for any child draw to complete. Standalone combat retains its
+own counter adapter.
+
+Controlled shuffle reactions exercise nested suspension, listener replacement,
+retained sources, same/alternative restored futures and allocation/budget failures.
+These fixtures establish architecture behavior, not native parity for a named new
+card or power. Existing supported native recording comparisons remain in the engine
+checks. Parent-room returns, allocation-free run action traversal and final
+benchmarking remain migration work.
 
 ## Complete-state inline storage and owning clones
 

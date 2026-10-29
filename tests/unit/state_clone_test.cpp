@@ -29,7 +29,7 @@ TEST(CompleteStateClone, PublicCommonRunAndCombatClonesAllocateNothing) {
         std::memcpy(&relocated.data, &combat.data, sizeof(CombatData));
         std::memcpy(&relocated.player, &combat.player, sizeof(CreatureState));
         std::memcpy(&relocated.enemy, &combat.enemy, sizeof(CreatureState));
-        relocated.boundary = combat.boundary; relocated.clock = combat.clock; relocated.rng = combat.rng;
+        relocated.boundary = combat.boundary; relocated.clock = combat.clock; relocated.rng = combat.rng; relocated.joss_paper_counter = combat.joss_paper_counter;
         EXPECT_TRUE(valid_combat(relocated)); EXPECT_EQ(relocated, combat);
         Scratch scratch;
         const CombatInput input{run_copy.view().boundary, CombatInputKind::end_turn};

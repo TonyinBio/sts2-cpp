@@ -19,7 +19,7 @@ RunObservation observe(const RunState& state) {
     auto state_view = state.view();
     view.boundary = state_view.boundary; view.phase = state_view.phase;
     view.valid = state_view.phase != RunPhase::invalid && state_view.phase != RunPhase::uninitialized;
-    if (!view.valid) return view;
+    if (!view.valid || (state_view.combat && !valid_combat(*state_view.combat))) { view.valid = false; return view; }
     view.character = SetupRules::name(state_view.character); view.seed = state_view.seed;
     view.ascension = state_view.ascension; view.act = state_view.act_index + 1;
     view.hp = state_view.hp; view.max_hp = state_view.max_hp; view.gold = state_view.gold;

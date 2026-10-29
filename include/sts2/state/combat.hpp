@@ -1,4 +1,5 @@
 #pragma once
+#include <variant>
 #include "sts2/core/result.hpp"
 #include "sts2/core/storage.hpp"
 #include "sts2/rules/ruleset.hpp"
@@ -49,23 +50,59 @@ struct CreatureState {
     friend bool operator==(const CreatureState&, const CreatureState&) = default;
 };
 // Every suspended operand is owned here, never on the C++ call stack or in Scratch.
+enum class SelectionEffect : std::uint8_t { none, exhaust, upgrade, topdeck };
+enum class ExhaustRelic : std::uint8_t { charons_ashes, joss_paper };
+struct DrawContinuation {
+    std::int32_t remaining = 0;
+    bool from_hand_draw = true;
+    friend bool operator==(const DrawContinuation&, const DrawContinuation&) = default;
+};
+struct ShuffleContinuation {
+    std::uint32_t begin = 0, count = 0, cursor = 0;
+    bool waiting = false;
+    friend bool operator==(const ShuffleContinuation&, const ShuffleContinuation&) = default;
+};
+struct SelectionContinuation {
+    SelectionEffect effect = SelectionEffect::none;
+    Zone zone = Zone::hand;
+    std::uint32_t begin = 0, count = 0, cursor = 0;
+    friend bool operator==(const SelectionContinuation&, const SelectionContinuation&) = default;
+};
+struct ExhaustContinuation {
+    std::array<ExhaustRelic, 2> candidates {};
+    std::uint8_t count = 0, cursor = 0;
+    friend bool operator==(const ExhaustContinuation&, const ExhaustContinuation&) = default;
+};
+struct RelicDrawCompletion { friend bool operator==(const RelicDrawCompletion&, const RelicDrawCompletion&) = default; };
+using ContinuationPayload = std::variant<std::monostate, DrawContinuation, ShuffleContinuation, SelectionContinuation, ExhaustContinuation, RelicDrawCompletion>;
 struct EffectFrame {
     CardHandle source;
     std::uint32_t instruction = 0;
     std::uint32_t play = 0;
     std::int32_t energy = 0;
     bool enemy_target = false;
+    ContinuationPayload pending {};
     friend bool operator==(const EffectFrame&, const EffectFrame&) = default;
 };
-enum class SelectionEffect : std::uint8_t { none, exhaust, upgrade, topdeck };
+static_assert(std::is_trivially_copyable_v<EffectFrame>);
 struct CardSelection {
     PromptId id {};
     SelectionEffect effect = SelectionEffect::none;
     Zone zone = Zone::hand;
     std::uint32_t minimum = 0, maximum = 0;
     bool automatic_at_maximum = false;
+    std::uint32_t continuation_depth = 0;
     friend bool operator==(const CardSelection&, const CardSelection&) = default;
 };
+// These compiled reactions are used by controlled architecture fixtures only;
+// their presence does not establish native content support.
+enum class ShuffleReactionKind : std::uint8_t { choose_card, nested_draw };
+struct ShuffleReaction {
+    ShuffleReactionKind kind = ShuffleReactionKind::choose_card;
+    bool fired = false;
+    friend bool operator==(const ShuffleReaction&, const ShuffleReaction&) = default;
+};
+using ShuffleReactionPool = PoolData<ShuffleReaction, ShuffleReactionTag, 4>;
 // Sufficient summaries for the audited single-player consumers. Card types are
 // immutable in supported content; mutable-type mechanics need a fresh audit.
 struct CombatCounters {
@@ -74,14 +111,6 @@ struct CombatCounters {
     std::uint32_t zero_energy_attacks_this_turn = 0, non_hand_draws_this_turn = 0;
     std::uint32_t finished_ethereal = 0;
     friend bool operator==(const CombatCounters&, const CombatCounters&) = default;
-};
-enum class ExhaustRelic : std::uint8_t { charons_ashes, joss_paper };
-struct ExhaustDispatch {
-    CardHandle source {};
-    std::array<ExhaustRelic, 2> candidates {};
-    std::uint8_t count = 0, cursor = 0;
-    bool active : 1 = false;
-    friend bool operator==(const ExhaustDispatch&, const ExhaustDispatch&) = default;
 };
 struct CombatData {
     std::uint32_t rules = rules_revision;
@@ -99,8 +128,10 @@ struct CombatData {
     CombatCounters counters {};
     std::array<ExhaustRelic, 2> exhaust_relics {};
     std::uint8_t exhaust_relic_count = 0;
-    std::uint32_t joss_paper_counter = 0;
-    ExhaustDispatch exhaust_dispatch {};
+    ShuffleReactionPool shuffle_reactions {};
+    InlineSequence<ShuffleReactionHandle, 4> shuffle_order {};
+    InlineSequence<ShuffleReactionHandle, 16> captured_shuffle_reactions {};
+    InlineSequence<CardHandle, 16> continuation_cards {};
     CardSelection selection {};
     InlineSequence<CardHandle, 10> selection_candidates {}, selection_order {};
     PromptId next_prompt {1};
@@ -110,6 +141,8 @@ struct CombatData {
         visit(r.seed); visit(r.cards.slots); visit(r.cards.free); visit(r.cost_modifiers);
         for (auto& zone : r.zones) visit(zone);
         visit(r.execution); visit(r.selection_candidates); visit(r.selection_order);
+        visit(r.shuffle_reactions.slots); visit(r.shuffle_reactions.free); visit(r.shuffle_order);
+        visit(r.captured_shuffle_reactions); visit(r.continuation_cards);
     }
     template<class Visit> void for_each_sequence(Visit visit) const noexcept { visit_sequences(*this, visit); }
     template<class Visit> void for_each_sequence(Visit visit) noexcept { visit_sequences(*this, visit); }
@@ -142,16 +175,19 @@ template<bool Const> struct BasicCombatView {
     Ref<CombatCounters> counters = data.counters;
     Ref<std::array<ExhaustRelic, 2>> exhaust_relics = data.exhaust_relics;
     Ref<std::uint8_t> exhaust_relic_count = data.exhaust_relic_count;
-    Ref<std::uint32_t> joss_paper_counter = data.joss_paper_counter;
-    Ref<ExhaustDispatch> exhaust_dispatch = data.exhaust_dispatch;
+    Ref<std::uint32_t> joss_paper_counter;
+    PoolView<ShuffleReaction, ShuffleReactionTag, 4, Const> shuffle_reactions{data.shuffle_reactions, overflow};
+    SequenceView<ShuffleReactionHandle, 4, Const> shuffle_order{data.shuffle_order, overflow};
+    SequenceView<ShuffleReactionHandle, 16, Const> captured_shuffle_reactions{data.captured_shuffle_reactions, overflow};
+    SequenceView<CardHandle, 16, Const> continuation_cards{data.continuation_cards, overflow};
     Ref<CardSelection> selection = data.selection;
     SequenceView<CardHandle, 10, Const> selection_candidates{data.selection_candidates, overflow};
     SequenceView<CardHandle, 10, Const> selection_order{data.selection_order, overflow};
     Ref<PromptId> next_prompt = data.next_prompt;
     Ref<std::uint32_t> next_power_instance = data.next_power_instance;
     Ref<std::uint32_t> next_creation_order = data.next_creation_order;
-    BasicCombatView(Data& data, Owner& owner, Ref<CreatureState> player, Ref<CreatureState> enemy, Ref<BoundaryId> boundary, Ref<RunClock> clock, Ref<RngBank> rng) noexcept : data(data), overflow(owner), boundary(boundary), clock(clock), rng(rng), player(player), enemy(enemy) {}
-    operator BasicCombatView<true>() const noexcept requires (!Const) { return {data, overflow, player, enemy, boundary, clock, rng}; }
+    BasicCombatView(Data& data, Owner& owner, Ref<CreatureState> player, Ref<CreatureState> enemy, Ref<BoundaryId> boundary, Ref<RunClock> clock, Ref<RngBank> rng, Ref<std::uint32_t> joss) noexcept : data(data), overflow(owner), boundary(boundary), clock(clock), rng(rng), player(player), enemy(enemy), joss_paper_counter(joss) {}
+    operator BasicCombatView<true>() const noexcept requires (!Const) { return {data, overflow, player, enemy, boundary, clock, rng, joss_paper_counter}; }
     BasicCombatView view() const noexcept { return *this; }
     auto zone(Zone id) const noexcept { return SequenceView<CardHandle, 32, Const>(data.zones[static_cast<std::size_t>(id)], overflow); }
     auto zone_views() const noexcept { return std::array<SequenceView<CardHandle, 32, Const>, 5>{{{data.zones[0], overflow}, {data.zones[1], overflow}, {data.zones[2], overflow}, {data.zones[3], overflow}, {data.zones[4], overflow}}}; }
@@ -159,7 +195,7 @@ template<bool Const> struct BasicCombatView {
         cards.reserve(card_count);
         for (auto zone : zone_views()) zone.reserve(card_count);
     }
-    std::size_t retained_bytes() const noexcept { return sizeof(CombatData) + 2 * sizeof(CreatureState) + sizeof(BoundaryId) + sizeof(RunClock) + sizeof(RngBank) + overflow.retained_bytes(); }
+    std::size_t retained_bytes() const noexcept { return sizeof(CombatData) + 2 * sizeof(CreatureState) + sizeof(BoundaryId) + sizeof(RunClock) + sizeof(RngBank) + sizeof(std::uint32_t) + overflow.retained_bytes(); }
     void replace(CombatState&& source) requires (!Const);
     template<bool Other> bool operator==(const BasicCombatView<Other>& other) const {
         return rules == other.rules &&
@@ -180,7 +216,8 @@ template<bool Const> struct BasicCombatView {
             execution == other.execution &&
             counters == other.counters && exhaust_relics == other.exhaust_relics &&
             exhaust_relic_count == other.exhaust_relic_count && joss_paper_counter == other.joss_paper_counter &&
-            exhaust_dispatch == other.exhaust_dispatch &&
+            shuffle_reactions == other.shuffle_reactions && shuffle_order == other.shuffle_order &&
+            captured_shuffle_reactions == other.captured_shuffle_reactions && continuation_cards == other.continuation_cards &&
             selection == other.selection && selection_candidates == other.selection_candidates &&
             selection_order == other.selection_order && next_prompt == other.next_prompt &&
             next_power_instance == other.next_power_instance &&
@@ -195,21 +232,22 @@ struct CombatState {
     BoundaryId boundary {};
     RunClock clock {};
     RngBank rng {};
+    std::uint32_t joss_paper_counter = 0;
     OverflowStorage overflow;
     explicit CombatState(StorageAllocator allocator = {}) : overflow(allocator) {}
     CombatState(const CombatState& other) : CombatState(other.overflow.allocator()) { if (clone_into(*this, other) != CloneStatus::cloned) throw std::bad_alloc{}; }
     explicit CombatState(ConstCombatView other) : CombatState(other.overflow.allocator()) {
-        overflow.clone_from(other.overflow); std::memcpy(&data, &other.data, sizeof(data)); player = other.player; enemy = other.enemy; boundary = other.boundary; clock = other.clock; rng = other.rng;
+        overflow.clone_from(other.overflow); std::memcpy(&data, &other.data, sizeof(data)); player = other.player; enemy = other.enemy; boundary = other.boundary; clock = other.clock; rng = other.rng; joss_paper_counter = other.joss_paper_counter;
     }
     CombatState& operator=(const CombatState& other) { if (clone_into(*this, other) != CloneStatus::cloned) throw std::bad_alloc{}; return *this; }
-    CombatState(CombatState&& other) noexcept : player(other.player), enemy(other.enemy), boundary(other.boundary), clock(other.clock), rng(other.rng), overflow(std::move(other.overflow)) { std::memcpy(&data, &other.data, sizeof(data)); }
+    CombatState(CombatState&& other) noexcept : player(other.player), enemy(other.enemy), boundary(other.boundary), clock(other.clock), rng(other.rng), joss_paper_counter(other.joss_paper_counter), overflow(std::move(other.overflow)) { std::memcpy(&data, &other.data, sizeof(data)); }
     CombatState& operator=(CombatState&& other) noexcept {
-        if (this != &other) { overflow = std::move(other.overflow); std::memcpy(&data, &other.data, sizeof(data)); player = other.player; enemy = other.enemy; boundary = other.boundary; clock = other.clock; rng = other.rng; }
+        if (this != &other) { overflow = std::move(other.overflow); std::memcpy(&data, &other.data, sizeof(data)); player = other.player; enemy = other.enemy; boundary = other.boundary; clock = other.clock; rng = other.rng; joss_paper_counter = other.joss_paper_counter; }
         return *this;
     }
-    void reset() noexcept { data = CombatData{}; player = {}; enemy = {}; boundary = {}; clock = {}; rng = RngBank{}; overflow.reset(); }
-    CombatView view() noexcept { return {data, overflow, player, enemy, boundary, clock, rng}; }
-    ConstCombatView view() const noexcept { return {data, overflow, player, enemy, boundary, clock, rng}; }
+    void reset() noexcept { data = CombatData{}; player = {}; enemy = {}; boundary = {}; clock = {}; rng = RngBank{}; joss_paper_counter = 0; overflow.reset(); }
+    CombatView view() noexcept { return {data, overflow, player, enemy, boundary, clock, rng, joss_paper_counter}; }
+    ConstCombatView view() const noexcept { return {data, overflow, player, enemy, boundary, clock, rng, joss_paper_counter}; }
     operator CombatView() noexcept { return view(); }
     operator ConstCombatView() const noexcept { return view(); }
     auto zone(Zone id) noexcept { return view().zone(id); }
@@ -219,7 +257,7 @@ struct CombatState {
         if (&destination == &source) return CloneStatus::cloned;
         destination.overflow.clone_from(source.overflow);
         std::memcpy(&destination.data, &source.data, sizeof(CombatData));
-        destination.player = source.player; destination.enemy = source.enemy; destination.boundary = source.boundary; destination.clock = source.clock; destination.rng = source.rng;
+        destination.player = source.player; destination.enemy = source.enemy; destination.boundary = source.boundary; destination.clock = source.clock; destination.rng = source.rng; destination.joss_paper_counter = source.joss_paper_counter;
         return CloneStatus::cloned;
     } catch (const std::bad_alloc&) { return CloneStatus::resource_limit; }
       catch (const std::length_error&) { return CloneStatus::resource_limit; }
@@ -228,7 +266,7 @@ struct CombatState {
 template<bool Const> void BasicCombatView<Const>::replace(CombatState&& source) requires (!Const) {
     overflow = std::move(source.overflow);
     std::memcpy(&data, &source.data, sizeof(data));
-    player = source.player; enemy = source.enemy; boundary = source.boundary; clock = source.clock; rng = source.rng;
+    player = source.player; enemy = source.enemy; boundary = source.boundary; clock = source.clock; rng = source.rng; joss_paper_counter = source.joss_paper_counter;
 }
 // Optional synchronous diagnostic output. No pointer is stored in cloned state.
 // The receiver may allocate; exceptions stop execution through the normal error path.
@@ -246,7 +284,7 @@ struct Scratch {
     std::uint32_t steps = 0;
     CombatTrace trace {};
 };
-struct Limits { std::uint32_t cards = 4096; };
+struct Limits { std::uint32_t cards = 4096; std::uint32_t continuations = 4096; };
 struct CardSpec { CardId definition; bool upgraded = false; PersistentCardHandle origin {}; };
 // Isolated combat setup. Seeded run integration supplies the generated RNG bank;
 // a standalone scenario starts fresh streams and does not generate run content.

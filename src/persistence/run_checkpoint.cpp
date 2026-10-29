@@ -100,7 +100,7 @@ std::uint64_t checksum(std::span<const std::byte> bytes) { return game_hash({rei
 Checkpoint checkpoint(const RunState& run) {
     if (!valid_run(run)) throw std::invalid_argument("Cannot checkpoint invalid run");
     auto run_view = run.view();
-    Writer w; w.text("STS2RUN1"); w.u32(7); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
+    Writer w; w.text("STS2RUN1"); w.u32(8); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
     const auto s = run_view;
     w.u32(s.creatures.data.highest_generation);
     w.u32(static_cast<std::uint32_t>(s.creatures.slots().size()));
@@ -149,7 +149,7 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         Reader trailer{bytes.last(8)}; if (trailer.u64() != checksum(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
         for (char c : std::string_view("STS2RUN1")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 7 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        if (r.u32() != 8 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (const auto identity : {game_digest, SetupRules::fingerprint()}) for (char c : identity)
             if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
@@ -206,6 +206,7 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         Scratch temporary;
         if (r.boolean()) {
             const auto expected_hp = run_view.hp, expected_max_hp = run_view.max_hp;
+            const auto expected_joss = run_view.joss_paper_counter;
             const auto expected_rng = run_view.rng; const auto expected_clock = run_view.clock; const auto expected_boundary = run_view.boundary;
             const auto size = r.count(1, 64 * 1024 * 1024);
             if (run_view.combat.enemies.size() != 1) return RestoreStatus::malformed;
@@ -214,7 +215,7 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
             run.data.combat.emplace();
             const auto status = restore(*run_view.combat, r.bytes.subspan(r.at, size), temporary, limits); if (status != RestoreStatus::restored) return status; r.at += size;
             if (*creatures.get(run.data.player) != expected_player || *creatures.get(run_view.combat.enemies.front()) != expected_enemy) return RestoreStatus::malformed;
-            if (run_view.hp != expected_hp || run_view.max_hp != expected_max_hp || run_view.rng != expected_rng ||
+            if (run_view.joss_paper_counter != expected_joss || run_view.hp != expected_hp || run_view.max_hp != expected_max_hp || run_view.rng != expected_rng ||
                 run_view.clock != expected_clock || run_view.boundary != expected_boundary) return RestoreStatus::malformed;
         }
         if (r.boolean()) {

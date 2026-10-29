@@ -21,7 +21,8 @@ StepResult fail(CombatView state, Restriction reason) noexcept {
 bool consume(Scratch& scratch) noexcept { return ++scratch.steps <= scratch.step_limit; }
 void end_combat(CombatView state, Scratch& scratch, bool won) {
     state.phase = won ? CombatPhase::combat_won : CombatPhase::player_died;
-    state.execution.clear(); state.cost_modifiers.clear(); clear_selection(state);
+    state.execution.clear(); state.cost_modifiers.clear();
+    state.continuation_cards.clear(); state.captured_shuffle_reactions.clear(); clear_selection(state);
     if (won) {
         state.player.clear_powers(); state.enemy.clear_powers();
         for (auto& zone : state.zone_views()) zone.clear();
@@ -42,7 +43,7 @@ void end_combat(CombatView state, Scratch& scratch, bool won) {
         // scalars/identity progress, but release its completed collection graph.
         CombatState terminal(state.overflow.allocator());
         std::memcpy(&terminal.data, &state.data, sizeof(CombatData));
-        terminal.player = state.player; terminal.enemy = state.enemy; terminal.boundary = state.boundary; terminal.clock = state.clock; terminal.rng = state.rng;
+        terminal.player = state.player; terminal.enemy = state.enemy; terminal.boundary = state.boundary; terminal.clock = state.clock; terminal.rng = state.rng; terminal.joss_paper_counter = state.joss_paper_counter;
         terminal.data.for_each_sequence([](auto& sequence) { sequence = std::remove_reference_t<decltype(sequence)>{}; });
         terminal.view().seed = std::string_view(state.seed);
         state.replace(std::move(terminal));

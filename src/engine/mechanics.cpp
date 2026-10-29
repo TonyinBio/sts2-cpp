@@ -71,30 +71,41 @@ void move_card(CombatView state, Zone from, Zone to, CardHandle card) {
     source.erase(std::find(source.begin(), source.end(), card));
     state.zone(to).push_back(card);
 }
+void reshuffle(CombatView state, const Ruleset& rules) {
+    auto pile = state.zone(Zone::draw); auto discard = state.zone(Zone::discard);
+    pile.insert(pile.end(), discard.begin(), discard.end()); discard.clear();
+    game_sort<CardHandle>(pile, [&](CardHandle a, CardHandle b) {
+        const auto& ca = *state.cards.get(a); const auto& cb = *state.cards.get(b);
+        const auto ida = rules.card(ca.definition)->model_id, idb = rules.card(cb.definition)->model_id;
+        return ida == idb ? ca.upgraded < cb.upgraded : ida < idb;
+    });
+    state.rng.get(RunStream::shuffle).shuffle<CardHandle>(pile);
+}
+void draw_one(CombatView state, Scratch& scratch, bool from_hand_draw) {
+    auto pile = state.zone(Zone::draw); auto hand = state.zone(Zone::hand);
+    auto card = pile.front(); pile.erase(pile.begin()); hand.push_back(card);
+    if (!from_hand_draw) {
+        if (state.counters.non_hand_draws_this_turn == UINT32_MAX) throw std::length_error("draw count exhausted");
+        ++state.counters.non_hand_draws_this_turn;
+    }
+    if (scratch.trace.receive) {
+        CombatEvent event{CombatEventKind::drawn, state.turn, false, false, card};
+        event.from_hand_draw = from_hand_draw; scratch.trace.emit(state, event);
+    }
+}
 void draw(CombatView state, Scratch& scratch, int count, const Ruleset& rules, bool from_hand_draw) {
-    if (state.enemy.hp == 0 || state.player.hp == 0) return;
-    auto hand = state.zone(Zone::hand); auto pile = state.zone(Zone::draw);
-    auto discard = state.zone(Zone::discard);
-    while (count-- > 0 && hand.size() < 10) {
-        if (pile.empty() && !discard.empty()) {
-            pile.insert(pile.end(), discard.begin(), discard.end()); discard.clear();
-            game_sort<CardHandle>(pile, [&](CardHandle a, CardHandle b) {
-                const auto& ca = *state.cards.get(a); const auto& cb = *state.cards.get(b);
-                const auto ida = rules.card(ca.definition)->model_id, idb = rules.card(cb.definition)->model_id;
-                return ida == idb ? ca.upgraded < cb.upgraded : ida < idb;
-            });
-            state.rng.get(RunStream::shuffle).shuffle<CardHandle>(pile);
-        }
-        if (pile.empty()) break;
-        auto card = pile.front(); pile.erase(pile.begin()); hand.push_back(card);
-        if (!from_hand_draw) {
-            if (state.counters.non_hand_draws_this_turn == UINT32_MAX) throw std::length_error("draw count exhausted");
-            ++state.counters.non_hand_draws_this_turn;
-        }
-        if (scratch.trace.receive) {
-            CombatEvent event{CombatEventKind::drawn, state.turn, false, false, card};
-            event.from_hand_draw = from_hand_draw; scratch.trace.emit(state, event);
-        }
+    if (state.enemy.hp == 0 || state.player.hp == 0 || count <= 0) return;
+    if (!state.shuffle_order.empty()) {
+        EffectFrame frame;
+        if (!state.execution.empty()) frame = state.execution.back();
+        frame.pending = DrawContinuation{count, from_hand_draw};
+        state.execution.push_back(frame);
+        return;
+    }
+    while (count-- > 0 && state.zone(Zone::hand).size() < 10) {
+        if (state.zone(Zone::draw).empty() && !state.zone(Zone::discard).empty()) reshuffle(state, rules);
+        if (state.zone(Zone::draw).empty()) break;
+        draw_one(state, scratch, from_hand_draw);
     }
 }
 HitResult damage(CreatureState& target, int base, const CreatureState& source) noexcept {
