@@ -1,0 +1,71 @@
+{
+  "source_path": "build/recordings/victory-run-1234-20261023-151952",
+  "files": {
+    "README.md": {
+      "sha256": "5213bca25aac36d9d83f54acf01dc00540b1c5a651144f407b6bb70e87d69b25",
+      "bytes": 7123
+    },
+    "capture.py": {
+      "sha256": "a847a479782d8b2730dd8fad6e68ecd0ec8b70c98b70a42e4b5e2c1b4027d462",
+      "bytes": 3969
+    },
+    "dense/actions.json.gz": {
+      "sha256": "247278237f579e44ee87e814bb8749bee759127104707ec7de8cdfbeae3895df",
+      "bytes": 3750,
+      "uncompressed_sha256": "a488c5496a83a55468fc44207c65ffd7270b6682eae250c7ca91d98f3501a766",
+      "uncompressed_bytes": 52167
+    },
+    "dense/reference.json": {
+      "sha256": "b6e7a079e71015b672960f214626b7046ceec6591d8cee361cd58094ae39dfec",
+      "bytes": 306
+    },
+    "dense/states.json.gz": {
+      "sha256": "3704b5bbdcfe5c9c1d574f4d98f852f4bbd95e9d9463efbffcde5fb4e84aeda7",
+      "bytes": 7201539,
+      "uncompressed_sha256": "8da581cb8f70bcb28054f0c1ba1841986bbef1ef3eab0633a715c732f2d7af0f",
+      "uncompressed_bytes": 69277838
+    },
+    "original/actions.json": {
+      "sha256": "a488c5496a83a55468fc44207c65ffd7270b6682eae250c7ca91d98f3501a766",
+      "bytes": 52167
+    },
+    "original/actions.jsonl.gz": {
+      "sha256": "23134a0ad3ddbcb14b25ae2dc5719ff2ed25ba3748ec9387e72560aaa5690c0c",
+      "bytes": 3756,
+      "uncompressed_sha256": "fce22928f7946e5fe88804803b38bf4c896829df661a9a9f14b907ed45ba3dcd",
+      "uncompressed_bytes": 52195
+    },
+    "original/commit.json": {
+      "sha256": "5c89ac9fc34335bf7e228e7017fb8f14246758a168eb8eb08b1bcc77b9a632e2",
+      "bytes": 180
+    },
+    "original/reference.json": {
+      "sha256": "d7e74c1d9d2675ad0356a5e73e10786b5411c12f115ff909e959156529d9bf96",
+      "bytes": 306
+    },
+    "original/states.json": {
+      "sha256": "591245e24d685cfb4964c3dde176b69d3c69ef8b700a2adfa8f016c9335fc895",
+      "bytes": 666864
+    },
+    "original/states.jsonl.gz": {
+      "sha256": "42e1cff353d35e34072522248d9b1b7d2965d1a661569e04d5bb9da88a04aac0",
+      "bytes": 75876,
+      "uncompressed_sha256": "a9b7f2ec29fec1991c19ea8b67ccdbdd6c4c244bbdaeab6ebbdfde3c88f95386",
+      "uncompressed_bytes": 666686
+    },
+    "source-hashes.json": {
+      "sha256": "fd8254fd031f7d42f03b10854e8260495db1729a6ae3477087959ba11d3aab20",
+      "bytes": 7520
+    },
+    "verification-tools.tar.gz": {
+      "sha256": "836d4b6fd95f9282870a4d5d98a44c6850e88992295837c95d39156f3c10d947",
+      "bytes": 112287,
+      "uncompressed_sha256": "a46ff7287960349c6b27cbdebf8b5e5336fabc239e1243aaf5407a0e2a922e3f",
+      "uncompressed_bytes": 634880
+    },
+    "verification.json": {
+      "sha256": "ac39a93f89a139d3ab29c5a20af460fb69cb2aecc5af4807ca3444ecd4b4b2fb",
+      "bytes": 1483
+    }
+  }
+}

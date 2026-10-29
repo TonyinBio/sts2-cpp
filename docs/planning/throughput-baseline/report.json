@@ -1,0 +1,39 @@
+{
+  "scope": "fresh process, setup through victory, privileged JSON per boundary; NOT warm throughput",
+  "python": "3.11.8 | packaged by conda-forge | (main, Feb 16 2024, 20:53:32) [GCC 12.3.0]",
+  "platform": "Linux-5.15.153.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "cpu": "Architecture:                       x86_64\nCPU op-mode(s):                     32-bit, 64-bit\nAddress sizes:                      48 bits physical, 48 bits virtual\nByte Order:                         Little Endian\nCPU(s):                             16\nOn-line CPU(s) list:                0-15\nVendor ID:                          AuthenticAMD\nModel name:                         AMD Ryzen 7 3700X 8-Core Processor\nCPU family:                         23\nModel:                              113\nThread(s) per core:                 2\nCore(s) per socket:                 8\nSocket(s):                          1\nStepping:                           0\nBogoMIPS:                           7200.08\nFlags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl tsc_reliable nonstop_tsc cpuid extd_apicid pni pclmulqdq ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext perfctr_core ssbd ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 clzero xsaveerptr arat umip rdpid\nHypervisor vendor:                  Microsoft\nVirtualization type:                full\nL1d cache:                          256 KiB (8 instances)\nL1i cache:                          256 KiB (8 instances)\nL2 cache:                           4 MiB (8 instances)\nL3 cache:                           16 MiB (1 instance)\nVulnerability Gather data sampling: Not affected\nVulnerability Itlb multihit:        Not affected\nVulnerability L1tf:                 Not affected\nVulnerability Mds:                  Not affected\nVulnerability Meltdown:             Not affected\nVulnerability Mmio stale data:      Not affected\nVulnerability Retbleed:             Mitigation; untrained return thunk; SMT enabled with STIBP protection\nVulnerability Spec rstack overflow: Mitigation; safe RET\nVulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl and seccomp\nVulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:           Mitigation; Retpolines, IBPB conditional, STIBP always-on, RSB filling, PBRSB-eIBRS Not affected\nVulnerability Srbds:                Not affected\nVulnerability Tsx async abort:      Not affected\n",
+  "git_revision": "0201ff5efd7222498e0f9db3fb5aff4e44f53f1e",
+  "actions_sha256": "a488c5496a83a55468fc44207c65ffd7270b6682eae250c7ca91d98f3501a766",
+  "runs": [
+    {
+      "launch_to_ready_seconds": 0.15355236100731418,
+      "setup_to_victory_seconds": 11.542489029001445,
+      "boundaries": 697,
+      "actions": 696,
+      "state_comparison": "all dense boundaries equal as parsed Python JSON values"
+    },
+    {
+      "launch_to_ready_seconds": 0.17900423100218177,
+      "setup_to_victory_seconds": 12.656965581991244,
+      "boundaries": 697,
+      "actions": 696,
+      "state_comparison": "all dense boundaries equal as parsed Python JSON values"
+    },
+    {
+      "launch_to_ready_seconds": 0.14310240803752095,
+      "setup_to_victory_seconds": 12.897762526001316,
+      "boundaries": 697,
+      "actions": 696,
+      "state_comparison": "all dense boundaries equal as parsed Python JSON values"
+    }
+  ],
+  "build_seconds": 7.954825177032035,
+  "provenance": {
+    "revision": "084d1aa3d8e118ca7ce8d8774ad16d6be9c92367",
+    "game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+    "adapter_sha256": "260879e5ff061fab41e52654b5032fa6ca523ef05cf740a1724e301a5870534c"
+  },
+  "median_seconds": 12.656965581991244,
+  "script_sha256": "56733a6ed9fb15a3515641c3d6582ee755dcaf3b19182f7f10d21c4730d6e9c2"
+}
