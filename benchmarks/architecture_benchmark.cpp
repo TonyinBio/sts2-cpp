@@ -1,5 +1,7 @@
 #include "sts2/engine/action.hpp"
 #include "../src/engine/continuation_scenario.hpp"
+#include "../src/engine/gameplay.hpp"
+#include <stdexcept>
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
@@ -62,10 +64,23 @@ int main(int argc, char** argv) try {
     if (argc == 2) { char* end = nullptr; iterations = std::strtoull(argv[1], &end, 10); if (!end || *end || !iterations || iterations > 100000000) return 1; }
     else if (argc > 2) return 1;
     std::cout << "run_data_bytes=" << sizeof(RunData) << " combat_data_bytes=" << sizeof(CombatData)
-              << " card_instance_bytes=" << sizeof(CardInstance) << " effect_frame_bytes=" << sizeof(EffectFrame) << '\n';
-    for (int workload = 0; workload < 4; ++workload) {
+              << " card_instance_bytes=" << sizeof(CardInstance) << " effect_frame_bytes=" << sizeof(EffectFrame)
+              << " creature_state_bytes=" << sizeof(CreatureState) << " power_instance_bytes=" << sizeof(PowerInstance) << '\n';
+    for (int workload = 0; workload < 5; ++workload) {
         RunState baseline, branch; Scratch scratch;
-        if (workload == 3) nested(baseline);
+        if (workload == 4) {
+            require(initialize_seeded_combat(baseline, {}).status == StepStatus::awaiting_input);
+            auto combat = *baseline.view().combat;
+            using Stacking = PowerInstance::Stacking;
+            for (int i = 0; i < 9; ++i)
+                gameplay::apply_power(combat, scratch, PowerId::strength, 1, false, false, {}, true, false, Stacking::separate, combat.player_handle);
+            gameplay::apply_power(combat, scratch, PowerId::strength, 2, false, false, {}, true, false, Stacking::by_applier, combat.player_handle);
+            gameplay::apply_power(combat, scratch, PowerId::strength, 3, false, false, {}, true, true, Stacking::by_applier, combat.enemy_handle);
+            gameplay::apply_power(combat, scratch, PowerId::strength, 4, false, false);
+            require(combat.player.powers.overflowed());
+            require(combat.player.power_instances(combat.creature_overflow).size() == 12);
+        }
+        else if (workload == 3) nested(baseline);
         else if (workload == 2) {
             std::array<CardSpec, 200> deck;
             for (std::size_t i = 0; i < deck.size(); ++i) deck[i] = CardSpec{i % 2 ? CardId::strike : CardId::defend};
@@ -77,7 +92,8 @@ int main(int argc, char** argv) try {
         }
         require(valid_run(baseline));
         require(clone_into(branch, baseline) == CloneStatus::cloned);
-        std::cout << "workload=" << (workload == 0 ? "supported_seeded_combat" : workload == 1 ? "controlled_creature_overflow" : workload == 2 ? "supported_cards_200_overflow" : "controlled_nested_overflow")
+        std::cout << "workload=" << (workload == 0 ? "supported_seeded_combat" : workload == 1 ? "controlled_creature_overflow" : workload == 2 ? "supported_cards_200_overflow" : workload == 3 ? "controlled_nested_overflow" : "controlled_power_instances_12_overflow")
+                  << " player_power_instances=" << baseline.view().combat->player.power_instances(baseline.overflow).size()
                   << " root_bytes=" << sizeof(RunState) << " retained_bytes=" << sizeof(RunState) + baseline.overflow.retained_bytes() + baseline.combat_overflow.retained_bytes() << '\n';
         measure("query_validate", iterations, [&] {
             RunActionSpaceView actions(baseline);
