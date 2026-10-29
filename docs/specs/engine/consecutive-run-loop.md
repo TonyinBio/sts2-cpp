@@ -6,7 +6,22 @@ graphs and explicit permanent-card links. Combat, reward and map decisions conti
 through the existing typed public API. This slice does not establish natural
 second-encounter or victory parity.
 
-## Ownership and identities
+## Revised target
+
+The [inline-state decision](../../adr/0003-inline-state-with-correct-overflow.md)
+supersedes this slice's requirement to retain completed encounter graphs. Remove those
+records entirely, rather than archive them elsewhere. Preserve gameplay histories,
+persistent inventory, encounter queues, pending nested-room returns and explicit
+combat-generation metadata. Common complete-state clones must use memcpy, with
+independent overflow copies when necessary. Export-only historical statistics may be
+removed through an explicit comparison-contract revision. Checkpoint formats must be
+versioned accordingly, preserving atomic compatibility and reference validation.
+
+The sections below describe the implemented earlier slice and its historical evidence,
+not requirements to reintroduce archived graphs. No new implementation or passing
+result is claimed by this revision. Existing fixture bytes remain unchanged.
+
+## Ownership and identities (historical implementation)
 
 `RunState::encounters` owns each completed combat graph, resolved rewards, captured
 permanent-deck descriptors and discarded-potion history when another combat starts.

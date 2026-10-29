@@ -2,9 +2,34 @@
 
 ## Project Structure & Module Organization
 
-This is a headless C++23 Slay the Spire 2 simulator. Public headers live in `include/sts2/`; implementations live in `src/`, split into rules, state, engine, observation, persistence, and integration layers. CLI entry points are in `apps/`; `src/main.cpp` runs the older demo. Keep that demo separate from the new engine.
+This is a headless C++23 Slay the Spire 2 simulator. Public headers live in `include/sts2/`; implementations live in `src/`, split into rules, state, engine, observation, persistence, and integration layers. CLI entry points are in `apps/`.
 
 `tests/unit/` contains engine tests; `tests/parity/` holds recording contract tests, replay tests, and recordings; `tests/oracle/` contains reference-tool Python regressions. Shared recording validation and replay code lives under `tools/parity/`, with canonical schemas in `data/schemas/`. Keep `src/` and `include/sts2/` for the C++ engine. Audited definitions live in `data/builds/`; architecture and contracts live in `docs/specs/`. `tools/` also contains rules generation and reference audits. `sts2-cli/` is the pinned reference submodule.
+
+## Core Performance Directives
+
+You are optimizing a high-throughput C++ simulator for MCTS where state copying speed is important. 
+Adhere strictly to these architectural constraints when writing or refactoring C++ code:
+
+1. **Data-Oriented Design (DOD) Only:**
+    - Follow data-oriented design principles.
+
+2. **Zero-Heap / Zero-Allocation Only - in the majority of cases:**
+    - Minimize heap allocations (`new`, `malloc`, `std::make_shared`, dynamic `std::vector`) inside core state types. State cloning must rely entirely on raw `memcpy` in the most common cases.
+    - Try to represent game states as flat, contiguous C++ `struct`s while balancing it with a small state size.
+    - Favor fixed-capacity inline storage (e.g., `std::array<Card, MAX_HAND_SIZE>`) rather than growing containers.
+
+3. **No Runtime/Dynamic Polymorphism:**
+   - Do not use `virtual` methods 
+   - Minimize runtime pointer-chasing. 
+   - If you use polymorphism make sure it is static polymorphism such as function overloading or "deducing this"
+   - Logic should be data-driven (e.g., using CardId enums and flat switch statements/dispatch tables) or leverage compile-time static polymorphism (templates, overloading, or "deducing this") with zero runtime overhead.
+
+4. **Bitwise Optimization:**
+   - Represent status flags, boolean conditions, and player/enemy states as packed bitfields (`uint64_t`) to optimize space.
+
+5. **Strict Parity & No Unrequested Abstractions:**
+   - Do not wrap game logic in complex software design patterns (Factories, Observers, Event buses) unless explicitly requested. Keep logic procedural, explicit, and cache-friendly.
 
 ## Build, Test, and Development Commands
 

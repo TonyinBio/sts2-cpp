@@ -14,6 +14,14 @@ serialization, and reference-game tooling outside the transition path.
 The implemented setup, map and combat slices are described in [implementation status](implementation-status.md);
 full-game acceptance remains pending.
 
+
+The accepted [inline-state decision](../../adr/0003-inline-state-with-correct-overflow.md)
+governs storage and retention: complete common state must support memcpy cloning,
+with separately owned heap overflow and no arena. Completed encounter archives and
+export-only statistics are not required state. Known gameplay histories, generation
+progress, player observations and pending work remain required. Initial capacities
+are estimates; tune them after parity. This is a target, not implemented coverage.
+
 ## 1. Proposed files and dependency boundaries
 
 Public headers live under `include/sts2/`; implementation files under `src/` mirror
@@ -26,7 +34,7 @@ include/sts2/
   core/
     ids.hpp                 Typed definition IDs, handles, boundary IDs
     result.hpp              Status codes and diagnostic references
-    storage.hpp             Indexed pools, offset vectors, arena interfaces
+    storage.hpp             Indexed pools, inline containers, overflow ownership
     numeric.hpp             Explicit game arithmetic and conversion helpers
   rules/
     ruleset.hpp             Immutable ruleset facade and identity
@@ -45,7 +53,7 @@ include/sts2/
     rng.hpp                 Exact stream states and game sampling operations
     execution.hpp           Frames, pending operations, dispatch cursors
     decision.hpp            Phase, prompt state, selection constraints
-    clone.hpp               Deep clone and capacity reuse
+    clone.hpp               Common-state memcpy and independent overflow copies
   engine/
     combat.hpp              Combat initialization, validation, application and advance
     run.hpp                 Run initialization and unified apply_input dispatch
@@ -135,8 +143,8 @@ link from the simulator to game assemblies. Test fixtures are not runtime conten
 | Type | Owns or describes | Lifetime and access |
 | --- | --- | --- |
 | `Ruleset` | Definitions, programs, dispatch tables, English templates, build/content digests | Loaded once; shared read-only across simulations |
-| `CombatState` | Root records and its mutable backing storage | One simulation; no pointers into another state's mutable storage |
-| `StateArena` | Reusable contiguous slabs for pools and variable-length state | Owned by `CombatState`; capacity grows through explicit checked operations |
+| `CombatData` / `RunData` | Byte-copyable authoritative data with inline collections and overflow IDs | No pointers into source inline storage or another simulation |
+| `CombatState` / `RunState` | Data plus separately owned overflow | Independent per simulation; explicit clone copies all semantic state |
 | `Scratch` | Validation workspace, projection buffers, temporary targets and diagnostics | One simulation/worker; never needed to resume gameplay |
 | Combat and run functions | Authoritative transition entry points | Receive state/views and scratch explicitly; combat functions accept rules and initialization limits |
 | `ExecutionContext` | References to state, rules, scratch and current operation | Exists during execution only; native handlers cannot retain it |
@@ -158,7 +166,8 @@ translate errors and catch exceptions before returning across the ABI.
 
 ## 3. State layout and storage
 
-`CombatState` has a compact root plus independently sized storage regions:
+`RunState` and combat records use byte-copyable inline storage. An owning wrapper holds
+optional heap overflow separately; the complete logical state includes that overflow:
 
 ```text
 State
@@ -170,39 +179,54 @@ State
   RngBank              every real-game stream, full internal state, draw counters
   DecisionState        outstanding prompt, constraints and partial selection
   ExecutionState       continuation stack, pending effects and trigger dispatch state
-  StateArena           backing slabs for variable-length records
+  Inline containers    trivial elements, counts, overflow IDs/sentinels
+StateOwner
+  complete state       byte-copyable records above
+  overflow storage     independent heap ownership when inline capacity is exceeded
 ```
 
-`RunState` owns persistent card/relic/potion instances. Combat-only instances live in
-encounter pools. Use explicitly distinct handle domains so a persistent card can move
-between deck/combat zones without changing identity and a generated card cannot alias
-a persistent one. Records refer to definitions through typed integer IDs and to
-instances through generation-tagged handles. Destroying an instance advances its slot
-generation; generation exhaustion retires the slot or returns a resource error rather
-than permitting stale-handle aliasing.
+`RunState` owns persistent card/relic/potion instances. A permanent deck card and its
+combat copy are distinct instances: combat setup creates a copy with a new identity
+and a `DeckVersion` link to the permanent card. Moving that combat copy between combat
+piles preserves its identity; entering combat does not move the permanent object out
+of its deck or merge the two objects. Floating offers and generated cards also have
+scope and identity before acquiring pile membership. Use explicitly distinct handle
+domains so generated/combat instances cannot alias persistent instances. Records refer
+to definitions through typed integer IDs and to instances through generation-tagged
+handles. Logical removal or death does not permit destruction while required histories,
+continuations, dispatches or other complete-state references still need the instance.
+Once destruction is valid, advance its slot generation; generation exhaustion retires
+the slot or returns a resource error rather than permitting stale-handle aliasing.
+
+This distinction follows the normative [state inventory](state-inventory.md#continuation-and-ownership-requirements)
+and the source-backed [lifetime audit](../../planning/instance-lifetimes/README.md),
+including `Player.PopulateCombatState` and the native `DeckVersion` relationship.
 
 Store object identity separately from zone membership. `OrderedZone` stores handles
 in gameplay order; moving a card changes membership, not its handle. Pools preserve
 creation sequence metadata when observable order differs from slot order. Never use
 swap-removal where it would change gameplay order.
 
-`Pool<T>` and `OffsetVector<T>` use indices/offsets into their owning arena, not stored
-process pointers. Typical small collections use measured inline capacities with a
-checked overflow path into reusable contiguous storage. The inline and overflow paths
+Indexed pools and custom inline containers store no pointers into source-state
+inline storage. Use estimated inline capacities with a checked heap-overflow path
+owned outside the byte-copyable records. Overflow identifiers resolve within each
+simulation owner. Once overflowed, collections retain overflow storage until explicit
+reset, even after shrinking. The inline and overflow paths
 have identical ordering and semantics. Collections, prompts and histories are never
 silently truncated. Default gameplay arithmetic is 32-bit with explicit wider
 intermediates; choose narrower IDs only after validating the build's supported range.
 
-Keep hot encounter records together and cold map/history data in separate regions.
+Keep active encounter records together. Remove completed encounter graphs entirely;
+retain only histories and values needed by gameplay or player observations.
 Use array-of-structs initially. Shared static definitions and English strings never
 enter instance records. Store authoritative values and compute cheap derived values;
-any cache must be reconstructible without RNG draws or altered behavior. Begin with
-deep copying mutable map storage; immutable shared map blocks are a measured later
-optimization with explicit protection from cross-simulation mutation.
+any cache must be reconstructible without RNG draws or altered behavior. All mutable
+map state belongs to the complete clone; do not omit it to reduce copying.
 
 The typical hot combat footprint target is 16 KiB, not a fixed allocation limit.
-Measure it across actual fixtures, including execution/decision storage and persistent
-records touched by combat. Report total state and retained arena capacity separately.
+Use reasonable initial capacities while establishing parity; defer capacity-distribution
+studies and tuning until afterward. The earlier approximate 95% guidance is not an
+acceptance threshold. Report root and retained overflow bytes separately when measured.
 
 ## 4. Transitions, effects and choices
 
@@ -274,20 +298,28 @@ assignments or AI state unless revealed by gameplay.
 
 ## 6. Cloning, checkpoints and workers
 
-`clone_into` copies root records and live arena regions into destination-owned storage,
-reusing capacity where possible. Offsets and handles remain meaningful inside the new
-owner; no gameplay reference points back into source storage. Scratch and derived
-caches reset. Clone the full run, RNG, prompt and suspended execution state, not just
-combat. Measure bytes copied before considering copy-on-write.
+`clone_into` copies the entire common-state representation using raw memcpy without
+allocation. This requirement applies during parity development to RunState and combat,
+not merely a selected subset. Custom container elements must be trivially copyable;
+ordinary small-vectors are not assumed safe. When overflow exists, independently copy
+its owned data as well. No clone aliases source mutable storage. Adding a gameplay
+summary or richer required record must fit the same clone/reset/validation/persistence
+contract. Diagnostic histories belong to the optional JSON exporter and are not
+cloned with gameplay state. The exporter receives synchronous transition events
+from creation and records one linear execution; arbitrary late attachment and
+recording cloned branches are unsupported. Existing comparison schemas remain
+unchanged, without adding the replacement engine counters. Scratch and
+reconstructible caches reset without changing semantic state. Failed copies must not
+publish a valid partially owned clone.
 
 `CheckpointCodec` serializes fields explicitly with fixed endianness, lengths, schema
-version, ruleset/content digests and checksums. It never dumps native structs or arena
+version, ruleset/content digests and checksums. It never dumps native structs or storage
 padding. Restore checks compatibility, lengths, references and invariants and rebuilds
 only derived indices. Canonical comparison visits every future-affecting field,
 including generation/free-slot metadata that can affect future instance identities.
 Diagnostic JSON and reference checkpoint imports are separate adapter formats.
 
-Each worker receives its own state, arenas and scratch. Only immutable rules are
+Each worker receives its own complete state, overflow owner and scratch. Only immutable rules are
 shared. Transitions for one simulation remain sequential. No mutable global caches,
 shared allocator locks, I/O or scheduling-dependent RNG enters warmed execution.
 Growth may allocate outside warmed capacities; resource exhaustion returns an explicit
@@ -339,5 +371,5 @@ rooms and overflow workloads. Performance targets remain unvalidated until measu
 
 Open decisions requiring reference evidence or measurements are the exact build and
 content manifest, RNG stream inventory, trigger ordering, every suspended-state field,
-inline capacities and eventual byte budgets. This file fixes their architectural homes;
+tuned inline capacities and eventual byte budgets (deferred until parity). This file fixes their architectural homes;
 it does not invent game semantics or claim complete support.

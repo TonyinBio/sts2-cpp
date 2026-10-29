@@ -1,5 +1,12 @@
 # Use fixed power-type slots instead of cached creature effects
 
+The fixed-storage decision below is superseded by
+[ADR 0006](0006-use-a-data-oriented-engine-with-selective-continuations.md):
+dense versus sparse power storage will be selected later using representative
+benchmarks. The architecture conversation is authoritative over this earlier
+choice. The original rationale is retained here as history; identity and native
+ordering remain requirements, without prescribing this storage layout.
+
 Use fixed arrays indexed by power type for direct access to powers such as
 Vulnerable and Shrink, removing their duplicated values from `CreatureState`.
 Accept the larger state footprint and defer measuring its impact until the full

@@ -37,7 +37,11 @@ purity with binary checkpoints. It submits an offered but unsupported Neow optio
 and verifies an explicit unsupported result with unchanged complete checkpoint
 and repeated public output. Existing consecutive scenario replay independently
 checks clone and binary restore with identical futures; engine tests cover
-alternative resumed futures and retained encounter ownership.
+alternative resumed futures and retained encounter ownership in the historical
+implementation. [ADR 0003](../../adr/0003-inline-state-with-correct-overflow.md) removes
+completed encounter graphs from the target; subsequent checks must preserve required
+gameplay state and stale-handle safety without those graphs. Existing measurements
+and fixtures remain historical evidence. Capacity tuning is deferred until parity.
 
 Two additional regressions surfaced while removing privileged exports from the
 measured path. Inactive-pile previews must retain base damage: native

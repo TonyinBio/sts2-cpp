@@ -1,5 +1,16 @@
 # Run parity state
 
+## Pending engine retention revision
+
+[ADR 0003](../adr/0003-inline-state-with-correct-overflow.md) permits removal of
+completed-encounter and current-room/combat export-only statistics when gameplay and
+player observations do not require them. This changes the future simulator comparison
+surface, not the historical native snapshot format documented below. Implementation
+must enumerate affected paths, revise schema/comparator consumers together, and keep
+all remaining gameplay fields exact. Existing reference files and their schemas are
+preserved; no broad field exclusions are authorized.
+
+
 This contract adds combat state and pending choices to the native run-save layout so
 tests can compare data held by both engines. The reference recorder implements a
 shared combat model exporter and a noncombat run backend.

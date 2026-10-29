@@ -3,8 +3,7 @@
 The C++23 implementation is in `sts2::engine`. Seeded setup, native maps, the
 Neow/Golden Pearl/map prefix and A0 Ironclad/Shrinker combat have full-state
 reference checks. A naturally entered combat now continues through explicit rewards
-and returns to the map, or reaches a natural run death. Complete runs remain unfinished. The original
-`sts2::CombatState` demo and its diagnostic adapter remain separate.
+and returns to the map, or reaches a natural run death. Complete runs remain unfinished.
 
 ## Engine API organization
 
@@ -21,21 +20,23 @@ and description functions. CMake target
 Persistent inventory, RNG, content queues and reward odds live directly in
 `RunData`, accessed through `RunView`. `SetupState` and its record/view are removed.
 `CombatData` and `RunData` are byte-copyable; their owning states retain independent
-overflow. History/play/power storage, gameplay and diagnostic comparison contracts
-are unchanged by this refactor. Checkpoint encoding is unchanged.
+overflow. The subsequent compact-combat slice removes engine event/completed-play
+collections. `CombatCounters`, per-card last-finished turns, per-creature hit counts
+and self-contained effect frames preserve gameplay summaries and continuations.
+Only live powers remain in engine state, with stable non-reused instance identities.
+An optional synchronous trace supplies `json_io`'s exporter-owned diagnostic history,
+completed plays and removed powers. Comparison schemas and fixtures remain unchanged.
+Recording is linear and attaches at creation; recording arbitrary pre-made states
+or cloned branches is unsupported. Engine clones contain no exporter context.
+Binary checkpoint revisions are combat 5 and run 4; older versions are rejected.
+JSON checkpoint migration remains separate. These summaries are not a sufficiency
+proof for unsupported mechanics or mutable card types.
 
-## Compact combat state and JSON I/O
-
-Combat state uses sufficient counters, per-card last-finished turns, per-creature
-hit counts, self-contained effect frames and fixed power-type slots with application order. Optional `json_io`
-recording owns diagnostic histories outside gameplay clones; schemas and fixtures
-remain unchanged. Recording is linear and attaches at creation; arbitrary saved
-states and recording cloned branches are unsupported. Binary checkpoint revisions
-are combat 6 and run 4. JSON checkpoint migration remains separate.
-
-Debug and core-only builds and all 178 Debug tests passed for the original slice.
-This does not establish sufficiency for unsupported mechanics or mutable card types.
-See the [handoff](../../planning/stage-two-handoff.md) for verification logs.
+Compact-combat verification: Debug build and a core-only build with JSON I/O and
+parity tools disabled passed. All 178 Debug tests passed, including unchanged exact
+history comparisons and new counter/continuation, long-combat storage, expired-power
+identity and exporter move tests. No speed benchmarks were run. Logs are listed in
+[the stage-two handoff](../../planning/stage-two-handoff.md#contracts-and-verification).
 
 ## Complete-state inline storage and owning clones
 
@@ -70,7 +71,7 @@ contract, not the current implementation.
 | Run progression | Neow offers/heal, Golden Pearl, map travel into the generated Shrinker encounter, explicit rewards, return to map and natural death | Complete native action/checkpoint pairs; other Neow choices and encounters return unsupported |
 | Rewards | A0 normal-room gold, potion and unique card generation; player RNG/float odds; explicit take/skip/re-entry, supported card acquisition and potion discard | Native reward offer and every intermediate boundary, including Skip and reward alternatives |
 | Combat | A0 Shrinker opener and alternating attacks; Strike, Defend, Bash, Survivor and upgrades; Shrink/Vulnerable; energy, damage, block, draws and reshuffles; Burning Blood; combat victory and death | Dense canonical victory and block/death recordings, complete native comparison at every action |
-| History and runtime export | Card relationships, plays, power application/duration history, detached powers, AI, per-run statistics and native model fields | Full-state combat replays; death retains native cards/history, victory clears them; lethal Bash still applies Vulnerable |
+| History and runtime export | Optional JSON exporter owns play/event history and detached power diagnostics; engine owns counters, suspended operands and live powers | Full-state combat replays; death retains native cards/history, victory clears them; lethal Bash still applies Vulnerable |
 | Choices | Survivor auto-resolves zero/one candidate and stores a continuation for manual discard | All seven full native states across three isolated scenarios; binary restore and resume inside the effect |
 | Clocks | Shared `action_clock_v1` input; advance once before each accepted action; observation/checkpoint calls do not advance | Native self-replay and simulator replay at epoch zero, seven-second steps and the UTC upper bound; all clock fields compared |
 | Boundaries | Stale/invalid input is immutable; accepted input creates a boundary; execution failures invalidate; explicit resource and execution budgets | Randomized actions, malformed wire inputs, rejection purity and failure/restore tests |
@@ -126,11 +127,12 @@ To build the dependency-free kernel and interactive run CLI, configure with
 and comparison tooling only; rules/kernel do not use game assemblies, filesystem
 access or JSON during transitions.
 
-A local GCC 11 Release sample measured 5.54 million combat transitions/second over
+Before combat compaction, a local GCC 11 Release sample measured 5.54 million combat transitions/second over
 100,000 battles, including clone reset, with zero warmed allocations, a 928-byte
 root and 7,928 retained bytes. This includes typed combat history. It excludes setup,
 text, JSON and checkpoint encoding. It does not establish complete-run throughput
-or speed/memory improvement over `sts2-cli`; rerun after changes.
+or speed/memory improvement over `sts2-cli`. It does not characterize the current
+compact layout; no new speed measurement or benchmark gate was requested.
 
 ## Remaining work
 

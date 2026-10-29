@@ -1,4 +1,4 @@
-# Complete-state requirements inventory, revision 1
+# Complete-state requirements inventory, revision 2
 
 This is the storage checklist for [the matching contract](matching-contract.md).
 `Visible` means project only through [the visibility contract](decision-contract.md);
@@ -6,6 +6,14 @@ it does not permit serializing an entire record into a public observation.
 `Hidden` still belongs in clones, checkpoints and canonical comparisons. `Mixed` means
 that only an explicit projection is public. Native save coverage is a source of fields,
 not proof that the run can resume at an arbitrary choice.
+
+
+The accepted [inline-state decision](../../adr/0003-inline-state-with-correct-overflow.md)
+governs storage and retention: complete common state must support memcpy cloning,
+with separately owned heap overflow and no arena. Completed encounter archives and
+export-only statistics are not required state. Known gameplay histories, generation
+progress, player observations and pending work remain required. Initial capacities
+are estimates; tune them after parity. This is a target, not implemented coverage.
 
 ## Owners and required data
 
@@ -32,7 +40,7 @@ not proof that the run can resume at an arbitrary choice.
 | Events/ancients | Mutable event instance, branch/page, eligible/current options, local variables, captured choices, payment/effect stages, nested room return | Mixed | Event models, `EventRoom`, native event saved properties; active locals need explicit continuations |
 | Rest/services | Available actions, used/disabled state, selected objects, upgrade/transform/remove/enchant previews, cancellation/payment stage | Mixed | `RestSiteRoom`, rest-site options and card selectors |
 | Treasure | Generated/offered relics, selection/claim state, replacement/skip/exit continuation | Mixed | `TreasureRoom`, relic acquisition hooks |
-| Lifecycle | Victory/loss kind, finalization stage, score inputs/breakdown, run history, explicit elapsed-time values/reload counters where relevant | Mixed | Native run/history and `RunManager`; no persistent profile |
+| Lifecycle | Victory/loss kind, finalization stage, gameplay/observation-required score inputs and history, explicit elapsed-time values/reload counters where relevant | Mixed | Native run/history and `RunManager`; no persistent profile |
 | RNG | Every live stream/local generator, seed/state words/counter, aliases/ownership and generation cursors | Hidden | `RunRngSet`, `PlayerRngSet`, `Rng`, `MegaRandom` |
 | Decision | Active prompt/owner, option identities/order, constraints, partial ordered selection, confirm/cancel semantics, resume destination | Mixed | Player-choice/card-selector paths; not recovered from a room tag |
 | Execution | Program/handler IDs, instruction/stage, locals, captured operands/targets/sources, pending operations, nested stack | Hidden | Simulator continuation representation; real-game async locals require semantic mapping |
@@ -51,7 +59,9 @@ do not become requirements merely because they are writable.
 Native field spellings/types are defined by the existing
 [native v20 schema](../../../data/schemas/serializable-run-v20.schema.json). In particular preserve
 acts, modifiers, current act index, events seen, pre-finished room, odds, shared relic bag,
-players, RNG, visited coordinates, map-point history, ascension, extra fields and mode.
+players, RNG, visited coordinates, ascension, gameplay-relevant extra fields and mode.
+Retain map-point history only where future gameplay or player observations require it;
+do not retain completed combat graphs or export-only room statistics.
 Do not import platform IDs, map drawings or save timestamps into gameplay simply because
 the native file stores them. Start/run/win times and reload counts require classification
 against scoring/history consumers; use explicit inputs if observable behavior needs them.
@@ -102,6 +112,18 @@ zone membership, handles, ownership, prompt eligibility, frame destinations and
 compatibility before publishing a valid instance. Capacity, addresses and padding are
 not canonical state; free-slot order and generations are. Reconstructed caches must
 preserve behavior without draws or changed trigger order.
+
+## State retention and extensibility
+
+Before choosing capacities, classify fields by future gameplay, player observations,
+known audited future mechanics, or export-only use. Keep histories required by known
+mechanics even when their consumers are not implemented. Adding a newly required
+history must compose with clone, reset, validation, overflow and checkpoint operations.
+Do not retain fields solely for diagnostic historical exports. Remove completed
+encounter records entirely, without an external archive; keep explicit combat-generation
+metadata to preserve stale-handle safety independently of archive length. Encounter
+queues/cursors, RNG, exclusions, gameplay history and meaningful visited paths remain.
+The exact elite-cycle rule still needs source/oracle verification.
 
 ## Exclusions and remaining audits
 

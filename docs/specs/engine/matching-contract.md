@@ -104,6 +104,18 @@ preserve this contract. English text and structured values are separate matching
 surfaces. Shared text comes from the pinned build; the submodule's localization files
 are useful inputs but need content/build validation before being treated as authoritative.
 
+## Revised storage and export scope
+
+[ADR 0003](../../adr/0003-inline-state-with-correct-overflow.md) requires whole-state
+common-case memcpy cloning, custom inline containers and independent optional heap
+overflow. Remove completed encounter records entirely. Keep histories needed by known
+gameplay mechanics, generation progress, hidden state and player observations. Current
+and historical export-only fields may be removed only through an explicitly enumerated
+comparison-surface revision with per-field rationale; all remaining fields stay exact.
+Original reference bytes and prior results remain unchanged. Runtime memcpy is not a
+checkpoint wire format. Revised schemas and checkpoint compatibility require explicit
+versioning and fresh verification; this decision is not evidence of implemented parity.
+
 ## Complete-state inventory
 
 [state-inventory.md](state-inventory.md) assigns visible and hidden state to owners,

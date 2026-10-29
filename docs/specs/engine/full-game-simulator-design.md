@@ -4,7 +4,7 @@ This design describes a headless C++ simulator for complete single-player runs. 
 match the selected game build, including visible choices, hidden state, and English
 text, while using less time and memory than `sts2-cli`.
 
-See the [shared terms](README.md#terms-used-in-these-sheets) for definitions of parity, snapshot, boundary, and model ID.
+See the [shared terms](../README.md#terms-used-in-these-sheets) for definitions of parity, snapshot, boundary, and model ID.
 
 ## On this page
 
@@ -24,6 +24,14 @@ See the [shared terms](README.md#terms-used-in-these-sheets) for definitions of 
 - [14. Delivery and acceptance](#14-delivery-and-acceptance)
 
 **Status:** design for a new implementation. Existing implementation and requirements are not constraints.
+
+
+The accepted [inline-state decision](../../adr/0003-inline-state-with-correct-overflow.md)
+governs storage and retention: complete common state must support memcpy cloning,
+with separately owned heap overflow and no arena. Completed encounter archives and
+export-only statistics are not required state. Known gameplay histories, generation
+progress, player observations and pending work remain required. Initial capacities
+are estimates; tune them after parity. This is a target, not implemented coverage.
 
 ## 1. Goals and matching requirements
 
@@ -154,8 +162,10 @@ intermediates where needed. Use narrower IDs only after validating that all supp
 values fit. Match observed rounding, clamping and operation order. Never depend on
 signed overflow, native padding or implementation-defined serialization.
 
-Store typical collections inline and provide additional storage when they outgrow that
-capacity. Never truncate decks, effects, options, entities or histories. Return a
+Use custom byte-copyable inline containers and separately owned heap overflow when
+they outgrow estimated capacity. Do not use an arena or assume an ordinary small-vector
+is safe to memcpy. Overflow remains allocated until explicit reset. Tune capacities
+after parity; no numerical 95% threshold applies. Never truncate decks, effects, options, entities or histories. Return a
 resource-limit error if storage is exhausted; do not treat it as a game outcome.
 
 ## 6. Decisions and observation boundaries
@@ -274,9 +284,9 @@ StepResult advance(State&, const Ruleset&, Scratch&);
 StepResult apply(State&, const Ruleset&, const Action&, Scratch&);
 ObservationView observe(const State&, const Ruleset&, Scratch&);
 ActionSpaceView actions(const State&, const Ruleset&, Scratch&);
-Checkpoint checkpoint(const State&, CheckpointArena&);
+Checkpoint checkpoint(const State&);
 void restore(State&, const Checkpoint&, Scratch&);
-void clone_into(State& destination, const State& source, StateArena&);
+void clone_into(StateOwner& destination, const StateOwner& source);
 ```
 
 `initialize`, `advance` and `apply` resolve automatic execution until an observation
@@ -297,13 +307,18 @@ detailed diagnostics outside frequently accessed state records.
 
 ## 10. State copying and independent simulations
 
-First implement cloning by copying contiguous state storage. Measure bytes copied and
-clone time before adding copy-on-write. Share immutable definitions rather than copying
-them.
+Common-state clones, including complete RunState, must use raw memcpy during parity
+development. Byte-copyable records contain no owning pointers or pointers into their
+source inline data. A separate owner holds optional heap overflow; an explicit clone
+copies that overflow independently. Clone all semantic state rather than excluding
+historical fields during copying. Add new gameplay histories under the same state
+operations. Share immutable definitions rather than copying them.
 
-Store large map data separately from frequently accessed state when it remains
-unchanged. Shared storage must prevent one simulation from changing another. A cloned
-state must not reference another simulation's mutable memory.
+Remove completed encounter records entirely, with no replacement archive. Retain
+sufficient gameplay summaries and required references, encounter-generation progress, identity metadata and values
+needed by player observations. Current and historical export-only statistics may be
+removed; enumerate affected comparison fields explicitly. A cloned state must not
+reference another simulation's mutable memory. Map data remains part of complete state.
 
 Compare and serialize state field by field. Include all data that can affect future
 behavior, including history, RNG and pending execution. Do not compare raw struct bytes
