@@ -3,3 +3,13 @@ __pycache__/
 *.pyc
 
 /tests/parity/fixtures/*.logs/
+
+# Local game decompilations and source-derived audit information.
+decompiled/
+decompilation/
+/docs/planning/english-rendering-audit/
+/docs/planning/instance-lifetimes/
+/docs/planning/ironclad-acceptance/
+/docs/planning/public-visibility-audit/
+/docs/planning/victory-mechanics/
+/docs/planning/victory-semantics/
