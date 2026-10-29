@@ -1,3 +1,4 @@
+#include "card_state.hpp"
 #include "sts2/engine/run.hpp"
 #include "sts2/engine/rewards.hpp"
 #include <algorithm>
@@ -30,13 +31,14 @@ bool supported_combat_inventory(ConstRunView state) {
 // boundary publication and encounter visitation; initialization reads run RNG.
 StepResult prepare_combat(CombatView destination, ConstRunView run, Scratch& scratch, BoundaryId rejection_boundary, std::int32_t enemy_hp = 0) {
     std::vector<CardSpec> deck;
-    for (const auto& card : run.deck) {
+    for (std::size_t card_index = 0; card_index < run.deck.size(); ++card_index) {
+        const auto& card = run.deck[card_index];
         CardId definition = CardId::count;
         for (unsigned i = 0; i < static_cast<unsigned>(CardId::count); ++i)
             if (Ruleset::pinned().card(static_cast<CardId>(i))->model_id == SetupRules::name(card.definition)) definition = static_cast<CardId>(i);
         if (definition == CardId::count || card.upgrade > 1)
             return {StepStatus::unsupported_content, rejection_boundary, Restriction::unsupported_setup};
-        deck.push_back({definition, card.upgrade == 1, card.instance});
+        deck.push_back({definition, card.upgrade == 1, run.deck.handles()[card_index]});
     }
     CombatConfig config;
     std::array<ExhaustRelic, 2> listeners {}; std::size_t count = 0;
@@ -102,6 +104,18 @@ StepResult initialize_run(RunState& destination, const SeededConfig& config) {
         return {StepStatus::awaiting_input, destination.view().boundary};
     } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, {}, Restriction::capacity}; }
     catch (...) { return {StepStatus::engine_error, {}, Restriction::execution_budget}; }
+}
+Restriction detail::upgrade_card_permanently(RunState& state, CardHandle handle) noexcept {
+    if (!valid_run(state)) return Restriction::invalid_state;
+    auto run = state.view();
+    if (run.phase != RunPhase::combat || !run.combat) return Restriction::wrong_phase;
+    auto* instance = run.combat->cards.get(handle);
+    if (!instance || !instance->origin.present()) return Restriction::stale_card;
+    auto* permanent = run.deck.get(instance->origin);
+    if (!permanent) return Restriction::stale_card;
+    permanent->upgrade = 1;
+    instance->upgraded = true;
+    return Restriction::none;
 }
 StepResult initialize_seeded_combat(RunState& destination, const SeededConfig& config, CombatTrace trace) {
     const auto result = initialize_combat_scenario(destination, config, {}, trace);

@@ -163,8 +163,9 @@ TEST(SeededRunParity, SurvivorScenarioMatchesEntireNativeStateAcrossSuspensionAn
             CardId id = CardId::count;
             for (unsigned i = 0; i < static_cast<unsigned>(CardId::count); ++i)
                 if (Ruleset::pinned().card(static_cast<CardId>(i))->model_id == name) id = static_cast<CardId>(i);
-            ASSERT_NE(id, CardId::count); deck.push_back({id});
-            state.view().deck.push_back({SetupRules::find(name), static_cast<std::uint32_t>(deck.size() - 1), 0, -1});
+            ASSERT_NE(id, CardId::count);
+            state.view().deck.push_back({SetupRules::find(name), static_cast<std::uint32_t>(deck.size()), 0, -1});
+            deck.push_back({id, false, state.view().deck.handles().back()});
         }
         // Match the documented scenario operations: set deck, enter combat (HP
         // roll consumes Niche), then explicitly override enemy HP before play.

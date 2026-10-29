@@ -206,7 +206,7 @@ HitResult damage(CreatureState& target, int base, const CreatureState& source) n
 }
 void end_combat(CombatView state, Scratch& scratch, bool won) {
     state.phase = won ? CombatPhase::combat_won : CombatPhase::player_died;
-    state.execution.clear(); clear_selection(state);
+    state.execution.clear(); state.cost_modifiers.clear(); clear_selection(state);
     if (won) {
         state.player.clear_powers(); state.enemy.clear_powers();
         for (auto& zone : state.zone_views()) zone.clear();
@@ -262,7 +262,7 @@ StepResult initialize_combat(CombatView state, const CombatConfig& config, Scrat
         if (enemy_hp == 0) (void)next_view.rng.get(RunStream::niche).next_int(38, 41, enemy_hp);
         next_view.enemy = {enemy_hp, enemy_hp}; next_view.energy = 3; next_view.turn = 1; next_view.burning_blood = config.burning_blood;
         for (const auto& card : deck) {
-            auto handle = next_view.cards.create({card.definition, card.upgraded, next_view.next_creation_order++, card.deck_instance}, limits.cards, config.card_generation);
+            auto handle = next_view.cards.create({card.definition, card.upgraded, next_view.next_creation_order++, card.origin}, limits.cards, config.card_generation);
             if (!handle.present()) return {StepStatus::resource_limit, state.boundary, Restriction::capacity};
             next_view.zone(Zone::draw).push_back(handle);
         }
@@ -273,6 +273,21 @@ StepResult initialize_combat(CombatView state, const CombatConfig& config, Scrat
     } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, state.boundary, Restriction::capacity}; } catch (const std::length_error&) { return {StepStatus::resource_limit, state.boundary, Restriction::capacity}; }
     state.replace(std::move(next)); scratch.steps = 0;
     return result(state);
+}
+std::int32_t effective_card_cost(ConstCombatView state, CardHandle handle, const Ruleset& rules) noexcept {
+    const auto* card = state.cards.get(handle);
+    if (!card) return 0;
+    const auto* definition = rules.card(card->definition);
+    if (!definition) return 0;
+    std::int64_t cost = definition->cost;
+    for (const auto& modifier : state.cost_modifiers) {
+        if (modifier.card != handle) continue;
+        const auto previous = cost;
+        cost = modifier.kind == CostModifierKind::absolute ? modifier.amount : cost + modifier.amount;
+        cost = std::clamp<std::int64_t>(cost, std::numeric_limits<std::int32_t>::min(), std::numeric_limits<std::int32_t>::max());
+        if (modifier.reduce_only) cost = std::min(cost, previous);
+    }
+    return static_cast<std::int32_t>(std::max<std::int64_t>(0, cost));
 }
 Restriction validate_combat(ConstCombatView state, const CombatInput& input, const Ruleset& rules) noexcept {
     if (!valid_data_storage(state.data, state.overflow) || !valid_powers(state) ||
@@ -310,7 +325,7 @@ Restriction validate_combat(ConstCombatView state, const CombatInput& input, con
     const auto* definition = rules.card(card->definition);
     if (!definition) return Restriction::invalid_state;
     if (definition->enemy_target != input.target_enemy || (input.target_enemy && state.enemy.hp <= 0)) return Restriction::invalid_target;
-    if (state.energy < definition->cost) return Restriction::insufficient_energy;
+    if (state.energy < effective_card_cost(state, input.card, rules)) return Restriction::insufficient_energy;
     return Restriction::none;
 }
 StepResult advance_combat(CombatView state, Scratch& scratch, const Ruleset& rules) noexcept try {
@@ -403,6 +418,10 @@ StepResult advance_combat(CombatView state, Scratch& scratch, const Ruleset& rul
             break;
         case Opcode::finish: {
             const auto card = frame.source; const auto play = frame.play; state.execution.pop_back();
+            for (auto it = state.cost_modifiers.begin(); it != state.cost_modifiers.end();) {
+                if (it->card == card && (static_cast<unsigned>(it->expiry) & 4U) != 0) it = state.cost_modifiers.erase(it);
+                else ++it;
+            }
             if (source->definition == CardId::inflame) {
                 auto pile = state.zone(Zone::play); pile.erase(std::find(pile.begin(), pile.end(), card));
                 state.cards.get(card)->removed = true;
@@ -481,15 +500,19 @@ StepResult apply_combat(CombatView state, const CombatInput& input, Scratch& scr
             state.counters.zero_energy_attacks_this_turn = state.counters.non_hand_draws_this_turn = 0;
             state.player.block = 0;
             if (state.turn == std::numeric_limits<int>::max()) return fail(state, Restriction::capacity);
+            for (auto it = state.cost_modifiers.begin(); it != state.cost_modifiers.end();) {
+                if ((static_cast<unsigned>(it->expiry) & 2U) != 0) it = state.cost_modifiers.erase(it);
+                else ++it;
+            }
             ++state.turn; state.energy = 3; draw(state, scratch, 5, rules);
         }
     } else if (input.kind == CombatInputKind::play_card) {
         const auto* card = state.cards.get(input.card);
-        state.energy -= rules.card(card->definition)->cost;
+        const auto cost = effective_card_cost(state, input.card, rules);
+        state.energy -= cost;
         move_card(state, Zone::hand, Zone::play, input.card);
         if (state.counters.started_plays == UINT32_MAX) return fail(state, Restriction::capacity);
         const auto play_id = state.counters.started_plays;
-        const auto cost = rules.card(card->definition)->cost;
         state.execution.push_back({input.card, 0, play_id, cost, input.target_enemy});
         if (cost > 0) emit(state, scratch, CombatEventKind::energy_spent, false, false, {}, 0, cost);
         ++state.counters.started_plays; ++state.counters.started_this_turn;
@@ -596,6 +619,8 @@ bool valid_combat(ConstCombatView state, const Ruleset& rules) noexcept {
         counters.attacks_this_turn > counters.started_this_turn || counters.zero_energy_attacks_this_turn > counters.attacks_this_turn ||
         counters.finished_ethereal > counters.finished_plays) return false;
     if (!valid_powers(state)) return false;
+    for (const auto& modifier : state.cost_modifiers)
+        if (!state.cards.get(modifier.card) || static_cast<unsigned>(modifier.kind) > 1 || (static_cast<unsigned>(modifier.expiry) & ~6U) != 0) return false;
     for (const auto& frame : state.execution)
         if (frame.play >= counters.started_plays || !state.cards.get(frame.source) || frame.energy < 0) return false;
     std::size_t live = 0, membership = 0;

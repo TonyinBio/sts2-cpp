@@ -41,6 +41,12 @@ bool valid_run(const RunState& state) noexcept {
         !random(state_view.event_rng.state())) return false;
     for (const auto& rng : setup.rng.streams) if (!random(rng.state())) return false;
     for (const auto& rng : setup.player_rng.streams) if (!random(rng.state())) return false;
+    if (!setup.deck.pool.valid()) return false;
+    for (const auto h : setup.deck.handles())
+        if (!setup.deck.get(h) || std::count(setup.deck.handles().begin(), setup.deck.handles().end(), h) != 1) return false;
+    std::size_t live_cards = 0;
+    for (const auto& slot : setup.deck.pool.slots()) live_cards += slot.live;
+    if (live_cards != setup.deck.size()) return false;
     for (std::size_t i = 0; i < setup.deck.size(); ++i) {
         if (!card(setup.deck[i])) return false;
         for (std::size_t j = 0; j < i; ++j) if (setup.deck[i].instance == setup.deck[j].instance) return false;
@@ -66,11 +72,11 @@ bool valid_run(const RunState& state) noexcept {
     for (auto node : state_view.visited) if (node >= state_view.maps[0]->count || !state_view.maps[0]->nodes[node].active) return false;
     for (auto relic : state_view.neow_options) if (!id(relic, "RELIC.")) return false;
     if (state_view.selected_neow != no_content && std::find(state_view.neow_options.begin(), state_view.neow_options.end(), state_view.selected_neow) == state_view.neow_options.end()) return false;
-    auto linked_cards = [](ConstCombatView combat, std::span<const PersistentCard> deck) noexcept {
+    auto linked_cards = [](ConstCombatView combat, BasicDeckView<true> deck) noexcept {
         for (const auto& slot : combat.cards.slots()) {
-            if (!slot.live || slot.value.deck_instance == UINT32_MAX) continue;
-            const auto found = std::find_if(deck.begin(), deck.end(), [&](const auto& c) { return c.instance == slot.value.deck_instance; });
-            if (found == deck.end() || SetupRules::name(found->definition) != Ruleset::pinned().card(slot.value.definition)->model_id) return false;
+            if (!slot.live || !slot.value.origin.present()) continue;
+            const auto* found = deck.get(slot.value.origin);
+            if (!found || SetupRules::name(found->definition) != Ruleset::pinned().card(slot.value.definition)->model_id) return false;
         }
         return true;
     };

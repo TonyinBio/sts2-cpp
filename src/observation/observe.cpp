@@ -32,7 +32,7 @@ std::optional<CardView> inspect_card(ConstCombatView s, CardHandle h, const Rule
     if (!visible) return std::nullopt;
     const auto* instance = s.cards.get(h); if (!instance) return std::nullopt;
     const auto* def = rules.card(instance->definition); if (!def) return std::nullopt;
-    CardView view{h, def->model_id, def->name, def->cost, 0, 0, 0, instance->upgraded, def->enemy_target, def->rarity};
+    CardView view{h, def->model_id, def->name, effective_card_cost(s, h, rules), 0, 0, 0, instance->upgraded, def->enemy_target, def->rarity};
     // Native CardModel.UpdateDynamicVarPreview runs global combat hooks only
     // for Hand/Play or explicit combat upgrade-preview copies. inspect_card
     // exposes live pile cards, never upgrade-preview copies or the playing pile.

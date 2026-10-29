@@ -1,7 +1,11 @@
 #pragma once
 #include "sts2/state/setup.hpp"
 #include "sts2/state/combat.hpp"
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
 #include <optional>
+#include <stdexcept>
 
 namespace sts2::engine {
 enum class RunPhase : std::uint8_t { uninitialized, neow, neow_done, map, combat, combat_done, rewards, complete, invalid };
@@ -40,6 +44,50 @@ template<bool Const> struct OptionalCombatView {
         return has_value() == other.has_value() && (!has_value() || **this == *other);
     }
 };
+using PersistentCardPool = PoolData<PersistentCard, PersistentCardTag, 32>;
+template<bool Const> struct BasicDeckView {
+    using Owner = std::conditional_t<Const, const OverflowStorage, OverflowStorage>;
+    using Order = std::conditional_t<Const, const InlineSequence<PersistentCardHandle, 32>, InlineSequence<PersistentCardHandle, 32>>;
+    PoolView<PersistentCard, PersistentCardTag, 32, Const> pool;
+    Order& order;
+    Owner& owner;
+    auto handles() const noexcept { return SequenceView<PersistentCardHandle, 32, Const>(order, owner); }
+    std::size_t size() const noexcept { return handles().size(); }
+    bool empty() const noexcept { return handles().empty(); }
+    auto get(PersistentCardHandle h) const noexcept { return pool.get(h); }
+    decltype(auto) operator[](std::size_t i) const noexcept { return *get(handles()[i]); }
+    decltype(auto) front() const noexcept { return (*this)[0]; }
+    decltype(auto) back() const noexcept { return (*this)[size() - 1]; }
+    struct Iterator {
+        BasicDeckView view;
+        std::size_t index;
+        using difference_type = std::ptrdiff_t;
+        using value_type = PersistentCard;
+        using iterator_category = std::forward_iterator_tag;
+        decltype(auto) operator*() const { return view[index]; }
+        Iterator& operator++() { ++index; return *this; }
+        bool operator==(const Iterator& other) const { return index == other.index; }
+    };
+    Iterator begin() const noexcept { return {*this, 0}; }
+    Iterator end() const noexcept { return {*this, size()}; }
+    void reserve(std::size_t n) requires (!Const) { handles().reserve(n); pool.reserve(n); }
+    void push_back(PersistentCard card) requires (!Const) {
+        reserve(size() + 1);
+        const auto handle = pool.create(card, UINT32_MAX);
+        if (!handle.present()) throw std::length_error("persistent card pool exhausted");
+        handles().push_back(handle);
+    }
+    bool erase(PersistentCardHandle handle) noexcept requires (!Const) {
+        auto order_view = handles();
+        const auto at = std::find(order_view.begin(), order_view.end(), handle);
+        if (at == order_view.end() || !pool.erase(handle)) return false;
+        order_view.erase(at); return true;
+    }
+    void clear() noexcept requires (!Const) { while (!empty()) (void)erase(handles().back()); }
+    template<bool Other> bool operator==(const BasicDeckView<Other>& other) const {
+        return pool == other.pool && handles() == other.handles();
+    }
+};
 struct RunData {
     InlineSequence<char, 32> seed {};
     std::uint64_t numeric_seed = 0;
@@ -55,7 +103,8 @@ struct RunData {
     RelicBagData shared_relics {};
     RelicBagData player_relics {};
     std::array<ActRoomsData, 3> acts {};
-    InlineSequence<PersistentCard, 32> deck {};
+    PersistentCardPool persistent_cards {};
+    InlineSequence<PersistentCardHandle, 32> deck {};
     InlineSequence<ContentId, 16> relics {};
     std::uint32_t joss_paper_counter = 0;
     InlineSequence<ContentId, 4> potions {};
@@ -82,7 +131,7 @@ struct RunData {
             visit(bag->order);
         }
         for (const auto& act : acts) { visit(act.events); visit(act.normal); visit(act.elites); visit(act.shared_ancients); }
-        visit(deck); visit(relics); visit(potions);
+        visit(persistent_cards.slots); visit(persistent_cards.free); visit(deck); visit(relics); visit(potions);
         visit(visited);
     }
 };
@@ -107,7 +156,7 @@ template<bool Const> struct BasicRunView {
     BasicRelicBagView<Const> shared_relics{data.shared_relics, overflow};
     BasicRelicBagView<Const> player_relics{data.player_relics, overflow};
     std::array<BasicActRoomsView<Const>, 3> acts{{{data.acts[0], overflow}, {data.acts[1], overflow}, {data.acts[2], overflow}}};
-    SequenceView<PersistentCard, 32, Const> deck{data.deck, overflow};
+    BasicDeckView<Const> deck{{data.persistent_cards, overflow}, data.deck, overflow};
     SequenceView<ContentId, 16, Const> relics{data.relics, overflow};
     Ref<std::uint32_t> joss_paper_counter = data.joss_paper_counter;
     SequenceView<ContentId, 4, Const> potions{data.potions, overflow};

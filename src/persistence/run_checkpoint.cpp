@@ -75,7 +75,7 @@ std::uint64_t checksum(std::span<const std::byte> bytes) { return game_hash({rei
 Checkpoint checkpoint(const RunState& run) {
     auto run_view = run.view();
     if (!valid_run(run)) throw std::invalid_argument("Cannot checkpoint invalid run");
-    Writer w; w.text("STS2RUN1"); w.u32(5); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
+    Writer w; w.text("STS2RUN1"); w.u32(6); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
     const auto s = run_view;
     w.u32(static_cast<std::uint32_t>(s.seed.size())); w.text(s.seed); w.u64(s.numeric_seed); w.u32(s.character); w.u8(s.ascension);
     w.i32(s.hp); w.i32(s.max_hp); w.i32(s.gold); w.i32(s.potion_slots); w.i32(s.orb_slots);
@@ -87,7 +87,13 @@ Checkpoint checkpoint(const RunState& run) {
         w.ids(act.events); w.ids(act.normal); w.ids(act.elites); w.ids(act.shared_ancients);
         w.u32(act.events_visited); w.u32(act.normal_visited); w.u32(act.elites_visited); w.u32(act.bosses_visited);
     }
-    w.u32(static_cast<std::uint32_t>(s.deck.size())); for (const auto& card : s.deck) w.card(card);
+    w.u32(s.deck.pool.data.highest_generation);
+    w.u32(static_cast<std::uint32_t>(s.deck.pool.slots().size()));
+    for (const auto& slot : s.deck.pool.slots()) { w.u32(slot.generation); w.u8(slot.live); w.card(slot.value); }
+    w.u32(static_cast<std::uint32_t>(s.deck.pool.free_slots().size()));
+    for (const auto slot : s.deck.pool.free_slots()) w.u32(slot);
+    w.u32(static_cast<std::uint32_t>(s.deck.size()));
+    for (const auto h : s.deck.handles()) { w.u32(h.slot); w.u32(h.generation); }
     w.ids(s.relics); w.u32(s.joss_paper_counter); w.ids(s.potions); w.u32(std::bit_cast<std::uint32_t>(s.card_rarity_offset)); w.u32(std::bit_cast<std::uint32_t>(s.potion_reward_odds));
     const auto clock = run_view.clock.config(); w.u64(static_cast<std::uint64_t>(clock.epoch_seconds)); w.u64(static_cast<std::uint64_t>(clock.seconds_per_action)); w.u64(static_cast<std::uint64_t>(run_view.clock.elapsed_seconds()));
     w.u32(run_view.boundary.value); w.u8(static_cast<std::uint8_t>(run_view.phase)); w.u8(run_view.act_index);
@@ -110,7 +116,7 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         Reader trailer{bytes.last(8)}; if (trailer.u64() != checksum(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
         for (char c : std::string_view("STS2RUN1")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 5 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        if (r.u32() != 6 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (const auto identity : {game_digest, SetupRules::fingerprint()}) for (char c : identity)
             if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
@@ -126,7 +132,18 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
             r.ids(act.events); r.ids(act.normal); r.ids(act.elites); r.ids(act.shared_ancients);
             act.events_visited = r.u32(); act.normal_visited = r.u32(); act.elites_visited = r.u32(); act.bosses_visited = r.u32();
         }
-        const auto cards = r.count(16, limits.cards); s.deck.reserve(cards); for (std::size_t i = 0; i < cards; ++i) s.deck.push_back(r.card());
+        const auto highest_generation = r.u32();
+        const auto slot_count = r.count(21, limits.cards);
+        std::vector<PersistentCardPool::Slot> slots(slot_count);
+        for (auto& slot : slots) { slot.generation = r.u32(); slot.live = r.boolean(); slot.value = r.card(); }
+        const auto free_count = r.count(4, slot_count);
+        std::vector<std::uint32_t> free(free_count);
+        for (auto& slot : free) slot = r.u32();
+        if (!s.deck.pool.restore(std::move(slots), std::move(free)) || s.deck.pool.data.highest_generation > highest_generation) return RestoreStatus::malformed;
+        s.deck.pool.data.highest_generation = highest_generation;
+        const auto cards = r.count(8, limits.cards);
+        s.deck.handles().reserve(cards);
+        for (std::size_t i = 0; i < cards; ++i) s.deck.handles().push_back({r.u32(), r.u32()});
         r.ids(s.relics); s.joss_paper_counter = r.u32(); r.ids(s.potions); s.card_rarity_offset = std::bit_cast<float>(r.u32()); s.potion_reward_odds = std::bit_cast<float>(r.u32());
         const auto epoch = r.u64(), step = r.u64(), elapsed = r.u64();
         if (epoch > RunClock::max_seconds || step > 86400 || elapsed > RunClock::max_seconds ||
