@@ -13,8 +13,10 @@ std::optional<std::int32_t> card_cost(std::string_view model) {
 }
 }
 RunObservation observe(const RunState& state) {
-    auto state_view = state.view();
     RunObservation view{};
+    view.boundary = state.data.boundary; view.phase = state.data.phase;
+    if (!valid_creature_storage(state.data, state.overflow)) return view;
+    auto state_view = state.view();
     view.boundary = state_view.boundary; view.phase = state_view.phase;
     view.valid = state_view.phase != RunPhase::invalid && state_view.phase != RunPhase::uninitialized;
     if (!view.valid) return view;

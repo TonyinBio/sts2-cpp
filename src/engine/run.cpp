@@ -139,8 +139,8 @@ StepResult initialize_combat_scenario(RunState& destination, const SeededConfig&
     } catch (const std::bad_alloc&) { return {StepStatus::resource_limit, destination.view().boundary, Restriction::capacity}; } catch (const std::length_error&) { return {StepStatus::resource_limit, destination.view().boundary, Restriction::capacity}; }
 }
 StepResult enter_combat_scenario(RunState& state, BoundaryId boundary, std::string_view encounter, CombatTrace trace) {
+    if (!valid_run(state)) return {StepStatus::engine_error, state.data.boundary, Restriction::invalid_state};
     auto state_view = state.view();
-    if (!valid_run(state)) return {StepStatus::engine_error, state_view.boundary, Restriction::invalid_state};
     if (boundary != state_view.boundary) return {StepStatus::invalid_action, state_view.boundary, Restriction::stale_boundary};
     if (state_view.phase != RunPhase::map || state_view.combat_generation == 0 || !state_view.rewards || !state_view.rewards->resolved)
         return {StepStatus::invalid_action, state_view.boundary, Restriction::wrong_phase};
@@ -183,8 +183,7 @@ StepResult apply_combat_transition(RunState& state, const CombatInput& input, Sc
     if (!state_view.direct_combat && (result.status == StepStatus::combat_won || result.status == StepStatus::player_died)) {
         state_view.combat_generation = highest_combat_generation(state_view);
         state_view.combat.reset();
-        state_view.data.enemy = {};
-        state_view.data.player = {state_view.hp, state_view.max_hp};
+        *state_view.creatures.get(state_view.data.player) = {state_view.hp, state_view.max_hp};
     }
     return result;
 }
@@ -334,6 +333,7 @@ StepResult apply_run_transition(RunState& state, const RunInput& input, Scratch&
 }
 } // namespace
 StepResult apply_input(RunState& state, const PlayerInput& input, Scratch& scratch) {
+    if (!valid_creature_storage(state.data, state.overflow)) return {StepStatus::engine_error, state.data.boundary, Restriction::invalid_state};
     if (const auto* run = std::get_if<RunInput>(&input)) return apply_run_transition(state, *run, scratch);
     return apply_combat_transition(state, std::get<CombatInput>(input), scratch);
 }

@@ -18,6 +18,7 @@ bool is_canonical(const RunInput& input) {
     return true;
 }
 StepResult submit_action(RunState& state, const PlayerInput& input, Scratch& scratch) {
+    if (!valid_creature_storage(state.data, state.overflow)) return {StepStatus::engine_error, state.data.boundary, Restriction::invalid_state};
     auto state_view = state.view();
     if (const auto* run = std::get_if<RunInput>(&input)) {
         if (run->expected_boundary != state_view.boundary) return {StepStatus::invalid_action, state_view.boundary, Restriction::stale_boundary};
@@ -59,6 +60,7 @@ std::optional<ActionView> ActionSpaceView::at(std::size_t index) const noexcept 
     return ActionView{input, validate_combat(state_, input)};
 }
 Restriction validate_action(const RunState& state, const PlayerInput& input) {
+    if (!valid_creature_storage(state.data, state.overflow)) return Restriction::invalid_state;
     auto state_view = state.view();
     if (const auto* run = std::get_if<RunInput>(&input); run && run->kind == RunInputKind::travel) {
         if (run->expected_boundary != state_view.boundary) return Restriction::stale_boundary;
@@ -77,6 +79,7 @@ Restriction validate_action(const RunState& state, const PlayerInput& input) {
     return submit_action(candidate, input, scratch).reason;
 }
 std::vector<PlayerAction> get_actions(const RunState& state) {
+    if (!valid_creature_storage(state.data, state.overflow)) return {};
     auto state_view = state.view();
     std::vector<PlayerAction> result;
     const auto add = [&](RunInputKind kind, std::uint32_t option = 0, int col = 0, int row = 0) {
@@ -111,6 +114,7 @@ std::vector<PlayerAction> get_actions(const RunState& state) {
     return result;
 }
 StepResult advance_to_decision(RunState& state, Scratch& scratch) {
+    if (!valid_creature_storage(state.data, state.overflow)) return {StepStatus::engine_error, state.data.boundary, Restriction::invalid_state};
     auto state_view = state.view();
     while (needs_automatic_transition(state)) {
         const auto result = apply_input(state, RunInput{state_view.boundary, RunInputKind::proceed}, scratch);

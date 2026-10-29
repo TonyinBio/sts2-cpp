@@ -18,25 +18,42 @@ struct CombatRewards {
     std::uint8_t selected_card = UINT8_MAX;
     friend bool operator==(const CombatRewards&, const CombatRewards&) = default;
 };
-// Optional active combat is a trivial data, with ownership outside RunData.
+using CreaturePool = PoolData<CreatureState, CreatureTag, 8>;
+// Views borrow pool storage. Reacquire them after any pool mutation.
 template<bool Const> struct OptionalCombatView {
     using Data = std::conditional_t<Const, const std::optional<CombatData>, std::optional<CombatData>>;
     using Owner = std::conditional_t<Const, const OverflowStorage, OverflowStorage>;
     Data& data;
     Owner& overflow;
-    std::conditional_t<Const, const CreatureState, CreatureState>& player;
-    std::conditional_t<Const, const CreatureState, CreatureState>& enemy;
+    PoolView<CreatureState, CreatureTag, 8, Const> creatures;
+    std::conditional_t<Const, const CreatureHandle, CreatureHandle>& player;
+    SequenceView<CreatureHandle, 4, Const> enemies;
     std::conditional_t<Const, const BoundaryId, BoundaryId>& boundary;
     std::conditional_t<Const, const RunClock, RunClock>& clock;
     std::conditional_t<Const, const RngBank, RngBank>& rng;
     bool has_value() const noexcept { return data.has_value(); }
     explicit operator bool() const noexcept { return has_value(); }
-    auto operator*() const noexcept { return BasicCombatView<Const>(*data, overflow, player, enemy, boundary, clock, rng); }
+    auto operator*() const noexcept { return BasicCombatView<Const>(*data, overflow, *creatures.get(player), *creatures.get(enemies.front()), boundary, clock, rng); }
     auto operator->() const noexcept { return ViewArrow<BasicCombatView<Const>>{**this}; }
-    auto emplace() requires (!Const) { overflow.reset(); data.emplace(); return **this; }
-    void reset() noexcept requires (!Const) { data.reset(); overflow.reset(); }
+    auto emplace() requires (!Const) {
+        reset();
+        const auto enemy = creatures.create({}, UINT32_MAX);
+        if (!enemy.present()) throw std::length_error("Creature identity exhausted");
+        try { enemies.push_back(enemy); } catch (...) { (void)creatures.erase(enemy); throw; }
+        overflow.reset(); data.emplace(); return **this;
+    }
+    void reset() noexcept requires (!Const) {
+        // Combat execution and its captured operands are discarded before recycling.
+        data.reset(); overflow.reset();
+        for (auto enemy : enemies) {
+            if (auto* creature = creatures.get(enemy)) *creature = {};
+            (void)creatures.erase(enemy);
+        }
+        enemies.clear();
+    }
     OptionalCombatView& operator=(CombatState&& state) requires (!Const) {
-        data.emplace(); (**this).replace(std::move(state)); return *this;
+        if (!data) emplace();
+        (**this).replace(std::move(state)); return *this;
     }
     OptionalCombatView& operator=(std::optional<CombatState>&& state) requires (!Const) {
         if (state) *this = std::move(*state); else reset(); return *this;
@@ -50,7 +67,9 @@ struct RunData {
     std::uint64_t numeric_seed = 0;
     ContentId character = no_content;
     std::uint8_t ascension = 0;
-    CreatureState player {}, enemy {};
+    CreaturePool creatures {};
+    CreatureHandle player {};
+    InlineSequence<CreatureHandle, 4> enemies {};
     std::int32_t gold = 0;
     std::int32_t potion_slots = 3;
     std::int32_t orb_slots = 0;
@@ -80,7 +99,7 @@ struct RunData {
     std::array<ContentId, 3> neow_options{};
     ContentId selected_neow = no_content;
     template<class Visit> void for_each_sequence(Visit visit) const noexcept {
-        visit(seed);
+        visit(seed); visit(creatures.slots); visit(creatures.free); visit(enemies);
         for (const auto* bag : {&shared_relics, &player_relics}) {
             for (const auto& tier : bag->tiers) visit(tier);
             visit(bag->order);
@@ -91,6 +110,8 @@ struct RunData {
     }
 };
 static_assert(std::is_trivially_copyable_v<RunData>);
+// Internal borrowed view: storage and handles must be validated before construction.
+// Any mutation that can grow the creature pool invalidates existing views.
 template<bool Const> struct BasicRunView {
     using Data = std::conditional_t<Const, const RunData, RunData>;
     using Owner = std::conditional_t<Const, const OverflowStorage, OverflowStorage>;
@@ -101,8 +122,9 @@ template<bool Const> struct BasicRunView {
     Ref<std::uint64_t> numeric_seed = data.numeric_seed;
     Ref<ContentId> character = data.character;
     Ref<std::uint8_t> ascension = data.ascension;
-    Ref<std::int32_t> hp = data.player.hp;
-    Ref<std::int32_t> max_hp = data.player.max_hp;
+    PoolView<CreatureState, CreatureTag, 8, Const> creatures{data.creatures, overflow};
+    Ref<std::int32_t> hp = creatures.get(data.player)->hp;
+    Ref<std::int32_t> max_hp = creatures.get(data.player)->max_hp;
     Ref<std::int32_t> gold = data.gold;
     Ref<std::int32_t> potion_slots = data.potion_slots;
     Ref<std::int32_t> orb_slots = data.orb_slots;
@@ -132,13 +154,14 @@ template<bool Const> struct BasicRunView {
     Ref<std::array<ContentId, 3>> neow_options = data.neow_options;
     Ref<ContentId> selected_neow = data.selected_neow;
     BasicRunView(Data& r, Owner& run_owner, Owner& combat_owner) noexcept
-        : data(r), overflow(run_owner), combat{r.combat, combat_owner, r.player, r.enemy, r.boundary, r.clock, r.rng} {}
+        : data(r), overflow(run_owner), combat{r.combat, combat_owner, {r.creatures, run_owner}, r.player, {r.enemies, run_owner}, r.boundary, r.clock, r.rng} {}
     BasicRunView view() const noexcept { return *this; }
     operator BasicRunView<true>() const noexcept requires (!Const) { return {data, overflow, combat.overflow}; }
     template<bool Other> bool operator==(const BasicRunView<Other>& other) const {
         return seed == other.seed && numeric_seed == other.numeric_seed &&
             character == other.character && ascension == other.ascension &&
-            data.player == other.data.player && gold == other.gold &&
+            data.player == other.data.player && creatures == other.creatures &&
+            combat.enemies == other.combat.enemies && gold == other.gold &&
             potion_slots == other.potion_slots && orb_slots == other.orb_slots &&
             rng == other.rng && player_rng == other.player_rng &&
             shared_relics == other.shared_relics && player_relics == other.player_relics &&
@@ -154,12 +177,25 @@ template<bool Const> struct BasicRunView {
 };
 using RunView = BasicRunView<false>;
 using ConstRunView = BasicRunView<true>;
+inline bool valid_creature_storage(const RunData& data, const OverflowStorage& owner) noexcept {
+    if (!valid_data_storage(data, owner)) return false;
+    const PoolView<CreatureState, CreatureTag, 8, true> pool{data.creatures, owner};
+    if (!pool.valid() || !pool.get(data.player)) return false;
+    for (const auto& slot : pool.slots())
+        if (slot.value.power_count > CreatureState::power_type_count) return false;
+    const auto enemies = data.enemies.values(owner);
+    if (data.combat.has_value() != !enemies.empty() || enemies.size() > 1) return false;
+    for (const auto enemy : enemies) if (enemy == data.player || !pool.get(enemy)) return false;
+    return true;
+}
 struct RunState;
 CloneStatus clone_into(RunState&, const RunState&) noexcept;
 struct RunState {
     RunData data;
     OverflowStorage overflow, combat_overflow;
-    explicit RunState(StorageAllocator allocator = {}) : overflow(allocator), combat_overflow(allocator) {}
+    explicit RunState(StorageAllocator allocator = {}) : overflow(allocator), combat_overflow(allocator) {
+        data.player = PoolView<CreatureState, CreatureTag, 8>{data.creatures, overflow}.create({}, UINT32_MAX);
+    }
     RunState(const RunState& other) : RunState(other.overflow.allocator()) { if (clone_into(*this, other) != CloneStatus::cloned) throw std::bad_alloc{}; }
     RunState& operator=(const RunState& other) { if (clone_into(*this, other) != CloneStatus::cloned) throw std::bad_alloc{}; return *this; }
     RunState(RunState&& other) noexcept : overflow(std::move(other.overflow)), combat_overflow(std::move(other.combat_overflow)) {
@@ -172,7 +208,10 @@ struct RunState {
         }
         return *this;
     }
-    void reset() noexcept { data = RunData{}; overflow.reset(); combat_overflow.reset(); }
+    void reset() noexcept {
+        data = RunData{}; overflow.reset(); combat_overflow.reset();
+        data.player = PoolView<CreatureState, CreatureTag, 8>{data.creatures, overflow}.create({}, UINT32_MAX);
+    }
     RunView view() noexcept { return {data, overflow, combat_overflow}; }
     ConstRunView view() const noexcept { return {data, overflow, combat_overflow}; }
     friend CloneStatus clone_into(RunState& destination, const RunState& source) noexcept try {

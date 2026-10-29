@@ -21,6 +21,63 @@ TEST(PublicRun, PermanentCreatureAttributesRemainVisibleAndSurviveCheckpoint) {
     ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
     EXPECT_EQ(observe(restored).max_hp, 85);
 }
+TEST(PublicRun, StaleCreatureHandlesAreRejectedBeforeViewsAreRead) {
+    RunState state; Scratch scratch;
+    ASSERT_EQ(initialize_combat_scenario(state, {}, {}).status, StepStatus::awaiting_input);
+    ++state.data.player.generation;
+    const auto before = state;
+    EXPECT_FALSE(valid_run(state));
+    EXPECT_FALSE(observe(state).valid);
+    EXPECT_TRUE(get_actions(state).empty());
+    const PlayerInput input = CombatInput{state.data.boundary, CombatInputKind::end_turn};
+    EXPECT_EQ(validate_action(state, input), Restriction::invalid_state);
+    EXPECT_EQ(apply_action(state, input, scratch).status, StepStatus::engine_error);
+    EXPECT_EQ(advance_to_decision(state, scratch).status, StepStatus::engine_error);
+    EXPECT_THROW(checkpoint(state), std::invalid_argument);
+    EXPECT_EQ(state.data.player, before.data.player);
+    EXPECT_EQ(state.data.boundary, before.data.boundary);
+}
+TEST(PublicRun, CreatureOverflowCloneAndRestoreKeepIndependentBranches) {
+    RunState state; Scratch scratch;
+    ASSERT_EQ(initialize_combat_scenario(state, {}, {}).status, StepStatus::awaiting_input);
+    auto pool = state.view().creatures;
+    const auto player = state.data.player;
+    const auto enemy = state.view().combat.enemies.front();
+    // Controlled retained operands force the exceptional creature storage path.
+    for (int i = 0; i < 12; ++i) ASSERT_TRUE(pool.create({3, 3}, 4096).present());
+    ASSERT_TRUE(valid_run(state));
+    RunState cloned = state, restored;
+    ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(restored, state);
+    ASSERT_EQ(apply_action(cloned, CombatInput{cloned.data.boundary, CombatInputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+    ASSERT_EQ(apply_action(restored, CombatInput{restored.data.boundary, CombatInputKind::end_turn}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_EQ(cloned, restored);
+    EXPECT_NE(cloned, state);
+    EXPECT_EQ(state.data.player, player);
+    EXPECT_EQ(state.view().combat.enemies.front(), enemy);
+}
+TEST(PublicRun, DeadCreatureRemainsUntilCombatResolutionReleasesItsOperands) {
+    RunState state; Scratch scratch;
+    const std::array deck{CardSpec{CardId::strike}, CardSpec{CardId::strike}};
+    ASSERT_EQ(initialize_combat_scenario(state, {}, deck, {}, {}, 1).status, StepStatus::awaiting_input);
+    const auto enemy = state.view().combat.enemies.front();
+    const auto player = state.data.player;
+    auto terminal = state; terminal.view().direct_combat = true;
+    const auto strike = state.view().combat->zone(Zone::hand).front();
+    ASSERT_EQ(apply_action(terminal, CombatInput{terminal.data.boundary, CombatInputKind::play_card, strike, true}, scratch).status, StepStatus::combat_won);
+    ASSERT_NE(terminal.view().creatures.get(enemy), nullptr);
+    EXPECT_EQ(terminal.view().creatures.get(enemy)->hp, 0);
+    RunState restored;
+    ASSERT_EQ(restore(restored, checkpoint(terminal).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(restored, terminal);
+    ASSERT_EQ(apply_action(state, CombatInput{state.data.boundary, CombatInputKind::play_card, strike, true}, scratch).status, StepStatus::awaiting_input);
+    EXPECT_FALSE(state.view().combat);
+    EXPECT_FALSE(state.view().creatures.get(enemy));
+    EXPECT_EQ(state.data.player, player);
+    EXPECT_EQ(state.view().creatures.slots()[enemy.slot].value, CreatureState{});
+    ASSERT_EQ(restore(restored, checkpoint(state).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(restored, state);
+}
 Json recording() {
     std::ifstream input(std::filesystem::path(KERNEL_RUN_PREFIX_FIXTURE).parent_path().parent_path() / "run-shrinker-victory/actions.json");
     return Json::parse(input);
@@ -41,9 +98,14 @@ TEST(PublicRun, ConsecutiveScenarioCombatsReplaceGraphsAndRejectOldCards) {
     EXPECT_FALSE(state.view().combat); EXPECT_TRUE(state.combat_overflow.empty());
     const CardHandle old_card{0, state.view().combat_generation};
     const auto saved = checkpoint(state).bytes;
+    const auto player_identity = state.data.player;
+    const auto retired_generation = state.data.creatures.highest_generation;
     NativeRunExporter exporter;
     ASSERT_EQ(enter_combat_scenario(state, state.view().boundary, "ENCOUNTER.SHRINKER_BEETLE_WEAK", exporter.trace()).status, StepStatus::awaiting_input);
     EXPECT_EQ(state.view().combat_generation, 2u);
+    EXPECT_EQ(state.data.player, player_identity);
+    EXPECT_GE(state.view().combat.enemies.front().generation, retired_generation);
+    EXPECT_FALSE(state.view().creatures.get({state.view().combat.enemies.front().slot, 1}));
     EXPECT_EQ(state.view().deck.size(), 10u);
     EXPECT_FALSE(state.view().combat->cards.get(old_card));
     EXPECT_EQ(apply_action(state, CombatInput{state.view().boundary, CombatInputKind::play_card, old_card, true}, scratch).status, StepStatus::invalid_action);

@@ -27,6 +27,7 @@ bool bag(ConstRelicBag value) noexcept {
 }
 }
 bool valid_run(const RunState& state) noexcept {
+    if (!valid_creature_storage(state.data, state.overflow)) return false;
     auto state_view = state.view();
     if (!valid_data_storage(state.data, state.overflow) ||
         (!state.data.combat && !state.combat_overflow.empty())) return false;

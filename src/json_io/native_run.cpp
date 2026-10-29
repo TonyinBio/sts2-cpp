@@ -81,6 +81,7 @@ void NativeRunExporter::record(ConstCombatView state, const CombatEvent& event) 
     combat_.history.push_back(event);
 }
 Json NativeRunExporter::snapshot(const RunState& s) const {
+    if (!valid_creature_storage(s.data, s.overflow)) throw std::invalid_argument("Invalid creature storage");
     auto s_view = s.view();
     if (!valid_run(s))
         throw std::invalid_argument("Cannot export an uninitialized or invalid run");

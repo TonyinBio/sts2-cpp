@@ -14,6 +14,7 @@ template<class Tag> struct Handle {
     [[nodiscard]] bool present() const noexcept { return generation != 0; }
     friend auto operator<=>(const Handle&, const Handle&) = default;
 };
+using CreatureHandle = Handle<struct CreatureTag>;
 using CardHandle = Handle<struct CardInstanceTag>;
 using PromptId = Id<struct PromptTag>;
 using BoundaryId = Id<struct BoundaryTag>;
