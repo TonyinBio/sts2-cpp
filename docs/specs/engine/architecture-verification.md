@@ -44,7 +44,7 @@ cmake -S . -B /tmp/sts2-architecture-release \
   -DBUILD_TESTING=OFF -DSTS2_BUILD_JSON_IO=OFF \
   -DSTS2_BUILD_PARITY_TOOLS=OFF -DSTS2_BUILD_BENCHMARKS=ON
 cmake --build /tmp/sts2-architecture-release -j4
-/tmp/sts2-architecture-release/architecture_benchmark 100000
+/tmp/sts2-architecture-release/architecture_benchmark 10000
 /tmp/sts2-architecture-release/kernel_benchmark 10000
 ```
 
@@ -77,11 +77,14 @@ allocator bookkeeping, stack scratch, code and shared immutable rules.
 
 | Workload | Root bytes | Retained bytes | Query ns / allocations total | Clone ns / allocations total | Step ns / allocations total | Steps/s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Supported seeded combat | 32,864 | 32,864 | 60,294 / 0 | 643 / 0 | 1,172 / 0 | 853,002 |
-| Controlled creature overflow | 32,864 | 36,352 | 62,133 / 0 | 731 / 300,000 | 1,647 / 0 | 607,299 |
-| Controlled nested overflow | 32,864 | 34,784 | 24,829 / 0 | 675 / 600,000 | 3,259 / 0 | 306,842 |
+| Supported seeded combat | 32,864 | 32,864 | 51,356 / 0 | 540 / 0 | 977 / 0 | 1,023,770 |
+| Controlled creature overflow | 32,864 | 36,352 | 52,542 / 0 | 700 / 30,000 | 1,231 / 0 | 812,557 |
+| Supported cards, controlled 200-card deck | 32,864 | 60,256 | 1,538,750 / 0 | 1,457 / 120,000 | 1,473 / 0 | 678,859 |
+| Controlled nested overflow | 32,864 | 34,784 | 20,348 / 0 | 655 / 60,000 | 3,133 / 0 | 319,207 |
 
-Every row uses 100,000 iterations per operation; checksum was 3,100,000. Common
+Every row uses 10,000 iterations per operation; checksum was 400,000.
+`sizeof(RunData)` is 32,768, `CombatData` 3,968, `CardInstance` 36 and
+`EffectFrame` 52 bytes on this compiler/ABI. Common
 cloning uses the inline complete-record memcpy with no allocation. Overflow
 cloning independently owns its retained buffers and has an explicit allocation
 cost. Allocation-free traversal does not imply constant-time validation: complete
@@ -108,9 +111,11 @@ separate; architecture completion does not close or rewrite their tickets.
 
 The isolated Debug `engine_test` build passed, and the new concurrent overflow
 public-run regression passed (`PublicRun.ConcurrentOverflowBranchesOwnStateAndScratchIndependently`).
-The first full-suite attempt exposed a worktree setup issue: the pinned `sts2-cli`
+The initial full suite passed 233/234 registered tests; its sole failure exposed a worktree setup issue: the pinned `sts2-cli`
 submodule had not been populated, so Python recorder tests could not read
 `sts2-cli/python/play.py`. The submodule was restored from the existing local pinned
-checkout without changing fixture bytes. Final integration verification is recorded
+checkout without changing fixture bytes; the recorder retry passed 1/1. Thus every
+initial registered check passed across the original run and environment retry.
+Final integration verification is recorded
 after the runtime review fixes; the earlier measurements above remain pinned to
 their explicitly named revision until rerun.
