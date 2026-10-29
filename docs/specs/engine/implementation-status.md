@@ -28,7 +28,7 @@ An optional synchronous trace supplies `json_io`'s exporter-owned diagnostic his
 completed plays and removed powers. Comparison schemas and fixtures remain unchanged.
 Recording is linear and attaches at creation; recording arbitrary pre-made states
 or cloned branches is unsupported. Engine clones contain no exporter context.
-Binary checkpoint revisions are combat 5 and run 4; older versions are rejected.
+Binary checkpoint revisions are combat 10 and run 7; older versions are rejected.
 JSON checkpoint migration remains separate. These summaries are not a sufficiency
 proof for unsupported mechanics or mutable card types.
 
@@ -37,6 +37,32 @@ parity tools disabled passed. All 178 Debug tests passed, including unchanged ex
 history comparisons and new counter/continuation, long-combat storage, expired-power
 identity and exporter move tests. No speed benchmarks were run. Logs are listed in
 [the stage-two handoff](../../planning/stage-two-handoff.md#contracts-and-verification).
+
+## Architecture migration in progress
+
+The integration branch for [issue #56](https://github.com/TonyinBio/sts2-cpp/issues/56)
+now stores canonical creatures in a run-owned generational pool. The persistent
+player and ordered encounter membership use typed handles. Combat views borrow
+those records and the run's RNG, clock and boundary; standalone combat owns its
+own adapter records. Creature slots remain available until combat resolution
+releases its operands, then are cleared and recycled with a new generation.
+Views expire after mutation and must be reacquired after pool growth. Public
+queries and transitions validate creature storage before constructing these views.
+
+Persistent deck order now holds handles into a separate generational card pool;
+combat card origins resolve those handles rather than deck positions. Ordered cost
+layers preserve local absolute/relative changes, reduce-only behavior and expiry.
+Controlled upgrade, reorder and branch tests exercise temporary/permanent isolation;
+they do not establish parity for new production effects or exceptional card payloads.
+
+Shared mechanics, typed hooks, compiled instruction handlers and combat completion
+live in `src/engine/mechanics.cpp`, `hooks.cpp`, `content.cpp` and
+`combat_lifecycle.cpp`, compiled together in `sts2_engine`. Synchronous damage,
+block and power modifiers return values directly. Reaction hooks retain explicit
+native traversal order. Immutable card metadata determines attack classification,
+retention and completion destinations, so these behaviors do not require named
+card checks in the central controller. Nested hook suspension, parent-room returns,
+allocation-free run action traversal and final benchmarking remain migration work.
 
 ## Complete-state inline storage and owning clones
 
