@@ -30,20 +30,28 @@ int main(int argc, char** argv) {
             const auto text = describe(card);
             std::cout << "  Card " << card.instance << ": " << text.name << " (" << card.energy_cost.value_or(-1) << " Energy) — " << text.description << '\n';
         }
-        const auto offered = get_actions(run);
+        const RunActionSpaceView offered(run);
         if (offered.empty()) return view.valid ? 0 : 1;
         for (std::size_t i = 0; i < offered.size(); ++i) {
+            const auto action = *offered.at(i);
             std::cout << i << ": ";
-            if (const auto* input = std::get_if<CombatInput>(&offered[i].input)) {
+            if (const auto* input = std::get_if<CombatInput>(&action.input)) {
                 if (input->kind == CombatInputKind::end_turn) std::cout << "End turn";
+                else if (input->kind == CombatInputKind::confirm_selection) std::cout << "Confirm selection";
                 else {
-                    const auto card = std::find_if(view.hand_cards.begin(), view.hand_cards.end(), [&](const auto& c) { return c.handle == input->card; });
-                    std::cout << (input->kind == CombatInputKind::play_card ? "Play " : "Discard ") << card->name;
+                    const CardView* card = nullptr;
+                    for (const auto* pile : {&view.hand_cards, &view.draw, &view.discard, &view.exhaust}) {
+                        const auto found = std::find_if(pile->begin(), pile->end(), [&](const auto& c) { return c.handle == input->card; });
+                        if (found != pile->end()) { card = &*found; break; }
+                    }
+                    const auto verb = input->kind == CombatInputKind::play_card ? "Play " :
+                        input->kind == CombatInputKind::deselect_card ? "Unselect " : view.prompt == PublicPrompt::discard ? "Discard " : "Choose ";
+                    std::cout << verb << (card ? card->name : "card");
                 }
             } else {
-                const auto& input_run = std::get<RunInput>(offered[i].input);
+                const auto& input_run = std::get<RunInput>(action.input);
                 switch (input_run.kind) {
-                case RunInputKind::choose_option: std::cout << "Choose gift " << input_run.option; break;
+                case RunInputKind::choose_option: std::cout << (view.prompt == PublicPrompt::neow ? "Choose gift " : "Choose option ") << input_run.option; break;
                 case RunInputKind::travel: std::cout << "Travel to " << input_run.col << ',' << input_run.row; break;
                 case RunInputKind::take_reward: std::cout << "Claim reward " << input_run.option; break;
                 case RunInputKind::choose_reward_card: std::cout << "Choose card " << input_run.option; break;
@@ -53,7 +61,7 @@ int main(int argc, char** argv) {
                 default: break;
                 }
             }
-            if (offered[i].restriction != Restriction::none) std::cout << " — " << describe(offered[i].restriction);
+            if (action.restriction != Restriction::none) std::cout << " — " << describe(action.restriction);
             std::cout << '\n';
         }
         std::cout << "> " << std::flush;
@@ -61,7 +69,7 @@ int main(int argc, char** argv) {
         std::size_t selected = 0;
         const auto parsed = std::from_chars(line.data(), line.data() + line.size(), selected);
         if (parsed.ec != std::errc{} || parsed.ptr != line.data() + line.size() || selected >= offered.size()) continue;
-        const auto result = apply_action(run, offered[selected].input, scratch);
+        const auto result = apply_action(run, offered.at(selected)->input, scratch);
         if (result.reason != Restriction::none) std::cout << describe(result.reason) << '\n';
     }
 }

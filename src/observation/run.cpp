@@ -32,11 +32,18 @@ RunObservation observe(const RunState& state) {
     for (std::size_t i = 0; i < state_view.potions.size(); ++i) view.potions.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state_view.potions[i])});
     if (state_view.phase == RunPhase::neow)
         for (std::size_t i = 0; i < state_view.neow_options.size(); ++i) view.options.push_back({static_cast<std::uint32_t>(i), SetupRules::name(state_view.neow_options[i])});
+    if (state_view.phase == RunPhase::room) {
+        const auto* parent = std::get_if<ParentInteractionState>(&state_view.room);
+        if (!parent || parent->stage != ParentRoomStage::choosing) { view.valid = false; return view; }
+        view.options.push_back({0, {}, std::nullopt, "Continue", parent->pending_gold});
+        view.options.push_back({1, {}, std::nullopt, "Leave"});
+    }
     switch (state_view.phase) {
     case RunPhase::neow: view.prompt = PublicPrompt::neow; break;
     case RunPhase::map: view.prompt = PublicPrompt::map; break;
     case RunPhase::combat: view.prompt = PublicPrompt::combat; break;
     case RunPhase::rewards: view.prompt = PublicPrompt::rewards; break;
+    case RunPhase::room: view.prompt = PublicPrompt::room; break;
     default: break;
     }
     // Only the generated current map is public. No room assignment or RNG fields.
@@ -99,6 +106,7 @@ RunObservation observe(const RunState& state) {
 std::string describe(const RunObservation& view) {
     if (!view.valid) return "Simulation unavailable.";
     if (view.phase == RunPhase::neow) return "Choose a gift from Neow.";
+    if (view.phase == RunPhase::room) return "Choose an option.";
     if (view.phase == RunPhase::map) return "Choose a route on the map.";
     if (view.selecting_reward_card) return "Choose one card to add to your deck, or skip.";
     if (view.phase == RunPhase::rewards) return "Claim rewards, or leave the remaining rewards.";
@@ -137,6 +145,7 @@ DefinitionText describe(const VisibleCard& card) {
     return describe(VisibleOption{card.instance, card.model_id});
 }
 DefinitionText describe(const VisibleOption& option) {
+    if (!option.title.empty()) return {std::string(option.title), option.gold_reward ? "Gain " + std::to_string(*option.gold_reward) + " Gold." : std::string{}, true};
     if (option.model_id == "RELIC.GOLDEN_PEARL") return {"Golden Pearl", "Gain 150 Gold.", true};
     if (option.model_id == "RELIC.BURNING_BLOOD") return {"Burning Blood", "At the end of combat, heal 6 HP.", true};
     if (option.model_id == "POTION.POTION_OF_BINDING") return {"Potion of Binding", "Apply 1 Weak and 1 Vulnerable to all enemies.", true};

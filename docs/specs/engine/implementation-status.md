@@ -28,7 +28,7 @@ An optional synchronous trace supplies `json_io`'s exporter-owned diagnostic his
 completed plays and removed powers. Comparison schemas and fixtures remain unchanged.
 Recording is linear and attaches at creation; recording arbitrary pre-made states
 or cloned branches is unsupported. Engine clones contain no exporter context.
-Binary checkpoint revisions are combat 11 and run 8; older versions are rejected.
+Binary checkpoint revisions are combat 11 and run 9; older versions are rejected.
 JSON checkpoint migration remains separate. These summaries are not a sufficiency
 proof for unsupported mechanics or mutable card types.
 
@@ -73,8 +73,29 @@ Controlled shuffle reactions exercise nested suspension, listener replacement,
 retained sources, same/alternative restored futures and allocation/budget failures.
 These fixtures establish architecture behavior, not native parity for a named new
 card or power. Existing supported native recording comparisons remain in the engine
-checks. Parent-room returns, allocation-free run action traversal and final
-benchmarking remain migration work.
+checks.
+
+`RunActionSpaceView` provides borrowed indexed traversal across current run and
+combat choices. `get_actions` remains an allocating compatibility wrapper. Validation
+plans the input directly; it never clones or speculatively executes the run. Visible
+travel validation remains separate from hidden encounter capability checks. Views
+expire after mutation. The CLI and scenario query adapter use the borrowed path.
+
+`run_rooms.cpp` owns pure room planning and specialized starting-choice, claim and
+return handlers; the run dispatcher owns boundary/clock publication and map entry.
+`enemy.cpp` executes the selected compiled move and separately derives visible
+intent. Shrinker's deterministic AI needs its selected move, without invented move
+history. Generated `RewardOffers` retain independent claims and the linked card
+choice, and explicitly name map or parent return ownership. Generation is separate
+from inspection and existing offers are not regenerated.
+
+The tagged room payload retains an enclosing interaction while child combat and
+rewards coexist. A controlled parent fixture returns to a real choice, cleans up its
+child once and preserves same/alternative cloned and checkpointed futures. It adds
+no production event; the native diagnostic adapter explicitly rejects this unmapped
+parent context. Native starting/map stages continue using their canonical generated
+run data. New specialized payload alternatives can be added for actual content.
+Final integrated benchmarking and review remain migration work.
 
 ## Complete-state inline storage and owning clones
 

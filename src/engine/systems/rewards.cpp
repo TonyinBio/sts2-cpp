@@ -13,6 +13,8 @@ std::size_t index(GameRng& rng, std::size_t count) {
 }
 }
 StepResult generate_combat_rewards(RunView run) {
+    if (run.rewards) return {StepStatus::awaiting_input, {}};
+    if (run.phase != RunPhase::combat_done || run.direct_combat || run.combat) return {StepStatus::invalid_action, {}, Restriction::wrong_phase};
     if (run.ascension != 0 || run.act_index != 0) return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
     const auto* character = SetupRules::character(run.character);
     if (!character) return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
@@ -20,7 +22,8 @@ StepResult generate_combat_rewards(RunView run) {
         SetupRules::name(id) != "RELIC.CHARONS_ASHES" && SetupRules::name(id) != "RELIC.JOSS_PAPER")
         return {StepStatus::unsupported_content, {}, Restriction::unsupported_setup};
     try {
-        auto rng = run.player_rng.streams[0]; CombatRewards rewards;
+        auto rng = run.player_rng.streams[0]; RewardOffers rewards;
+        if (std::holds_alternative<ParentInteractionState>(run.room)) rewards.return_to = RewardReturn::parent_room;
         auto rarity_offset = run.card_rarity_offset, potion_odds = run.potion_reward_odds;
         const auto has_potion = uniform(rng) < potion_odds;
         potion_odds += has_potion ? -0.1f : 0.1f;

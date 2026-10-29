@@ -15,6 +15,8 @@ struct VisibleOption {
     std::uint32_t id;
     std::string_view model_id;
     std::optional<std::uint32_t> counter = std::nullopt;
+    std::string_view title {};
+    std::optional<std::int32_t> gold_reward = std::nullopt;
 };
 struct VisibleMapNode {
     MapNodeId id;
@@ -32,7 +34,7 @@ struct VisibleReward {
     std::string_view model_id;
     bool claimed = false;
 };
-enum class PublicPrompt : std::uint8_t { none, neow, map, combat, discard, rewards, card_reward, card_selection };
+enum class PublicPrompt : std::uint8_t { none, neow, map, combat, discard, rewards, card_reward, card_selection, room };
 struct RunObservation {
     std::uint32_t contract_revision = 2;
     std::string_view build = game_build;

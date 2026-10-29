@@ -100,7 +100,7 @@ std::uint64_t checksum(std::span<const std::byte> bytes) { return game_hash({rei
 Checkpoint checkpoint(const RunState& run) {
     if (!valid_run(run)) throw std::invalid_argument("Cannot checkpoint invalid run");
     auto run_view = run.view();
-    Writer w; w.text("STS2RUN1"); w.u32(8); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
+    Writer w; w.text("STS2RUN1"); w.u32(9); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
     const auto s = run_view;
     w.u32(s.creatures.data.highest_generation);
     w.u32(static_cast<std::uint32_t>(s.creatures.slots().size()));
@@ -129,7 +129,10 @@ Checkpoint checkpoint(const RunState& run) {
     for (const auto h : s.deck.handles()) { w.u32(h.slot); w.u32(h.generation); }
     w.ids(s.relics); w.u32(s.joss_paper_counter); w.ids(s.potions); w.u32(std::bit_cast<std::uint32_t>(s.card_rarity_offset)); w.u32(std::bit_cast<std::uint32_t>(s.potion_reward_odds));
     const auto clock = run_view.clock.config(); w.u64(static_cast<std::uint64_t>(clock.epoch_seconds)); w.u64(static_cast<std::uint64_t>(clock.seconds_per_action)); w.u64(static_cast<std::uint64_t>(run_view.clock.elapsed_seconds()));
-    w.u32(run_view.boundary.value); w.u8(static_cast<std::uint8_t>(run_view.phase)); w.u8(run_view.act_index);
+    w.u32(run_view.boundary.value); w.u8(static_cast<std::uint8_t>(run_view.phase));
+    w.u8(static_cast<std::uint8_t>(run_view.room.index()));
+    if (const auto* parent = std::get_if<ParentInteractionState>(&run_view.room)) { w.u8(static_cast<std::uint8_t>(parent->stage)); w.i32(parent->pending_gold); }
+    w.u8(run_view.act_index);
     for (const auto& map : run_view.maps) { w.u8(map.has_value()); if (map) w.map(*map); }
     w.u32(run_view.current); w.ids(run_view.visited); w.rng(run_view.event_rng.state());
     for (auto option : run_view.neow_options) w.u32(option);
@@ -139,7 +142,7 @@ Checkpoint checkpoint(const RunState& run) {
     w.u8(run_view.rewards.has_value());
     if (run_view.rewards) {
         const auto& rewards = *run_view.rewards; w.i32(rewards.gold); w.u32(rewards.potion); for (const auto& card : rewards.cards) w.card(card);
-        w.u8(rewards.gold_taken); w.u8(rewards.potion_taken); w.u8(rewards.card_taken); w.u8(rewards.selecting_card); w.u8(rewards.resolved); w.u8(rewards.skipped); w.u8(rewards.selected_card);
+        w.u8(rewards.gold_taken); w.u8(rewards.potion_taken); w.u8(rewards.card_taken); w.u8(rewards.selecting_card); w.u8(rewards.resolved); w.u8(rewards.skipped); w.u8(rewards.selected_card); w.u8(static_cast<std::uint8_t>(rewards.return_to));
     }
     w.u64(checksum(w.bytes)); return {std::move(w.bytes)};
 }
@@ -149,7 +152,7 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         Reader trailer{bytes.last(8)}; if (trailer.u64() != checksum(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
         for (char c : std::string_view("STS2RUN1")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 8 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        if (r.u32() != 9 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (const auto identity : {game_digest, SetupRules::fingerprint()}) for (char c : identity)
             if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
@@ -198,7 +201,13 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         const auto epoch = r.u64(), step = r.u64(), elapsed = r.u64();
         if (epoch > RunClock::max_seconds || step > 86400 || elapsed > RunClock::max_seconds ||
             !run_view.clock.restore({static_cast<std::int64_t>(epoch), static_cast<std::int64_t>(step)}, static_cast<std::int64_t>(elapsed))) return RestoreStatus::malformed;
-        run_view.boundary.value = r.u32(); run_view.phase = static_cast<RunPhase>(r.u8()); run_view.act_index = r.u8();
+        run_view.boundary.value = r.u32(); run_view.phase = static_cast<RunPhase>(r.u8());
+        switch (r.u8()) {
+        case 0: break;
+        case 1: run_view.room = ParentInteractionState{static_cast<ParentRoomStage>(r.u8()), r.i32()}; break;
+        default: return RestoreStatus::malformed;
+        }
+        run_view.act_index = r.u8();
         for (auto& map : run_view.maps) if (r.boolean()) { map.emplace(); r.map(*map); }
         run_view.current = r.id(); r.ids(run_view.visited); r.random(run_view.event_rng);
         for (auto& option : run_view.neow_options) option = r.id();
@@ -222,7 +231,7 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
             run_view.rewards.emplace(); auto& rewards = *run_view.rewards; rewards.gold = r.i32(); rewards.potion = r.id();
             for (auto& card : rewards.cards) card = r.card();
             rewards.gold_taken = r.boolean(); rewards.potion_taken = r.boolean(); rewards.card_taken = r.boolean(); rewards.selecting_card = r.boolean();
-            rewards.resolved = r.boolean(); rewards.skipped = r.boolean(); rewards.selected_card = r.u8();
+            rewards.resolved = r.boolean(); rewards.skipped = r.boolean(); rewards.selected_card = r.u8(); rewards.return_to = static_cast<RewardReturn>(r.u8());
         }
         if (r.at != r.bytes.size() || !valid_run(run)) return RestoreStatus::malformed;
         destination = std::move(run); scratch.steps = 0; return RestoreStatus::restored;

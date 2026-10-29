@@ -112,6 +112,11 @@ struct CombatCounters {
     std::uint32_t finished_ethereal = 0;
     friend bool operator==(const CombatCounters&, const CombatCounters&) = default;
 };
+struct EnemyAiState {
+    // Shrinker's deterministic cycle needs only its selected move, not a
+    // duplicate intent or invented history. Other AI can add required records.
+    BeetleMove selected = BeetleMove::shrink;
+};
 struct CombatData {
     std::uint32_t rules = rules_revision;
     CombatPhase phase = CombatPhase::uninitialized;
@@ -119,7 +124,7 @@ struct CombatData {
     std::uint64_t numeric_seed = 0;
     std::int32_t energy = 0;
     std::int32_t turn = 0;
-    BeetleMove move = BeetleMove::shrink;
+    EnemyAiState enemy_ai {};
     bool burning_blood = true;
     CardPool cards {};
     InlineSequence<CostModifier, 8> cost_modifiers {};
@@ -167,7 +172,7 @@ template<bool Const> struct BasicCombatView {
     Ref<CreatureState> enemy;
     Ref<std::int32_t> energy = data.energy;
     Ref<std::int32_t> turn = data.turn;
-    Ref<BeetleMove> move = data.move;
+    Ref<BeetleMove> move = data.enemy_ai.selected;
     Ref<bool> burning_blood = data.burning_blood;
     PoolView<CardInstance, CardInstanceTag, 32, Const> cards{data.cards, overflow};
     SequenceView<CostModifier, 8, Const> cost_modifiers{data.cost_modifiers, overflow};

@@ -37,5 +37,8 @@ void react_to_exhaust(ExhaustRelic, CombatView, Scratch&);
 void after_enemy_turn(CombatView, Scratch&);
 void after_card_exhausted(CombatView, Scratch&, CardHandle);
 StepResult execute_instruction(CombatView, Scratch&, const Ruleset&);
+struct EnemyIntent { BeetleMove move; int attack; };
+EnemyIntent visible_enemy_intent(ConstCombatView) noexcept;
+void execute_enemy_move(CombatView, Scratch&);
 void end_combat(CombatView, Scratch&, bool won);
 }

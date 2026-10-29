@@ -181,16 +181,7 @@ StepResult apply_combat(CombatView state, const CombatInput& input, Scratch& scr
         hand.erase(std::remove_if(hand.begin(), hand.end(), [&](auto card) { return !rules.card(state.cards.get(card)->definition)->retain; }), hand.end());
         state.enemy.block = 0;
         snapshot_power_turn(state, scratch, state.enemy, true);
-        switch (state.move) {
-        case BeetleMove::shrink: (void)apply_power(state, scratch, PowerId::shrink, -1, false, true, {}, true, true); state.move = BeetleMove::chomp; break;
-        case BeetleMove::chomp: case BeetleMove::stomp: {
-            const auto hit = damage(state.player, state.move == BeetleMove::chomp ? 7 : 13, state.enemy);
-            emit(state, scratch, CombatEventKind::damaged, true, false, {}, 0, 0, hit);
-            emit(state, scratch, CombatEventKind::attacked, true, true, {}, 0, 0, hit);
-            if (state.player.hp > 0) state.move = state.move == BeetleMove::chomp ? BeetleMove::stomp : BeetleMove::chomp;
-            break;
-        }
-        }
+        execute_enemy_move(state, scratch);
         if (state.player.hp == 0) end_combat(state, scratch, false);
         else {
             after_enemy_turn(state, scratch);
