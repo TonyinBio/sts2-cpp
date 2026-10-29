@@ -54,7 +54,7 @@ bool valid_run(const RunState& state) noexcept {
     }
     for (auto relic : setup.relics) if (!id(relic, "RELIC.")) return false;
     const auto joss = SetupRules::find("RELIC.JOSS_PAPER");
-    if (setup.joss_paper_counter >= 5 ||
+    if ((setup.joss_paper_counter >= 5 && !state_view.combat) ||
         (setup.joss_paper_counter != 0 && std::find(setup.relics.begin(), setup.relics.end(), joss) == setup.relics.end()) ||
         (state_view.combat && state_view.combat->joss_paper_counter != setup.joss_paper_counter)) return false;
     for (auto potion : setup.potions) if (potion != no_content && !id(potion, "POTION.")) return false;

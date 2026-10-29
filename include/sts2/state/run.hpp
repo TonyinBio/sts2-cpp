@@ -35,9 +35,10 @@ template<bool Const> struct OptionalCombatView {
     std::conditional_t<Const, const BoundaryId, BoundaryId>& boundary;
     std::conditional_t<Const, const RunClock, RunClock>& clock;
     std::conditional_t<Const, const RngBank, RngBank>& rng;
+    std::conditional_t<Const, const std::uint32_t, std::uint32_t>& joss_paper_counter;
     bool has_value() const noexcept { return data.has_value(); }
     explicit operator bool() const noexcept { return has_value(); }
-    auto operator*() const noexcept { return BasicCombatView<Const>(*data, overflow, *creatures.get(player), *creatures.get(enemies.front()), boundary, clock, rng); }
+    auto operator*() const noexcept { return BasicCombatView<Const>(*data, overflow, *creatures.get(player), *creatures.get(enemies.front()), boundary, clock, rng, joss_paper_counter); }
     auto operator->() const noexcept { return ViewArrow<BasicCombatView<Const>>{**this}; }
     auto emplace() requires (!Const) {
         reset();
@@ -203,7 +204,7 @@ template<bool Const> struct BasicRunView {
     Ref<std::array<ContentId, 3>> neow_options = data.neow_options;
     Ref<ContentId> selected_neow = data.selected_neow;
     BasicRunView(Data& r, Owner& run_owner, Owner& combat_owner) noexcept
-        : data(r), overflow(run_owner), combat{r.combat, combat_owner, {r.creatures, run_owner}, r.player, {r.enemies, run_owner}, r.boundary, r.clock, r.rng} {}
+        : data(r), overflow(run_owner), combat{r.combat, combat_owner, {r.creatures, run_owner}, r.player, {r.enemies, run_owner}, r.boundary, r.clock, r.rng, r.joss_paper_counter} {}
     BasicRunView view() const noexcept { return *this; }
     operator BasicRunView<true>() const noexcept requires (!Const) { return {data, overflow, combat.overflow}; }
     template<bool Other> bool operator==(const BasicRunView<Other>& other) const {

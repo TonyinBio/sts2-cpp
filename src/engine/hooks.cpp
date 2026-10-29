@@ -26,13 +26,18 @@ int modify_attack_damage(const CreatureState& target, int base, const CreatureSt
     return static_cast<int>(numerator / 1000000);
 }
 void after_card_exhausted(CombatView state, Scratch& scratch, CardHandle card) {
-    auto& dispatch = state.exhaust_dispatch;
-    dispatch = {card, state.exhaust_relics, state.exhaust_relic_count, 0, true};
-    while (dispatch.cursor < dispatch.count) {
-        const auto listener = dispatch.candidates[dispatch.cursor++];
-        react_to_exhaust(listener, state, scratch);
+    if (!state.shuffle_order.empty() && state.exhaust_relic_count != 0) {
+        EffectFrame frame;
+        frame.source = card;
+        if (!state.execution.empty()) { frame.play = state.execution.back().play; frame.energy = state.execution.back().energy; }
+        frame.pending = ExhaustContinuation{state.exhaust_relics, state.exhaust_relic_count, 0};
+        state.execution.push_back(frame);
+        return;
     }
-    dispatch = {};
+    // Guaranteed synchronous callers need no continuation frame.
+    const auto candidates = state.exhaust_relics;
+    const auto count = state.exhaust_relic_count;
+    for (std::uint8_t i = 0; i < count; ++i) react_to_exhaust(candidates[i], state, scratch);
 }
 void after_enemy_turn(CombatView state, Scratch& scratch) {
     // Capture native application order before callbacks can change membership.

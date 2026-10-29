@@ -190,7 +190,6 @@ StepResult apply_combat_transition(RunState& state, const CombatInput& input, Sc
         return {StepStatus::invalid_action, state_view.boundary, Restriction::wrong_phase};
     const auto result = apply_combat(*state_view.combat, input, scratch);
     if (result.status == StepStatus::invalid_action || result.status == StepStatus::unsupported_content) return result;
-    state_view.joss_paper_counter = state_view.combat->joss_paper_counter;
     if (result.status == StepStatus::combat_won) state_view.phase = RunPhase::combat_done;
     else if (result.status == StepStatus::player_died) state_view.phase = RunPhase::complete;
     else if (result.status == StepStatus::engine_error || result.status == StepStatus::resource_limit) state_view.phase = RunPhase::invalid;

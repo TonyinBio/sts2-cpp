@@ -81,6 +81,7 @@ Restriction validate_action(const RunState& state, const PlayerInput& input) {
 std::vector<PlayerAction> get_actions(const RunState& state) {
     if (!valid_creature_storage(state.data, state.overflow)) return {};
     auto state_view = state.view();
+    if (state_view.combat && !valid_combat(*state_view.combat)) return {};
     std::vector<PlayerAction> result;
     const auto add = [&](RunInputKind kind, std::uint32_t option = 0, int col = 0, int row = 0) {
         PlayerInput input = RunInput{state_view.boundary, kind, option, col, row};

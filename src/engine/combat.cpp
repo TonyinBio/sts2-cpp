@@ -98,7 +98,7 @@ std::int32_t effective_card_cost(ConstCombatView state, CardHandle handle, const
     return static_cast<std::int32_t>(std::max<std::int64_t>(0, cost));
 }
 Restriction validate_combat(ConstCombatView state, const CombatInput& input, const Ruleset& rules) noexcept {
-    if (!valid_data_storage(state.data, state.overflow) || !valid_powers(state) ||
+    if (!valid_data_storage(state.data, state.overflow) || !valid_powers(state) || !valid_continuations(state, rules) ||
         state.phase == CombatPhase::uninitialized || state.phase == CombatPhase::invalid || state.rules != rules_revision)
         return Restriction::invalid_state;
     if (input.expected_boundary != state.boundary) return Restriction::stale_boundary;
@@ -141,9 +141,11 @@ StepResult advance_combat(CombatView state, Scratch& scratch, const Ruleset& rul
     if (state.phase != CombatPhase::play || state.execution.empty()) return result(state);
     while (!state.execution.empty()) {
         if (!consume(scratch)) return fail(state, Restriction::execution_budget);
-        const auto step = execute_instruction(state, scratch, rules);
+        const auto step = std::holds_alternative<std::monostate>(state.execution.back().pending) ?
+            execute_instruction(state, scratch, rules) : resume_continuation(state, scratch, rules);
         if (step.status == StepStatus::engine_error || step.status == StepStatus::resource_limit || state.phase != CombatPhase::play) return step;
     }
+    if (state.enemy.hp == 0 && state.phase == CombatPhase::play) end_combat(state, scratch, true);
     return result(state);
 } catch (const std::bad_alloc&) { state.phase = CombatPhase::invalid; return {StepStatus::resource_limit, state.boundary, Restriction::capacity}; } catch (const std::length_error&) { state.phase = CombatPhase::invalid; return {StepStatus::resource_limit, state.boundary, Restriction::capacity}; }
 catch (...) { return fail(state, Restriction::invalid_state); }
@@ -162,14 +164,13 @@ StepResult apply_combat(CombatView state, const CombatInput& input, Scratch& scr
             selected.erase(std::find(selected.begin(), selected.end(), input.card));
         }
         if (input.kind == CombatInputKind::confirm_selection || (state.selection.automatic_at_maximum && selected.size() == state.selection.maximum)) {
-            for (auto card : selected) {
-                if (state.selection.effect == SelectionEffect::upgrade) state.cards.get(card)->upgraded = true;
-                else if (state.selection.effect == SelectionEffect::topdeck) {
-                    move_card(state, state.selection.zone, Zone::draw, card);
-                    auto pile = state.zone(Zone::draw); std::rotate(pile.begin(), pile.end() - 1, pile.end());
-                } else exhaust(state, scratch, state.selection.zone, card);
-            }
+            EffectFrame resolution = state.execution.back();
+            const auto begin = static_cast<std::uint32_t>(state.continuation_cards.size());
+            for (auto card : selected) state.continuation_cards.push_back(card);
+            resolution.pending = SelectionContinuation{state.selection.effect, state.selection.zone, begin, static_cast<std::uint32_t>(selected.size()), 0};
+            if (auto* hook = std::get_if<ShuffleContinuation>(&state.execution.back().pending)) hook->waiting = false;
             clear_selection(state); state.phase = CombatPhase::play;
+            state.execution.push_back(resolution);
             const auto advanced = advance_combat(state, scratch, rules);
             if (advanced.status == StepStatus::engine_error || advanced.status == StepStatus::resource_limit) return advanced;
         }
@@ -228,6 +229,10 @@ StepResult apply_combat(CombatView state, const CombatInput& input, Scratch& scr
         const auto advanced = advance_combat(state, scratch, rules);
         if (advanced.status == StepStatus::engine_error || advanced.status == StepStatus::resource_limit) return advanced;
     }
+    if (state.phase == CombatPhase::play && !state.execution.empty()) {
+        const auto advanced = advance_combat(state, scratch, rules);
+        if (advanced.status == StepStatus::engine_error || advanced.status == StepStatus::resource_limit) return advanced;
+    }
     if (state.phase == CombatPhase::invalid) return {StepStatus::engine_error, state.boundary, Restriction::execution_budget};
     ++state.boundary.value;
     emit(state, scratch, CombatEventKind::combat_updated);
@@ -252,7 +257,8 @@ StepResult apply_power_scenario(CombatView state, const PowerApplication& operat
 }
 bool valid_combat(ConstCombatView state, const Ruleset& rules) noexcept {
     if (!valid_data_storage(state.data, state.overflow) || !state.cards.valid()) return false;
-    if (state.exhaust_relic_count > state.exhaust_relics.size() || state.joss_paper_counter >= 5 || state.exhaust_dispatch != ExhaustDispatch{}) return false;
+    if (state.exhaust_relic_count > state.exhaust_relics.size() ||
+        (state.joss_paper_counter >= 5 && std::none_of(state.execution.begin(), state.execution.end(), [](const auto& frame) { return std::holds_alternative<RelicDrawCompletion>(frame.pending); }))) return false;
     bool joss = false;
     for (std::size_t i = 0; i < state.exhaust_relics.size(); ++i) {
         if (i >= state.exhaust_relic_count) { if (state.exhaust_relics[i] != ExhaustRelic{}) return false; continue; }
@@ -279,40 +285,7 @@ bool valid_combat(ConstCombatView state, const Ruleset& rules) noexcept {
         (state.phase == CombatPhase::player_died && state.player.hp != 0) ||
         (!terminal && (state.enemy.hp == 0 || state.player.hp == 0))) return false;
     if (state.next_prompt.value == 0 || (state.phase != CombatPhase::card_choice && (state.selection != CardSelection{} || !state.selection_candidates.empty() || !state.selection_order.empty()))) return false;
-    if (state.phase == CombatPhase::card_choice) {
-        const auto& p = state.selection;
-        if (state.execution.size() != 1 || state.zone(Zone::play).size() != 1 ||
-            p.id.value == 0 || p.id.value >= state.next_prompt.value || p.minimum > p.maximum ||
-            p.maximum == 0 || state.selection_order.size() > p.maximum || static_cast<unsigned>(p.zone) >= static_cast<unsigned>(Zone::count)) return false;
-        const auto& frame = state.execution.back(); const auto* source = state.cards.get(frame.source);
-        if (!source || state.zone(Zone::play).front() != frame.source) return false;
-        const auto* definition = rules.card(source->definition);
-        if (!definition || frame.instruction == 0 || frame.instruction >= definition->program.size()) return false;
-        const auto opcode = definition->program[frame.instruction - 1].opcode;
-        SelectionEffect effect;
-        Zone zone = Zone::hand; std::uint32_t minimum = 1, maximum = 1;
-        bool automatic = false;
-        if (opcode == Opcode::exhaust_choice) { effect = SelectionEffect::exhaust; minimum = 0; maximum = source->upgraded ? 5 : 3; }
-        else if (opcode == Opcode::upgrade_choice && !source->upgraded) effect = SelectionEffect::upgrade;
-        else if (opcode == Opcode::topdeck_choice) { effect = SelectionEffect::topdeck; zone = Zone::discard; automatic = true; }
-        else if (opcode == Opcode::exhaust_one || (opcode == Opcode::grit_exhaust && source->upgraded)) effect = SelectionEffect::exhaust;
-        else return false;
-        maximum = std::min(maximum, static_cast<std::uint32_t>(state.selection_candidates.size()));
-        if (p.effect != effect || p.zone != zone || p.minimum != minimum || p.maximum != maximum || p.automatic_at_maximum != automatic) return false;
-        std::size_t offered = 0;
-        for (auto card : state.zone(zone)) {
-            if (effect == SelectionEffect::upgrade && state.cards.get(card) && state.cards.get(card)->upgraded) continue;
-            if (offered >= state.selection_candidates.size() || state.selection_candidates[offered++] != card) return false;
-        }
-        if (offered != state.selection_candidates.size() || offered == 0 || (minimum == 1 && offered <= 1)) return false;
-        for (auto card : state.selection_order) if (std::count(state.selection_order.begin(), state.selection_order.end(), card) != 1 || std::find(state.selection_candidates.begin(), state.selection_candidates.end(), card) == state.selection_candidates.end()) return false;
-    } else if (state.phase == CombatPhase::discard_choice) {
-        if (state.execution.size() != 1 || state.zone(Zone::play).size() != 1 || state.zone(Zone::hand).empty()) return false;
-        const auto& frame = state.execution.back(); const auto* card = state.cards.get(frame.source);
-        const auto* definition = card ? rules.card(card->definition) : nullptr;
-        if (!definition || frame.instruction == 0 || frame.instruction >= definition->program.size() ||
-            definition->program[frame.instruction - 1].opcode != Opcode::discard_choice || state.zone(Zone::play)[0] != frame.source) return false;
-    } else if (!state.execution.empty() || !state.zone(Zone::play).empty()) return false;
+    if (!valid_continuations(state, rules)) return false;
     if (state.phase == CombatPhase::combat_won && (state.player.power_count != 0 || state.enemy.power_count != 0)) return false;
     const auto& counters = state.counters;
     if (counters.finished_plays > counters.started_plays || counters.started_this_turn > counters.started_plays ||
@@ -321,8 +294,6 @@ bool valid_combat(ConstCombatView state, const Ruleset& rules) noexcept {
     if (!valid_powers(state)) return false;
     for (const auto& modifier : state.cost_modifiers)
         if (!state.cards.get(modifier.card) || static_cast<unsigned>(modifier.kind) > 1 || (static_cast<unsigned>(modifier.expiry) & ~6U) != 0) return false;
-    for (const auto& frame : state.execution)
-        if (frame.play >= counters.started_plays || !state.cards.get(frame.source) || frame.energy < 0) return false;
     std::size_t live = 0, membership = 0;
     for (const auto& slot : state.cards.slots()) {
         if (slot.generation == 0 || !rules.card(slot.value.definition) || slot.value.creation_order >= state.next_creation_order || slot.value.last_finished_player_turn < 0 || slot.value.last_finished_player_turn > state.turn) return false;
