@@ -12,6 +12,7 @@
 #include <fstream>
 #include <limits>
 #include <algorithm>
+#include <cstring>
 
 namespace sts2::engine {
 namespace {
@@ -122,6 +123,40 @@ StepStatus choose_nested_card(RunState& branch, Scratch& scratch, std::size_t in
 }
 // Controlled architecture fixtures use existing compiled instructions and public
 // stepping. They do not establish native support for additional power semantics.
+TEST(PublicRun, CombinedCreatureAndPowerOverflowRestoreReacquiresCanonicalRecords) {
+    // Keep retired allocations readable but poison their contents, so stale
+    // borrowed references fail deterministically without depending on malloc reuse.
+    struct RetiredBuffers {
+        struct Buffer { void* pointer; std::size_t size, alignment; };
+        std::array<Buffer, 128> retired {};
+        std::size_t count = 0;
+        ~RetiredBuffers() {
+            for (std::size_t i = 0; i < count; ++i)
+                StorageAllocator{}.deallocate(nullptr, retired[i].pointer, retired[i].size, retired[i].alignment);
+        }
+        StorageAllocator allocator() {
+            return {this, StorageAllocator{}.allocate,
+                [](void* context, void* pointer, std::size_t size, std::size_t alignment) {
+                    auto& self = *static_cast<RetiredBuffers*>(context);
+                    if (self.count == self.retired.size()) std::terminate();
+                    std::memset(pointer, 0xa5, size);
+                    self.retired[self.count++] = {pointer, size, alignment};
+                }};
+        }
+    } buffers;
+    RunState source; Scratch scratch;
+    ASSERT_EQ(initialize_combat_scenario(source, {}, {}).status, StepStatus::awaiting_input);
+    for (int i = 0; i < 12; ++i) ASSERT_TRUE(source.view().creatures.create({3, 3}, 4096).present());
+    for (int i = 0; i < 9; ++i)
+        gameplay::apply_power(*source.view().combat, scratch, PowerId::strength, 1, false, false, {}, true, false, PowerInstance::Stacking::separate);
+    ASSERT_TRUE(source.data.creatures.slots.overflowed());
+    ASSERT_TRUE(source.view().combat->player.powers.overflowed());
+    ASSERT_TRUE(valid_run(source));
+    RunState restored(buffers.allocator());
+    ASSERT_EQ(restore(restored, checkpoint(source).bytes, scratch), RestoreStatus::restored);
+    EXPECT_EQ(restored, source);
+}
+
 TEST(PublicRun, DistinctAndPerApplierPowersSurviveOverflowCloneAndRestore) {
     RunState state; Scratch scratch;
     const std::array deck{CardSpec{CardId::strike}, CardSpec{CardId::strike}, CardSpec{CardId::strike}, CardSpec{CardId::strike}, CardSpec{CardId::strike}};

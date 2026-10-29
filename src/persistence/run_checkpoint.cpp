@@ -227,9 +227,12 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
             for (const auto& power : creatures.get(run_view.combat.enemies.front())->power_instances(run.overflow)) expected_enemy.power_instances(expected_owner).push_back(power);
             run.data.combat.emplace();
             const auto status = restore(*run_view.combat, r.bytes.subspan(r.at, size), temporary, limits); if (status != RestoreStatus::restored) return status; r.at += size;
+            // Combat restore can replace run overflow, including creature slots.
+            // Reacquire borrowed creature references before comparing authority.
+            const auto restored_view = run.view();
             if (!creatures.get(run.data.player)->equals(run.overflow, expected_player, expected_owner) || !creatures.get(run_view.combat.enemies.front())->equals(run.overflow, expected_enemy, expected_owner)) return RestoreStatus::malformed;
-            if (run_view.joss_paper_counter != expected_joss || run_view.hp != expected_hp || run_view.max_hp != expected_max_hp || run_view.rng != expected_rng ||
-                run_view.clock != expected_clock || run_view.boundary != expected_boundary) return RestoreStatus::malformed;
+            if (restored_view.joss_paper_counter != expected_joss || restored_view.hp != expected_hp || restored_view.max_hp != expected_max_hp || restored_view.rng != expected_rng ||
+                restored_view.clock != expected_clock || restored_view.boundary != expected_boundary) return RestoreStatus::malformed;
         }
         if (r.boolean()) {
             run_view.rewards.emplace(); auto& rewards = *run_view.rewards; rewards.gold = r.i32(); rewards.potion = r.id();
