@@ -12,6 +12,7 @@
 #include <fstream>
 #include <limits>
 #include <algorithm>
+#include <future>
 #include <cstring>
 
 namespace sts2::engine {
@@ -120,6 +121,38 @@ void reach_nested_shuffle_prompt(RunState& state, std::span<const scenario::Shuf
 StepStatus choose_nested_card(RunState& branch, Scratch& scratch, std::size_t index = 0) {
     const auto combat = *branch.view().combat;
     return apply_action(branch, CombatInput{branch.data.boundary, CombatInputKind::select_card, combat.selection_candidates[index], false, combat.selection.id}, scratch).status;
+}
+TEST(PublicRun, ConcurrentOverflowBranchesOwnStateAndScratchIndependently) {
+    RunState source; NestedPromptInfo info;
+    std::array<scenario::ShuffleReactionKind, 7> hooks;
+    hooks.fill(scenario::ShuffleReactionKind::nested_draw);
+    hooks.back() = scenario::ShuffleReactionKind::choose_card;
+    reach_nested_shuffle_prompt(source, hooks, info);
+    ASSERT_FALSE(source.combat_overflow.empty());
+    ASSERT_GT(source.view().combat->selection_candidates.size(), 1u);
+    const auto before = checkpoint(source).bytes;
+    // Each task receives an owning clone before launch, then creates local scratch.
+    // Rules used by apply_action are immutable; no mutable engine object is shared.
+    auto launch = [&](std::size_t choice) {
+        return std::async(std::launch::async, [state = RunState(source), choice]() mutable {
+            Scratch scratch;
+            if (choose_nested_card(state, scratch, choice) != StepStatus::awaiting_input)
+                throw std::runtime_error("worker continuation failed");
+            return std::move(state);
+        });
+    };
+    auto first = launch(0), second = launch(0), alternate = launch(1);
+    auto a = first.get(), b = second.get(), other = alternate.get();
+    EXPECT_EQ(a, b); // Includes all RNG words, counters and suspended operands.
+    EXPECT_EQ(checkpoint(a).bytes, checkpoint(b).bytes);
+    EXPECT_NE(a, other);
+    EXPECT_EQ(checkpoint(source).bytes, before);
+    const auto sibling = checkpoint(b).bytes;
+    Scratch scratch;
+    const auto result = apply_action(a, CombatInput{a.data.boundary, CombatInputKind::end_turn}, scratch);
+    EXPECT_EQ(result.status, StepStatus::awaiting_input);
+    EXPECT_EQ(checkpoint(b).bytes, sibling);
+    EXPECT_EQ(checkpoint(source).bytes, before);
 }
 // Controlled architecture fixtures use existing compiled instructions and public
 // stepping. They do not establish native support for additional power semantics.

@@ -1,6 +1,9 @@
 # Full-game simulator file and class architecture
 
-**Status:** proposed greenfield architecture in C++23. This sketch implements the
+**Status:** historical greenfield architecture proposal in C++23. Where this sketch
+conflicts with ADR 0006 or implemented ownership/execution contracts, follow
+[implementation status](implementation-status.md) and
+[architecture verification](architecture-verification.md). This sketch describes the
 [full-game design](full-game-simulator-design.md); it makes no compatibility commitments
 to the current scaffold, file layout, or interfaces. Names below are proposed names,
 not implemented classes. The design's parity requirements take precedence over layout

@@ -38,7 +38,7 @@ history comparisons and new counter/continuation, long-combat storage, expired-p
 identity and exporter move tests. No speed benchmarks were run. Logs are listed in
 [the stage-two handoff](../../planning/stage-two-handoff.md#contracts-and-verification).
 
-## Architecture migration in progress
+## Integrated architecture
 
 The integration branch for [issue #56](https://github.com/TonyinBio/sts2-cpp/issues/56)
 now stores canonical creatures in a run-owned generational pool. The persistent
@@ -48,6 +48,11 @@ own adapter records. Creature slots remain available until combat resolution
 releases its operands, then are cleared and recycled with a new generation.
 Views expire after mutation and must be reacquired after pool growth. Public
 queries and transitions validate creature storage before constructing these views.
+Canonical creature-owned powers retain ordered instance identities and explicit
+by-type, per-applier and separate stacking policies, with independent overflow.
+Suspended programs capture generational creature targets, so replacing encounter
+membership cannot redirect already captured work. Controlled regressions cover
+these policies and combined creature/power overflow restore lifetimes.
 
 Persistent deck order now holds handles into a separate generational card pool;
 combat card origins resolve those handles rather than deck positions. Ordered cost
@@ -99,7 +104,9 @@ child once and preserves same/alternative cloned and checkpointed futures. It ad
 no production event; the native diagnostic adapter explicitly rejects this unmapped
 parent context. Native starting/map stages continue using their canonical generated
 run data. New specialized payload alternatives can be added for actual content.
-Final integrated benchmarking and review remain migration work.
+Release architecture measurements and the integrated evidence map are recorded in
+[architecture verification](architecture-verification.md), including final review
+outcomes and the supported/native evidence limits.
 
 ## Complete-state inline storage and owning clones
 
@@ -195,7 +202,8 @@ Before combat compaction, a local GCC 11 Release sample measured 5.54 million co
 root and 7,928 retained bytes. This includes typed combat history. It excludes setup,
 text, JSON and checkpoint encoding. It does not establish complete-run throughput
 or speed/memory improvement over `sts2-cli`. It does not characterize the current
-compact layout; no new speed measurement or benchmark gate was requested.
+layout. Current descriptive measurements are in [architecture verification](architecture-verification.md);
+no throughput threshold is imposed.
 
 ## Remaining work
 
