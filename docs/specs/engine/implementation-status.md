@@ -48,6 +48,11 @@ own adapter records. Creature slots remain available until combat resolution
 releases its operands, then are cleared and recycled with a new generation.
 Views expire after mutation and must be reacquired after pool growth. Public
 queries and transitions validate creature storage before constructing these views.
+Canonical creature-owned powers retain ordered instance identities and explicit
+by-type, per-applier and separate stacking policies, with independent overflow.
+Suspended programs capture generational creature targets, so replacing encounter
+membership cannot redirect already captured work. Controlled regressions cover
+these policies and combined creature/power overflow restore lifetimes.
 
 Persistent deck order now holds handles into a separate generational card pool;
 combat card origins resolve those handles rather than deck positions. Ordered cost
@@ -100,8 +105,8 @@ no production event; the native diagnostic adapter explicitly rejects this unmap
 parent context. Native starting/map stages continue using their canonical generated
 run data. New specialized payload alternatives can be added for actual content.
 Release architecture measurements and the integrated evidence map are recorded in
-[architecture verification](architecture-verification.md). Final review remains a
-separate completion check.
+[architecture verification](architecture-verification.md), including final review
+outcomes and the supported/native evidence limits.
 
 ## Complete-state inline storage and owning clones
 
