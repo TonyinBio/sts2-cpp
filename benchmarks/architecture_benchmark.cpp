@@ -1,6 +1,6 @@
 #include "sts2/engine/action.hpp"
-#include "../src/engine/continuation_scenario.hpp"
-#include "../src/engine/gameplay.hpp"
+#include "../tests/support/continuation_fixture.hpp"
+#include "../src/engine/mechanics/powers.hpp"
 #include <stdexcept>
 #include <chrono>
 #include <cstdlib>
@@ -64,7 +64,7 @@ int main(int argc, char** argv) try {
     if (argc == 2) { char* end = nullptr; iterations = std::strtoull(argv[1], &end, 10); if (!end || *end || !iterations || iterations > 100000000) return 1; }
     else if (argc > 2) return 1;
     std::cout << "run_data_bytes=" << sizeof(RunData) << " combat_data_bytes=" << sizeof(CombatData)
-              << " card_instance_bytes=" << sizeof(CardInstance) << " effect_frame_bytes=" << sizeof(EffectFrame)
+              << " card_instance_bytes=" << sizeof(CombatCard) << " effect_frame_bytes=" << sizeof(EffectFrame)
               << " creature_state_bytes=" << sizeof(CreatureState) << " power_instance_bytes=" << sizeof(PowerInstance) << '\n';
     for (int workload = 0; workload < 5; ++workload) {
         RunState baseline, branch; Scratch scratch;

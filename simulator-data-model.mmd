@@ -58,7 +58,7 @@ classDiagram
         +upgrade
         +floor_added
     }
-    class CardInstance {
+    class CombatCard {
         +CardId definition
         +upgraded
         +creation_order
@@ -136,10 +136,10 @@ classDiagram
     CombatData *-- "2" CreatureState
     CombatData *-- RngBank
     CombatData *-- PoolData : card pool
-    PoolData *-- CardInstance
+    PoolData *-- CombatCard
     CombatData *-- CardHandle : piles
-    CardHandle --> CardInstance : slot and generation
-    CardInstance --> PersistentCard : deck_instance ID
+    CardHandle --> CombatCard : slot and generation
+    CombatCard --> PersistentCard : deck_instance ID
 
     CombatData *-- EffectFrame
     CombatData *-- CombatCounters

@@ -6,7 +6,9 @@ benchmark commit `72886eb` at measured/tested source revision
 `04c79645029b570e00bc0878093fdd35ec9307da`. It covers supported gameplay only. No production
 content, old content-ticket completion requirement, native fixture replacement or
 binary-to-JSON checkpoint migration is introduced. The current binary revisions
-are combat 13 and run 11.
+are combat 15 and run 13 after adding typed persistent/combat card side stores.
+Earlier revisions are rejected; the measurements below describe the recorded
+source revision before these storage changes.
 
 ## Behavioral evidence
 
@@ -29,7 +31,7 @@ surfaces and original fixture bytes.
 | Hidden information, invalid/restricted/stale actions and operational failure | `HiddenQueuesAndDrawOrderDoNotAffectVisibleChoicesOrIds`, `HiddenEncounterSupportIsNotDisclosedByTravelQueries`, `MalformedUnsupportedAndStaleActionsArePureAndFailuresInvalidate` |
 | Worker-local complete state/scratch with shared immutable rules | `WorkersShareOnlyImmutableRulesAndProduceIdenticalCompleteStates`, `ConcurrentOverflowBranchesOwnStateAndScratchIndependently` |
 
-Controlled shuffle listeners, remembered card choices, parent interactions and
+Controlled shuffle listeners, parent interactions and
 extra retained creatures are architecture fixtures. They do not establish native
 content parity. The native diagnostic adapter rejects unmapped controlled states;
 `ControlledShuffleStateCannotBeExportedAsNativeDiagnosticEvidence` checks that
@@ -60,7 +62,7 @@ The supported workload initializes seeded combat with default configuration:
 seed `ORACLECHECK01`, `CHARACTER.IRONCLAD`, ascension 0, pinned build
 `0.111.0+41cef1ea`, rules revision 1. The pinned assembly SHA-256 is
 `0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9`
-(`game_digest` in `include/sts2/rules/ruleset.hpp`). Rules source/provenance is
+(`game_digest` in `include/sts2/content/cards.hpp`). Rules source/provenance is
 fixed by measured source revision `04c79645029b570e00bc0878093fdd35ec9307da`; the generated definition tables are
 unchanged.
 Creature overflow adds twelve controlled retained creatures. The 200-card workload
@@ -95,7 +97,7 @@ allocator bookkeeping, stack scratch, code and shared immutable rules.
 | Controlled twelve-power overflow | 33,472 | 34,000 | 64,543 / 0 | 589 / 20,000 | 1,600 / 10,000 | 625,179 |
 
 Every row uses 10,000 iterations per operation; checksum was 490,000.
-`sizeof(RunData)` is 33,376, `CombatData` 4,000, `CardInstance` 36,
+`sizeof(RunData)` is 33,376, `CombatData` 4,000, `CombatCard` (then named `CardInstance`) 36,
 `EffectFrame` 56, `CreatureState` 272 and `PowerInstance` 40 bytes on this compiler/ABI.
 Common cloning uses the inline complete-record memcpy with no allocation. Overflow
 cloning independently owns its retained buffers and has an explicit allocation

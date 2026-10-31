@@ -2,7 +2,7 @@
 #include "sts2/observation/run.hpp"
 #include "sts2/persistence/checkpoint.hpp"
 #include "storage_allocator.hpp"
-#include "../../src/engine/gameplay.hpp"
+#include "../../src/engine/mechanics/powers.hpp"
 #include <gtest/gtest.h>
 
 namespace sts2::engine {

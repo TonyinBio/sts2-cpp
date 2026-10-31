@@ -4,6 +4,14 @@
 #include <variant>
 
 namespace sts2::engine {
+struct SeededConfig {
+    std::string_view build = "0.111.0+41cef1ea";
+    std::string_view character = "CHARACTER.IRONCLAD";
+    std::string_view seed = "ORACLECHECK01";
+    std::uint8_t ascension = 0;
+    std::array<std::string_view, 3> acts = {"ACT.OVERGROWTH", "ACT.HIVE", "ACT.GLORY"};
+    ClockConfig clock;
+};
 enum class RunInputKind : std::uint8_t { choose_option, proceed, travel, abandon, take_reward, skip_rewards, choose_reward_card, reward_alternative, discard_potion };
 struct RunInput {
     BoundaryId expected_boundary;

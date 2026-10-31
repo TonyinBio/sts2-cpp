@@ -1,8 +1,49 @@
+# Engineering Learning Workflow
+
+This project has two objectives:
+1. Build a correct, high-performance simulator.
+2. Develop the owner's independent C++ engineering skills.
+
+Both objectives matter.
+
+## Modes
+
+LEARN (default for architecture, algorithms, core mechanics,
+memory management, concurrency, and optimization):
+- Start with read-only investigation.
+- Ask for my proposed approach before offering a complete design.
+- Critique my reasoning and offer graduated hints.
+- Do not implement until I explicitly approve the design.
+- Keep implementation changes small enough to review.
+- After implementation, identify the critical code paths
+  I need to understand.
+- Ask me to explain important invariants, control flow,
+  tradeoffs, and potential failure modes before giving
+  your own explanations.
+- Do not consider the learning checkpoint complete until
+  I have reviewed and explained the important code.
+
+SHIP (explicitly requested for routine/delegated work):
+- Implement efficiently with appropriate tests.
+- Summarize important changes and risks.
+
+## Engineering principles
+
+- Require measurable evidence for performance claims.
+- Distinguish intended architecture from actual behavior.
+- Explain limitations and uncertainties honestly.
+- Never equate passing tests with complete correctness.
+- Never claim that I understand code merely because
+  you have explained it.
+- Keep learning checkpoints proportional to the task.
+
+I may explicitly override LEARN mode when appropriate.
+
 # Repository Guidelines
 
 ## Project Structure & Module Organization
 
-This is a headless C++23 Slay the Spire 2 simulator. Public headers live in `include/sts2/`; implementations live in `src/`, split into rules, state, engine, observation, persistence, and integration layers. CLI entry points are in `apps/`.
+This is a headless C++23 Slay the Spire 2 simulator. Public headers live in `include/sts2/`. Implementations live in `src/`, with core algorithms under `src/core/` and gameplay under `src/engine/` (content, mechanics, execution, combat, and run). Observation, persistence, and JSON integration have separate directories. CLI entry points are in `apps/`.
 
 `tests/unit/` contains engine tests; `tests/parity/` holds recording contract tests, replay tests, and recordings; `tests/oracle/` contains reference-tool Python regressions. Shared recording validation and replay code lives under `tools/parity/`, with canonical schemas in `data/schemas/`. Keep `src/` and `include/sts2/` for the C++ engine. Audited definitions live in `data/builds/`; architecture and contracts live in `docs/specs/`. `tools/` also contains rules generation and reference audits. `sts2-cli/` is the pinned reference submodule.
 
@@ -48,7 +89,7 @@ Use the `release` configure/build/test presets for optimized builds; run `./buil
 
 ## Coding Style & Naming Conventions
 
-Follow surrounding code: four-space indentation, same-line braces, `snake_case` functions/variables/files, and `PascalCase` types. Use `.hpp` headers with `#pragma once`. No repository-wide formatter or linter is configured; keep compiler warnings clean. Regenerate `src/rules/setup.g.cpp` with `python3 tools/rules_compiler/setup.py` instead of editing it directly.
+Follow surrounding code: four-space indentation, same-line braces, `snake_case` functions/variables/files, and `PascalCase` types. Use `.hpp` headers with `#pragma once`. No repository-wide formatter or linter is configured; keep compiler warnings clean. Regenerate `src/engine/content/catalog.g.cpp` with `python3 tools/rules_compiler/setup.py` instead of editing it directly.
 
 ## Testing Guidelines
 

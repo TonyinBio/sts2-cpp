@@ -15,7 +15,7 @@ template<class Tag> struct Handle {
     friend auto operator<=>(const Handle&, const Handle&) = default;
 };
 using CreatureHandle = Handle<struct CreatureTag>;
-using CardHandle = Handle<struct CardInstanceTag>;
+using CardHandle = Handle<struct CombatCardTag>;
 using PersistentCardHandle = Handle<struct PersistentCardTag>;
 using ShuffleReactionHandle = Handle<struct ShuffleReactionTag>;
 using PromptId = Id<struct PromptTag>;

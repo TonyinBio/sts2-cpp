@@ -118,8 +118,8 @@ current diff and preserve unrelated work; do not reset to HEAD as a starting poi
 | Location | Relevant behavior |
 | --- | --- |
 | `include/sts2/state/combat_types.hpp` | Transient diagnostic events, hit results and live power instances; no history collections |
-| `include/sts2/state/combat.hpp` | Compact counters, per-card turn/per-creature hit metadata, four self-contained frames and fixed power-type slots with application order |
-| `src/engine/combat.cpp` | Counter updates, optional synchronous trace, safe supported-power retirement, execution and validation |
+| `include/sts2/state/cards.hpp`, `creature.hpp`, `execution.hpp`, `combat.hpp` | Per-card turn/per-creature hit metadata, self-contained frames, ordered power instances and the combat aggregate |
+| `src/engine/combat/`, `src/engine/execution/`, `src/engine/mechanics/` | Counter updates, optional synchronous trace, safe supported-power retirement, execution and validation |
 | `src/json_io/native_run.cpp`, `native_combat.cpp` | Exporter-owned event/completed-play/removed-power history and unchanged privileged comparison output |
 | `src/persistence/checkpoint.cpp` | Binary revision 6 includes counters, per-instance metadata, frames and live powers; old revisions rejected |
 | `src/persistence/run_checkpoint.cpp` | Binary revision 4 embeds active combat; no exporter history |

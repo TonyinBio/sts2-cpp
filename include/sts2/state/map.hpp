@@ -1,5 +1,5 @@
 #pragma once
-#include "sts2/state/rng.hpp"
+#include "sts2/core/rng.hpp"
 #include <array>
 #include <cstdint>
 #include <string_view>

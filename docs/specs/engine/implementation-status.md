@@ -28,7 +28,7 @@ An optional synchronous trace supplies `json_io`'s exporter-owned diagnostic his
 completed plays and removed powers. Comparison schemas and fixtures remain unchanged.
 Recording is linear and attaches at creation; recording arbitrary pre-made states
 or cloned branches is unsupported. Engine clones contain no exporter context.
-Binary checkpoint revisions are combat 13 and run 11; older versions are rejected.
+Binary checkpoint revisions are combat 15 and run 13; older versions are rejected.
 JSON checkpoint migration remains separate. These summaries are not a sufficiency
 proof for unsupported mechanics or mutable card types.
 
@@ -58,20 +58,41 @@ Persistent deck order now holds handles into a separate generational card pool;
 combat card origins resolve those handles rather than deck positions. Ordered cost
 layers preserve local absolute/relative changes, reduce-only behavior and expiry.
 Controlled upgrade, reorder and branch tests exercise temporary/permanent isolation;
-they do not establish parity for new production effects. A typed remembered-choice
-payload exercises exceptional card state through controlled shuffle reactions,
-including cloning, checkpoints and stale-generation rejection. It is architecture
-coverage, not evidence for a native card mechanic. Native diagnostic export rejects
-these controlled states. Inline payload placement remains provisional pending measurement.
+they do not establish parity for new production effects. Persistent and combat
+card side stores contain generational card handles and typed extra payloads, with
+inline capacities of 10 and 20 respectively and independently cloned overflow.
+The initial `TheScytheExtraData` payload follows the audited current/increased damage
+fields. This adds storage infrastructure, not native Scythe gameplay support.
+Nightmare's selected card is audited as power-owned state and is not represented
+as card extra data. Each live card has at most one side entry; stale and duplicate
+keys are invalid. Deck erasure removes persistent entries; combat cleanup clears
+combat entries. Combat setup copies persistent-origin payloads, while permanent
+updates remain explicit. Side stores participate in equality and checkpoints.
+Native diagnostics reject populated stores until their content mapping is
+implemented. Temporary selections still belong to prompt and continuation state.
+Controlled shuffle reactions remain architecture fixtures.
 
-Shared mechanics, typed hooks, compiled instruction handlers and combat completion
-live in `src/engine/mechanics.cpp`, `hooks.cpp`, `content.cpp` and
-`combat_lifecycle.cpp`, compiled together in `sts2_engine`. Synchronous damage,
-block and power modifiers return values directly. Reaction hooks retain explicit
-native traversal order. Immutable card metadata determines attack classification,
-retention and completion destinations, so these behaviors do not require named
-card checks in the central controller. Selective continuations in `continuation.cpp` preserve unfinished draw, selection,
-exhaust-hook and relic-draw completion work on the same stack as card programs.
+Shared operations and reaction sequencing live in `src/engine/mechanics/`.
+Individual power behavior, including typed modifiers, lives in
+`src/engine/content/powers.cpp`. Damage modifiers still combine before one final
+rounding step; power separation uses direct functions with no event bus.
+Immutable card definitions and instruction programs live in
+`src/engine/content/cards.cpp`; generated catalog definitions live in
+`src/engine/content/catalog.g.cpp`. Their public declarations are in
+`include/sts2/content/`. The `Ruleset` and `SetupRules` type names remain.
+Content-specific relic reactions and monster behavior live in
+`src/engine/content/relics.cpp` and `src/engine/content/monsters.cpp` respectively. Combat setup, stepping, completion and validation live in
+`src/engine/combat/`; run initialization lives in `src/engine/run/initialize.cpp`, progression in
+`src/engine/run/step.cpp`, and room handling in `src/engine/run/rooms.cpp`.
+These sources compile together in `sts2_engine` and share focused private headers
+beside their implementations. Synchronous damage, block and power modifiers
+return values directly. Reaction hooks retain explicit native traversal order.
+Immutable card metadata determines attack classification, retention and completion
+destinations, so these behaviors do not require named card checks in the central
+controller. `src/engine/execution/interpreter.cpp` holds both instruction execution
+and selective continuation resumption for unfinished draw, selection, exhaust-hook
+and relic-draw completion work. `execution/selection.cpp` owns prompt construction,
+selection validation and transferring accepted choices into continuation frames.
 Guaranteed synchronous mechanics remain direct calls. Captured listener handles and
 ordered operands belong to complete state, including their overflow; prompts name
 the frame that receives their result. Joss Paper's persistent counter is run-owned
@@ -90,7 +111,7 @@ plans the input directly; it never clones or speculatively executes the run. Vis
 travel validation remains separate from hidden encounter capability checks. Views
 expire after mutation. The CLI and scenario query adapter use the borrowed path.
 
-`run_rooms.cpp` owns pure room planning and specialized starting-choice, claim and
+`src/engine/run/rooms.cpp` owns pure room planning and specialized starting-choice, claim and
 return handlers; the run dispatcher owns boundary/clock publication and map entry.
 `enemy.cpp` executes the selected compiled move and separately derives visible
 intent. Shrinker's deterministic AI needs its selected move, without invented move
@@ -277,3 +298,39 @@ two-creature projection; complete-run cloning/checkpoints retain them. Controlle
 cover retained and recycled targets, power overflow, independent clone/restore
 futures and standalone combat extraction. These fixtures add no production
 content or native gameplay claims.
+
+## Source navigation
+
+| Question | Starting location |
+| --- | --- |
+| What state do persistent and combat cards carry? | `include/sts2/state/cards.hpp` |
+| What state does a creature carry? | `include/sts2/state/creature.hpp` |
+| What survives when execution pauses? | `include/sts2/state/execution.hpp` |
+| How is combat state assembled, accessed and cloned? | `include/sts2/state/combat.hpp` |
+| What can a caller submit? | `include/sts2/engine/action.hpp`, `combat.hpp`, `run.hpp` |
+| How do effects execute and resume? | `src/engine/execution/interpreter.cpp` |
+| How do card instances, piles, drawing, discard, exhaust and permanent upgrades work? | `src/engine/mechanics/cards.cpp` |
+| How do damage, block and powers work? | `src/engine/mechanics/` |
+| Where are supported card definitions and programs? | `src/engine/content/cards.cpp` |
+| Where is particular power, relic or monster behavior? | `src/engine/content/` |
+| How is a run initialized, including seeded content queues and starting choices? | `src/engine/run/initialize.cpp` |
+| How does an existing run progress? | `src/engine/run/step.cpp` |
+| How do combat transitions proceed? | `src/engine/combat/` |
+
+Private headers declare only operations shared by implementation files. Helpers
+used in one implementation remain local. Content category files are added as content
+is implemented; the layout does not imply support for additional cards or events.
+
+The public run interface remains in `include/sts2/engine/run.hpp`, including
+`SeededConfig`, initialization, single-transition stepping and run validation.
+`engine/action.hpp` retains the decision-oriented player action interface.
+Run state, relic bags and act queues live in `state/run.hpp`; player RNG state
+lives in `state/rng.hpp`. The former `state/setup.hpp` is removed. Source files
+separate initialization (`run/initialize.cpp`) from progression (`run/step.cpp`)
+without requiring separate public headers for those implementations.
+
+RNG algorithms, hashing, seed conversion and single-generator saved state live
+in `core/rng.hpp` and `src/core/rng.cpp`. `state/rng.hpp` holds named run/player
+stream banks with inline constructors. The unused experimental root `rng.hpp`
+and its two dedicated tests are removed; pinned native RNG vectors and full
+stream-state comparisons remain in `tests/unit/engine_test.cpp`.

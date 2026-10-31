@@ -1,5 +1,6 @@
 #include "sts2/observation/observe.hpp"
-#include "../engine/gameplay.hpp"
+#include "../engine/content/monsters.hpp"
+#include "../engine/content/powers.hpp"
 #include <algorithm>
 
 namespace sts2::engine {
@@ -36,19 +37,14 @@ std::optional<CardView> inspect_card(ConstCombatView s, CardHandle h, const Rule
     const bool active_preview = std::find(hand.begin(), hand.end(), h) != hand.end();
     for (const auto& op : def->program) {
         const auto value = op.base + (instance->upgraded ? op.upgrade : 0);
-        if (op.opcode == Opcode::damage) view.damage = static_cast<int>(std::max<std::int64_t>(0, std::int64_t(value) + (active_preview ? s.player.power_amount(PowerId::strength, s.creature_overflow) : 0)) * (active_preview && s.player.has_power(PowerId::shrink, s.creature_overflow) ? 70 : 100) * (active_preview && s.player.power_amount(PowerId::weak, s.creature_overflow) > 0 ? 75 : 100) * (active_preview && s.enemy.power_amount(PowerId::vulnerable, s.creature_overflow) ? 150 : 100) / 1000000);
-        else if (op.opcode == Opcode::block) view.block = static_cast<int>(std::max<std::int64_t>(0, std::int64_t(value) + (active_preview ? s.player.power_amount(PowerId::dexterity, s.creature_overflow) : 0)));
+        if (op.opcode == Opcode::damage) view.damage = gameplay::preview_attack_damage(s, value, active_preview);
+        else if (op.opcode == Opcode::block) view.block = gameplay::preview_block(s, value, active_preview);
         else if (op.opcode == Opcode::vulnerable) view.vulnerable = value;
         else if (op.opcode == Opcode::strength) view.strength = value;
         else if (op.opcode == Opcode::weak) view.weak = value;
     }
     view.exhaust = instance->definition == CardId::shockwave || instance->definition == CardId::tremble;
     view.power = instance->definition == CardId::inflame;
-    if (instance->extra.index() > 1) return std::nullopt;
-    if (const auto* memory = std::get_if<RememberedCardChoice>(&instance->extra)) {
-        if (!s.cards.get(memory->card)) return std::nullopt;
-        view.remembered_choice = memory->card;
-    }
     return view;
 }
 std::string describe(const CardView& card) {

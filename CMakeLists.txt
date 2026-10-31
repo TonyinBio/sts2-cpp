@@ -1,17 +1,41 @@
 cmake_minimum_required(VERSION 3.20)
 project(sts2_simulator VERSION 0.1.0 LANGUAGES CXX)
 
-# Rules and transition targets have no JSON, game assembly, or filesystem dependencies.
-add_library(sts2_rules src/rules/ruleset.cpp src/rules/setup.g.cpp)
-target_include_directories(sts2_rules PUBLIC include)
-target_compile_features(sts2_rules PUBLIC cxx_std_23)
-add_library(sts2_engine src/engine/action.cpp src/state/rng.cpp src/engine/combat.cpp src/engine/mechanics.cpp src/engine/hooks.cpp src/engine/content.cpp src/engine/continuation.cpp src/engine/combat_lifecycle.cpp src/engine/enemy.cpp src/engine/systems/map.cpp src/engine/systems/setup.cpp src/engine/systems/rewards.cpp src/engine/run.cpp src/engine/run_rooms.cpp src/engine/run_validation.cpp)
-target_link_libraries(sts2_engine PUBLIC sts2_rules)
+# Immutable content definitions have no JSON, game assembly, or filesystem dependencies.
+# Runtime content and mechanics compile together in sts2_engine.
+add_library(sts2_content src/engine/content/cards.cpp src/engine/content/catalog.g.cpp)
+target_include_directories(sts2_content PUBLIC include)
+target_compile_features(sts2_content PUBLIC cxx_std_23)
+add_library(sts2_engine
+  src/engine/action_dispatch.cpp
+  src/engine/combat/initialize.cpp
+  src/engine/combat/lifecycle.cpp
+  src/engine/combat/step.cpp
+  src/engine/combat/trace.cpp
+  src/engine/combat/validation.cpp
+  src/engine/content/monsters.cpp
+  src/engine/content/powers.cpp
+  src/engine/content/relics.cpp
+  src/engine/execution/interpreter.cpp
+  src/engine/execution/selection.cpp
+  src/engine/mechanics/block.cpp
+  src/engine/mechanics/cards.cpp
+  src/engine/mechanics/damage.cpp
+  src/engine/mechanics/energy.cpp
+  src/engine/mechanics/powers.cpp
+  src/engine/run/initialize.cpp
+  src/engine/run/map.cpp
+  src/engine/run/rewards.cpp
+  src/engine/run/rooms.cpp
+  src/engine/run/step.cpp
+  src/engine/run/validation.cpp
+)
+target_link_libraries(sts2_engine PUBLIC sts2_content)
 add_library(sts2_observation src/observation/observe.cpp src/observation/run.cpp)
 target_link_libraries(sts2_observation PUBLIC sts2_engine)
 add_library(sts2_persistence src/persistence/checkpoint.cpp src/persistence/run_checkpoint.cpp)
 target_link_libraries(sts2_persistence PUBLIC sts2_engine)
-foreach(engine_target sts2_rules sts2_engine sts2_observation sts2_persistence)
+foreach(engine_target sts2_content sts2_engine sts2_observation sts2_persistence)
   set_target_properties(${engine_target} PROPERTIES CXX_EXTENSIONS OFF)
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(${engine_target} PRIVATE -Wall -Wextra -Wpedantic -ffp-contract=off)
@@ -94,11 +118,11 @@ if(BUILD_TESTING)
   endif()
   FetchContent_MakeAvailable(googletest)
 
-  add_executable(state_primitives_test tests/unit/rng_test.cpp tests/unit/clock_test.cpp)
+  add_executable(state_primitives_test tests/unit/clock_test.cpp)
   target_link_libraries(state_primitives_test PRIVATE sts2_engine GTest::gtest_main)
   add_executable(inline_storage_test tests/unit/inline_storage_test.cpp)
   target_link_libraries(inline_storage_test PRIVATE sts2_engine GTest::gtest_main)
-  add_executable(engine_test tests/unit/engine_test.cpp tests/unit/card_choices_test.cpp tests/unit/map_test.cpp tests/unit/setup_test.cpp tests/unit/run_test.cpp tests/unit/state_clone_test.cpp tests/parity/seeded_run_test.cpp)
+  add_executable(engine_test tests/unit/engine_test.cpp tests/unit/card_choices_test.cpp tests/unit/map_test.cpp tests/unit/setup_test.cpp tests/unit/run_test.cpp tests/unit/state_clone_test.cpp tests/unit/card_extra_test.cpp tests/parity/seeded_run_test.cpp)
   target_link_libraries(engine_test PRIVATE sts2_json_io sts2_parity nlohmann_json::nlohmann_json GTest::gtest_main)
   target_compile_definitions(engine_test PRIVATE
     KERNEL_SEEDED_SETUP_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/seeded-setup-v1.json"

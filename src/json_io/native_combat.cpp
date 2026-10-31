@@ -15,7 +15,7 @@ std::string power_ref(std::size_t id) { return "/combat/powers/" + std::to_strin
 Json random_state(const RngState& r) {
     return {{"counter", std::bit_cast<std::int32_t>(r.counter)}, {"s0", r.words[0]}, {"s1", r.words[1]}, {"s2", r.words[2]}, {"s3", r.words[3]}};
 }
-Json variables(const CardInstance& c) {
+Json variables(const CombatCard& c) {
     switch (c.definition) {
     case CardId::strike: return {{"Damage", c.upgraded ? 9 : 6}};
     case CardId::defend: return {{"Block", c.upgraded ? 8 : 5}};
@@ -80,9 +80,6 @@ void export_rewards(Json& out, ConstRunView run_view) {
 void export_native_combat(Json& out, const RunState& run, const RecordedCombat& recorded) {
     if (run.view().combat && run.view().combat->shuffle_reactions.data.highest_generation != 0)
         throw std::invalid_argument("Controlled shuffle reactions have no native diagnostic mapping");
-    if (run.view().combat) for (const auto& slot : run.view().combat->cards.slots())
-        if (slot.live && !std::holds_alternative<std::monostate>(slot.value.extra))
-            throw std::invalid_argument("Exceptional card state has no native diagnostic mapping");
     for (const auto& power : recorded.powers)
         if (power.stacking != PowerInstance::Stacking::by_type)
             throw std::invalid_argument("Distinct/per-applier controlled powers have no native diagnostic mapping");

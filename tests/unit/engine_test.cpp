@@ -314,6 +314,19 @@ TEST(Checkpoint, CorruptionTruncationAndIncompatibleIdentityAreAtomic) {
     EXPECT_EQ(restore(target, saved.bytes, scratch, {2}), RestoreStatus::resource_limit);
     EXPECT_EQ(checkpoint(target).bytes, before);
 }
+TEST(Checkpoint, PreviousFormatIsRejectedAtomically) {
+    auto state = initial(); Scratch scratch;
+    const auto before = checkpoint(state).bytes;
+    for (bool old_magic : {false, true}) {
+        auto previous = before;
+        previous[8] = std::byte{14};
+        if (old_magic) previous[7] = std::byte{'4'};
+        const auto hash = game_hash({reinterpret_cast<const char*>(previous.data()), previous.size() - 8});
+        for (unsigned i = 0; i < 8; ++i) previous[previous.size() - 8 + i] = std::byte(hash >> (8 * i));
+        EXPECT_EQ(restore(state, previous, scratch), RestoreStatus::incompatible);
+        EXPECT_EQ(checkpoint(state).bytes, before);
+    }
+}
 // Standalone mechanics diagnostics supplement the seeded full-state integration
 // replay. Setup uses its own native Niche HP roll; no checkpoint values initialize it.
 TEST(CombatMechanics, RecordedActionsMatchEveryModeledCheckpointIncludingShuffleIdentity) {

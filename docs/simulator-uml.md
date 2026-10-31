@@ -49,7 +49,7 @@ classDiagram
     class CombatRewards
     class RngBank
     class CreatureState
-    class CardInstance
+    class CombatCard
     class EffectFrame
     class RunView {
         <<borrowed view>>
@@ -69,7 +69,7 @@ classDiagram
     CombatState "1" *-- "1" OverflowStorage
     CombatData "1" *-- "2" CreatureState : player and enemy
     CombatData "1" *-- "1" RngBank : rng
-    CombatData "1" *-- "0..*" CardInstance : card pool slots
+    CombatData "1" *-- "0..*" CombatCard : card pool slots
     CombatData "1" *-- "0..*" EffectFrame : suspended execution
     RunView --> RunData : borrows
     RunView --> OverflowStorage : borrows both owners
@@ -185,7 +185,7 @@ not represented here as an implemented API.
 | Owning state and views | `include/sts2/state/run.hpp`, `include/sts2/state/combat.hpp` |
 | Inline and overflow storage | `include/sts2/core/inline_storage.hpp`, `include/sts2/core/storage.hpp` |
 | Run actions and combat transitions | `include/sts2/engine/action.hpp`, `include/sts2/engine/run.hpp`, `include/sts2/engine/combat.hpp` |
-| Definitions | `include/sts2/rules/ruleset.hpp`, `include/sts2/rules/setup.hpp` |
+| Definitions | `include/sts2/content/cards.hpp`, `include/sts2/content/catalog.hpp` |
 | Player observations | `include/sts2/observation/run.hpp`, `include/sts2/observation/observe.hpp` |
 | Checkpoints | `include/sts2/persistence/checkpoint.hpp` |
 | JSON integration | `include/sts2/json_io/session.hpp`, `include/sts2/json_io/native_run.hpp` |

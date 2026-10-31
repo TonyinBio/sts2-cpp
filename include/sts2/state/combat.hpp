@@ -1,144 +1,18 @@
 #pragma once
-#include <variant>
 #include "sts2/core/result.hpp"
 #include "sts2/core/storage.hpp"
-#include "sts2/rules/ruleset.hpp"
+#include "sts2/content/cards.hpp"
 #include "sts2/state/clock.hpp"
 #include "sts2/state/rng.hpp"
-#include "sts2/state/combat_types.hpp"
+#include "sts2/state/creature.hpp"
+#include "sts2/state/execution.hpp"
 #include <array>
 #include <algorithm>
 #include <string_view>
 
 namespace sts2::engine {
-enum class Zone : std::uint8_t { hand, draw, discard, exhaust, play, count };
 enum class CombatPhase : std::uint8_t { uninitialized, play, discard_choice, combat_won, player_died, card_choice, invalid };
 enum class BeetleMove : std::uint8_t { shrink, chomp, stomp };
-struct RememberedCardChoice {
-    CardHandle card {};
-    friend bool operator==(const RememberedCardChoice&, const RememberedCardChoice&) = default;
-};
-// Concrete typed exceptional properties, not an opaque fixed-size payload or
-// universal modifier bag. Extend with audited types as content requires them.
-using CardExtraState = std::variant<std::monostate, RememberedCardChoice>;
-struct CardInstance {
-    CardId definition = CardId::strike;
-    bool upgraded = false;
-    std::uint32_t creation_order = 0;
-    PersistentCardHandle origin {};
-    std::int32_t last_finished_player_turn = 0;
-    bool removed = false;
-    CardExtraState extra {};
-    friend bool operator==(const CardInstance&, const CardInstance&) = default;
-};
-enum class CostModifierKind : std::uint8_t { absolute, relative };
-enum class CostExpiry : std::uint8_t { combat = 0, turn = 2, played = 4, turn_or_played = 6 };
-struct CostModifier {
-    CardHandle card {};
-    CostModifierKind kind = CostModifierKind::relative;
-    CostExpiry expiry = CostExpiry::combat;
-    std::int32_t amount = 0;
-    bool reduce_only = false;
-    friend bool operator==(const CostModifier&, const CostModifier&) = default;
-};
-using CardPool = PoolData<CardInstance, CardInstanceTag, 32>;
-struct CreatureState {
-    std::int32_t hp = 0, max_hp = 0, block = 0;
-    std::uint64_t positive_unblocked_hits = 0;
-    // Provisional inline ordered instances; this access contract does not select
-    // a final dense/sparse layout. Capacity is a storage optimization, not a limit.
-    InlineSequence<PowerInstance, 6> powers {};
-    auto power_instances(OverflowStorage& owner) noexcept { return SequenceView(powers, owner); }
-    auto power_instances(const OverflowStorage& owner) const noexcept { return SequenceView(powers, owner); }
-    PowerInstance* find_power(PowerId id, OverflowStorage& owner) noexcept {
-        for (auto& p : powers.values(owner)) if (p.definition == id && p.active) return &p;
-        return nullptr;
-    }
-    const PowerInstance* find_power(PowerId id, const OverflowStorage& owner) const noexcept {
-        for (const auto& p : powers.values(owner)) if (p.definition == id && p.active) return &p;
-        return nullptr;
-    }
-    PowerInstance* find_power_instance(std::uint32_t id, OverflowStorage& owner) noexcept {
-        for (auto& p : powers.values(owner)) if (p.instance == id && p.active) return &p;
-        return nullptr;
-    }
-    bool has_power(PowerId id, const OverflowStorage& owner) const noexcept { return find_power(id, owner) != nullptr; }
-    std::int32_t power_amount(PowerId id, const OverflowStorage& owner) const noexcept {
-        std::int64_t total = 0;
-        for (const auto& p : powers.values(owner)) if (p.definition == id && p.active) total += p.amount;
-        return static_cast<std::int32_t>(std::clamp<std::int64_t>(total, INT32_MIN, INT32_MAX));
-    }
-    void clear_powers() noexcept { powers.clear(); }
-    void assign_from(const CreatureState& other, OverflowStorage& owner) {
-        auto retained = powers;
-        *this = other; powers = retained;
-        power_instances(owner).assign(other.power_instances(owner).begin(), other.power_instances(owner).end());
-    }
-    void clear() noexcept {
-        auto retained = powers; *this = {}; powers = retained; powers.clear();
-    }
-    bool equals(const OverflowStorage& owner, const CreatureState& other, const OverflowStorage& other_owner) const {
-        return hp == other.hp && max_hp == other.max_hp && block == other.block && positive_unblocked_hits == other.positive_unblocked_hits && powers.equals(owner, other.powers, other_owner);
-    }
-};
-// Every suspended operand is owned here, never on the C++ call stack or in Scratch.
-enum class SelectionEffect : std::uint8_t { none, exhaust, upgrade, topdeck };
-enum class ExhaustRelic : std::uint8_t { charons_ashes, joss_paper };
-struct DrawContinuation {
-    std::int32_t remaining = 0;
-    bool from_hand_draw = true;
-    friend bool operator==(const DrawContinuation&, const DrawContinuation&) = default;
-};
-struct ShuffleContinuation {
-    std::uint32_t begin = 0, count = 0, cursor = 0;
-    bool waiting = false;
-    CardHandle remember_to {};
-    friend bool operator==(const ShuffleContinuation&, const ShuffleContinuation&) = default;
-};
-struct SelectionContinuation {
-    SelectionEffect effect = SelectionEffect::none;
-    Zone zone = Zone::hand;
-    std::uint32_t begin = 0, count = 0, cursor = 0;
-    CardHandle remember_to {};
-    friend bool operator==(const SelectionContinuation&, const SelectionContinuation&) = default;
-};
-struct ExhaustContinuation {
-    std::array<ExhaustRelic, 2> candidates {};
-    std::uint8_t count = 0, cursor = 0;
-    friend bool operator==(const ExhaustContinuation&, const ExhaustContinuation&) = default;
-};
-struct RelicDrawCompletion { friend bool operator==(const RelicDrawCompletion&, const RelicDrawCompletion&) = default; };
-using ContinuationPayload = std::variant<std::monostate, DrawContinuation, ShuffleContinuation, SelectionContinuation, ExhaustContinuation, RelicDrawCompletion>;
-struct EffectFrame {
-    CardHandle source;
-    std::uint32_t instruction = 0;
-    std::uint32_t play = 0;
-    std::int32_t energy = 0;
-    // Captured enemy operand, also for untargeted programs such as Shockwave.
-    CreatureHandle target {};
-    ContinuationPayload pending {};
-    friend bool operator==(const EffectFrame&, const EffectFrame&) = default;
-};
-static_assert(std::is_trivially_copyable_v<EffectFrame>);
-struct CardSelection {
-    PromptId id {};
-    SelectionEffect effect = SelectionEffect::none;
-    Zone zone = Zone::hand;
-    std::uint32_t minimum = 0, maximum = 0;
-    bool automatic_at_maximum = false;
-    std::uint32_t continuation_depth = 0;
-    friend bool operator==(const CardSelection&, const CardSelection&) = default;
-};
-// These compiled reactions are used by controlled architecture fixtures only;
-// their presence does not establish native content support.
-enum class ShuffleReactionKind : std::uint8_t { choose_card, nested_draw };
-struct ShuffleReaction {
-    ShuffleReactionKind kind = ShuffleReactionKind::choose_card;
-    bool fired = false;
-    bool remember_choice = false;
-    friend bool operator==(const ShuffleReaction&, const ShuffleReaction&) = default;
-};
-using ShuffleReactionPool = PoolData<ShuffleReaction, ShuffleReactionTag, 4>;
 // Sufficient summaries for the audited single-player consumers. Card types are
 // immutable in supported content; mutable-type mechanics need a fresh audit.
 struct CombatCounters {
@@ -164,6 +38,7 @@ struct CombatData {
     EnemyAiState enemy_ai {};
     bool burning_blood = true;
     CardPool cards {};
+    InlineSequence<CombatCardExtra, 20> card_extra {};
     InlineSequence<CostModifier, 8> cost_modifiers {};
     std::array<InlineSequence<CardHandle, 32>, static_cast<std::size_t>(Zone::count)> zones {};
     InlineSequence<EffectFrame, 4> execution {};
@@ -180,7 +55,7 @@ struct CombatData {
     std::uint32_t next_power_instance = 0;
     std::uint32_t next_creation_order = 0;
     template<class Self, class Visit> static void visit_sequences(Self& r, Visit visit) noexcept {
-        visit(r.seed); visit(r.cards.slots); visit(r.cards.free); visit(r.cost_modifiers);
+        visit(r.seed); visit(r.cards.slots); visit(r.cards.free); visit(r.card_extra); visit(r.cost_modifiers);
         for (auto& zone : r.zones) visit(zone);
         visit(r.execution); visit(r.selection_candidates); visit(r.selection_order);
         visit(r.shuffle_reactions.slots); visit(r.shuffle_reactions.free); visit(r.shuffle_order);
@@ -216,7 +91,8 @@ template<bool Const> struct BasicCombatView {
     Ref<std::int32_t> turn = data.turn;
     Ref<BeetleMove> move = data.enemy_ai.selected;
     Ref<bool> burning_blood = data.burning_blood;
-    PoolView<CardInstance, CardInstanceTag, 32, Const> cards{data.cards, overflow};
+    PoolView<CombatCard, CombatCardTag, 32, Const> cards{data.cards, overflow};
+    SequenceView<CombatCardExtra, 20, Const> card_extra{data.card_extra, overflow};
     SequenceView<CostModifier, 8, Const> cost_modifiers{data.cost_modifiers, overflow};
     SequenceView<EffectFrame, 4, Const> execution{data.execution, overflow};
     Ref<CombatCounters> counters = data.counters;
@@ -278,7 +154,7 @@ template<bool Const> struct BasicCombatView {
             turn == other.turn &&
             move == other.move &&
             burning_blood == other.burning_blood &&
-            cards == other.cards && cost_modifiers == other.cost_modifiers &&
+            cards == other.cards && card_extra == other.card_extra && cost_modifiers == other.cost_modifiers &&
             zone_views() == other.zone_views() &&
             execution == other.execution &&
             counters == other.counters && exhaust_relics == other.exhaust_relics &&

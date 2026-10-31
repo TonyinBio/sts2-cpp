@@ -18,6 +18,11 @@ struct Writer {
     void ids(std::span<const ContentId> values) { u32(static_cast<std::uint32_t>(values.size())); for (auto value : values) u32(value); }
     void card(const PersistentCard& value) { u32(value.definition); u32(value.instance); u32(value.upgrade); i32(value.floor_added); }
     void handle(CardHandle h) { u32(h.slot); u32(h.generation); }
+    void card_extra(const CardExtraData& data) {
+        u8(static_cast<std::uint8_t>(data.index()));
+        const auto& scythe = std::get<TheScytheExtraData>(data);
+        i32(scythe.current_damage); i32(scythe.increased_damage);
+    }
     void creature(const CreatureState& c, const OverflowStorage& owner) {
         i32(c.hp); i32(c.max_hp); i32(c.block); u64(c.positive_unblocked_hits);
         u32(static_cast<std::uint32_t>(c.powers.size()));
@@ -62,6 +67,12 @@ struct Reader {
     void random(GameRng& value) { if (!value.restore(rng())) throw std::invalid_argument("Zero random state"); }
     template<std::size_t N> void ids(SequenceView<ContentId, N> values) { const auto n = count(4); values.reserve(n); for (std::size_t i = 0; i < n; ++i) values.push_back(id()); }
     PersistentCard card() { PersistentCard result; result.definition = id(); result.instance = u32(); result.upgrade = u32(); result.floor_added = i32(); return result; }
+    CardExtraData card_extra() {
+        switch (u8()) {
+        case 0: return TheScytheExtraData{i32(), i32()};
+        default: throw std::invalid_argument("Unknown card extra data");
+        }
+    }
     CardHandle handle() { const auto slot = u32(); return {slot, u32()}; }
     CreatureState creature(OverflowStorage& owner) {
         CreatureState c; c.hp = i32(); c.max_hp = i32(); c.block = i32(); c.positive_unblocked_hits = u64();
@@ -100,7 +111,7 @@ std::uint64_t checksum(std::span<const std::byte> bytes) { return game_hash({rei
 Checkpoint checkpoint(const RunState& run) {
     if (!valid_run(run)) throw std::invalid_argument("Cannot checkpoint invalid run");
     auto run_view = run.view();
-    Writer w; w.text("STS2RUN1"); w.u32(11); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
+    Writer w; w.text("STS2RUN1"); w.u32(13); w.u32(rules_revision); w.text(game_digest); w.text(SetupRules::fingerprint()); w.u64(content_fingerprint());
     const auto s = run_view;
     w.u32(s.creatures.data.highest_generation);
     w.u32(static_cast<std::uint32_t>(s.creatures.slots().size()));
@@ -127,6 +138,8 @@ Checkpoint checkpoint(const RunState& run) {
     for (const auto slot : s.deck.pool.free_slots()) w.u32(slot);
     w.u32(static_cast<std::uint32_t>(s.deck.size()));
     for (const auto h : s.deck.handles()) { w.u32(h.slot); w.u32(h.generation); }
+    w.u32(static_cast<std::uint32_t>(s.card_extra.size()));
+    for (const auto& entry : s.card_extra) { w.u32(entry.card.slot); w.u32(entry.card.generation); w.card_extra(entry.data); }
     w.ids(s.relics); w.u32(s.joss_paper_counter); w.ids(s.potions); w.u32(std::bit_cast<std::uint32_t>(s.card_rarity_offset)); w.u32(std::bit_cast<std::uint32_t>(s.potion_reward_odds));
     const auto clock = run_view.clock.config(); w.u64(static_cast<std::uint64_t>(clock.epoch_seconds)); w.u64(static_cast<std::uint64_t>(clock.seconds_per_action)); w.u64(static_cast<std::uint64_t>(run_view.clock.elapsed_seconds()));
     w.u32(run_view.boundary.value); w.u8(static_cast<std::uint8_t>(run_view.phase));
@@ -152,7 +165,7 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         Reader trailer{bytes.last(8)}; if (trailer.u64() != checksum(bytes.first(bytes.size() - 8))) return RestoreStatus::malformed;
         Reader r{bytes.first(bytes.size() - 8)};
         for (char c : std::string_view("STS2RUN1")) if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
-        if (r.u32() != 11 || r.u32() != rules_revision) return RestoreStatus::incompatible;
+        if (r.u32() != 13 || r.u32() != rules_revision) return RestoreStatus::incompatible;
         for (const auto identity : {game_digest, SetupRules::fingerprint()}) for (char c : identity)
             if (r.u8() != static_cast<std::uint8_t>(c)) return RestoreStatus::incompatible;
         if (r.u64() != content_fingerprint()) return RestoreStatus::incompatible;
@@ -197,6 +210,11 @@ RestoreStatus restore(RunState& destination, std::span<const std::byte> bytes, S
         const auto cards = r.count(8, limits.cards);
         s.deck.handles().reserve(cards);
         for (std::size_t i = 0; i < cards; ++i) s.deck.handles().push_back({r.u32(), r.u32()});
+        const auto extra_count = r.count(17, limits.cards);
+        for (std::uint32_t i = 0; i < extra_count; ++i) {
+            const PersistentCardHandle card{r.u32(), r.u32()}; auto data = r.card_extra();
+            s.card_extra.push_back({card, data});
+        }
         r.ids(s.relics); s.joss_paper_counter = r.u32(); r.ids(s.potions); s.card_rarity_offset = std::bit_cast<float>(r.u32()); s.potion_reward_odds = std::bit_cast<float>(r.u32());
         const auto epoch = r.u64(), step = r.u64(), elapsed = r.u64();
         if (epoch > RunClock::max_seconds || step > 86400 || elapsed > RunClock::max_seconds ||

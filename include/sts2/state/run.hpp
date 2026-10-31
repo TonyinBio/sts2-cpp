@@ -1,5 +1,9 @@
 #pragma once
-#include "sts2/state/setup.hpp"
+#include "sts2/content/catalog.hpp"
+#include "sts2/state/clock.hpp"
+#include "sts2/state/map.hpp"
+#include "sts2/state/rng.hpp"
+#include "sts2/state/cards.hpp"
 #include "sts2/state/combat.hpp"
 #include <algorithm>
 #include <cstddef>
@@ -9,6 +13,49 @@
 #include <stdexcept>
 
 namespace sts2::engine {
+struct RelicBagData {
+    std::array<InlineSequence<ContentId, 64>, 8> tiers;
+    InlineSequence<RelicTier, 8> order;
+};
+template<bool Const> struct BasicRelicBagView {
+    using Data = std::conditional_t<Const, const RelicBagData, RelicBagData>;
+    using Owner = std::conditional_t<Const, const OverflowStorage, OverflowStorage>;
+    Data& data;
+    Owner& overflow;
+    std::array<SequenceView<ContentId, 64, Const>, 8> tiers;
+    SequenceView<RelicTier, 8, Const> order;
+    BasicRelicBagView(Data& r, Owner& o) noexcept : data(r), overflow(o),
+        tiers{{{r.tiers[0], o}, {r.tiers[1], o}, {r.tiers[2], o}, {r.tiers[3], o}, {r.tiers[4], o}, {r.tiers[5], o}, {r.tiers[6], o}, {r.tiers[7], o}}}, order(r.order, o) {}
+    template<bool Other> bool operator==(const BasicRelicBagView<Other>& other) const { return tiers == other.tiers && order == other.order; }
+};
+using RelicBag = BasicRelicBagView<false>;
+using ConstRelicBag = BasicRelicBagView<true>;
+struct ActRoomsData {
+    ContentId act = no_content, ancient = no_content, boss = no_content, second_boss = no_content;
+    InlineSequence<ContentId, 32> events, normal, elites, shared_ancients;
+    std::uint32_t events_visited = 0, normal_visited = 0, elites_visited = 0, bosses_visited = 0;
+};
+template<bool Const> struct BasicActRoomsView {
+    template<class T> using Ref = std::conditional_t<Const, const T&, T&>;
+    using Data = std::conditional_t<Const, const ActRoomsData, ActRoomsData>;
+    using Owner = std::conditional_t<Const, const OverflowStorage, OverflowStorage>;
+    Data& data;
+    Owner& overflow;
+    Ref<ContentId> act = data.act;
+    Ref<ContentId> ancient = data.ancient;
+    Ref<ContentId> boss = data.boss;
+    Ref<ContentId> second_boss = data.second_boss;
+    SequenceView<ContentId, 32, Const> events{data.events, overflow};
+    SequenceView<ContentId, 32, Const> normal{data.normal, overflow};
+    SequenceView<ContentId, 32, Const> elites{data.elites, overflow};
+    SequenceView<ContentId, 32, Const> shared_ancients{data.shared_ancients, overflow};
+    Ref<std::uint32_t> events_visited = data.events_visited;
+    Ref<std::uint32_t> normal_visited = data.normal_visited;
+    Ref<std::uint32_t> elites_visited = data.elites_visited;
+    Ref<std::uint32_t> bosses_visited = data.bosses_visited;
+    BasicActRoomsView(Data& r, Owner& o) noexcept : data(r), overflow(o) {}
+    template<bool Other> bool operator==(const BasicActRoomsView<Other>& other) const { return act == other.act && ancient == other.ancient && boss == other.boss && second_boss == other.second_boss && events == other.events && normal == other.normal && elites == other.elites && shared_ancients == other.shared_ancients && events_visited == other.events_visited && normal_visited == other.normal_visited && elites_visited == other.elites_visited && bosses_visited == other.bosses_visited; }
+};
 enum class RunPhase : std::uint8_t { uninitialized, neow, neow_done, map, combat, combat_done, rewards, room, complete, invalid };
 enum class RewardReturn : std::uint8_t { map, parent_room };
 enum class ParentRoomStage : std::uint8_t { child_combat, child_rewards, choosing };
@@ -87,6 +134,7 @@ template<bool Const> struct BasicDeckView {
     PoolView<PersistentCard, PersistentCardTag, 32, Const> pool;
     Order& order;
     Owner& owner;
+    SequenceView<PersistentCardExtra, 10, Const> extra;
     auto handles() const noexcept { return SequenceView<PersistentCardHandle, 32, Const>(order, owner); }
     std::size_t size() const noexcept { return handles().size(); }
     bool empty() const noexcept { return handles().empty(); }
@@ -117,11 +165,13 @@ template<bool Const> struct BasicDeckView {
         auto order_view = handles();
         const auto at = std::find(order_view.begin(), order_view.end(), handle);
         if (at == order_view.end() || !pool.erase(handle)) return false;
-        order_view.erase(at); return true;
+        order_view.erase(at);
+        extra.erase(std::remove_if(extra.begin(), extra.end(), [&](const auto& entry) { return entry.card == handle; }), extra.end());
+        return true;
     }
     void clear() noexcept requires (!Const) { while (!empty()) (void)erase(handles().back()); }
     template<bool Other> bool operator==(const BasicDeckView<Other>& other) const {
-        return pool == other.pool && handles() == other.handles();
+        return pool == other.pool && handles() == other.handles() && extra == other.extra;
     }
 };
 struct RunData {
@@ -141,6 +191,7 @@ struct RunData {
     RelicBagData player_relics {};
     std::array<ActRoomsData, 3> acts {};
     PersistentCardPool persistent_cards {};
+    InlineSequence<PersistentCardExtra, 10> card_extra {};
     InlineSequence<PersistentCardHandle, 32> deck {};
     InlineSequence<ContentId, 16> relics {};
     std::uint32_t joss_paper_counter = 0;
@@ -173,7 +224,7 @@ struct RunData {
             visit(bag->order);
         }
         for (const auto& act : acts) { visit(act.events); visit(act.normal); visit(act.elites); visit(act.shared_ancients); }
-        visit(persistent_cards.slots); visit(persistent_cards.free); visit(deck); visit(relics); visit(potions);
+        visit(persistent_cards.slots); visit(persistent_cards.free); visit(card_extra); visit(deck); visit(relics); visit(potions);
         visit(visited);
     }
 };
@@ -201,7 +252,8 @@ template<bool Const> struct BasicRunView {
     BasicRelicBagView<Const> shared_relics{data.shared_relics, overflow};
     BasicRelicBagView<Const> player_relics{data.player_relics, overflow};
     std::array<BasicActRoomsView<Const>, 3> acts{{{data.acts[0], overflow}, {data.acts[1], overflow}, {data.acts[2], overflow}}};
-    BasicDeckView<Const> deck{{data.persistent_cards, overflow}, data.deck, overflow};
+    SequenceView<PersistentCardExtra, 10, Const> card_extra{data.card_extra, overflow};
+    BasicDeckView<Const> deck{{data.persistent_cards, overflow}, data.deck, overflow, card_extra};
     SequenceView<ContentId, 16, Const> relics{data.relics, overflow};
     Ref<std::uint32_t> joss_paper_counter = data.joss_paper_counter;
     SequenceView<ContentId, 4, Const> potions{data.potions, overflow};
@@ -234,7 +286,7 @@ template<bool Const> struct BasicRunView {
             potion_slots == other.potion_slots && orb_slots == other.orb_slots &&
             rng == other.rng && player_rng == other.player_rng &&
             shared_relics == other.shared_relics && player_relics == other.player_relics &&
-            acts == other.acts && deck == other.deck && relics == other.relics && joss_paper_counter == other.joss_paper_counter &&
+            acts == other.acts && deck == other.deck && card_extra == other.card_extra && relics == other.relics && joss_paper_counter == other.joss_paper_counter &&
             potions == other.potions && card_rarity_offset == other.card_rarity_offset &&
             potion_reward_odds == other.potion_reward_odds && combat == other.combat &&
             direct_combat == other.direct_combat && combat_generation == other.combat_generation &&

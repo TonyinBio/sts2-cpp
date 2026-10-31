@@ -1,5 +1,6 @@
 #pragma once
 #include "sts2/core/ids.hpp"
+#include "sts2/content/powers.hpp"
 #include <cstdint>
 
 namespace sts2::engine {
@@ -25,7 +26,6 @@ struct CombatEvent {
     bool applier_enemy : 1 = false;
     friend bool operator==(const CombatEvent&, const CombatEvent&) = default;
 };
-enum class PowerId : std::uint8_t { shrink, vulnerable, strength, dexterity, weak, artifact, count };
 struct PowerInstance {
     std::uint32_t instance = 0;
     PowerId definition = PowerId::shrink;

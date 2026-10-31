@@ -17,6 +17,12 @@ The gameplay definitions and semantics associated with a specific game build and
 **Run**:
 One playthrough from its initial configuration through its in-run decisions to an ending.
 
+**Persistent card**:
+A card in the run's permanent deck, retaining its identity and permanent changes across encounters.
+
+**Combat card**:
+A card participating in a particular combat, with its own identity and combat-specific changes. It may originate from a persistent card or be generated during combat.
+
 **Complete state**:
 All visible and hidden information needed to determine future gameplay and observations, including outstanding choices and suspended effects.
 _Avoid_: Observation or native save as a synonym for complete state.
